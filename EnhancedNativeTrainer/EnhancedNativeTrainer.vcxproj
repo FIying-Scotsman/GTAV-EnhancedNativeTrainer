@@ -50,6 +50,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="inc\xinput\CXBOXController.h" />
+    <ClInclude Include="inc\XorString.h" />
     <ClInclude Include="src\common\vectorHelper.h" />
     <ClInclude Include="src\datasets\data_props.h" />
     <ClInclude Include="src\ent-enums.h" />
