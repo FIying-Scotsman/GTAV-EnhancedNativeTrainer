@@ -32,6 +32,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <iostream>
 #include <vector>
 
+
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
 bool AIMBOT_INCLUDED = false;
@@ -534,7 +535,8 @@ bool onconfirm_main_menu(MenuItem<int> choice){
 
 void process_main_menu(){
 	std::ostringstream captionSS;
-	captionSS << "~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ";
+	//captionSS << "~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ";
+	captionSS << XorStr("~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ");
 	captionSS << VERSION_STRING;
 
 	std::vector<MenuItem<int>*> menuItems;
