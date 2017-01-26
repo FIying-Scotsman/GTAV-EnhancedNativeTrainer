@@ -14,7 +14,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <stdio.h>
 #include <windows.h>
 
-#include "..\inc\XorString.h" //String Encrpytion to prevent Hex editing strings
+//#include "..\inc\XorString.h" //String Encrpytion to prevent Hex editing strings
 
 
 // returns module load path with trailing slash
