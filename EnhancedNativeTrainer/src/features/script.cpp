@@ -28,6 +28,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "../utils.h"
 #include "../ui_support/file_dialog.h"
 
+//#include "../../inc/XorString.h"
+
 #include <set>
 #include <iostream>
 #include <vector>
@@ -534,9 +536,11 @@ bool onconfirm_main_menu(MenuItem<int> choice){
 }
 
 void process_main_menu(){
-	std::ostringstream captionSS;
-	//captionSS << "~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ";
-	captionSS << XorStr("~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ");
+	std::stringstream captionSS;
+	captionSS << "~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ";
+	//std::string title1 = XorStr("~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native ");
+	//std::string title2 = XorStr("Trainer ~HUD_COLOUR_GREY~Update "); //69-70 chars max. Had to truncate :'(
+	//captionSS << title1 << title2;
 	captionSS << VERSION_STRING;
 
 	std::vector<MenuItem<int>*> menuItems;

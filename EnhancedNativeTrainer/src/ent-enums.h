@@ -981,8 +981,10 @@ enum VehicleHashes{
 
 };
 
+//static_cast<float>(std::abs(...))
+
 inline bool GetVehicleInfoForClanLogo(Hash vehicleModel, Vector3& x, Vector3& y, Vector3& z, float& scale){
-	switch(vehicleModel){
+	switch(vehicleModel){ //error C2397: conversion from 'float' to 'DWORD' requires a narrowing conversion - VS 2015
 		case VEHICLE_DOMINATOR:
 			x = {0.0f, 1.4f, 1.0f};
 			y = {0.0f, 0.0f, -1.0f};
