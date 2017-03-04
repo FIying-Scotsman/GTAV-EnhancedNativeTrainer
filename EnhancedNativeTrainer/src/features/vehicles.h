@@ -8,6 +8,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
+#pragma warning(disable : 4800)
+
 #pragma once
 
 #include "..\..\inc\natives.h"

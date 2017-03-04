@@ -211,6 +211,7 @@
     <ClInclude Include="src\ui_support\entcolor.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
+    <ClInclude Include="inc\enums.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />

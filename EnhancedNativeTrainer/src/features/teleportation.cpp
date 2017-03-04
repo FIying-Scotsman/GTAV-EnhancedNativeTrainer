@@ -360,6 +360,7 @@ std::vector<tele_location> LOCATIONS_REQSCEN = {
 	{ "Yacht", -2023.661f, -1038.038f, 5.577f, { "smboat", "smboat_lod" }, {}, false },
 };
 
+/*
 std::vector<tele_location> LOCATIONS_BROKEN = {
 	//{ "Carrier", 3069.330f, -4704.220f, 15.043f, IPLS_CARRIER, {}, false },
 	{ "des_farmhouse", 2447.9f, 4973.4f, 47.7f, {}, {}, false },
@@ -386,7 +387,9 @@ std::vector<tele_location> LOCATIONS_BROKEN = {
 	{ "FBI heist", 136.00399780273438, -749.2869873046875, 153.302 }
 	//{ "Director Mod Trailer", -20.004f, -10.889f, 500.602f },
 };
+*/
 
+/*
 std::vector<tele_location> LOCATIONS_JELLMAN = {
 	{ "Aircraft Carrier", 3069.330f, -4704.220f, 15.043f, IPLS_CARRIER, {}, false },
 	{ "Heist Police Station", 445.488f, -983.779f, 30.6896f, { "" }, {}, false },
@@ -398,12 +401,13 @@ std::vector<tele_location> LOCATIONS_JELLMAN = {
 	{ "Eclipse Towers Apt 3", -773.407, 341.766, 211.397, {}, {}, false }
 	//{ "High Life Garage", 228.135f, -995.350f, -99.000f, { "hei_hw1_blimp_interior_2_dlc_garage_high_new_milo_" }, { "hw1_blimp_interior_v_garagel_milo_" }, false },
 };
+*/
 
 std::string JELLMAN_CAPTION = "Heist Map Updates In SP";
 
-static std::vector<std::string> MENU_LOCATION_CATEGORIES{"Safehouses", "Landmarks", "Roof/High Up", "Underwater", "Interiors", "Extra Exterior Scenery", JELLMAN_CAPTION};// "Test", "Toggles" };
+static std::vector<std::string> MENU_LOCATION_CATEGORIES{"Safehouses", "Landmarks", "Roof/High Up", "Underwater", "Interiors", "Extra Exterior Scenery" };// "Test", "Toggles" JELLMAN_CAPTION };
 
-static std::vector<tele_location> VOV_LOCATIONS[] = {LOCATIONS_SAFE, LOCATIONS_LANDMARKS, LOCATIONS_HIGH, LOCATIONS_UNDERWATER, LOCATIONS_INTERIORS, LOCATIONS_REQSCEN, LOCATIONS_JELLMAN};// , LOCATIONS_BROKEN };
+static std::vector<tele_location> VOV_LOCATIONS[] = {LOCATIONS_SAFE, LOCATIONS_LANDMARKS, LOCATIONS_HIGH, LOCATIONS_UNDERWATER, LOCATIONS_INTERIORS, LOCATIONS_REQSCEN};// JELLMAN_CAPTION, LOCATIONS_BROKEN };
 
 void teleport_to_coords(Entity e, Vector3 coords){
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords.x, coords.y, coords.z, 0, 0, 1);
