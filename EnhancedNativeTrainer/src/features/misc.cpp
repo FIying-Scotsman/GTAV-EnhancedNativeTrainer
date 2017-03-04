@@ -40,6 +40,10 @@ bool featureResetPlayerModelOnDeath = true;
 const int TRAINERCONFIG_HOTKEY_MENU = 99;
 int radioStationIndex = -1;
 
+bool featureRevealMap = false;
+bool featureGetAllObjects = false;
+bool featureGetAllVehicles = false;
+
 void onchange_hotkey_function(int value, SelectFromListMenuItem* source){
 	change_hotkey_function(source->extras.at(0), value);
 }
@@ -250,7 +254,7 @@ bool onconfirm_misc_menu(MenuItem<int> choice){
 }
 
 void process_misc_menu(){
-	const int lineCount = 7;
+	const int lineCount = 10;
 
 	std::string caption = "Miscellaneous Options";
 
@@ -261,6 +265,9 @@ void process_misc_menu(){
 		{"Freeze Radio to Station", nullptr, nullptr, false},
 		{"Radio Always Off", &featureRadioAlwaysOff, &featureRadioAlwaysOffUpdated, true},
 		{"Hide HUD", &featureMiscHideHud, &featureMiscHideHudUpdated},
+		{"Reveal Full Map", &featureRevealMap, NULL },
+		{"Display Object Hashes", &featureGetAllObjects, NULL },
+		{"Display Vehicle Info", &featureGetAllVehicles, NULL },
 		{"Reset Player Model on Death", &featureResetPlayerModelOnDeath, nullptr, true}
 	};
 
@@ -282,6 +289,7 @@ void reset_misc_globals(){
 	featureRadioFreezeUpdated =
 		featureRadioAlwaysOffUpdated =
 		featureMiscHideHudUpdated =
+		featureRevealMap =
 		featurePlayerRadioUpdated = true;
 
 	ENTColor::reset_colors();
@@ -348,6 +356,101 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		UI::DISPLAY_RADAR(true);
 		featureMiscHideHudUpdated = false;
 	}
+	if (featureRevealMap == false)
+	{
+		UI::_SET_MINIMAP_REVEALED(false);
+	}
+	if (featureRevealMap == true)
+	{
+		UI::_SET_MINIMAP_REVEALED(true);
+	}
+
+	if (featureGetAllObjects)
+	{
+		const int ARR_SIZE = 1024;
+		Object objects[ARR_SIZE];
+		int count = worldGetAllObjects(objects, ARR_SIZE);
+		std::vector<std::pair<float, float>> coordsOnScreen;
+		for (int i = 0; i < count; i++)
+		{
+			Hash model = ENTITY::GET_ENTITY_MODEL(objects[i]);
+			Vector3 v = ENTITY::GET_ENTITY_COORDS(objects[i], TRUE);
+			float x, y;
+			if (GRAPHICS::_WORLD3D_TO_SCREEN2D(v.x, v.y, v.z, &x, &y))
+			{
+				Vector3 plv = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
+				float dist = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(plv.x, plv.y, plv.z, v.x, v.y, v.z, TRUE);
+				if (dist < 100.0)
+				{
+					bool bFitsOnscreen = true;
+					for (auto iter = coordsOnScreen.begin(); iter != coordsOnScreen.end(); iter++)
+					{
+						float textDist = sqrtf((iter->first - x)*(iter->first - x) + (iter->second - y)*(iter->second - y));
+						if (textDist < 0.05)
+						{
+							bFitsOnscreen = false;
+							break;
+						}
+					}
+					if (!bFitsOnscreen) continue;
+					coordsOnScreen.push_back({ x, y });
+					char text[256];
+					sprintf_s(text, "^\n%08X\n%.02f", model, dist);
+					UI::SET_TEXT_FONT(0);
+					UI::SET_TEXT_SCALE(0.2, 0.2);
+					UI::SET_TEXT_COLOUR(200, 255, 200, 255);
+					UI::SET_TEXT_WRAP(0.0, 1.0);
+					UI::SET_TEXT_CENTRE(0);
+					UI::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
+					UI::SET_TEXT_EDGE(1, 0, 0, 0, 205);
+					UI::_SET_TEXT_ENTRY("STRING");
+					UI::_ADD_TEXT_COMPONENT_STRING(text);
+					UI::_DRAW_TEXT(x, y);
+					GRAPHICS::DRAW_RECT(x + 0.017f, y + 0.029f, 0.04f, 0.032f, 20, 20, 20, 75);
+				}
+			}
+		}
+	}
+
+	if (featureGetAllVehicles)
+	{
+		// get all vehicles
+		const int ARR_SIZE = 1024;
+		Vehicle vehicles[ARR_SIZE];
+		int count = worldGetAllVehicles(vehicles, ARR_SIZE);
+		for (int i = 0; i < count; i++)
+		{
+			Hash model = ENTITY::GET_ENTITY_MODEL(vehicles[i]);
+			if (VEHICLE::IS_THIS_MODEL_A_HELI(model) || VEHICLE::IS_THIS_MODEL_A_PLANE(model) || VEHICLE::IS_THIS_MODEL_A_CAR(model) || VEHICLE::IS_THIS_MODEL_A_TRAIN(model) || VEHICLE::IS_THIS_MODEL_A_BIKE(model) || VEHICLE::IS_THIS_MODEL_A_BICYCLE(model) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(model) || VEHICLE::IS_THIS_MODEL_A_BOAT(model) || VEHICLE::_IS_THIS_MODEL_AN_EMERGENCY_BOAT(model) || VEHICLE::_IS_THIS_MODEL_A_SUBMERSIBLE(model) || VEHICLE::_IS_THIS_MODEL_AN_EMERGENCY_BOAT(model) || ENTITY::IS_ENTITY_IN_AIR(vehicles[i]) || ENTITY::IS_ENTITY_IN_WATER(vehicles[i]))
+			{
+				Vector3 v = ENTITY::GET_ENTITY_COORDS(vehicles[i], TRUE);
+				float x, y;
+				if (GRAPHICS::_WORLD3D_TO_SCREEN2D(v.x, v.y, v.z, &x, &y))
+				{
+					Vector3 plv = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
+					float dist = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(plv.x, plv.y, plv.z, v.x, v.y, v.z, TRUE);
+					if (dist > 1.0)
+					{
+						int health = ENTITY::GET_ENTITY_HEALTH(vehicles[i]);
+						char *name = VEHICLE::GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(model);
+						char text[256];
+						sprintf_s(text, "^\n%s\nHeight %.02f\nDistance %.02f\nHealth %d", name, v.z, dist, health);
+						UI::SET_TEXT_FONT(0);
+						UI::SET_TEXT_SCALE(0.2, 0.2);
+						UI::SET_TEXT_COLOUR(255, 255, 255, 255);
+						UI::SET_TEXT_WRAP(0.0, 1.0);
+						UI::SET_TEXT_CENTRE(0);
+						UI::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
+						UI::SET_TEXT_EDGE(1, 0, 0, 0, 205);
+						UI::_SET_TEXT_ENTRY("STRING");
+						UI::_ADD_TEXT_COMPONENT_STRING(text);
+						UI::_DRAW_TEXT(x, y);
+						GRAPHICS::DRAW_RECT(x + 0.027f, y + 0.043f, 0.058f, 0.056f, 75, 75, 75, 75);
+					}
+				}
+			}
+		}
+	}
 }
 
 void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
@@ -365,6 +468,7 @@ void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 	results->push_back(FeatureEnabledLocalDefinition{"featureMiscJellmanScenery", &featureMiscJellmanScenery});
 
 	results->push_back(FeatureEnabledLocalDefinition{"featureResetPlayerModelOnDeath", &featureResetPlayerModelOnDeath});
+	results->push_back(FeatureEnabledLocalDefinition{ "featureRevealMap", &featureRevealMap });
 }
 
 void add_misc_generic_settings(std::vector<StringPairSettingDBRow>* results){
