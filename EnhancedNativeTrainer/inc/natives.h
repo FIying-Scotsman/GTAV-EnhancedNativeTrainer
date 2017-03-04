@@ -1160,7 +1160,7 @@ namespace VEHICLE
 	static void SET_MISSION_TRAIN_AS_NO_LONGER_NEEDED(Vehicle* train, BOOL p1) { invoke<Void>(0xBBE7648349B49BE8, train, p1); } // 0xBBE7648349B49BE8 0x19808560
 	static void SET_MISSION_TRAIN_COORDS(Vehicle train, float x, float y, float z) { invoke<Void>(0x591CA673AA6AB736, train, x, y, z); } // 0x591CA673AA6AB736 0xD6D70803
 	static BOOL IS_THIS_MODEL_A_BOAT(Hash model) { return invoke<BOOL>(0x45A9187928F4B9E3, model); } // 0x45A9187928F4B9E3 0x10F6085C
-	//static BOOL _IS_THIS_MODEL_AN_EMERGENCY_BOAT(Hash model) { return invoke<BOOL>(0x9537097412CF75FE, model); } // 0x9537097412CF75FE
+	static BOOL _IS_THIS_MODEL_AN_EMERGENCY_BOAT(Hash model) { return invoke<BOOL>(0x9537097412CF75FE, model); } // 0x9537097412CF75FE
 	static BOOL _IS_THIS_MODEL_A_SUBMERSIBLE(Hash model) { return invoke<BOOL>(0x9537097412CF75FE, model); } // 0x9537097412CF75FE
 	static BOOL IS_THIS_MODEL_A_PLANE(Hash model) { return invoke<BOOL>(0xA0948AB42D7BA0DE, model); } // 0xA0948AB42D7BA0DE 0x3B3907BB
 	static BOOL IS_THIS_MODEL_A_HELI(Hash model) { return invoke<BOOL>(0xDCE4334788AF94EA, model); } // 0xDCE4334788AF94EA 0x8AF7F568

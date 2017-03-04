@@ -1196,6 +1196,7 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 	return modItemNameStr;
 }
 
+/*
 void addClanLogoToVehicle(Vehicle vehicle, Ped ped){
 	Vector3 x, y, z;
 	float scale;
@@ -1207,6 +1208,7 @@ void addClanLogoToVehicle(Vehicle vehicle, Ped ped){
 		GRAPHICS::_ADD_CLAN_DECAL_TO_VEHICLE(vehicle, ped, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(vehicle, "chassis_dummy"), x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z, scale, 0, alpha);
 	}
 }
+*/
 
 bool onconfirm_vehmod_wheel_selection(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
