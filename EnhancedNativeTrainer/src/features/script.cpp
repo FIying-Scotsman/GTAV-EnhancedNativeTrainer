@@ -419,7 +419,8 @@ void update_features(){
 	if(bPlayerExists){
 		bool throughDoorPressed = IsKeyJustUp(KeyConfig::KEY_HOT_AIRBRAKE_THROUGH_DOOR) || IsControllerButtonJustUp(KeyConfig::KEY_HOT_AIRBRAKE_THROUGH_DOOR);
 		//bool disablePolicePressed = IsKeyJustUp(VK_OEM_6);
-		if(throughDoorPressed){
+		if(throughDoorPressed)
+		{
 			moveThroughDoor();
 		}
 	}
@@ -769,8 +770,10 @@ void main(){
 
 	set_status_text("~HUD_COLOUR_MENU_YELLOW~ENT~HUD_COLOUR_WHITE~ is ready!");
 
-	while(true){
-		if(trainer_switch_pressed()){
+	while(true)
+	{
+		if(trainer_switch_pressed())
+		{
 			menu_beep();
 			set_menu_showing(true);
 			process_main_menu();

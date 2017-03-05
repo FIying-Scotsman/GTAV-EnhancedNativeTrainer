@@ -708,7 +708,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 					{
 						ENTITY::SET_ENTITY_AS_MISSION_ENTITY(nearbyVehicle[offsettedID], 0, 1);
 
-						if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, 189))
+						if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, INPUT_SCRIPT_PAD_LEFT) || get_key_pressed(VK_KEY_L))
 						{
 							//STREAMING::REQUEST_ANIM_DICT("cellphone@");
 							//AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "cellphone@", "cellphone_text_in", 8.0f, 1, -1, 16, 0, false, 0, false);
@@ -717,12 +717,12 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 							VEHICLE::SET_VEHICLE_ALARM(nearbyVehicle[offsettedID], 1);
 							VEHICLE::SET_VEHICLE_ENGINE_ON(nearbyVehicle[offsettedID], 0, 0);
 							VEHICLE::RAISE_CONVERTIBLE_ROOF(nearbyVehicle[offsettedID], 0);
-							VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT(nearbyVehicle[offsettedID], "APT  I40");
+							VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT(nearbyVehicle[offsettedID], "LOCKED");
 							VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(nearbyVehicle[offsettedID], 3);
 							VEHICLE::SET_VEHICLE_INDICATOR_LIGHTS(nearbyVehicle[offsettedID], 0, 1);
 							VEHICLE::SET_VEHICLE_INDICATOR_LIGHTS(nearbyVehicle[offsettedID], 1, 1);
 						}
-						if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, 190))
+						if (CONTROLS::IS_CONTROL_JUST_PRESSED(0, INPUT_SCRIPT_PAD_RIGHT) || get_key_pressed(VK_KEY_U))
 						{
 							//STREAMING::REQUEST_ANIM_DICT("cellphone@");
 							//AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "cellphone@", "cellphone_text_in", 20.0f, 1, -1, 16, 0, false, 0, false);
@@ -731,7 +731,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 							VEHICLE::SET_VEHICLE_ALARM(nearbyVehicle[offsettedID], 0);
 							VEHICLE::SET_VEHICLE_ENGINE_ON(nearbyVehicle[offsettedID], 1, 1);
 							VEHICLE::LOWER_CONVERTIBLE_ROOF(nearbyVehicle[offsettedID], 0);
-							VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT(nearbyVehicle[offsettedID], "APT  I40");
+							VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT(nearbyVehicle[offsettedID], "UNLOCKED");
 							VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(nearbyVehicle[offsettedID], 3);
 							VEHICLE::SET_VEHICLE_INDICATOR_LIGHTS(nearbyVehicle[offsettedID], 0, 1);
 							VEHICLE::SET_VEHICLE_INDICATOR_LIGHTS(nearbyVehicle[offsettedID], 1, 1);
