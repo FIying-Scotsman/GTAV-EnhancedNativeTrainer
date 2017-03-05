@@ -21,14 +21,14 @@ bool gameInputBlockedByUs = false;
 
 bool trainer_switch_pressed()
 {
-	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU) || IsControllerButtonJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU);
+	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_SCRIPT_PAD_RIGHT) && CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_FRONTEND_X); //  || IsControllerButtonJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU)
 	if (result)
 	{
 		//avoid repeat of key press
 		DWORD maxTickCount = GetTickCount() + 200;
 		do
 		{
-			UpdateXInputControlState();
+			//UpdateXInputControlState();
 			make_periodic_feature_call();
 			WAIT(0);
 		} while (GetTickCount() < maxTickCount);
@@ -40,13 +40,13 @@ void get_button_state(bool *a, bool *b, bool *up, bool *down, bool *l, bool *r)
 {
 	KeyInputConfig *keyConf = config->get_key_config();
 
-	if (a) *a = IsKeyJustUp(KeyConfig::KEY_MENU_SELECT) || IsControllerButtonJustUp(KeyConfig::KEY_MENU_SELECT);
-	if (b) *b = IsKeyJustUp(KeyConfig::KEY_MENU_BACK) || IsControllerButtonJustUp(KeyConfig::KEY_MENU_BACK);
+	if (a) *a = IsKeyJustUp(KeyConfig::KEY_MENU_SELECT); // || IsControllerButtonJustUp(KeyConfig::KEY_MENU_SELECT);
+	if (b) *b = IsKeyJustUp(KeyConfig::KEY_MENU_BACK); // || IsControllerButtonJustUp(KeyConfig::KEY_MENU_BACK);
 
-	if (up) *up = IsKeyDown(KeyConfig::KEY_MENU_UP) || IsControllerButtonDown(KeyConfig::KEY_MENU_UP);
-	if (down) *down = IsKeyDown(KeyConfig::KEY_MENU_DOWN) || IsControllerButtonDown(KeyConfig::KEY_MENU_DOWN);
-	if (r) *r = IsKeyDown(KeyConfig::KEY_MENU_RIGHT) || IsControllerButtonDown(KeyConfig::KEY_MENU_RIGHT);
-	if (l) *l = IsKeyDown(KeyConfig::KEY_MENU_LEFT) || IsControllerButtonDown(KeyConfig::KEY_MENU_LEFT);
+	if (up) *up = IsKeyDown(KeyConfig::KEY_MENU_UP); // || IsControllerButtonDown(KeyConfig::KEY_MENU_UP);
+	if (down) *down = IsKeyDown(KeyConfig::KEY_MENU_DOWN); // || IsControllerButtonDown(KeyConfig::KEY_MENU_DOWN);
+	if (r) *r = IsKeyDown(KeyConfig::KEY_MENU_RIGHT); // || IsControllerButtonDown(KeyConfig::KEY_MENU_RIGHT);
+	if (l) *l = IsKeyDown(KeyConfig::KEY_MENU_LEFT); // || IsControllerButtonDown(KeyConfig::KEY_MENU_LEFT);
 }
 
 bool get_key_pressed(int nVirtKey)

@@ -23,6 +23,13 @@ void(*periodic_feature_call)(void) = NULL;
 
 void(*menu_per_frame_call)(void) = NULL;
 
+void draw_sprite(char* textureDict, char* textureName, float x, float y, float width, float height, float rotation, int red, int green, int blue)
+{
+	GRAPHICS::REQUEST_STREAMED_TEXTURE_DICT(textureDict, false);
+	if (GRAPHICS::HAS_STREAMED_TEXTURE_DICT_LOADED(textureDict))
+		GRAPHICS::DRAW_SPRITE(textureDict, textureName, x, y, width, height, rotation, red, green, blue, 255);
+}
+
 void set_periodic_feature_call(void method(void)){
 	periodic_feature_call = method;
 }

@@ -40,6 +40,9 @@ extern void(*menu_per_frame_call)(void);
 
 static const char* LOCAL_TEXTURE_DICT = "LOCALTEXTURES";
 
+int getKeyPressed(int key);
+void draw_sprite(char* textureDict, char* textureName, float x, float y, float width, float height, float rotation, int red, int green, int blue);
+
 template<class T>
 class MenuItem{
 	public:
@@ -346,6 +349,8 @@ static const float TEXT_HEIGHT_NONLEAF = 24.0f;
 
 static const float TEXT_HEIGHT_WSTARS = 24.0f;
 
+static const float SPRITE_HEIGHT = 0.0f;
+
 /**Set the method that is used to periodically update the entire UI and apply repeat settings. The script core does this once.*/
 void set_periodic_feature_call(void method(void));
 
@@ -459,7 +464,30 @@ inline void draw_menu_header_line(std::string caption, float lineWidth, float li
 }
 
 template<typename T>
-void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool rescaleText){
+void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool rescaleText)
+{	
+	CAM::SET_CINEMATIC_BUTTON_ACTIVE(0);
+	UI::HIDE_HUD_COMPONENT_THIS_FRAME(10);
+	UI::HIDE_HUD_COMPONENT_THIS_FRAME(6);
+	UI::HIDE_HUD_COMPONENT_THIS_FRAME(7);
+	UI::HIDE_HUD_COMPONENT_THIS_FRAME(9);
+	UI::HIDE_HUD_COMPONENT_THIS_FRAME(8);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_NEXT_CAMERA, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_PHONE, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_VEH_CIN_CAM, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_SELECT_CHARACTER_FRANKLIN, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_SELECT_CHARACTER_MICHAEL, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_SELECT_CHARACTER_TREVOR, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_SELECT_CHARACTER_MULTIPLAYER, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_CHARACTER_WHEEL, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_MELEE_ATTACK_LIGHT, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_MELEE_ATTACK_HEAVY, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_MELEE_ATTACK_ALTERNATE, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_MULTIPLAYER_INFO, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_REPLAY_SHOWHOTKEY, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_INTERACTION_MENU, true);
+	CONTROLS::DISABLE_CONTROL_ACTION(2, INPUT_SPRINT, true);
+
 	float text_scale = 0.35;
 	bool outline = false;
 	bool dropShadow = false;
@@ -529,7 +557,9 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 				  ENTColor::colsMenu[3].rgba[0], ENTColor::colsMenu[3].rgba[1], ENTColor::colsMenu[3].rgba[2], ENTColor::colsMenu[3].rgba[3]);
 	}
 
-	if(ToggleMenuItem<T>* toggleItem = dynamic_cast<ToggleMenuItem<T>*>(item)){
+	if(ToggleMenuItem<T>* toggleItem = dynamic_cast<ToggleMenuItem<T>*>(item))
+	{
+		/*
 		UI::SET_TEXT_FONT(fontItem);
 		UI::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
@@ -568,6 +598,18 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		}
 
 		UI::_DRAW_TEXT(lineLeftScaled + lineWidthScaled - rightMarginScaled, textY);
+		*/
+
+		float sprite = lineTopScaled + (0.5f * (lineHeightScaled - (SPRITE_HEIGHT / (float)screen_h)));
+		rightMarginScaled = 20.0f / (float)screen_w;
+		if (toggleItem->get_toggle_value())
+		{
+			draw_sprite("cellphone_badger", "t", lineLeftScaled + lineWidthScaled - rightMarginScaled, sprite, 0.026, 0.038, 0, 255, 255, 255);
+		}
+		else
+		{
+			draw_sprite("cellphone_badger", "u", lineLeftScaled + lineWidthScaled - rightMarginScaled, sprite, 0.026, 0.038, 0, 0, 0, 0);
+		}
 	}
 	else if(CashItem<T>* cashItem = dynamic_cast<CashItem<T> *>(item)){
 		UI::SET_TEXT_FONT(fontItem);
@@ -601,7 +643,8 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 
 		std::stringstream ss;
 		ss << "<< ";
-		if(cashItem->GetCash() < 0){
+		if(cashItem->GetCash() < 0)
+		{
 			ss << "-";
 		}
 		ss << "$" << commaCash << " >>";
@@ -787,7 +830,9 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}
-	else if(!item->isLeaf){
+	else if(!item->isLeaf)
+	{
+		/*
 		UI::SET_TEXT_FONT(fontItem);
 		UI::SET_TEXT_SCALE(0.0, 0.4f);
 		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[10].rgba[0], ENTColor::colsMenu[10].rgba[1], ENTColor::colsMenu[10].rgba[2], ENTColor::colsMenu[10].rgba[3]);
@@ -801,6 +846,11 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		UI::_ADD_TEXT_COMPONENT_STRING(">>");
 		float textY = lineTopScaled + (0.5f * (lineHeightScaled - (TEXT_HEIGHT_NONLEAF / (float) screen_h)));
 		UI::_DRAW_TEXT(0, textY);
+		*/
+
+		float right_arrow = lineTopScaled + (0.5f * (lineHeightScaled - (SPRITE_HEIGHT / (float)screen_h)));
+		rightMarginScaled = 20.0f / (float)screen_w;
+		draw_sprite("helicopterhud", "hud_corner", lineLeftScaled + lineWidthScaled - rightMarginScaled, right_arrow, 0.015, 0.025, 135, 0, 0, 0);
 	}
 }
 
@@ -886,8 +936,10 @@ bool draw_generic_menu(MenuParameters<T> params){
 
 	MenuItem<T> *choice = NULL;
 
-	while(true){
-		if(trainer_switch_pressed()){
+	while(true)
+	{
+		if(trainer_switch_pressed())
+		{
 			menu_beep();
 
 			set_menu_showing(!is_menu_showing());
@@ -984,54 +1036,63 @@ bool draw_generic_menu(MenuParameters<T> params){
 
 		choice = params.items[currentSelectionIndex];
 
-		if(bSelect){
+		if(bSelect || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_FRONTEND_ACCEPT))
+		{
 			menu_beep();
-
 			waitTime = 200;
-
 			bool confHandled = choice->onConfirm();
-
 			//fire the main handler
-			if(!confHandled && params.onConfirmation != NULL){
+			if(!confHandled && params.onConfirmation != NULL)
+			{
 				result = params.onConfirmation(*choice);
 			}
 
-			if(result){
+			if(result)
+			{
 				//result = false; //to avoid cascading upwards
 				break;
 			}
 		}
-		else{
-			if(bBack){
+		else
+		{
+			if(bBack || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_FRONTEND_CANCEL))
+			{
 				menu_beep();
 				waitTime = 200;
 				result = false;
 				break;
 			}
-			else{
-				if(bDown){
+			else
+			{
+				if(bDown || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_SCRIPT_PAD_DOWN))
+				{
 					menu_beep();
 					currentSelectionIndex++;
-					if(currentSelectionIndex >= totalItems || (currentSelectionIndex >= lineStartPosition + itemsOnThisLine)){
+					if(currentSelectionIndex >= totalItems || (currentSelectionIndex >= lineStartPosition + itemsOnThisLine))
+					{
 						currentSelectionIndex = lineStartPosition;
 					}
 					waitTime = 150;
 				}
-				else if(bUp){
+				else if(bUp || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_SCRIPT_PAD_UP))
+				{
 					menu_beep();
 					currentSelectionIndex--;
-					if(currentSelectionIndex < 0 || (currentSelectionIndex < lineStartPosition)){
+					if(currentSelectionIndex < 0 || (currentSelectionIndex < lineStartPosition))
+					{
 						currentSelectionIndex = lineStartPosition + itemsOnThisLine - 1;
 					}
 					waitTime = 150;
 				}
-				else if(bLeft){
+				else if(bLeft || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_SCRIPT_PAD_LEFT))
+				{
 					menu_beep();
-
-					if(choice->isAbsorbingLeftAndRightEvents()){
+					if(choice->isAbsorbingLeftAndRightEvents())
+					{
 						choice->handleLeftPress();
 					}
-					else if(lineCount > 1){
+					else if(lineCount > 1)
+					{
 						int mod = currentSelectionIndex % itemsPerLine;
 						currentSelectionIndex -= itemsPerLine;
 						if(currentSelectionIndex < 0){
@@ -1043,10 +1104,11 @@ bool draw_generic_menu(MenuParameters<T> params){
 					}
 					waitTime = 200;
 				}
-				else if(bRight){
+				else if(bRight || CONTROLS::IS_DISABLED_CONTROL_PRESSED(0, INPUT_SCRIPT_PAD_RIGHT))
+				{
 					menu_beep();
-
-					if(choice->isAbsorbingLeftAndRightEvents()){
+					if(choice->isAbsorbingLeftAndRightEvents())
+					{
 						choice->handleRightPress();
 					}
 					else if(lineCount > 1){
