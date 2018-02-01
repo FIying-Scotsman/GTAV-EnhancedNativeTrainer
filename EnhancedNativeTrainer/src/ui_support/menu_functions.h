@@ -1263,7 +1263,7 @@ bool draw_generic_menu(MenuParameters<T> params){
 							}
 						}
 					}
-					waitTime = 200;
+					waitTime = 100;//200
 				}
 				else if(bRight){
 					menu_beep();
@@ -1287,7 +1287,7 @@ bool draw_generic_menu(MenuParameters<T> params){
 						}
 					}
 
-					waitTime = 200;
+					waitTime = 100;//200
 				}
 
 				if(params.onHighlight != NULL && originalIndex != currentSelectionIndex){

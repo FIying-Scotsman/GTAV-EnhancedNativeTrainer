@@ -74,7 +74,6 @@ const std::vector<int> VEH_MASS_VALUES{0, 5, 10, 25, 50, 75, 100, 125, 150, 175,
 int VehMassMultIndex = 0;
 bool massChanged = true;
 
-
 // player in vehicle state... assume true initially since our quicksave might have us in a vehicle already, in which case we can't check if we just got into one
 bool oldVehicleState = true;
 
@@ -265,6 +264,7 @@ bool onconfirm_vehdoor_menu(MenuItem<int> choice){
 
 	return false;
 }
+
 
 bool process_veh_door_menu(){
 	std::string caption = "Door Options";
@@ -473,6 +473,13 @@ void process_veh_menu(){
 	listItem->value = engPowMultIndex;
 	menuItems.push_back(listItem);
 
+	listItem = new SelectFromListMenuItem(VEH_SEAT_INDEX(), onchange_veh_eng_pow_index);
+	listItem->wrap = false;
+	listItem->caption = "Vehicle Seat";
+	listItem->value = engPowMultIndex;
+	menuItems.push_back(listItem);
+
+
 	/*listItem = new SelectFromListMenuItem(VEH_MASS_CAPTIONS, onchange_veh_mass_index);
 	listItem->wrap = false;
 	listItem->caption = "Vehicle Mass Multiplier";
@@ -514,27 +521,8 @@ void process_veh_menu(){
 void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 
-	/* version-specific hack to prevent despawn of vehicles exclusive to GTA Online
-	eGameVersion version = getGameVersion();
-	if(version < 20){
-		*getGlobalPtr(2558120) = 1;
-	}
-	else if(version < 22){
-		*getGlobalPtr(2562051) = 1;
-	}
-	else if(version < 26){
-		*getGlobalPtr(2566708) = 1;
-	}
-	else if(version < 28){
-		*getGlobalPtr(2576573) = 1;
-	}
-	else if(version < 30){
-		*getGlobalPtr(2593910) = 1;
-	}
-	else{
-		*getGlobalPtr(2593970) = 1; //2593910 -- old. Keep in case new one doesn't work.
-	}*/
-
+	// version-specific hack to prevent despawn of vehicles exclusive to GTA Online
+	
 	eGameVersion version = getGameVersion();
 	if (version < 20) *getGlobalPtr(2558120) = 1;
 
@@ -2320,4 +2308,18 @@ void drive_passenger(){
 		}
 
 	}
+}
+
+std::vector<int> VEH_SEAT_INDEX()
+{
+	std::vector<int> veh_seats;
+	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
+	int maxSeats = VEHICLE::GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GAMEPLAY::GET_HASH_KEY((char*)veh));
+
+	for (int i = -1; i < maxSeats; i++)
+	{
+		veh_seats.push_back(i);
+	}
+
+	return veh_seats;
 }
