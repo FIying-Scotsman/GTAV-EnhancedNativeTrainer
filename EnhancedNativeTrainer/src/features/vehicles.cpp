@@ -719,7 +719,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 
 	if (bPlayerExists && (did_player_just_enter_vehicle(playerPed) || seatChanged))
 	{
-
+		PED::SET_PED_INTO_VEHICLE(playerPed, veh, VEH_SEAT_INDEX_VALUES[currSeat]);
 		seatChanged = false;
 	}
 
