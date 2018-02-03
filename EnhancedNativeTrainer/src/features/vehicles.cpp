@@ -61,8 +61,8 @@ const std::vector<std::string> VEH_SPEED_BOOST_CAPTIONS{"Only When Already Movin
 int speedBoostIndex = 0;
 
 //Vehicle seat - -1 = Drivers, 0 = Passenger etc
-const std::vector<std::string> VEH_SEAT_INDEX_CAPTIONS{ "Driver", "Passenger", "Passenger 2", "Passenger 3", "Passenger 4", "Passenger 5", "Passenger 6", "Passenger 7", "Passenger 8", "Passenger 9", };
-std::vector<int> VEH_SEAT_INDEX_VALUES = get_seat_count();
+const std::vector<std::string> VEH_SEAT_INDEX_CAPTIONS{ "Driver", "Passenger", "Passenger 2", "Passenger 3", "Passenger 4", "Passenger 5", "Passenger 6", "Passenger 7", "Passenger 8", "Passenger 9"};
+std::vector<int> VEH_SEAT_INDEX_VALUES = { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8 };
 int currSeat = -1;
 bool seatChanged = true;
 
@@ -479,7 +479,7 @@ void process_veh_menu(){
 	listItem->value = engPowMultIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SEAT_INDEX_CAPTIONS, onchange_veh_seat_index);
+	listItem = new SelectFromListMenuItem(get_seat_captions(get_seat_count()), onchange_veh_seat_index);
 	listItem->wrap = false;
 	listItem->caption = "Vehicle Seat";
 	listItem->value = currSeat;
@@ -2344,4 +2344,14 @@ int get_seat_count()
 	int maxSeats = VEHICLE::GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GAMEPLAY::GET_HASH_KEY((char*)veh));
 	
 	return maxSeats;
+}
+
+const std::vector<std::string> get_seat_captions(int num_seats) {
+	std::vector<std::string> captions(VEH_SEAT_INDEX_CAPTIONS.begin(), VEH_SEAT_INDEX_CAPTIONS.begin() + num_seats);
+	return captions;
+}
+
+const std::vector<int> get_seat_indexes(int num_seats) {
+	std::vector<int> indexes(VEH_SEAT_INDEX_VALUES.begin(), VEH_SEAT_INDEX_VALUES.begin() + num_seats - 1);
+	return indexes;
 }
