@@ -240,6 +240,12 @@ bool process_interior_colour_menu();
 
 void drive_passenger();
 
+int get_seat_count();
+
+const std::vector<std::string> get_seat_captions(int num_seats);
+
+void onchange_veh_seat_index(int value, SelectFromListMenuItem* source);
+
 bool inline is_this_a_car(Vehicle veh){
 	// Return true if the current vehicle is a car, e.g. as certain vehicles don't support neon lights
 	Entity et = ENTITY::GET_ENTITY_MODEL(veh);
