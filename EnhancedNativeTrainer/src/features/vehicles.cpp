@@ -2352,6 +2352,6 @@ const std::vector<std::string> get_seat_captions(int num_seats) {
 }
 
 const std::vector<int> get_seat_indexes(int num_seats) {
-	std::vector<int> indexes(VEH_SEAT_INDEX_VALUES.begin(), VEH_SEAT_INDEX_VALUES.begin() + num_seats - 1);
+	std::vector<int> indexes(VEH_SEAT_INDEX_VALUES.begin(), VEH_SEAT_INDEX_VALUES.begin() + num_seats);
 	return indexes;
 }
