@@ -60,6 +60,12 @@ const std::vector<std::string> VEH_INVINC_MODE_CAPTIONS{"OFF", "Mech. Only", "Me
 const std::vector<std::string> VEH_SPEED_BOOST_CAPTIONS{"Only When Already Moving", "Nothing Can Stop Me", "Fastest in the World"};
 int speedBoostIndex = 0;
 
+//Vehicle seat - -1 = Drivers, 0 = Passenger etc
+const std::vector<std::string> VEH_SEAT_INDEX_CAPTIONS{ "Driver", "Passenger", "Passenger 2", "Passenger 3", "Passenger 4", "Passenger 5", "Passenger 6", "Passenger 7", "Passenger 8", "Passenger 9", };
+std::vector<int> VEH_SEAT_INDEX_VALUES = get_seat_count();
+int currSeat = -1;
+bool seatChanged = true;
+
 // engine power stuff
 const std::vector<std::string> VEH_ENG_POW_CAPTIONS{"1x", "5x", "10x", "25x", "50x", "75x", "100x", "125x", "150x", "175x", "200x", "225x", "250x", "275x", "300x", "325x", "350x", "375x", "400x"};
 const std::vector<int> VEH_ENG_POW_VALUES{0, 5, 10, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400};
@@ -473,10 +479,10 @@ void process_veh_menu(){
 	listItem->value = engPowMultIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SEAT_INDEX(), onchange_veh_eng_pow_index);
+	listItem = new SelectFromListMenuItem(VEH_SEAT_INDEX_CAPTIONS, onchange_veh_seat_index);
 	listItem->wrap = false;
 	listItem->caption = "Vehicle Seat";
-	listItem->value = engPowMultIndex;
+	listItem->value = currSeat;
 	menuItems.push_back(listItem);
 
 
@@ -711,6 +717,13 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 		massChanged = false;
 	}
 
+	if (bPlayerExists && (did_player_just_enter_vehicle(playerPed) || seatChanged))
+	{
+
+		seatChanged = false;
+	}
+
+
 	if(bPlayerExists){
 		if(featureVehLightsOnUpdated || did_player_just_enter_vehicle(playerPed)){
 			if(featureVehLightsOn){
@@ -723,7 +736,6 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 			}
 		}
 	}
-
 
 	// testing code; DO NOT DELETE
 	//if(bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) && IsKeyJustUp(KeyConfig::KEY_VEH_STOP)){
@@ -1493,6 +1505,25 @@ void onchange_veh_eng_pow_index(int value, SelectFromListMenuItem* source){
 	powChanged = true;
 }
 
+int get_ped_curr_seat_index()
+{
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	Vehicle veh = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
+	int currSeat = 0;
+
+	if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, veh))
+	{
+		//Get the seat the player is currently in
+		currSeat = VEHICLE::GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS(veh) - 1;
+	}
+	return currSeat;
+}
+
+void onchange_veh_seat_index(int value, SelectFromListMenuItem* source) {
+	currSeat = value;
+	seatChanged = true;
+}
+
 void onchange_veh_mass_index(int value, SelectFromListMenuItem* source){
 	VehMassMultIndex = value;
 	massChanged = true;
@@ -1930,8 +1961,6 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<std::string> choice){
 	return NULL;
 }
 
-
-
 void unpack_veh_preview(char* model, int resRef, std::string bitmapName){
 	WAIT(0);
 	make_periodic_feature_call();
@@ -2243,7 +2272,6 @@ void clean_vehicle(){
 	}
 }
 
-
 bool is_convertible_roofdown(std::vector<int> extras){
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 	int roofState = VEHICLE::GET_CONVERTIBLE_ROOF_STATE(veh);
@@ -2310,16 +2338,10 @@ void drive_passenger(){
 	}
 }
 
-std::vector<int> VEH_SEAT_INDEX()
+int get_seat_count()
 {
-	std::vector<int> veh_seats;
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 	int maxSeats = VEHICLE::GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GAMEPLAY::GET_HASH_KEY((char*)veh));
-
-	for (int i = -1; i < maxSeats; i++)
-	{
-		veh_seats.push_back(i);
-	}
-
-	return veh_seats;
+	
+	return maxSeats;
 }
