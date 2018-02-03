@@ -1505,16 +1505,24 @@ void onchange_veh_eng_pow_index(int value, SelectFromListMenuItem* source){
 	powChanged = true;
 }
 
-int get_ped_curr_seat_index()
+/*
+Get current seat index for a ped
+returns -2 if not in vehicle;
+*/
+int get_ped_curr_seat_index(Ped& ped)
 {
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
-	int currSeat = 0;
+	if (!PED::IS_PED_SITTING_IN_ANY_VEHICLE(ped)) {
+		return -2;
+	}
+	Vehicle veh = PED::GET_VEHICLE_PED_IS_IN(ped, false);
+	int currSeat = -2;
+	int max_seats = VEHICLE::GET_VEHICLE_MODEL_NUMBER_OF_SEATS(GAMEPLAY::GET_HASH_KEY((char*)veh));
 
-	if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, veh))
-	{
-		//Get the seat the player is currently in
-		currSeat = VEHICLE::GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS(veh) - 1;
+	for (int i = 0; i < max_seats; i++) {
+		if (ped == VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh, VEH_SEAT_INDEX_VALUES[i])) {
+			currSeat = VEH_SEAT_INDEX_VALUES[i];
+			break; 
+		}
 	}
 	return currSeat;
 }
