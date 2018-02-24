@@ -597,7 +597,7 @@ void add_world_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* r
 
 	results->push_back(FeatureEnabledLocalDefinition{ "featureSnow", &featureSnow, &featureSnowUpdated});
 
-	results->push_back(FeatureEnabledLocalDefinition{ "featureMPMap", &featureMPMap, &featureMPMapUpdated });
+	//results->push_back(FeatureEnabledLocalDefinition{ "featureMPMap", &featureMPMap, &featureMPMapUpdated });
 }
 
 void add_world_generic_settings(std::vector<StringPairSettingDBRow>* settings)
