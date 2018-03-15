@@ -5303,6 +5303,7 @@ namespace UNK
 	static void _0xFA1E0E893D915215(BOOL p0) { invoke<Void>(0xFA1E0E893D915215, p0); } // 0xFA1E0E893D915215 0x5C350D78
 	static int _GET_UI_LANGUAGE_ID() { return invoke<int>(0x2BDD44CC428A7EAE); } // 0x2BDD44CC428A7EAE
 	static int _GET_USER_LANGUAGE_ID() { return invoke<int>(0xA8AE43AEC1A61314); } // 0xA8AE43AEC1A61314
+	static Any _0x31D23FC8CCD18DC3(int interiorID, char* interiorName, int colourID) { return invoke<Any>(0x31D23FC8CCD18DC3, interiorID, interiorName, colourID); } // 0x31D23FC8CCD18DC3
 }
 
 namespace UNK1

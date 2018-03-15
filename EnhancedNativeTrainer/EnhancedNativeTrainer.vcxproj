@@ -18,6 +18,7 @@
     <ClCompile Include="src\features\area_effect.cpp" />
     <ClCompile Include="src\features\bodyguards.cpp" />
     <ClCompile Include="src\features\hotkeys.cpp" />
+    <ClCompile Include="src\features\interior_customisation.cpp" />
     <ClCompile Include="src\features\vehicle_weapons.cpp" />
     <ClCompile Include="src\features\vehmod_interiorcols.cpp" />
     <ClCompile Include="src\features\misc.cpp" />
@@ -53,12 +54,15 @@
     <ClInclude Include="inc\xinput\CXBOXController.h" />
     <ClInclude Include="src\common\vectorHelper.h" />
     <ClInclude Include="src\datasets\data_props.h" />
+    <ClInclude Include="src\datasets\interior_props.h" />
+    <ClInclude Include="src\datasets\IPL_locations.h" />
     <ClInclude Include="src\ent-enums.h" />
     <ClInclude Include="src\features\aimbot_esp.h" />
     <ClInclude Include="src\features\airbrake.h" />
     <ClInclude Include="src\features\anims.h" />
     <ClInclude Include="src\features\area_effect.h" />
     <ClInclude Include="src\features\bodyguards.h" />
+    <ClInclude Include="src\features\interior_customisation.h" />
     <ClInclude Include="src\features\propplacement.h" />
     <ClInclude Include="src\features\props.h" />
     <ClInclude Include="src\features\hotkeys.h" />

@@ -13,7 +13,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\..\inc\natives.h"
 #include "..\..\inc\types.h"
 #include "..\..\inc\enums.h"
-
+#include "interior_customisation.h"
 #include "..\..\inc\main.h"
 
 #include <string>
@@ -37,3 +37,15 @@ float get_euc_distance(Vector3 playerCoords, Vector3 blipCoords);
 Vector3 get_blip_marker();
 
 void update_teleport_features();
+
+struct tele_location {
+	std::string text;
+	float x;
+	float y;
+	float z;
+	std::vector<const char*> scenery_required;
+	std::vector<const char*> scenery_toremove;
+	std::vector<char*> scenery_props;
+	bool isLoaded;
+	bool can_customise = false;
+};
