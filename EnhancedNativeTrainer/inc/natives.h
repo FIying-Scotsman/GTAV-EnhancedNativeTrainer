@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 // Generated 27 Dec 2016
 
@@ -654,7 +654,7 @@ namespace PED
 	static void SET_PED_BLEND_FROM_PARENTS(Ped ped, Any p1, Any p2, float p3, float p4) { invoke<Void>(0x137BBD05230DB22D, ped, p1, p2, p3, p4); } // 0x137BBD05230DB22D 0x837BD370
 	static void SET_PED_HEAD_BLEND_DATA(Ped ped, int shapeFirstID, int shapeSecondID, int shapeThirdID, int skinFirstID, int skinSecondID, int skinThirdID, float shapeMix, float skinMix, float thirdMix, BOOL isParent) { invoke<Void>(0x9414E18B9434C2FE, ped, shapeFirstID, shapeSecondID, shapeThirdID, skinFirstID, skinSecondID, skinThirdID, shapeMix, skinMix, thirdMix, isParent); } // 0x9414E18B9434C2FE 0x60746B88
 	//static BOOL _GET_PED_HEAD_BLEND_DATA(Ped ped, Any* headBlendData) { return invoke<BOOL>(0x2746BD9D88C5C5D0, ped, headBlendData); } // 0x2746BD9D88C5C5D0
-	static BOOL _GET_PED_HEAD_BLEND_DATA(Ped ped, int shapeFirst, int shapeSecond, int shapeThird, int skinFirst, int skinSecond, int skinThird, float shapeMix, float skinMix, float thirdMix) { return invoke<BOOL>(0x2746BD9D88C5C5D0, ped, headBlendData); } // 0x2746BD9D88C5C5D0
+	static BOOL _GET_PED_HEAD_BLEND_DATA(Ped ped, int shapeFirst, int shapeSecond, int shapeThird, int skinFirst, int skinSecond, int skinThird, float shapeMix, float skinMix, float thirdMix) { return invoke<BOOL>(0x2746BD9D88C5C5D0, ped, ped, shapeFirst, shapeSecond, shapeThird, skinFirst, skinSecond, skinThird, shapeMix, skinMix, thirdMix); } // 0x2746BD9D88C5C5D0
 	static void UPDATE_PED_HEAD_BLEND_DATA(Ped ped, float shapeMix, float skinMix, float thirdMix) { invoke<Void>(0x723538F61C647C5A, ped, shapeMix, skinMix, thirdMix); } // 0x723538F61C647C5A 0x5CB76219
 	static void _SET_PED_EYE_COLOR(Ped ped, int index) { invoke<Void>(0x50B56988B170AFDF, ped, index); } // 0x50B56988B170AFDF
 	static void SET_PED_HEAD_OVERLAY(Ped ped, int overlayID, int index, float opacity) { invoke<Void>(0x48F44967FA05CC1E, ped, overlayID, index, opacity); } // 0x48F44967FA05CC1E 0xD28DBA90
