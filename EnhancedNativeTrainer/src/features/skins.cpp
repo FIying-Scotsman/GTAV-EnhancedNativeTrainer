@@ -586,6 +586,9 @@ bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 	case 5:
 		PED::CLEAR_ALL_PED_PROPS(playerPed);
 		break;
+	case 6://Customise Online character model
+		process_char_customisation_menu();
+		break;
 	}
 	return false;
 }
@@ -665,6 +668,12 @@ bool process_skinchanger_menu()
 
 	item = new MenuItem<int>();
 	item->caption = "Clear Props";
+	item->value = i++;
+	item->isLeaf = true;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = "Customise Online Character";
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);

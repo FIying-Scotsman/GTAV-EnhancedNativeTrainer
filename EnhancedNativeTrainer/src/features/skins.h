@@ -16,6 +16,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #include "..\..\inc\main.h"
 #include "..\ui_support\menu_functions.h"
+#include "char_customisation.h"
 
 #include <string>
 

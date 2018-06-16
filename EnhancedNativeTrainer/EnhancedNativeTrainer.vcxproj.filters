@@ -112,6 +112,9 @@
     <ClCompile Include="main.cpp">
       <Filter>src\features</Filter>
     </ClCompile>
+    <ClCompile Include="src\features\char_customisation.cpp">
+      <Filter>src\features</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\features\aimbot_esp.h">
@@ -230,6 +233,9 @@
     </ClInclude>
     <ClInclude Include="inc\nativeCaller.h">
       <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\char_customisation.h">
+      <Filter>inc\features</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
