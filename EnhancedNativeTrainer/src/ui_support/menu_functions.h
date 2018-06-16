@@ -174,6 +174,42 @@ public:
 };
 
 template<class T>
+class FloatItem : public MenuItem<T> {
+public:
+	float Float, increment = 0.025, min = -1.0, max = 1.0;
+
+	virtual ~FloatItem() {
+		// Supposed to be empty
+	}
+
+	virtual bool isAbsorbingLeftAndRightEvents() {
+		return true;
+	};
+
+	virtual void handleLeftPress() {
+		Float -= increment;
+		if (Float < min)
+		{
+			Float = max;
+		}
+
+		handlePressCommon();
+	}
+
+	virtual void handleRightPress() {
+		Float += increment;
+		if (Float > max)
+		{
+			Float = min;
+		}
+
+		handlePressCommon();
+	}
+
+	float getFloat() { return Float; }
+};
+
+template<class T>
 class CashItem : public MenuItem <T> {
 	virtual ~CashItem() {
 	}
@@ -442,7 +478,8 @@ enum MenuItemType {
 	WANTED,
 	CASH,
 	COLOR,
-	LIFE
+	LIFE, 
+	FLOAT_ITEM
 };
 
 struct StandardOrToggleMenuDef {
@@ -1005,6 +1042,35 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 
 		std::stringstream ss;
 		ss << "<< " << commaLife << " >>";
+		auto ssStr = ss.str();
+		UI::_ADD_TEXT_COMPONENT_STRING((char *)ssStr.c_str());
+		UI::_DRAW_TEXT(0, textY);
+	}
+	else if (FloatItem<T> *floatItem = dynamic_cast<FloatItem<T> *>(item)) {
+		UI::SET_TEXT_FONT(fontItem);
+		UI::SET_TEXT_SCALE(0.0, text_scale);
+		if (active) {
+			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+		}
+		else {
+			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+		}
+		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+
+		if (outline) {
+			UI::SET_TEXT_OUTLINE();
+		}
+
+		if (dropShadow) {
+			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+		}
+
+		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		UI::_SET_TEXT_ENTRY("STRING");
+
+		std::stringstream ss;
+		ss << "<< " << FloatItem->Float << " >>";
 		auto ssStr = ss.str();
 		UI::_ADD_TEXT_COMPONENT_STRING((char *)ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
