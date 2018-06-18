@@ -4,10 +4,6 @@
 #include "area_effect.h"
 #include "large_features.h"
 
-#include "../version.h"
-#include "../utils.h"
-#include "../ui_support/file_dialog.h"
-
 #include <set>
 #include <iostream>
 #include <vector>
@@ -42,7 +38,18 @@ std::vector<Ped> ADDITIONAL_PRISONERS;
 int civilian_torso_drawable, civilian_torso_texture, civilian_legs_drawable, civilian_legs_texture = -1;
 int tick_pedsagainstprisonrobe = 0;
 bool alert_police_about_fugitive_close, alert_police_about_fugitive_distant = false;
-//
+
+bool featurePrison_Hardcore = false;
+bool featurePrison_Robe = true;
+bool featurePedPrison_Robe = true;
+bool featurePrison_Yard = true;
+
+int current_player_prison = 0;
+bool current_player_prison_Changed = true;
+int current_player_escapemoney = 4;
+bool current_player_escapemoney_Changed = true;
+int current_player_discharge = 3;
+bool current_player_discharge_Changed = true;
 
 ////////////////////////////////////////// PRISON BREAK //////////////////////////////////////////
 
