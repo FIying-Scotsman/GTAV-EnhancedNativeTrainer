@@ -12,10 +12,6 @@
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
-// common variables
-Player player = PLAYER::PLAYER_ID();
-Ped playerPed = PLAYER::PLAYER_PED_ID();
-
 // prison break variables
 int tick_callpoliceaboutfugitive = 0;
 bool detained, in_prison = false;
