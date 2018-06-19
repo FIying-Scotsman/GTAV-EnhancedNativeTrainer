@@ -1,8 +1,18 @@
+/*
+Some of this code began its life as a part of GTA V SCRIPT HOOK SDK.
+http://dev-c.com
+(C) Alexander Blade 2015
+
+It is now part of the Enhanced Native Trainer project.
+https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
+(C) Rob Pridham and fellow contributors 2015
+*/
+
 #pragma comment(lib, "Shlwapi.lib")
 
 #include "script.h"
 #include "area_effect.h"
-#include "large_features.h"
+#include "prison_break.h"
 
 #include <set>
 #include <iostream>
@@ -11,10 +21,6 @@
 #include <ctime>
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
-
-// common variables
-Player player = PLAYER::PLAYER_ID();
-Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 // prison break variables
 int tick_callpoliceaboutfugitive = 0;
@@ -55,7 +61,6 @@ bool current_player_discharge_Changed = true;
 
 void prison_break()
 {
-
 	if (PLAYER_PRISON_VALUES[current_player_prison] > 0) {
 		Ped playerPed_Prison = PLAYER::PLAYER_PED_ID();
 		Vector3 my_position_in_prison = ENTITY::GET_ENTITY_COORDS(playerPed_Prison, true);
@@ -702,7 +707,7 @@ void prison_break()
 						(ENTITY::GET_ENTITY_MODEL(PLAYER::PLAYER_PED_ID()) == PLAYER_TWO && PED::GET_PED_DRAWABLE_VARIATION(playerPed_Prison, 3) == 5)) &&
 						(!PED::IS_PED_IN_ANY_VEHICLE(playerPed_Prison, false) || PED::IS_PED_ON_ANY_BIKE(playerPed_Prison)))
 					{
-						if (!PED::IS_PED_FLEEING(guards[i]) && !AI::IS_PED_RUNNING(guards[i]) && !PED::IS_PED_IN_COMBAT(guards[i], playerPed))
+						if (!PED::IS_PED_FLEEING(guards[i]) && !AI::IS_PED_RUNNING(guards[i]) && !PED::IS_PED_IN_COMBAT(guards[i], playerPed_Prison))
 						{
 							AUDIO::_PLAY_AMBIENT_SPEECH1(guards[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
 							AI::TASK_SMART_FLEE_PED(guards[i], playerPed_Prison, 1000, -1, true, true);
@@ -712,7 +717,7 @@ void prison_break()
 
 						// Met a ped right in front of you
 						if (distance_from_ped_x < 7 && distance_from_ped_y < 7 && distance_from_ped_z < 1 && (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < 4) &&
-							!PED::IS_PED_FLEEING(guards[i]) && !AI::IS_PED_RUNNING(guards[i]) && !PED::IS_PED_IN_COMBAT(guards[i], playerPed))
+							!PED::IS_PED_FLEEING(guards[i]) && !AI::IS_PED_RUNNING(guards[i]) && !PED::IS_PED_IN_COMBAT(guards[i], playerPed_Prison))
 						{
 							AUDIO::_PLAY_AMBIENT_SPEECH1(guards[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
 							AI::TASK_SMART_FLEE_PED(guards[i], playerPed_Prison, 1000, -1, true, true);
@@ -731,7 +736,7 @@ void prison_break()
 					{
 						if ((distance_from_ped_x < 2 && distance_from_ped_y < 2 && distance_from_ped_z < 2) && (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < 4) && PED::IS_PED_FACING_PED(guards[i], playerPed_Prison, 100) &&
 							(PED::GET_PED_TYPE(guards[i]) == 4 || PED::GET_PED_TYPE(guards[i]) == 5) && PED::GET_PED_TYPE(guards[i]) != 6 && PED::GET_PED_TYPE(guards[i]) != 27 &&
-							!PED::IS_PED_FLEEING(guards[i]) && !AI::IS_PED_RUNNING(guards[i]) && !PED::IS_PED_IN_COMBAT(guards[i], playerPed) && ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(guards[i], playerPed_Prison, 17))
+							!PED::IS_PED_FLEEING(guards[i]) && !AI::IS_PED_RUNNING(guards[i]) && !PED::IS_PED_IN_COMBAT(guards[i], playerPed_Prison) && ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(guards[i], playerPed_Prison, 17))
 						{
 							AUDIO::_PLAY_AMBIENT_SPEECH1(guards[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
 							AI::TASK_SMART_FLEE_PED(guards[i], playerPed_Prison, 1000, -1, true, true);

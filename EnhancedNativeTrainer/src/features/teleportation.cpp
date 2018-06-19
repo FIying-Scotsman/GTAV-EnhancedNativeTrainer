@@ -9,6 +9,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 */
 
 #include "teleportation.h"
+#include "drive_to_marker.h"
 #include "misc.h"
 #include "vehicles.h"
 #include "..\ui_support\menu_functions.h"
@@ -33,33 +34,13 @@ struct tele_location{
 };
 
 // 3D Marker
-Vector3 coords_3Dblip, coords_3Dblip_old, temp_coords_3Dblip, driving_reverse;
+Vector3 coords_3Dblip, coords_3Dblip_old, temp_coords_3Dblip;
 Blip my3DBlip = -1;
 bool blip_3d_found = false;
 bool blip_3d_exists_already = false;
 bool close_distance = false;
 int marker_3d_height = -1;
 int marker_3d_size = -1;
-//
-// Drive to marker
-float planecurrspeed = 0;
-float curr_roll = -1;
-float curr_pitch = -1;
-float curr_yaw = -1;
-bool featureStickToGround, landing, landing_gear_off = false;
-bool featureLandAtDestination = true;
-Vector3 coords_marker_to_drive_to, speed;
-Ped driver_to_marker_pilot;
-bool blipFound, reverse_check, altitude_reached = false;
-bool marker_been_set, blipDriveFound = false;
-bool reverse = true;
-Vehicle curr_veh;
-Hash driverPed_tomarker;
-int driving_style = 4;
-int SinceDriverStop_secs_passed, SinceDriverStop_secs_curr, DriverStop_seconds = 0;
-int SinceDriver2Stop_secs_passed, SinceDriver2Stop_secs_curr, Driver2Stop_seconds = 0;
-Blip myChauffeurBlip = -1;
-int temp_dist = -1;
 //
 int mainMenuIndex = 0;
 
@@ -2503,48 +2484,6 @@ std::string JELLMAN_CAPTION = "Heist Map Updates In SP";
 static std::vector<std::string> MENU_LOCATION_CATEGORIES{ "Safehouses", "Landmarks", "Roof/High Up", "Underwater", "Interiors", "Extra Exterior Scenery", "Online Maps", "Special Actors/Freaks Locations", "Collectibles", "Stunts" };// <-- not sure what went wrong here, but it don't look right.
 
 static std::vector<tele_location> VOV_LOCATIONS[] = { LOCATIONS_SAFE, LOCATIONS_LANDMARKS, LOCATIONS_HIGH, LOCATIONS_UNDERWATER, LOCATIONS_INTERIORS, LOCATIONS_REQSCEN, LOCATIONS_ONLINE, LOCATIONS_ACTORS, LOCATIONS_COLLECTIBLES, LOCATIONS_STUNTS/*, LOCATIONS_BROKEN, LOCATIONS_JELLMAN*/ };
- 
-//Chauffeur option
-const std::vector<std::string> TEL_CHAUFFEUR_CAPTIONS{ "a_c_boar", "a_c_cat_01", "a_c_chickenhawk", "a_c_chimp", "a_c_chop", "a_c_cormorant", "a_c_cow", "a_c_coyote", "a_c_crow", "a_c_deer", "a_c_dolphin", "a_c_fish",
-"a_c_hen", "a_c_humpback", "a_c_husky", "a_c_killerwhale", "a_c_mtlion", "a_c_pig", "a_c_pigeon", "a_c_poodle", "a_c_rabbit_01", "a_c_rat", "a_c_retriever", "a_c_rhesus", "a_c_rottweiler", "a_c_seagull", "a_c_sharkhammer", "a_c_sharktiger",
-"a_c_shepherd", "a_c_westy", "a_f_m_beach_01", "a_f_m_bevhills_01", "a_f_m_bodybuild_01", "a_f_m_downtown_01", "a_f_m_eastsa_01", "a_f_m_fatbla_01", "a_f_m_fatcult_01", "a_f_m_fatwhite_01", "a_f_m_ktown_01", "a_f_m_prolhost_01", "a_f_m_salton_01",
-"a_f_m_skidrow_01", "a_f_m_soucent_01", "a_f_m_tourist_01", "a_f_m_tramp_01", "a_f_o_genstreet_01", "a_f_o_indian_01", "a_f_y_beach_01", 
- "a_f_y_business_01", "a_f_y_epsilon_01", "a_f_y_fitness_01", "a_f_y_genhot_01", "a_f_y_golfer_01", "a_f_y_hiker_01", "a_f_y_hippie_01", "a_f_y_hipster_01", "a_f_y_juggalo_01",
-"a_f_y_runner_01", "a_f_y_rurmeth_01", "a_f_y_scdressy_01", "a_f_y_skater_01", "a_f_y_tennis_01", "a_f_y_topless_01", "a_f_y_vinewood_01", "a_f_y_yoga_01", "a_m_m_acult_01", "a_m_m_afriamer_01",
- "a_m_m_farmer_01", "a_m_m_fatlatin_01", "a_m_m_genfat_01", "a_m_m_hasjew_01", "a_m_m_hillbilly_01",   
-"a_m_m_malibu_01", "a_m_m_mexcntry_01", "a_m_m_mexlabor_01", "a_m_m_og_boss_01", "a_m_m_paparazzi_01", "a_m_m_polynesian_01", "a_m_m_socenlat_01",
-"cs_amandatownley", "cs_andreas", "cs_ashley", "cs_bankman", "cs_barry", "cs_beverly", "cs_brad", "cs_bradcadaver", "cs_carbuyer", "cs_casey", "cs_chengsr", "cs_chrisformage", "cs_clay", "cs_dale", "cs_davenorton", "cs_debra", 
-"cs_denise", "cs_devin", "cs_dom", "cs_dreyfuss", "cs_drfriedlander", "cs_fabien", "cs_fbisuit_01", "cs_floyd", "cs_guadalope", "cs_gurk", "cs_hunter", "cs_janet", "cs_jewelass", "cs_jimmyboston", "cs_jimmydisanto", "cs_joeminuteman",
-"cs_johnnyklebitz", "cs_josef", "cs_josh", "cs_lamardavis", "cs_lazlow", "cs_lestercrest", "cs_lifeinvad_01", "cs_magenta", "cs_manuel", "cs_marnie", "cs_martinmadrazo", "cs_maryann", "cs_michelle", "cs_milton", "cs_molly", 
-"cs_movpremf_01", "cs_movpremmale", "cs_mrk", "cs_mrs_thornhill", "cs_mrsphillips", "cs_natalia", "cs_nervousron", "cs_nigel", "cs_old_man1a", "cs_old_man2", "cs_omega", "cs_orleans", "cs_paper", "cs_patricia", "cs_priest", "cs_prolsec_02", 
-"cs_russiandrunk", "cs_siemonyetarian", "cs_solomon", "cs_stevehains", "cs_stretch", "cs_tanisha", "cs_taocheng", "cs_taostranslator", "cs_tenniscoach", "cs_terry", "cs_tom", "cs_tomepsilon", "cs_tracydisanto", "cs_wade", "cs_zimbor", 
-"csb_abigail", "csb_anita", "csb_anton", "csb_ballasog", "csb_bride", "csb_burgerdrug", "csb_car3guy1", "csb_chef", "csb_cletus", "csb_chin_goon", "csb_cop", "csb_customer", "csb_denise_friend", "csb_fos_rep", "csb_g", "csb_groom", "csb_grove_str_dlr",
-"csb_hao", "csb_hugh", "csb_imran", "csb_janitor", "csb_maude", "csb_mweather", "csb_ortega", "csb_oscar", "csb_porndudes", "csb_prologuedriver", "csb_prolsec", "csb_ramp_gang", "csb_ramp_hic", "csb_ramp_marine", "csb_ramp_mex",
-"csb_reporter", "csb_roccopelosi", "csb_screen_writer", "csb_stripper_01", "csb_tonya", "csb_trafficwarden", "csb_vagspeak", "g_f_importexport_01", "g_f_y_ballas_01", "g_f_y_families_01", "g_f_y_lost_01", "g_f_y_vagos_01", 
-"g_m_m_armboss_01", "g_m_m_armgoon_01", "g_m_m_armlieut_01", "g_m_m_chemwork_01", "g_m_m_chiboss_01", "g_m_m_chicold_01", "g_m_m_chigoon_01", "g_m_m_korboss_01", "g_m_m_mexboss_01", "g_m_y_armgoon_02", "g_m_y_azteca_01",
-"g_m_y_ballaeast_01", "g_m_y_ballaorig_01", "g_m_y_ballasout_01", "g_m_y_famca_01", "g_m_y_famdnf_01", "g_m_y_famfor_01", "g_m_y_korean_01", "g_m_y_korlieut_01", "g_m_y_lost_01", "g_m_y_mexgang_01", "g_m_y_mexgoon_01", "g_m_y_pologoon_01",
-"g_m_y_salvaboss_01", "g_m_y_strpunk_01", "hc_driver", "hc_gunman", "hc_hacker", "mp_f_boatstaff_01", "mp_f_cardesign_01", "mp_f_chbar_01", "mp_f_cocaine_01", "mp_f_counterfeit_01", "mp_f_deadhooker",
-"mp_f_execpa_01", "mp_f_forgery_01", "mp_f_freemode_01", "mp_f_helistaff_01", "mp_f_meth_01", "mp_f_misty_01", "mp_f_stripperlite", "mp_f_weed_01", "mp_g_m_pros_01", "mp_headtargets", "mp_m_claude_01", "mp_m_famdd_01",
-"mp_m_marston_01", "mp_m_niko_01", "mp_m_securoguard_01", "mp_m_shopkeep_01", "mp_m_waremech_01", "player_one", "player_two", "player_zero", "s_f_m_fembarber", "s_f_m_maid_01", "s_f_m_shop_high", 
-"s_f_y_airhostess_01", "s_f_y_bartender_01", "s_f_y_baywatch_01", "s_f_y_cop_01", "s_f_y_hooker_01", "s_f_y_migrant_01", "s_f_y_ranger_01", "s_f_y_scrubs_01", "s_f_y_sheriff_01", "s_f_y_shop_low", 
-"s_f_y_sweatshop_01", "s_m_m_ammucountry", "s_m_m_armoured_01", "s_m_m_autoshop_01", "s_m_m_bouncer_01", "s_m_m_chemsec_01", "s_m_m_ciasec_01", "s_m_m_cntrybar_01", "s_m_m_dockwork_01", "s_m_m_doctor_01", "s_m_m_fiboffice_01", "s_m_m_gaffer_01", 
-"s_m_m_gardener_01", "s_m_m_gentransport", "s_m_m_hairdress_01", "s_m_m_highsec_01", "s_m_m_lathandy_01", "s_m_m_linecook", "s_m_m_lsmetro_01", "s_m_m_mariachi_01", "s_m_m_marine_01",
-"s_m_m_movalien_01", "s_m_m_movprem_01", "s_m_m_movspace_01", "s_m_m_paramedic_01", "s_m_m_pilot_01", "s_m_m_postal_01", "s_m_m_prisguard_01", "s_m_m_scientist_01", "s_m_m_security_01", "s_m_m_snowcop_01", "s_m_m_strperf_01", "s_m_m_strpreach_01", 
-"s_m_m_strvend_01", "s_m_m_trucker_01", "s_m_m_ups_01", "s_m_o_busker_01", "s_m_y_airworker", "s_m_y_fireman_01", "s_m_y_shop_mask", "s_m_y_xmech_01", "s_m_y_waiter_01", "s_m_y_valet_01", "u_f_m_miranda", "u_f_o_moviestar", 
-"u_f_o_prolhost_01", "u_f_y_bikerchic", "u_f_y_jewelass_01", "u_f_y_hotposh_01", "u_f_y_corpse_01", "u_f_y_comjane", "u_f_y_mistress", "u_f_y_poppymich", "u_f_y_princess", "u_f_y_spyactress", "u_m_m_aldinapoli", "u_m_m_bikehire_01",
-"u_m_m_fibarchitect", "u_m_m_filmdirector", "u_m_m_glenstank_01", "u_m_m_griff_01", "u_m_m_jesus_01", "u_m_m_jewelsec_01", "u_m_m_jewelthief", "u_m_m_markfost", "u_m_m_partytarget", "u_m_m_rivalpap", "u_m_m_spyactor", "u_m_m_willyfist", 
-"u_m_o_finguru_01", "u_m_o_taphillbilly", "u_m_y_abner", "u_m_y_antonb", "u_m_y_babyd", "u_m_y_baygor", "u_m_y_burgerdrug_01", "u_m_y_chip", "u_m_y_cyclist_01", "u_m_y_guido_01", "u_m_y_gunvend_01", "u_m_y_imporage", "u_m_y_justin",
-"u_m_y_mani", "u_m_y_militarybum", "u_m_y_party_01", "u_m_y_pogo_01", "u_m_y_prisoner_01", "u_m_y_proldriver_01", "u_m_y_sbike", "u_m_y_staggrm_01", "u_m_y_tattoo_01", "u_m_y_zombie_01" };
-const std::vector<int> TEL_CHAUFFEUR_VALUES{ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49,
-50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106,
-107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 129, 130, 131, 132, 133, 134, 135, 136, 137, 138, 139, 140, 141, 142, 143, 144, 145, 146, 147, 148, 149, 150, 151, 152, 153,
-154, 155, 156, 157, 158, 159, 160, 161, 162, 163, 164, 165, 166, 167, 168, 169, 170, 171, 172, 173, 174, 175, 176, 177, 178, 179, 180, 181, 182, 183, 184, 185, 186, 187, 188, 189, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199, 200,
-201, 202, 203, 204, 205, 206, 207, 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223, 224, 225, 226, 227, 228, 229, 230, 231, 232, 233, 234, 235, 236, 237, 238, 239, 240, 241, 242, 243, 244, 245, 246, 247,
-248, 249, 250, 251, 252, 253, 254, 255, 256, 257, 258, 259, 260, 261, 262, 263, 264, 265, 266, 267, 268, 269, 270, 271, 272, 273, 274, 275, 276, 277, 278, 279, 280, 281, 282, 283, 284, 285, 286, 287, 288, 289, 290, 291, 292, 293, 294,
-295, 296, 297, 298, 299, 300, 301, 302, 303, 304, 305, 306, 307, 308, 309, 310, 311, 312, 313, 314, 315, 316, 317, 318, 319, 320, 321, 322, 323, 324, 325, 326, 327, 328, 329, 330, 331, 332, 333, 334, 335, 336, 337, 338, 339, 340, 341,
-342, 343, 344, 345, 346, 347, 348, 349, 350, 351, 352, 353, 354, 355, 356, 357, 358, 359 };
-int TelChauffeurIndex = 3;
-bool TelChauffeur_Changed = true;
 
 //3D Marker Symbol
 const std::vector<std::string> TEL_3DMARKER_CAPTIONS{ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
@@ -2594,24 +2533,6 @@ const std::vector<int> MARKER3D_ALPHA_VALUES{ 10, 20, 30, 40, 50, 60, 70, 80, 90
 int Marker3d_Alpha_Index = 12;
 bool Marker3d_Alpha_Changed = true;
 
-//Chauffeur Speed
-const std::vector<std::string> TEL_CHAUFFEUR_SPEED_CAPTIONS{ "20", "30", "40", "50", "70", "100", "120", "150", "200" };
-const std::vector<int> TEL_CHAUFFEUR_SPEED_VALUES{ 20, 30, 40, 50, 70, 100, 120, 150, 200 };
-int TelChauffeur_speed_Index = 2;
-bool TelChauffeur_speed_Changed = true;
-
-//Chauffeur Altitude
-const std::vector<std::string> TEL_CHAUFFEUR_ALTITUDE_CAPTIONS{ "10", "30", "50", "100", "200", "300", "500", "1000", "1500", "2000", "2500" };
-const std::vector<int> TEL_CHAUFFEUR_ALTITUDE_VALUES{ 10, 30, 50, 100, 200, 300, 500, 1000, 1500, 2000, 2500 };
-int TelChauffeur_altitude_Index = 5;
-bool TelChauffeur_altitude_Changed = true;
-
-//Driving Styles
-const std::vector<std::string> TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS{ "Careless Driver", "Careful Driver", "Prioritise Shortcuts", "Straight To Target" };
-const std::vector<int> TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES{ 786468, 1074528293, 262144, 16777216 };
-int TelChauffeur_drivingstyles_Index = 0;
-bool TelChauffeur_drivingstyles_Changed = true;
-
 void teleport_to_coords(Entity e, Vector3 coords){
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords.x, coords.y, coords.z, 0, 0, 1);
 	WAIT(0);
@@ -2623,28 +2544,6 @@ void output_current_location(Entity e){
 	std::ostringstream ss;
 	ss << "X: " << coords.x << "\nY: " << coords.y << "\nZ: " << coords.z;
 	set_status_text_centre_screen(ss.str(), 4000UL);
-}
-
-Vector3 get_blip_marker(){
-	static Vector3 zero;
-	Vector3 coords;
-
-	blipFound = false;
-	// search for marker blip
-	int blipIterator = UI::_GET_BLIP_INFO_ID_ITERATOR();
-	for (Blip i = UI::GET_FIRST_BLIP_INFO_ID(blipIterator); UI::DOES_BLIP_EXIST(i) != 0; i = UI::GET_NEXT_BLIP_INFO_ID(blipIterator)){
-		if (UI::GET_BLIP_INFO_ID_TYPE(i) == 4){
-			coords = UI::GET_BLIP_INFO_ID_COORD(i);
-			blipFound = true;
-			break;
-		}
-	}
-	if (blipFound){
-		return coords;
-	}
-
-	set_status_text("Map marker isn't set");
-	return zero;
 }
 
 void teleport_to_marker(){
@@ -2727,30 +2626,30 @@ void teleport_to_mission_marker(){
 	}
 
 	if(blip_mission == true) {
-
 		Entity e = PLAYER::PLAYER_PED_ID();
+		
 		if (PED::IS_PED_IN_ANY_VEHICLE(e, 0)){
 			e = PED::GET_VEHICLE_PED_IS_USING(e);
 		}
 		
 		bool groundFound = false;
 	
-			teleport_to_coords(e, coords_mission);
-			blip_mission = false;
-			if (!ENTITY::IS_ENTITY_IN_WATER(e)) {
-				static float groundCheckHeight[] =
-				{ 100.0, 150.0, 50.0, 0.0, 200.0, 250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0, 650.0, 700.0, 750.0, 800.0 };
-				for (int i = 0; i < sizeof(groundCheckHeight) / sizeof(float); i++){
-					ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords_mission.x, coords_mission.y, groundCheckHeight[i], 0, 0, 1);
-					WAIT(100);
-					if (GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(coords_mission.x, coords_mission.y, groundCheckHeight[i], &coords_mission.z)){
-						groundFound = true;
-						coords_mission.z += 3.0;
-						teleport_to_coords(e, coords_mission);
-						break;
-					}
+		teleport_to_coords(e, coords_mission);
+		blip_mission = false;
+		if (!ENTITY::IS_ENTITY_IN_WATER(e)) {
+			static float groundCheckHeight[] =
+			{ 100.0, 150.0, 50.0, 0.0, 200.0, 250.0, 300.0, 350.0, 400.0, 450.0, 500.0, 550.0, 600.0, 650.0, 700.0, 750.0, 800.0 };
+			for (int i = 0; i < sizeof(groundCheckHeight) / sizeof(float); i++){
+				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords_mission.x, coords_mission.y, groundCheckHeight[i], 0, 0, 1);
+				WAIT(100);
+				if (GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(coords_mission.x, coords_mission.y, groundCheckHeight[i], &coords_mission.z)){
+					groundFound = true;
+					coords_mission.z += 3.0;
+					teleport_to_coords(e, coords_mission);
+					break;
 				}
 			}
+		}
 		
 		if (!groundFound){
 			coords_mission.z = 1000.0;
@@ -2766,74 +2665,71 @@ void teleport_to_mission_marker(){
 void teleport_to_vehicle_in_sight(){
 	
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	const int numElements = 10;
+	const int arrSize = numElements * 2 + 2;
+	int nearbyPed[arrSize];
+	nearbyPed[0] = numElements;
+	int count = PED::GET_PED_NEARBY_PEDS(PLAYER::PLAYER_PED_ID(), nearbyPed, -1);
 
-		const int numElements = 10;
-		const int arrSize = numElements * 2 + 2;
-		int nearbyPed[arrSize];
-
-		nearbyPed[0] = numElements;
-		int count = PED::GET_PED_NEARBY_PEDS(PLAYER::PLAYER_PED_ID(), nearbyPed, -1);
-
-		if (nearbyPed != NULL)
+	if (nearbyPed != NULL)
+	{
+		for (int i = 0; i < count; i++)
 		{
-			for (int i = 0; i < count; i++)
-			{
-				int offsettedID = i * 2 + 2;
+			int offsettedID = i * 2 + 2;
 				
-				if (nearbyPed[offsettedID] != NULL && ENTITY::DOES_ENTITY_EXIST(nearbyPed[offsettedID]) && PED::IS_PED_IN_ANY_VEHICLE(nearbyPed[offsettedID], 1))
-				{
-					ENTITY::GET_ENTITY_HEADING(playerPed);
-					Vector3 coords_me = ENTITY::GET_ENTITY_COORDS(playerPed, true);
-					Vehicle veh2 = PED::GET_VEHICLE_PED_IS_IN(nearbyPed[offsettedID], true);
+			if (nearbyPed[offsettedID] != NULL && ENTITY::DOES_ENTITY_EXIST(nearbyPed[offsettedID]) && PED::IS_PED_IN_ANY_VEHICLE(nearbyPed[offsettedID], 1))
+			{
+				ENTITY::GET_ENTITY_HEADING(playerPed);
+				Vector3 coords_me = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+				Vehicle veh2 = PED::GET_VEHICLE_PED_IS_IN(nearbyPed[offsettedID], true);
 					
-					UI::DISPLAY_SNIPER_SCOPE_THIS_FRAME();
+				UI::DISPLAY_SNIPER_SCOPE_THIS_FRAME();
 										
-					Vector3 coords_veh = ENTITY::GET_ENTITY_COORDS(veh2, true);
-					Vector3 camCoords = CAM::GET_GAMEPLAY_CAM_COORD();
-					Vector3 rot2 = CAM::GET_GAMEPLAY_CAM_ROT(2);
+				Vector3 coords_veh = ENTITY::GET_ENTITY_COORDS(veh2, true);
+				Vector3 camCoords = CAM::GET_GAMEPLAY_CAM_COORD();
+				Vector3 rot2 = CAM::GET_GAMEPLAY_CAM_ROT(2);
 					
-					float tZ = rot2.z * 0.0174532924;
-					float tX = rot2.x * 0.0174532924;
-					float num = abs(cos(tX));
+				float tZ = rot2.z * 0.0174532924;
+				float tX = rot2.x * 0.0174532924;
+				float num = abs(cos(tX));
 
-					camCoords.x = (-sin(tZ)) * (num);
-					camCoords.y = (cos(tZ)) * (num);
-					camCoords.z = sin(tX);
+				camCoords.x = (-sin(tZ)) * (num);
+				camCoords.y = (cos(tZ)) * (num);
+				camCoords.z = sin(tX);
 
-					if (((coords_veh.y < coords_me.y) && (coords_veh.y < (camCoords.y * 100000))) || ((coords_veh.y > coords_me.y) && (coords_veh.y >(camCoords.y * 100000))))
-					{
-					}
-					else
-					{
-							int primary, secondary;
-							Hash currVehModel = ENTITY::GET_ENTITY_MODEL(veh2);
-							Vector3 coords_veh2 = ENTITY::GET_ENTITY_COORDS(veh2, true);
-							float rot = (ENTITY::GET_ENTITY_ROTATION(veh2, 0)).z;
-							Vector3 vehspeed = ENTITY::GET_ENTITY_VELOCITY(veh2);
-							VEHICLE::GET_VEHICLE_COLOURS(veh2, &primary, &secondary);
-							AI::TASK_LEAVE_VEHICLE(playerPed, PED::GET_VEHICLE_PED_IS_USING(playerPed), 4160);
+				if (((coords_veh.y < coords_me.y) && (coords_veh.y < (camCoords.y * 100000))) || ((coords_veh.y > coords_me.y) && (coords_veh.y >(camCoords.y * 100000))))
+				{}
+				else
+				{
+					int primary, secondary;
+					Hash currVehModel = ENTITY::GET_ENTITY_MODEL(veh2);
+					Vector3 coords_veh2 = ENTITY::GET_ENTITY_COORDS(veh2, true);
+					float rot = (ENTITY::GET_ENTITY_ROTATION(veh2, 0)).z;
+					Vector3 vehspeed = ENTITY::GET_ENTITY_VELOCITY(veh2);
+					VEHICLE::GET_VEHICLE_COLOURS(veh2, &primary, &secondary);
+					AI::TASK_LEAVE_VEHICLE(playerPed, PED::GET_VEHICLE_PED_IS_USING(playerPed), 4160);
 
-							WAIT(100);
+					WAIT(100);
 							
-							ENTITY::SET_ENTITY_AS_MISSION_ENTITY(veh2, true, true);
-							VEHICLE::DELETE_VEHICLE(&veh2);
+					ENTITY::SET_ENTITY_AS_MISSION_ENTITY(veh2, true, true);
+					VEHICLE::DELETE_VEHICLE(&veh2);
 
-							Vehicle veh = VEHICLE::CREATE_VEHICLE(currVehModel, coords_veh2.x, coords_veh2.y, coords_veh2.z, rot, 1, 0);
-							VEHICLE::SET_VEHICLE_COLOURS(veh, primary, secondary);
-							ENTITY::SET_ENTITY_VELOCITY(veh, vehspeed.x, vehspeed.y, vehspeed.z);
-							VEHICLE::SET_VEHICLE_ENGINE_ON(veh, true, true);
+					Vehicle veh = VEHICLE::CREATE_VEHICLE(currVehModel, coords_veh2.x, coords_veh2.y, coords_veh2.z, rot, 1, 0);
+					VEHICLE::SET_VEHICLE_COLOURS(veh, primary, secondary);
+					ENTITY::SET_ENTITY_VELOCITY(veh, vehspeed.x, vehspeed.y, vehspeed.z);
+					VEHICLE::SET_VEHICLE_ENGINE_ON(veh, true, true);
 
-							if (ENTITY::DOES_ENTITY_EXIST(veh)){
-								PED::SET_PED_INTO_VEHICLE(playerPed, veh, -1);
-								if (is_this_a_heli_or_plane(veh)){
-									VEHICLE::SET_HELI_BLADES_FULL_SPEED(PED::GET_VEHICLE_PED_IS_USING(playerPed));
-								}
-								set_old_vehicle_state(false);
-							}
+					if (ENTITY::DOES_ENTITY_EXIST(veh)){
+						PED::SET_PED_INTO_VEHICLE(playerPed, veh, -1);
+						if (is_this_a_heli_or_plane(veh)){
+							VEHICLE::SET_HELI_BLADES_FULL_SPEED(PED::GET_VEHICLE_PED_IS_USING(playerPed));
 						}
+						set_old_vehicle_state(false);
+					}
 				}
 			}
 		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////
@@ -2843,11 +2739,9 @@ void teleport_to_vehicle_in_sight(){
 void teleport_to_vehicle_as_passenger(){
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
 	const int numElements = 10;
 	const int arrSize = numElements * 2 + 2;
 	int nearbyPed[arrSize];
-
 	nearbyPed[0] = numElements;
 	int count = PED::GET_PED_NEARBY_PEDS(PLAYER::PLAYER_PED_ID(), nearbyPed, -1);
 
@@ -2861,15 +2755,15 @@ void teleport_to_vehicle_as_passenger(){
 			{
 				Vehicle veh2 = PED::GET_VEHICLE_PED_IS_IN(nearbyPed[offsettedID], true);
 
-					if (ENTITY::DOES_ENTITY_EXIST(veh2)){
-						PED::SET_PED_INTO_VEHICLE(playerPed, veh2, -2);
-						if (is_this_a_heli_or_plane(veh2)){
-							VEHICLE::SET_HELI_BLADES_FULL_SPEED(PED::GET_VEHICLE_PED_IS_USING(playerPed));
-						}
-						set_old_vehicle_state(false);
+				if (ENTITY::DOES_ENTITY_EXIST(veh2)){
+					PED::SET_PED_INTO_VEHICLE(playerPed, veh2, -2);
+					if (is_this_a_heli_or_plane(veh2)){
+						VEHICLE::SET_HELI_BLADES_FULL_SPEED(PED::GET_VEHICLE_PED_IS_USING(playerPed));
 					}
+					set_old_vehicle_state(false);
 				}
 			}
+		}
 	}
 }
 
@@ -2909,160 +2803,6 @@ float get_euc_distance(Vector3 currentCords, Vector3 destCords){
 	return eucDistance;
 }
 
-/*void get_chauffeur_to_marker(){
-	beingChauffeured = true;
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	Vector3 playerCoords = ENTITY::GET_ENTITY_COORDS(playerPed, 0);
-	blipCoords = get_blip_marker();
-
-	if (blipCoords.x == 0 && blipCoords.y == 0){
-		// no blip marker set
-		return;
-	}
-
-	if (is_player_at_blip(playerCoords, blipCoords, chauffTolerance)){
-		set_status_text("You're already at your destination");
-		return;
-	}
-
-	Vector3 spawn_coords = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PLAYER::PLAYER_PED_ID(), 0.0, 5.0, 0.0);
-
-	Vehicle veh;
-	if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		veh = PED::GET_VEHICLE_PED_IS_IN(playerPed, 0);
-
-		if (is_this_a_heli_or_plane(veh)){
-			set_status_text("Aircraft chauffeuring not supported yet");
-			return;
-		}
-
-		if (!VEHICLE::IS_VEHICLE_SEAT_FREE(veh, -1)){
-			Ped oldDriver = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh, -1); 
-			if (VEHICLE::IS_VEHICLE_SEAT_FREE(veh, -2)){
-				PED::SET_PED_INTO_VEHICLE(oldDriver, veh, -2);
-			}
-			else{
-				if (oldDriver == playerPed){
-					set_status_text("Couldn't make room for your chauffeur");
-					return;
-				}
-				else{
-					PED::DELETE_PED(&oldDriver);
-				}
-			}
-		}
-	}
-	else{
-		//random supercar
-		int carIndex = rand() % VALUES_SUPERCARS.size();
-		std::string carName = VALUES_SUPERCARS.at(carIndex);
-		Hash vehHash = GAMEPLAY::GET_HASH_KEY((char*)carName.c_str());
-
-		STREAMING::REQUEST_MODEL(vehHash);
-		while (!STREAMING::HAS_MODEL_LOADED(vehHash)){
-			make_periodic_feature_call();
-			WAIT(0);
-		}
-
-		FLOAT lookDir = ENTITY::GET_ENTITY_HEADING(PLAYER::PLAYER_PED_ID());
-		veh = VEHICLE::CREATE_VEHICLE(vehHash, spawn_coords.x, spawn_coords.y, spawn_coords.z, lookDir, 1, 0);
-	}
-
-	GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(blipCoords.x, blipCoords.y, blipCoords.z, &blipCoords.z);
-	blipCoords.z += 3.0;
-
-	Hash driverPedHash;
-	if (is_this_a_heli_or_plane(veh)){
-		driverPedHash = GAMEPLAY::GET_HASH_KEY("s_m_y_pilot_01");
-	}
-	else{
-		char *cstr = new char[TEL_CHAUFFEUR_CAPTIONS[TelChauffeurIndex].length() + 1];
-		strcpy(cstr, TEL_CHAUFFEUR_CAPTIONS[TelChauffeurIndex].c_str());
-		driverPedHash = GAMEPLAY::GET_HASH_KEY(cstr);
-		delete[] cstr;
-	}
-	STREAMING::REQUEST_MODEL(driverPedHash);
-	while (!STREAMING::HAS_MODEL_LOADED(driverPedHash)){
-		make_periodic_feature_call();
-		WAIT(0);
-	}
-
-	Ped driver = PED::CREATE_PED(25, driverPedHash, spawn_coords.x, spawn_coords.y, spawn_coords.z, 0, false, false);
-
-	while (!NETWORK::NETWORK_HAS_CONTROL_OF_ENTITY(veh)){
-		make_periodic_feature_call();
-		NETWORK::NETWORK_REQUEST_CONTROL_OF_ENTITY(veh);
-		WAIT(0);
-	}
-
-	PED::SET_PED_INTO_VEHICLE(driver, veh, -1);
-	set_old_vehicle_state(false); // set old vehicle state to false since we changed cars but didn't actually exit the last one
-	*/
-	/* DRIVING MODES :
-	0 = Normal behaviour but doesn't recognize other cars on the road, should only be used without ped cars in world.
-	1 = Drives legit and does no overtakes.Drives carefully
-	2 = Normal behaviour but doesn't recognize other cars on the road, should only be used without ped cars in world.
-	3 = Drives legit and does normal overtakes.Ignores traffic lights, and avoids other cars
-	4 = Drives legit and does normal overtakes.Ignores traffic lights, and avoids other cars(fast accelerate, chase ? )
-	5 = Drives legit and does normal overtakes.Ignores traffic lights, and avoids other cars
-	6 = Drives legit and does normal overtakes.Ignores traffic lights, and avoids other cars
-	7 = Drives legit and does overtakes depending on speed ? Drives carefully
-	8 = Normal behaviour but doesn't recognize other cars on the road, should only be used without ped cars in world.
-	9 = Drives legit and does no overtakes.Drives carefully
-	10 = Normal behaviour but doesn't recognize other cars on the road, should only be used without ped cars in world.
-	*/
-	//AI::TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(ped, veh, blipCoords.x, blipCoords.y, blipCoords.z, 100, 5, chauffTolerance);
-/*
-	if (is_this_a_heli_or_plane(veh)){
-		//TODO
-	}
-	else{
-		if (get_euc_distance(playerCoords, blipCoords) >= 1000.0){
-			AI::TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(driver, veh, blipCoords.x, blipCoords.y, blipCoords.z, 40.0, 4, chauffTolerance);
-		}
-		else{
-			AI::TASK_VEHICLE_DRIVE_TO_COORD(driver, veh, blipCoords.x, blipCoords.y, blipCoords.z, 40.0, 1, ENTITY::GET_ENTITY_MODEL(veh), 4, -1.0, -1.0);
-		}
-	}
-}*/
-
-/*void cancel_chauffeur(std::string message){
-	Object taskHdl;
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-		Ped driver = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh, -1);
-
-		VEHICLE::SET_VEHICLE_FORWARD_SPEED(veh, 0.0);
-		VEHICLE::SET_VEHICLE_ENGINE_ON(veh, FALSE, true);
-		if (ENTITY::DOES_ENTITY_EXIST(driver)){
-			if (driver != PLAYER::PLAYER_PED_ID()){
-				AI::CLEAR_PED_TASKS(driver);
-
-				AI::OPEN_SEQUENCE_TASK(&taskHdl);
-				AI::TASK_LEAVE_VEHICLE(driver, veh, 1);
-				AI::TASK_WANDER_STANDARD(driver, 100.0, 1);
-				AI::CLOSE_SEQUENCE_TASK(taskHdl);
-
-				AI::TASK_PERFORM_SEQUENCE(driver, taskHdl);
-				AI::CLEAR_SEQUENCE_TASK(&taskHdl);
-
-				waitingToRetakeSeat = veh;
-			}
-		}
-	}
-
-
-
-	std::ostringstream ss;
-	ss << message;
-	set_status_text(ss.str());
-	beingChauffeured = false;
-}*/
 /*
 void enableMpMapsinSP()
 {
@@ -3239,232 +2979,6 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 
 ///////////////////////////////////////////////////////////////////////////////////////
 
-////////////////////////////////// DRIVE TO MARKER ////////////////////////////////////
-
-void drive_to_marker()
-{
-	Player drivetomarker_player = PLAYER::PLAYER_PED_ID();
-	curr_veh = PED::GET_VEHICLE_PED_IS_IN(drivetomarker_player, false);
-	speed = ENTITY::GET_ENTITY_VELOCITY(curr_veh);
-	driving_reverse = ENTITY::GET_ENTITY_SPEED_VECTOR(curr_veh, true);
-
-	if (speed.x < 0) speed.x = speed.x * -1;
-	if (speed.y < 0) speed.y = speed.y * -1;
-
-	Vector3 my_coords = ENTITY::GET_ENTITY_COORDS(drivetomarker_player, 1);
-	int tempdistance_x = (my_coords.x - coords_marker_to_drive_to.x);
-	int tempdistance_y = (my_coords.y - coords_marker_to_drive_to.y);
-	if (tempdistance_x < 0) tempdistance_x = (tempdistance_x * -1);
-	if (tempdistance_y < 0) tempdistance_y = (tempdistance_y * -1);
-
-	float dist_to_land_diff = SYSTEM::VDIST(my_coords.x, my_coords.y, my_coords.z, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z);
-
-	if (PED::IS_PED_IN_ANY_VEHICLE(drivetomarker_player, false))
-	{
-		coords_marker_to_drive_to = get_blip_marker();
-		
-		if (blipFound == true)
-		{
-			Ped me_at_the_wheel = VEHICLE::GET_PED_IN_VEHICLE_SEAT(curr_veh, -1);
-			Ped Passenger_Driver = VEHICLE::GET_PED_IN_VEHICLE_SEAT(curr_veh, 0);
-			if (VEHICLE::IS_VEHICLE_SEAT_FREE(curr_veh, 0) || Passenger_Driver == drivetomarker_player)	PED::SET_PED_INTO_VEHICLE(me_at_the_wheel, curr_veh, 0);
-			else{
-				set_status_text("Couldn't make room for your chauffeur");
-				return;
-			}
-
-			Vector3 spawn_coords_for_pilot = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(PLAYER::PLAYER_PED_ID(), 0.0, 5.0, 0.0);
-
-			char *cstr = new char[TEL_CHAUFFEUR_CAPTIONS[TelChauffeurIndex].length() + 1];
-			strcpy(cstr, TEL_CHAUFFEUR_CAPTIONS[TelChauffeurIndex].c_str());
-			driverPed_tomarker = GAMEPLAY::GET_HASH_KEY(cstr);
-			delete[] cstr;
-
-			STREAMING::REQUEST_MODEL(driverPed_tomarker);
-			while (!STREAMING::HAS_MODEL_LOADED(driverPed_tomarker)){
-				make_periodic_feature_call();
-				WAIT(0);
-			}
-
-			if (VEHICLE::IS_VEHICLE_SEAT_FREE(curr_veh, -1)) driver_to_marker_pilot = PED::CREATE_PED(25, driverPed_tomarker, spawn_coords_for_pilot.x, spawn_coords_for_pilot.y, spawn_coords_for_pilot.z, 0, false, false);
-
-			AI::CLEAR_PED_TASKS(driver_to_marker_pilot);
-
-			while (!NETWORK::NETWORK_HAS_CONTROL_OF_ENTITY(curr_veh)){
-				make_periodic_feature_call();
-				NETWORK::NETWORK_REQUEST_CONTROL_OF_ENTITY(curr_veh);
-				WAIT(0);
-			}
-
-			PED::SET_PED_INTO_VEHICLE(driver_to_marker_pilot, curr_veh, -1);
-		}
-		
-		GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, &coords_marker_to_drive_to.z);
-		coords_marker_to_drive_to.z += 3.0;
-
-		if (featureStickToGround && ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(curr_veh) && !PED::IS_PED_IN_ANY_HELI(drivetomarker_player) && !PED::IS_PED_IN_ANY_PLANE(drivetomarker_player))
-		{
-			if (speed.x > 1 || speed.y > 1 || speed.z > 1) VEHICLE::SET_VEHICLE_ON_GROUND_PROPERLY(curr_veh); //	if (speed.z > 1) 
-		}
-		
-		if (speed.x < 5 && speed.y < 5 && reverse == true)
-		{
-			reverse_check = false;
-			SinceDriverStop_secs_passed = clock() / CLOCKS_PER_SEC;
-			if (((clock() / CLOCKS_PER_SEC) - SinceDriverStop_secs_curr) != 0)
-			{
-				DriverStop_seconds = DriverStop_seconds + 1;
-				SinceDriverStop_secs_curr = SinceDriverStop_secs_passed;
-			}
-			if (DriverStop_seconds > -1 && DriverStop_seconds < 1) driving_style = 1024; // 2
-			if (DriverStop_seconds > 2 && DriverStop_seconds < 6) driving_style = TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES[TelChauffeur_drivingstyles_Index];
-			if (DriverStop_seconds > 5) DriverStop_seconds = 0;
-		}
-
-		if ((driving_reverse.x < 5) && (driving_reverse.y < 5) && reverse == false)
-		{
-			SinceDriverStop_secs_passed = clock() / CLOCKS_PER_SEC;
-			if (((clock() / CLOCKS_PER_SEC) - SinceDriverStop_secs_curr) != 0)
-			{
-				DriverStop_seconds = DriverStop_seconds + 1;
-				SinceDriverStop_secs_curr = SinceDriverStop_secs_passed;
-			}
-			if (DriverStop_seconds > 5)
-			{
-				reverse = true;
-				DriverStop_seconds = 0;
-			}
-		}
-
-		if ((driving_reverse.x < 5) && (driving_reverse.y < 5))
-		{
-			SinceDriver2Stop_secs_passed = clock() / CLOCKS_PER_SEC;
-			if (((clock() / CLOCKS_PER_SEC) - SinceDriver2Stop_secs_curr) != 0)
-			{
-				Driver2Stop_seconds = Driver2Stop_seconds + 1;
-				SinceDriver2Stop_secs_curr = SinceDriver2Stop_secs_passed;
-			}
-			if (Driver2Stop_seconds > 8)
-			{
-				driving_style = TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES[TelChauffeur_drivingstyles_Index];
-				Driver2Stop_seconds = 0;
-			}
-		}
-
-		if ((driving_reverse.x < -2) && (driving_reverse.y < -2) && reverse_check == false)
-		{
-			driving_style = TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES[TelChauffeur_drivingstyles_Index];
-			DriverStop_seconds = 0;
-			reverse = false;
-		}
-
-		if ((speed.x > 10) || (speed.y > 10))
-		{
-			reverse = true;
-			reverse_check = true;
-		}
-
-		if (!PED::IS_PED_IN_ANY_HELI(drivetomarker_player) && !PED::IS_PED_IN_ANY_PLANE(drivetomarker_player))
-			AI::TASK_VEHICLE_DRIVE_TO_COORD_LONGRANGE(driver_to_marker_pilot, curr_veh, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, TEL_CHAUFFEUR_SPEED_VALUES[TelChauffeur_speed_Index], driving_style, 5.0f); // 4 // 156 // 40.0f
-		
-		if (PED::IS_PED_IN_ANY_HELI(drivetomarker_player)) 
-			AI::TASK_HELI_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 4, TEL_CHAUFFEUR_SPEED_VALUES[TelChauffeur_speed_Index], -1.0, -1.0, 0, TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index], -1.0, 32);
-		
-		if (PED::IS_PED_IN_ANY_PLANE(drivetomarker_player)) 
-		{
-			planecurrspeed = ENTITY::GET_ENTITY_SPEED(curr_veh);
-			curr_roll = ENTITY::GET_ENTITY_ROLL(curr_veh);
-			curr_pitch = ENTITY::GET_ENTITY_PITCH(curr_veh);
-			curr_yaw = ENTITY::GET_ENTITY_HEADING(curr_veh);
-
-			if (TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index] < 1000) temp_dist = 1500;
-			if (TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index] > 999) temp_dist = TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index] + 1000;
-
-			if (planecurrspeed > 20 && my_coords.z < TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index] && altitude_reached == false) //  && dist_to_land_diff > temp_dist - 1 
-			{
-				if (curr_pitch < 20) ENTITY::SET_ENTITY_ROTATION(curr_veh, curr_pitch + 0.2, curr_roll, curr_yaw, 1, true);
-			}
-			
-			if (my_coords.z > TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index]) altitude_reached = true;
-
-			if (my_coords.z > 102 && landing_gear_off == false)
-			{
-				VEHICLE::CONTROL_LANDING_GEAR(curr_veh, 1);
-				landing_gear_off = true;
-			}
-
-			if (my_coords.z < 99 && landing_gear_off == true)
-			{
-				VEHICLE::CONTROL_LANDING_GEAR(curr_veh, 2);
-				landing_gear_off = false;
-			}
-
-			if (planecurrspeed < 25 && VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(curr_veh))
-			{
-				planecurrspeed = planecurrspeed + 0.4;
-				VEHICLE::SET_VEHICLE_FORWARD_SPEED(curr_veh, planecurrspeed);
-			}
-			
-			if (altitude_reached == true && dist_to_land_diff > temp_dist - 1 && featureLandAtDestination) 
-				AI::TASK_PLANE_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 4, TEL_CHAUFFEUR_SPEED_VALUES[TelChauffeur_speed_Index], 0, 90, 2600, 300);
-
-			if (altitude_reached == true && !featureLandAtDestination) 
-				AI::TASK_PLANE_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 4, TEL_CHAUFFEUR_SPEED_VALUES[TelChauffeur_speed_Index], 0, 90, 0, TEL_CHAUFFEUR_ALTITUDE_VALUES[TelChauffeur_altitude_Index]);
-		}
-
-		if (featureLandAtDestination)
-		{
-			if (PED::IS_PED_IN_ANY_HELI(drivetomarker_player) && tempdistance_x < 20 && tempdistance_y < 20)
-			{
-				AI::TASK_HELI_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 20, TEL_CHAUFFEUR_SPEED_VALUES[TelChauffeur_speed_Index], -1.0, -1.0, 0, 0, -1.0, 32);
-				if (ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(curr_veh) && marker_been_set == true)
-				{
-					AI::CLEAR_PED_TASKS(driver_to_marker_pilot);
-					VEHICLE::SET_VEHICLE_ENGINE_ON(curr_veh, false, true);
-					AI::TASK_LEAVE_VEHICLE(driver_to_marker_pilot, curr_veh, 4160);
-					marker_been_set = false;
-					blipDriveFound = false;
-					AI::TASK_SMART_FLEE_PED(driver_to_marker_pilot, drivetomarker_player, 1000, -1, true, true);
-				}
-			}
-
-			if (PED::IS_PED_IN_ANY_PLANE(drivetomarker_player) && dist_to_land_diff < temp_dist && altitude_reached == true)
-			{
-				if (dist_to_land_diff > 399 && dist_to_land_diff < temp_dist)
-				{
-					AI::TASK_PLANE_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 4, 30, 0, 90, 0, 200);
-					if (my_coords.z > 200) AI::TASK_PLANE_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 4, 30, 0, 90, 0, -500);
-				}
-				
-				if (dist_to_land_diff < 400)
-					AI::TASK_PLANE_MISSION(driver_to_marker_pilot, curr_veh, 0, 0, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z, 4, 20, 0, 90, 0, -500);
-				
-				if (landing == false)
-				{
-					AI::TASK_PLANE_LAND(driver_to_marker_pilot, curr_veh, my_coords.x, my_coords.y, my_coords.z, coords_marker_to_drive_to.x, coords_marker_to_drive_to.y, coords_marker_to_drive_to.z);
-					landing = true;
-				}
-
-				if (ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(curr_veh) && marker_been_set == true)
-				{
-					AI::CLEAR_PED_TASKS(driver_to_marker_pilot);
-					VEHICLE::SET_VEHICLE_ENGINE_ON(curr_veh, false, true);
-					PED::DELETE_PED(&driver_to_marker_pilot);
-					marker_been_set = false;
-					blipDriveFound = false;
-					landing = false;
-					planecurrspeed = 0;
-					altitude_reached = false;
-				}
-			}
-		}
-
-		marker_been_set = true; 
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////////////
-
 bool onconfirm_3dmarker_menu(MenuItem<int> choice)
 {
 	return false;
@@ -3541,14 +3055,6 @@ void set_3d_marker(){
 bool onconfirm_chauffeur_menu(MenuItem<int> choice)
 {
 	switch (activeLineIndexChauffeur){
-	//case 0:
-	//	if (beingChauffeured){
-	//		cancel_chauffeur("Chauffeur cancelled");
-	//		}
-	//		else{
-	//			get_chauffeur_to_marker();
-	//			break;
-	//			}
 	case 0:
 		drive_to_marker();
 		break;
@@ -3569,12 +3075,6 @@ void getTelChauffeurIndex(){
 
 	int i = 0;
  
-	//item = new MenuItem<int>();
-	//item->caption = "Chauffeur To Marker";
-	//item->value = i++;
-	//item->isLeaf = true;
-	//menuItems.push_back(item);
-
 	item = new MenuItem<int>();
 	item->caption = "Drive To Marker";
 	item->value = i++;
@@ -4013,28 +3513,6 @@ void process_toggles_menu(){
 
 void update_teleport_features(){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	/*if (beingChauffeured){
-		Vector3 playerCoords = ENTITY::GET_ENTITY_COORDS(playerPed, 0);
-		// Moved blipCoords to global scope... we don't want to call for new blip coords each time (we've already told mr. monkey where to go)
-
-		if (is_player_at_blip(playerCoords, blipCoords, chauffTolerance)){
-			cancel_chauffeur("Arrived at destination");
-		}
-	}
-	else{
-		Vehicle veh = PED::GET_VEHICLE_PED_IS_IN(playerPed, 0);
-		if (waitingToRetakeSeat != -1 && veh == waitingToRetakeSeat){
-			Ped driver = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh, -1);
-			if (driver == NULL || !ENTITY::DOES_ENTITY_EXIST(driver)){
-				AI::TASK_SHUFFLE_TO_NEXT_VEHICLE_SEAT(playerPed, veh);
-				waitingToRetakeSeat = -1;
-			}
-		}
-		else{
-			waitingToRetakeSeat = -1;
-		}
-	}*/
 
 	/////////////////////////////////////// 3D MARKER /////////////////////////////////////////
 

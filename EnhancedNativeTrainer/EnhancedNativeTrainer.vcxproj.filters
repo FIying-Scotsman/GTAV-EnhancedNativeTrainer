@@ -113,7 +113,12 @@
       <Filter>src\features</Filter>
     </ClCompile>
     <ClCompile Include="Source.cpp" />
-    <ClCompile Include="src\features\large_features.cpp" />
+    <ClCompile Include="src\features\prison_break.cpp" />
+    <ClCompile Include="src\features\fuel.cpp" />
+    <ClCompile Include="src\features\road_laws.cpp" />
+    <ClCompile Include="src\features\speed_altitude.cpp" />
+    <ClCompile Include="src\features\drive_to_marker.cpp" />
+    <ClCompile Include="src\features\peds_dont_like_weapons.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\features\aimbot_esp.h">
@@ -233,7 +238,12 @@
     <ClInclude Include="inc\nativeCaller.h">
       <Filter>inc</Filter>
     </ClInclude>
-    <ClInclude Include="src\features\large_features.h" />
+    <ClInclude Include="src\features\prison_break.h" />
+    <ClInclude Include="src\features\fuel.h" />
+    <ClInclude Include="src\features\road_laws.h" />
+    <ClInclude Include="src\features\speed_altitude.h" />
+    <ClInclude Include="src\features\drive_to_marker.h" />
+    <ClInclude Include="src\features\peds_dont_like_weapons.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc" />
