@@ -1418,7 +1418,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 
 		//AUDIO::OVERRIDE_VEH_HORN(veh, 1, AUDIO::GET_VEHICLE_DEFAULT_HORN(veh));
 		//VEHICLE::START_VEHICLE_HORN(veh, getHornDuration(choice.value), GAMEPLAY::GET_HASH_KEY("HELDDOWN"), false);
-		}
+		}void set_engine_sound(MenuItem<int> choice)
 		*/
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_WINDOW_TINT){
@@ -1581,7 +1581,10 @@ void set_engine_sound(MenuItem<int> choice) {
 		bool correct_name = false;
 
 		std::string result = show_keyboard(NULL, "\"\""); 
-		
+		std::string amendedResult = "\"" + result + "\"";
+		std::transform(amendedResult.begin(), amendedResult.end(), amendedResult.begin(), ::toupper);
+		char *keyboardInput = &amendedResult[0u];
+
 		for (int i = 0; i < ENGINE_SOUND_COUNT; i++)
 		{
 			if (ENGINE_SOUND[i] == result)
@@ -1590,7 +1593,6 @@ void set_engine_sound(MenuItem<int> choice) {
 				current_picked_engine_sound = i;
 			}
 		}
-
 		if (correct_name == true)
 		{
 			char *currSound = new char[result.length() + 1];

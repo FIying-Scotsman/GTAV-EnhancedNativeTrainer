@@ -34,7 +34,7 @@ bool onconfirm_char_customisation_menu(MenuItem<int> choice) {
 		//process_skinchanger_category_menu();
 		break;
 	case 2: //Detail
-		//process_skinchanger_detail_menu();
+		process_skinchanger_detail_menu();
 		break;
 	case 3: //Reset
 		PED::SET_PED_DEFAULT_COMPONENT_VARIATION(playerPed);
@@ -110,7 +110,7 @@ bool process_char_customisation_menu()
 		set_status_text("Player not in vehicle");
 	}
 
-	return draw_generic_menu<int>(menuItems, &charCustomisationMenuIndex, "Seat Options", onconfirm_char_customisation_menu, NULL, NULL);
+	return draw_generic_menu<int>(menuItems, &charCustomisationMenuIndex, "Character Customisation", onconfirm_char_customisation_menu, NULL, NULL);
 }
 
 bool process_ped_face_data() 
@@ -119,6 +119,7 @@ bool process_ped_face_data()
 	std::vector<MenuItem<int>*> menuItems;
 
 	MenuItem<int> *item;
+	FloatItem<float> *floatItem;
 	int i = 0;
 
 	item = new MenuItem<int>();

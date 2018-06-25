@@ -176,7 +176,7 @@ public:
 template<class T>
 class FloatItem : public MenuItem<T> {
 public:
-	float Float, increment = 0.025, min = -1.0, max = 1.0;
+	float _Float, increment = 0.025, min = -1.0, max = 1.0;
 
 	virtual ~FloatItem() {
 		// Supposed to be empty
@@ -187,26 +187,26 @@ public:
 	};
 
 	virtual void handleLeftPress() {
-		Float -= increment;
-		if (Float < min)
+		_Float -= increment;
+		if (_Float < min)
 		{
-			Float = max;
+			_Float = max;
 		}
 
 		handlePressCommon();
 	}
 
 	virtual void handleRightPress() {
-		Float += increment;
-		if (Float > max)
+		_Float += increment;
+		if (_Float > max)
 		{
-			Float = min;
+			_Float = min;
 		}
 
 		handlePressCommon();
 	}
 
-	float getFloat() { return Float; }
+	float getFloat() { return _Float; }
 };
 
 template<class T>
