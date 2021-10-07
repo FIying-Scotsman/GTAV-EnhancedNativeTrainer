@@ -104,7 +104,7 @@ int DetectionRangeIndex = 3;
 bool DetectionRange_Changed = true;
 int PirsuitRangeIndexN = 4;
 bool PirsuitRange_Changed = true;
-int StarsPunishIndex = 0;
+int StarsPunishIndex = 1;
 bool StarsPunish_Changed = true;
 bool cop_close_stop = false;
 
@@ -116,9 +116,9 @@ std::vector<Vehicle> VEH_CRIME;
 std::vector<int> CLOTHES_BODY_CRIME;
 bool featurePlayerMostWanted = false;
 bool featurePlayerNoSwitch = true;
-int current_player_mostwanted = 0;
+int current_player_mostwanted = 1;
 bool current_player_mostwanted_Changed;
-int mostwanted_level_enable = 0;
+int mostwanted_level_enable = 1;
 bool mostwanted_level_enable_Changed;
 Player temp = -1;
 //
@@ -763,7 +763,7 @@ void road_laws()
 			Stop_seconds = 6;
 			r_tick_secs_passed = clock() / CLOCKS_PER_SEC;
 			if (((clock() / CLOCKS_PER_SEC) - SinceStop_secs_curr_final) != 0) {
-				if (Stop_seconds_final < 22 && been_seen_by_a_cop == true) Stop_seconds_final = Stop_seconds_final + 1;
+				if (Stop_seconds_final < 20 && been_seen_by_a_cop == true) Stop_seconds_final = Stop_seconds_final + 1;
 				SinceStop_secs_curr_final = r_tick_secs_passed;
 			}
 			Vector3 head_coords = PED::GET_PED_BONE_COORDS(playerPed, 31086, 0, 0, 0); // head bone
@@ -779,23 +779,12 @@ void road_laws()
 				if (!AUDIO::IS_AMBIENT_SPEECH_PLAYING(cop_that_fines_you)) AUDIO::STOP_CURRENT_PLAYING_AMBIENT_SPEECH(cop_that_fines_you);
 			}
 			if (Stop_seconds_final == 18) {
-				if (!AUDIO::IS_AMBIENT_SPEECH_PLAYING(cop_that_fines_you)) AUDIO::_PLAY_AMBIENT_SPEECH1(cop_that_fines_you, "GENERIC_THANKS", "SPEECH_PARAMS_FORCE_SHOUTED");
-				STREAMING::REQUEST_ANIM_DICT("amb@code_human_in_car_mp_actions@gang_sign_b@low@ds@base");
-				while (!STREAMING::HAS_ANIM_DICT_LOADED("amb@code_human_in_car_mp_actions@gang_sign_b@low@ds@base")) WAIT(0);
-				AI::TASK_PLAY_ANIM(cop_that_fines_you, "amb@code_human_in_car_mp_actions@gang_sign_b@low@ds@base", "enter", 8.0, 0.0, -1, 9, 0, 0, 0, 0);
-			}
-			if (Stop_seconds_final == 19) {
-				AI::TASK_TURN_PED_TO_FACE_COORD(cop_that_fines_you, head_coords.x, head_coords.y, head_coords.z, 100);
-				if (!AUDIO::IS_AMBIENT_SPEECH_PLAYING(cop_that_fines_you)) AUDIO::STOP_CURRENT_PLAYING_AMBIENT_SPEECH(cop_that_fines_you);
-				AI::STOP_ANIM_TASK(cop_that_fines_you, "amb@code_human_in_car_mp_actions@gang_sign_b@low@ds@base", "enter", 1.0);
-			}
-			if (Stop_seconds_final == 20 && STREAMING::DOES_ANIM_DICT_EXIST("amb@code_human_in_car_mp_actions@gang_sign_b@low@ds@base") && !ENTITY::HAS_ENTITY_ANIM_FINISHED(cop_that_fines_you, "amb@code_human_in_car_mp_actions@gang_sign_b@low@ds@base", "enter", 3)) {
 				if (!AUDIO::IS_AMBIENT_SPEECH_PLAYING(cop_that_fines_you)) AUDIO::_PLAY_AMBIENT_SPEECH1(cop_that_fines_you, "GENERIC_BYE", "SPEECH_PARAMS_FORCE_SHOUTED");
 				STREAMING::REQUEST_ANIM_DICT("misscommon@response");
 				while (!STREAMING::HAS_ANIM_DICT_LOADED("misscommon@response")) WAIT(0);
 				AI::TASK_PLAY_ANIM(cop_that_fines_you, "misscommon@response", "screw_you", 8.0, 0.0, -1, 9, 0, 0, 0, 0);
 			}
-			if (Stop_seconds_final == 22) { // 21
+			if (Stop_seconds_final == 20) {
 				if (!AUDIO::IS_AMBIENT_SPEECH_PLAYING(cop_that_fines_you)) AUDIO::STOP_CURRENT_PLAYING_AMBIENT_SPEECH(cop_that_fines_you);
 				AI::STOP_ANIM_TASK(cop_that_fines_you, "misscommon@response", "screw_you", 1.0);
 			}
@@ -812,7 +801,7 @@ void road_laws()
 		}
 
 		// Been fined or escaped
-		if (Stop_seconds_final > 21 || tempgotcha_x > VEH_PIRSUITRANGE_VALUES[PirsuitRangeIndexN] || tempgotcha_y > VEH_PIRSUITRANGE_VALUES[PirsuitRangeIndexN] ||
+		if (Stop_seconds_final > 19 || tempgotcha_x > VEH_PIRSUITRANGE_VALUES[PirsuitRangeIndexN] || tempgotcha_y > VEH_PIRSUITRANGE_VALUES[PirsuitRangeIndexN] ||
 			(PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) > 1 && !featureCopsUseRadio) || (vehroadlaws_speed > 20 && Stop_seconds > -1 && wanted_level_on == true && !featureCopsUseRadio) || stuck_completely > 6 ||
 			PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) > 0)
 		{
@@ -820,7 +809,7 @@ void road_laws()
 				AI::STOP_ANIM_TASK(cop_that_fines_you, "ah_3a_ext-17", "player_zero_dual-17", 1.0);
 
 			// Thank you for your contribution, sir
-			if (Stop_seconds_final > 21) {
+			if (Stop_seconds_final > 19) {
 				int outValue_beingfined = -1;
 				int statHash_beingfined = -1;
 

@@ -244,9 +244,13 @@ void engine_can_degrade()
 					if (E_HEALTH[0] < 11) ENTITY::SET_ENTITY_MAX_SPEED(E_VEHICLES[0], 18); // 40 MPH
 					if (E_HEALTH[0] > 40) ENTITY::SET_ENTITY_MAX_SPEED(E_VEHICLES[0], 15000.0);
 				}
-			}
+
+				if (repairing_engine == true) E_HEALTH[0] = 100;
+			} // not bicycle
 		} // end of in vehicle
 		
+		repairing_engine = false;
+
 		// ENGINE RECOVERY
 		if (VEH_ENGINEHEALTH_VALUES[RestorationSpeedIndexN] > 0 && !E_VEHICLES.empty()) {
 			EngineCooling_secs_passed = clock() / CLOCKS_PER_SEC;

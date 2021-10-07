@@ -95,8 +95,8 @@ const int VEH_TURN_SIGNALS_ACCELERATION_VALUES[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 
 const std::vector<std::string> VEH_BLIPSIZE_CAPTIONS{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
 const double VEH_BLIPSIZE_VALUES[] = { 0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 1.7, 2.0, 2.5, 3.0 };
 
-const std::vector<std::string> VEH_BLIPSYMBOL_CAPTIONS{ "Standard", "Player", /*"North",*/ "Waypoint", /*"BigCircleOutline",*/ "ArrowUpOutlined", /*"ArrowDownOutlined", "ArrowUp", "ArrowDown", "PoliceHelicopterAnimated", "Jet"*/ };
-const std::vector<int> VEH_BLIPSYMBOL_VALUES{ 1, 6, /*7,*/ 8, /*10,*/ 11, /*12, 13, 14, 15, 16*/ };
+const std::vector<std::string> VEH_BLIPSYMBOL_CAPTIONS{ "Standard", "Player", "Waypoint", "ArrowUpOutlined" };
+const std::vector<int> VEH_BLIPSYMBOL_VALUES{ 1, 6, 8, 11 };
 
 extern int NPCVehicleDamageOnCollIndex;
 
@@ -887,7 +887,7 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 	{ RAGE_JOAAT("TIGON"), "lgm_dlc_summer2020", "tigon" },
 	{ RAGE_JOAAT("GAUNTLET5"), "lsc_dlc_summer2020", "gauntlet3_b" },
 	{ RAGE_JOAAT("YOSEMITE3"), "lsc_dlc_summer2020", "yosemite_b" },
-	//Cayo Perio Heist
+	//Cayo Perico Heist
 	{ RAGE_JOAAT("ALKONOST"), "candc_heist4", "alkonost" },
 	{ RAGE_JOAAT("ANNIHILATOR2"), "candc_heist4", "annihlator2" },
 	{ RAGE_JOAAT("AVISA"), "candc_heist4", "avisa" },
@@ -909,6 +909,25 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 	{ RAGE_JOAAT("ITALIRSX"), "lgm_dlc_heist4", "italirsx" },
 	{ RAGE_JOAAT("LONGFIN"), "dock_dlc_heist4", "longfin" },
 	{ RAGE_JOAAT("SEASPARROW2"), "elt_dlc_assault", "sparrow" },
+	//Tuners
+	{ RAGE_JOAAT("COMET6"), "lgm_dlc_tuner", "comet6" },
+	{ RAGE_JOAAT("CYPHER"), "lgm_dlc_tuner", "cypher" },
+	{ RAGE_JOAAT("EUROS"), "lgm_dlc_tuner", "euros" },
+	{ RAGE_JOAAT("GROWLER"), "lgm_dlc_tuner", "growler" },
+	{ RAGE_JOAAT("JESTER4"), "lgm_dlc_tuner", "jester4" },
+	{ RAGE_JOAAT("TAILGATER2"), "lgm_dlc_tuner", "tailgater2" },
+	{ RAGE_JOAAT("VECTRE"), "lgm_dlc_tuner", "vectre" },
+	{ RAGE_JOAAT("ZR350"), "lgm_dlc_tuner", "zr350" },
+	{ RAGE_JOAAT("CALICO"), "sssa_dlc_tuner", "calico" },
+	{ RAGE_JOAAT("DOMINATOR7"), "sssa_dlc_tuner", "dominator7" },
+	{ RAGE_JOAAT("DOMINATOR8"), "sssa_dlc_tuner", "dominator8" },
+	{ RAGE_JOAAT("FUTO2"), "sssa_dlc_tuner", "futo2" },
+	{ RAGE_JOAAT("PREVION"), "sssa_dlc_tuner", "previon" },
+	{ RAGE_JOAAT("REMUS"), "sssa_dlc_tuner", "remus" },
+	{ RAGE_JOAAT("SULTAN3"), "sssa_dlc_tuner", "sultan3" },
+	{ RAGE_JOAAT("WARRENER2"), "sssa_dlc_tuner", "warrener2" },
+	{ RAGE_JOAAT("RT3000"), "sssa_dlc_tuner", "rt3000" },
+	{ RAGE_JOAAT("FREIGHTCAR2"), "ENT_vehicle_previews", "VP_FREIGHTCAR" }
 };
 
 /***
@@ -1035,11 +1054,15 @@ bool is_xenon_headlights(std::vector<int> extras);
 
 void set_xenon_headlights(bool applied, std::vector<int> extras);
 
+bool is_low_grip_tyres(std::vector<int> extras);
+
+void set_low_grip_tyres(bool applied, std::vector<int> extras);
+
 bool is_extra_enabled(std::vector<int> extras);
 
 void set_extra_enabled(bool applied, std::vector<int> extras);
 
-void set_plate_text(MenuItem<int> choice);
+void set_plate_text(); // MenuItem<int> choice
 
 bool is_convertible_roofdown(std::vector<int> extras);
 
@@ -1068,8 +1091,6 @@ void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settin
 bool onconfirm_paintfade(MenuItem<float> choice);
 
 void onhighlight_paintfade(MenuItem<float> choice);
-
-//int get_current_veh_invincibility_mode();
 
 void onchange_veh_invincibility_mode(int value, SelectFromListMenuItem* source);
 
@@ -1170,6 +1191,20 @@ void onchange_boat_enginedegrade_index(int value, SelectFromListMenuItem* source
 void onchange_plane_enginedegrade_index(int value, SelectFromListMenuItem* source);
 
 void onchange_heli_enginedegrade_index(int value, SelectFromListMenuItem* source);
+
+void onchange_skill_index(int value, SelectFromListMenuItem* source);
+
+void onchange_breaking_into_index(int value, SelectFromListMenuItem* source);
+
+void onchange_hotwire_index(int value, SelectFromListMenuItem* source);
+
+void onchange_breaking_attempt_index(int value, SelectFromListMenuItem* source);
+
+void onchange_drag_out_index(int value, SelectFromListMenuItem* source);
+
+void onchange_ped_alertness_index(int value, SelectFromListMenuItem* source);
+
+void onchange_call_cop_index(int value, SelectFromListMenuItem* source);
 
 void onchange_restoration_speed_index(int value, SelectFromListMenuItem* source);
 
@@ -1340,3 +1375,9 @@ extern bool featureDisableIgnition;
 extern int EngineRunningIndex;
 
 extern std::string  veh_to_spawn;
+extern bool repairing_engine;
+extern int breaking_secs_tick;
+
+extern int DefaultPlateIndex;
+
+extern bool featureShowIgnAnim;

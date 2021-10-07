@@ -61,6 +61,7 @@ bool c_armed = true;
 bool featureBodyguardInvincible = false;
 bool featureNoBodBlood = false;
 bool featureBAggressivePed = false;
+bool featureBCannotBeHeadshot = false;
 bool featureBodyguardHelmet = false;
 bool featureBodyguardDespawn = true;
 bool featureDifferentWeapons = false;
@@ -133,6 +134,11 @@ const std::vector<std::string> BODY_GROUPFORMATION_CAPTIONS{ "Default", "Circle 
 const int BODY_GROUPFORMATION_VALUES[] = { 0, 1, 3 };
 int BodyGroupFormationIndex = 1;
 bool BodyGroupFormationChanged = true;
+
+//Show Numbers
+const std::vector<std::string> BODY_SHOWNUMBERS_CAPTIONS{ "When Menu Is Open", "Always", "Never" };
+int BodyShowNumbersIndex = 0;
+bool BodyShowNumbersChanged = true;
 
 //Blip Flashing
 int BodyBlipFlashIndex = 0;
@@ -655,7 +661,7 @@ bool applyChosenBodSkin(DWORD model)
 		STREAMING::REQUEST_MODEL(model);
 		while (!STREAMING::HAS_MODEL_LOADED(model))
 		{
-			make_periodic_feature_call();
+			//make_periodic_feature_call();
 			WAIT(0);
 		}
 
@@ -681,6 +687,11 @@ bool applyChosenBodSkin(DWORD model)
 
 bool spawn_saved_bod_skin(int slot, std::string caption)
 {
+	if (!spawnedENTBodyguards.empty() && spawnedENTBodyguards.size() >= BODYGUARD_LIMIT) {
+		set_status_text("Cannot spawn any more bodyguards");
+		return false;
+	}
+
 	ENTDatabase* database = get_database();
 	std::vector<SavedBodSkinDBRow*> savedBodSkins = database->get_saved_bod_skins(slot);
 	SavedBodSkinDBRow* savedBodSkin = savedBodSkins.at(0);
@@ -696,6 +707,7 @@ bool spawn_saved_bod_skin(int slot, std::string caption)
 	}
 
 	PED::CLEAR_ALL_PED_PROPS(bodyGuard);
+
 	for each (SavedBodSkinPropDBRow *prop in savedBodSkin->props)
 	{
 		PED::SET_PED_PROP_INDEX(bodyGuard, prop->propID, prop->drawable, prop->texture, 0);
@@ -1040,14 +1052,17 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 		case 4:
 		{
 			keyboard_on_screen_already = true;
-			curr_message = "Enter bodyguard model name (e.g. cs_amandatownley or random):"; // spawn a bodyguard
+			curr_message = "Enter bodyguard model name (e.g. random, saved_bodyguards, random_story):"; // spawn a bodyguard
 			std::string result = show_keyboard("Enter Name Manually", (char*)lastCustomBodyguardSpawn.c_str());
 			if (!result.empty())
 			{
 				result = trim(result);
 				lastCustomBodyguardSpawn = result;
 				Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
-				if (lastCustomBodyguardSpawn != "random" && lastCustomBodyguardSpawn != "Random" && lastCustomBodyguardSpawn != "RANDOM" && (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash)))
+				if (lastCustomBodyguardSpawn != "random" && lastCustomBodyguardSpawn != "Random" && lastCustomBodyguardSpawn != "RANDOM" && 
+					lastCustomBodyguardSpawn != "saved_bodyguards" && lastCustomBodyguardSpawn != "Saved_bodyguards" && lastCustomBodyguardSpawn != "Saved_Bodyguards" && 
+					lastCustomBodyguardSpawn != "random_story" && lastCustomBodyguardSpawn != "Random_story" && lastCustomBodyguardSpawn != "Random_Story" &&
+					(!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash)))
 				{
 					std::ostringstream ss;
 					ss << "Couldn't find model '" << result << "'";
@@ -1055,7 +1070,9 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 					lastCustomBodyguardSpawn = "";
 					return false;
 				}
-				if ((STREAMING::IS_MODEL_IN_CDIMAGE(hash) && STREAMING::IS_MODEL_VALID(hash)) || lastCustomBodyguardSpawn == "random" || lastCustomBodyguardSpawn == "Random" || lastCustomBodyguardSpawn == "RANDOM")
+				if ((STREAMING::IS_MODEL_IN_CDIMAGE(hash) && STREAMING::IS_MODEL_VALID(hash)) || lastCustomBodyguardSpawn == "random" || lastCustomBodyguardSpawn == "Random" || lastCustomBodyguardSpawn == "RANDOM" ||
+					lastCustomBodyguardSpawn == "saved_bodyguards" || lastCustomBodyguardSpawn == "Saved_bodyguards" || lastCustomBodyguardSpawn == "Saved_Bodyguards" ||
+					lastCustomBodyguardSpawn == "random_story" || lastCustomBodyguardSpawn == "Random_story" || lastCustomBodyguardSpawn == "Random_Story")
 				{
 					get_current_model_name();
 					requireRefreshOfBodyguardMainMenu = true;
@@ -1513,6 +1530,7 @@ void dismiss_bodyguards(){
 	}
 
 	for(int i = 0; i < spawnedENTBodyguards.size(); i++){
+		if (PED::IS_PED_IN_ANY_VEHICLE(spawnedENTBodyguards[i], 0)) AI::TASK_SMART_FLEE_PED(spawnedENTBodyguards[i], PLAYER::PLAYER_PED_ID(), 1000, -1, true, true);
 		ENTITY::SET_ENTITY_INVINCIBLE(spawnedENTBodyguards[i], false);
 		PED::SET_PED_NEVER_LEAVES_GROUP(spawnedENTBodyguards[i], false);
 		PED::SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(spawnedENTBodyguards[i], false);
@@ -1566,7 +1584,7 @@ void do_spawn_bodyguard(){
 	}
 
 	// random bodyguard
-	if (lastCustomBodyguardSpawn == "random" || lastCustomBodyguardSpawn == "Random" || lastCustomBodyguardSpawn == "RANDOM") {
+	if ((lastCustomBodyguardSpawn == "random" || lastCustomBodyguardSpawn == "Random" || lastCustomBodyguardSpawn == "RANDOM") && added_nearest_b == false) {
 		random_category = (rand() % 10 + 0); // UP MARGIN + DOWN MARGIN
 		if (random_category == 0) {
 			random_bodyguard = (rand() % SKINS_PLAYER_VALUES.size() + 0);
@@ -1586,14 +1604,17 @@ void do_spawn_bodyguard(){
 		}
 	} // end of random bodyguard
 	
-	if (lastCustomBodyguardSpawn != "random" && lastCustomBodyguardSpawn != "Random" && lastCustomBodyguardSpawn != "RANDOM") bodyGuardModel = get_current_model_hash(); // hotkey_boddyguard == false && 
-
-	if (load_saved_bodyguard == true) bodyGuardModel = temp_bodyguard;
+	if (lastCustomBodyguardSpawn != "random" && lastCustomBodyguardSpawn != "Random" && lastCustomBodyguardSpawn != "RANDOM" && lastCustomBodyguardSpawn != "saved_bodyguards" && lastCustomBodyguardSpawn != "Saved_bodyguards" && lastCustomBodyguardSpawn != "Saved_Bodyguards" &&
+		lastCustomBodyguardSpawn != "random_story" && lastCustomBodyguardSpawn != "Random_story" && lastCustomBodyguardSpawn != "Random_Story" && added_nearest_b == false) bodyGuardModel = get_current_model_hash(); // hotkey_boddyguard == false && 
+	
+	if (load_saved_bodyguard == true && added_nearest_b == false) bodyGuardModel = temp_bodyguard;
 
 	if (spawning_a_ped == false && spawnedENTBodyguards.size() >= BODYGUARD_LIMIT) {
 		set_status_text("Cannot spawn any more bodyguards");
 		return;
 	}
+
+	if (added_nearest_b == true) bodyGuardModel = GAMEPLAY::GET_HASH_KEY("player_one");
 
 	if((STREAMING::IS_MODEL_IN_CDIMAGE(bodyGuardModel) && STREAMING::IS_MODEL_VALID(bodyGuardModel)) || added_nearest_b == true){
 		STREAMING::REQUEST_MODEL(bodyGuardModel);
@@ -1691,17 +1712,28 @@ void do_spawn_bodyguard(){
 				PED::SET_PED_COMBAT_ABILITY(bodyGuard, 2);
 				PED::SET_PED_COMBAT_RANGE(bodyGuard, 2);
 				PED::SET_PED_COMBAT_MOVEMENT(bodyGuard, 3);
-				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 0, true); // BF_CanUseCover 
+				//PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 0, true); // BF_CanUseCover 
 				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 1, true); // BF_CanUseVehicles 
 				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 2, true); // BF_CanDoDrivebys 
 				//PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 3, true); // BF_CanLeaveVehicle 
 				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 5, true); // BF_CanFightArmedPedsWhenNotArmed
-				//PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 20, true); // BF_CanTauntInVehicle 
+				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 20, true); // BF_CanTauntInVehicle 
 				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 46, true); // BF_AlwaysFight 
-				//PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 1424, true); // BF_PlayerCanUseFiringWeapons
+				PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 1424, true); // BF_PlayerCanUseFiringWeapons
 				//PED::SET_PED_ALERTNESS(bodyGuard, 3);
 				//PED::SET_PED_SEEING_RANGE(bodyGuard, 1000);
 				
+				PED::SET_PED_SHOOT_RATE(bodyGuard, 999);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 0, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 1, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 3, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 4, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 5, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 8, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 11, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 12, 1.0);
+				PED::SET_COMBAT_FLOAT(bodyGuard, 16, 1.0);
+
 				// animal
 				if (bodyguard_animal == true) {
 					PED::SET_PED_COMBAT_ATTRIBUTES(bodyGuard, 46, true);
@@ -1716,13 +1748,13 @@ void do_spawn_bodyguard(){
 					PED::SET_GROUP_FORMATION(myENTGroup, BODY_GROUPFORMATION_VALUES[BodyGroupFormationIndex]); // 1 
 					PED::SET_GROUP_FORMATION_SPACING(myENTGroup, VEH_BLIPSIZE_VALUES[BodyDistanceIndex], VEH_BLIPSIZE_VALUES[BodyDistanceIndex], VEH_BLIPSIZE_VALUES[BodyDistanceIndex]); // 2.0, 2.0, 2.0
 				}
-				//PED::SET_CAN_ATTACK_FRIENDLY(bodyGuard, false, false);
+				PED::SET_CAN_ATTACK_FRIENDLY(bodyGuard, false, false);
 			}
 
 			//AI::TASK_COMBAT_HATED_TARGETS_AROUND_PED(bodyGuard, 100.0f, 0);
-			//PED::SET_PED_KEEP_TASK(bodyGuard, true);
+			PED::SET_PED_KEEP_TASK(bodyGuard, true);
 
-			//if (bodyguard_animal == false) PED::SET_PED_FIRING_PATTERN(bodyGuard, GAMEPLAY::GET_HASH_KEY("FIRING_PATTERN_FULL_AUTO")); // 0xC6EE6B4C
+			if (bodyguard_animal == false) PED::SET_PED_FIRING_PATTERN(bodyGuard, GAMEPLAY::GET_HASH_KEY("FIRING_PATTERN_FULL_AUTO")); // 0xC6EE6B4C
 
 			// different weapons
 			if (featureDifferentWeapons && PED_WEAPON_TITLES[BodyWeaponSetIndex] == "Custom Weapon"/* && load_saved_bodyguard == false*/) {
@@ -1965,6 +1997,9 @@ void maintain_bodyguards(){
 			// bodyguards invincible
 			if (featureBodyguardInvincible) ENTITY::SET_ENTITY_INVINCIBLE(spawnedENTBodyguards[i], true);
 			else ENTITY::SET_ENTITY_INVINCIBLE(spawnedENTBodyguards[i], false);
+			// cannot be headshot
+			if (featureBCannotBeHeadshot) PED::SET_PED_SUFFERS_CRITICAL_HITS(spawnedENTBodyguards[i], false); // no headshots
+			else PED::SET_PED_SUFFERS_CRITICAL_HITS(spawnedENTBodyguards[i], true);
 			// no blood and no bullet holes
 			if (featureNoBodBlood) PED::CLEAR_PED_BLOOD_DAMAGE(spawnedENTBodyguards[i]);
 			// share weapon with bodyguards
@@ -2064,22 +2099,15 @@ void maintain_bodyguards(){
 				if (PED::IS_PED_FLEEING(spawnedENTBodyguards[i])) AI::TASK_STAND_STILL(spawnedENTBodyguards[i], 10000);
 			}
 			// show numbers above heads
-			if (menu_showing == true && GAMEPLAY::UPDATE_ONSCREEN_KEYBOARD() != 0) {
+			if ((NPC_RAGDOLL_VALUES[BodyShowNumbersIndex] == 0 && menu_showing == true) || NPC_RAGDOLL_VALUES[BodyShowNumbersIndex] == 1/* && GAMEPLAY::UPDATE_ONSCREEN_KEYBOARD() != 0*/) {
 				Vector3 head_c = PED::GET_PED_BONE_COORDS(spawnedENTBodyguards[i], 31086, 0, 0, 0);
 				std::string curr_i = std::to_string(i);
 				GRAPHICS::SET_DRAW_ORIGIN(head_c.x, head_c.y, head_c.z + 0.5, 0);
 				UI::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 				UI::_ADD_TEXT_COMPONENT_SCALEFORM((char *)curr_i.c_str());
-				UI::SET_TEXT_FONT(0);
-				UI::SET_TEXT_SCALE(0.5, 0.5);
-				UI::SET_TEXT_WRAP(0.0, 1.0);
-				UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-				UI::SET_TEXT_CENTRE(0);
-				UI::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
-				UI::SET_TEXT_EDGE(0, 0, 0, 0, 255);
-				UI::SET_TEXT_OUTLINE();
-				UI::SET_TEXT_LEADING(1);
+				text_parameters(0.5, 0.5, 255, 242, 0, 255);
 				UI::END_TEXT_COMMAND_DISPLAY_TEXT(0, 0);
+				GRAPHICS::CLEAR_DRAW_ORIGIN();
 			}
 			//
 			if (stop_b == false) {
@@ -2499,6 +2527,18 @@ bool process_bodyguard_menu(){
 		toggleItem->toggleValue = &featureBAggressivePed;
 		menuItems.push_back(toggleItem);
 
+		toggleItem = new ToggleMenuItem<int>();
+		toggleItem->caption = "Cannot Be Headshot";
+		toggleItem->value = i++;
+		toggleItem->toggleValue = &featureBCannotBeHeadshot;
+		menuItems.push_back(toggleItem);
+
+		listItem = new SelectFromListMenuItem(BODY_SHOWNUMBERS_CAPTIONS, onchange_body_shownumber_index);
+		listItem->wrap = false;
+		listItem->caption = "Show Bodyguard Number";
+		listItem->value = BodyShowNumbersIndex;
+		menuItems.push_back(listItem);
+
 		if(!bodyguardWeaponsToggleInitialized){
 			for(int a = 0; a < MENU_WEAPON_CATEGORIES.size(); a++){
 				for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
@@ -2556,7 +2596,48 @@ bool onconfirm_bodyguard_menu(MenuItem<int> choice){
 
 	switch (activeLineIndexBodyguards) {
 		case 0:
-			do_spawn_bodyguard();
+			if (lastCustomBodyguardSpawn != "saved_bodyguards" && lastCustomBodyguardSpawn != "Saved_bodyguards" && lastCustomBodyguardSpawn != "Saved_Bodyguards" && 
+				lastCustomBodyguardSpawn != "random_story" && lastCustomBodyguardSpawn != "Random_story" && lastCustomBodyguardSpawn != "Random_Story") do_spawn_bodyguard();
+			if (lastCustomBodyguardSpawn == "saved_bodyguards" || lastCustomBodyguardSpawn == "Saved_bodyguards" || lastCustomBodyguardSpawn == "Saved_Bodyguards") {
+				ENTDatabase* database = get_database();
+				std::vector<SavedBodSkinDBRow*> savedBodSkins = database->get_saved_bod_skins();
+				for each (SavedBodSkinDBRow * sv in savedBodSkins) {
+					spawn_saved_bod_skin(sv->rowID, "");
+				}
+			}
+			if (lastCustomBodyguardSpawn == "random_story" || lastCustomBodyguardSpawn == "Random_story" || lastCustomBodyguardSpawn == "Random_Story") {
+				std::string lastCustomBodyguardSpawn_tmp = lastCustomBodyguardSpawn;
+				for (int i = 0; i < 7; i++) {
+					int random_story_bodyguard = (rand() % 24 + 0);
+					if (random_story_bodyguard == 0) lastCustomBodyguardSpawn = "player_zero";
+					if (random_story_bodyguard == 1) lastCustomBodyguardSpawn = "player_one";
+					if (random_story_bodyguard == 2) lastCustomBodyguardSpawn = "player_two";
+					if (random_story_bodyguard == 3) lastCustomBodyguardSpawn = "ig_amandatownley";
+					if (random_story_bodyguard == 4) lastCustomBodyguardSpawn = "ig_davenorton";
+					if (random_story_bodyguard == 5) lastCustomBodyguardSpawn = "ig_devin";
+					if (random_story_bodyguard == 6) lastCustomBodyguardSpawn = "ig_jimmydisanto";
+					if (random_story_bodyguard == 7) lastCustomBodyguardSpawn = "ig_lamardavis";
+					if (random_story_bodyguard == 8) lastCustomBodyguardSpawn = "ig_lestercrest";
+					if (random_story_bodyguard == 9) lastCustomBodyguardSpawn = "ig_nervousron";
+					if (random_story_bodyguard == 10) lastCustomBodyguardSpawn = "ig_stevehains";
+					if (random_story_bodyguard == 11) lastCustomBodyguardSpawn = "ig_stretch";
+					if (random_story_bodyguard == 12) lastCustomBodyguardSpawn = "ig_tracydisanto";
+					if (random_story_bodyguard == 13) lastCustomBodyguardSpawn = "ig_wade";
+					if (random_story_bodyguard == 14) lastCustomBodyguardSpawn = "ig_chengsr";
+					if (random_story_bodyguard == 15) lastCustomBodyguardSpawn = "ig_andreas";
+					if (random_story_bodyguard == 16) lastCustomBodyguardSpawn = "ig_brad";
+					if (random_story_bodyguard == 17) lastCustomBodyguardSpawn = "ig_drfriedlander";
+					if (random_story_bodyguard == 18) lastCustomBodyguardSpawn = "ig_floyd";
+					if (random_story_bodyguard == 19) lastCustomBodyguardSpawn = "cs_martinmadrazo";
+					if (random_story_bodyguard == 20) lastCustomBodyguardSpawn = "ig_molly";
+					if (random_story_bodyguard == 21) lastCustomBodyguardSpawn = "ig_patricia";
+					if (random_story_bodyguard == 22) lastCustomBodyguardSpawn = "ig_siemonyetarian";
+					if (random_story_bodyguard == 23) lastCustomBodyguardSpawn = "ig_solomon";
+					if (random_story_bodyguard == 24) lastCustomBodyguardSpawn = "ig_taocheng";
+					do_spawn_bodyguard();
+				}
+				lastCustomBodyguardSpawn = lastCustomBodyguardSpawn_tmp;
+			}
 			break;
 		case 1:
 			do_add_near_bodyguard();
@@ -2582,6 +2663,7 @@ bool onconfirm_bodyguard_menu(MenuItem<int> choice){
 					is_it_n = false;
 				}
 				if (!spawnedENTBodyguards.empty() && b_curr_num > -1 && b_curr_num < spawnedENTBodyguards.size()) {
+					if (PED::IS_PED_IN_ANY_VEHICLE(spawnedENTBodyguards[b_curr_num], 0)) AI::TASK_SMART_FLEE_PED(spawnedENTBodyguards[b_curr_num], PLAYER::PLAYER_PED_ID(), 1000, -1, true, true);
 					ENTITY::SET_ENTITY_INVINCIBLE(spawnedENTBodyguards[b_curr_num], false);
 					PED::SET_PED_NEVER_LEAVES_GROUP(spawnedENTBodyguards[b_curr_num], false);
 					PED::SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(spawnedENTBodyguards[b_curr_num], false);
@@ -2652,6 +2734,7 @@ void add_bodyguards_feature_enablements(std::vector<FeatureEnabledLocalDefinitio
 	results->push_back(FeatureEnabledLocalDefinition{"featureBodyguardInvincible", &featureBodyguardInvincible});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoBodBlood", &featureNoBodBlood});
 	results->push_back(FeatureEnabledLocalDefinition{"featureBAggressivePed", &featureBAggressivePed});
+	results->push_back(FeatureEnabledLocalDefinition{"featureBCannotBeHeadshot", &featureBCannotBeHeadshot});
 	results->push_back(FeatureEnabledLocalDefinition{"featureBodyguardHelmet", &featureBodyguardHelmet});
 	results->push_back(FeatureEnabledLocalDefinition{"featureBodyguardDespawn", &featureBodyguardDespawn});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDifferentWeapons", &featureDifferentWeapons});
@@ -2675,6 +2758,7 @@ void add_bodyguards_feature_enablements2(std::vector<StringPairSettingDBRow>* re
 	results->push_back(StringPairSettingDBRow{ "FollowInVehicleIndex", std::to_string(FollowInVehicleIndex) });
 	results->push_back(StringPairSettingDBRow{ "BodyWeaponSetIndex", std::to_string(BodyWeaponSetIndex) });
 	results->push_back(StringPairSettingDBRow{ "BodyHealthIndex", std::to_string(BodyHealthIndex) });
+	results->push_back(StringPairSettingDBRow{ "BodyShowNumbersIndex", std::to_string(BodyShowNumbersIndex) });
 }
 
 void add_bodyguards_generic_settings(std::vector<StringPairSettingDBRow>* results){
@@ -2731,6 +2815,9 @@ void handle_generic_settings_bodyguards(std::vector<StringPairSettingDBRow>* set
 		else if (setting.name.compare("BodyHealthIndex") == 0) {
 			BodyHealthIndex = stoi(setting.value);
 		}
+		else if (setting.name.compare("BodyShowNumbersIndex") == 0) {
+			BodyShowNumbersIndex = stoi(setting.value);
+		}
 		else if (setting.name.compare("lastCustomBodyguardSpawn") == 0) {
 			lastCustomBodyguardSpawn = setting.value;
 		}
@@ -2754,6 +2841,7 @@ void reset_bodyguards_globals(){
 	featureBodyguardInvincible = false;
 	featureNoBodBlood = false;
 	featureBAggressivePed = false;
+	featureBCannotBeHeadshot = false;
 	featureBodyguardHelmet = false;
 	featureBodyguardDespawn = true;
 	featureBodyguardInfAmmo = false;
@@ -2771,6 +2859,7 @@ void reset_bodyguards_globals(){
 	FollowInVehicleIndex = 0;
 	BodyWeaponSetIndex = 0;
 	BodyHealthIndex = 6;
+	BodyShowNumbersIndex = 0;
 	skinTypesBodyguardMenuLastConfirmed[0] = 0;
 	skinTypesBodyguardMenuLastConfirmed[1] = 0;
 }
@@ -2802,6 +2891,11 @@ void onchange_bodyguards_body_weapons(int value, SelectFromListMenuItem* source)
 void onchange_body_health_index(int value, SelectFromListMenuItem* source) {
 	BodyHealthIndex = value;
 	BodyHealthChanged = true;
+}
+
+void onchange_body_shownumber_index(int value, SelectFromListMenuItem* source) {
+	BodyShowNumbersIndex = value;
+	BodyShowNumbersChanged = true;
 }
 
 void onchange_body_blipcolour_index(int value, SelectFromListMenuItem* source){

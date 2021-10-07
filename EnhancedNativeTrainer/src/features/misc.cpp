@@ -39,6 +39,7 @@ bool airbrake_enable = true;
 bool mouse_view_control = false;
 bool help_showing = true;
 bool frozen_time = false;
+bool show_transparency = true;
 
 // phone bill variables
 bool featurePhoneBillEnabled = false;
@@ -51,6 +52,7 @@ float temp_seconds, bill_seconds = 0;
 float bill_to_pay = -1;
 
 bool featureDisableRecording = false;
+bool featureNoNotifications = false;
 
 // dynamic health bar variables
 bool featureDynamicHealthBar = false;
@@ -139,9 +141,6 @@ bool featureControllerIgnoreInTrainer = false;
 
 const int TRAINERCONFIG_HOTKEY_MENU = 99;
 int radioStationIndex = -1;
-
-ScriptTable* scriptTable;
-GlobalTable globalTable;
 
 Camera StuntCam = NULL;
 
@@ -615,6 +614,11 @@ void process_airbrake_global_menu() {
 	toggleItem->toggleValue = &frozen_time;
 	menuItems.push_back(toggleItem);
 
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Transparency";
+	toggleItem->toggleValue = &show_transparency;
+	menuItems.push_back(toggleItem);
+
 	draw_generic_menu<int>(menuItems, &activeLineIndexAirbrake, caption, onconfirm_airbrake_menu, NULL, NULL);
 }
 
@@ -893,6 +897,11 @@ void process_hud_settings_menu() {
 	toggleItem->toggleValue = &featureDisableRecording;
 	menuItems.push_back(toggleItem);
 
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "No Notifications";
+	toggleItem->toggleValue = &featureNoNotifications;
+	menuItems.push_back(toggleItem);
+
 	draw_generic_menu<int>(menuItems, &activeLineIndexHudSettings, caption, onconfirm_hudsettings_menu, NULL, NULL);
 }
 
@@ -1040,6 +1049,7 @@ void reset_misc_globals(){
 		featureMarkerHud =
 		featureDynamicHealthBar =
 		featureDisableRecording =
+		featureNoNotifications =
 		featurePlayerRadio =
 		featureDisablePhone =
 		featureDisablePhoneMenu =
@@ -1067,6 +1077,7 @@ void reset_misc_globals(){
 	featureShowVehiclePreviews = true;
 	featureShowStatusMessage = true;
 	airbrake_enable = true;
+	show_transparency = true;
 	featureFirstPersonCutscene = false;
 	mouse_view_control = false;
 	help_showing = true;
@@ -1130,42 +1141,25 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 
 	// Portable Radio
 	if (featurePlayerRadio || featurePlayerRadioUpdated) {
-		if (featurePlayerRadio) {
-			AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(true);
-		}
-		else {
-			AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(false);
-		}
+		if (featurePlayerRadio) AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(true);
+		else AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(false);
 	}
 
 	// No Wanted Music
-	if (featureWantedMusic) {
-		AUDIO::SET_AUDIO_FLAG("WantedMusicDisabled", true);
-	}
-	else {
-		AUDIO::SET_AUDIO_FLAG("WantedMusicDisabled", false);
-	}
-
+	if (featureWantedMusic) AUDIO::SET_AUDIO_FLAG("WantedMusicDisabled", true);
+	else AUDIO::SET_AUDIO_FLAG("WantedMusicDisabled", false);
+	
 	// No Flying Music
-	if (featureFlyingMusic) {
-		AUDIO::SET_AUDIO_FLAG("DisableFlightMusic", true);
-	}
-	else {
-		AUDIO::SET_AUDIO_FLAG("DisableFlightMusic", false);
-	}
-
+	if (featureFlyingMusic) AUDIO::SET_AUDIO_FLAG("DisableFlightMusic", true);
+	else AUDIO::SET_AUDIO_FLAG("DisableFlightMusic", false);
+	
 	// No Police Scanner
-	if (featurePoliceScanner) {
-		AUDIO::SET_AUDIO_FLAG("PoliceScannerDisabled", true);
-	}
-	else {
-		AUDIO::SET_AUDIO_FLAG("PoliceScannerDisabled", false);
-	}
-
+	if (featurePoliceScanner) AUDIO::SET_AUDIO_FLAG("PoliceScannerDisabled", true);
+	else AUDIO::SET_AUDIO_FLAG("PoliceScannerDisabled", false);
+	
 	// No 'Mission Passed' Message
 	if (featureNoComleteMessage) {
-		if (!SCRIPT::HAS_SCRIPT_LOADED("family3") && !SCRIPT::HAS_SCRIPT_LOADED("jewelry_heist") && !SCRIPT::HAS_SCRIPT_LOADED("family5") && !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp") &&
-			!SCRIPT::HAS_SCRIPT_LOADED("family6"))
+		if (!SCRIPT::HAS_SCRIPT_LOADED("family3") && !SCRIPT::HAS_SCRIPT_LOADED("jewelry_heist") && !SCRIPT::HAS_SCRIPT_LOADED("family5") && !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp") && !SCRIPT::HAS_SCRIPT_LOADED("family6"))
 			GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("mission_stat_watcher");
 	}
 
@@ -1353,6 +1347,9 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		CONTROLS::DISABLE_CONTROL_ACTION(2, 302, 1); // ReplayRecord
 	}
 
+	// No Notifications
+	if (featureNoNotifications) UI::THEFEED_HIDE_THIS_FRAME();
+
 	// Default Phone
 	if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] > -1) {
 		if (PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed) && phone_toggle_defaultphone == false) {
@@ -1517,6 +1514,8 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 					GRAPHICS::DRAW_RECT(health_bar_x + 0.00 + ((health / temp_h_d) / (temp_h / temp_h_d / 0.035)), health_bar_y + 0.01, ((health / temp_h_d) / (temp_h / temp_h_d / 0.070)), 0.009, 78, 150, 77, 255);
 				else GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 78, 150, 77, 255);
 			}
+
+			GRAPHICS::DRAW_RECT(health_bar_x + 0.071, health_bar_y + 0.01, 0.001, 0.009, 255, 170, 110, 255); // vertical bar // 0.017
 
 			// armor
 			GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.017, 38, 85, 87, 110); // health_bar_x + 0.0880 // 0.036
@@ -1904,7 +1903,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 				for (int i = 0; i < 100; i++)
 				{
 					char* radio_station = AUDIO::GET_RADIO_STATION_NAME(i);
-					UNK3::_0x477D9DB48F889591(radio_station, 0);
+					UNK3::_LOCK_RADIO_STATION(radio_station, 0);
 				}
 				WAIT(1000);
 				iterated_radio_stations = true;
@@ -1937,11 +1936,13 @@ void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 	results->push_back(FeatureEnabledLocalDefinition{"featureMarkerHud", &featureMarkerHud});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDynamicHealthBar", &featureDynamicHealthBar});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDisableRecording", &featureDisableRecording});
+	results->push_back(FeatureEnabledLocalDefinition{"featureNoNotifications", &featureNoNotifications});
 	results->push_back(FeatureEnabledLocalDefinition{"mouse_view_control", &mouse_view_control});
 	results->push_back(FeatureEnabledLocalDefinition{"airbrake_enable", &airbrake_enable});
 	results->push_back(FeatureEnabledLocalDefinition{"featureFirstPersonCutscene", &featureFirstPersonCutscene});
 	results->push_back(FeatureEnabledLocalDefinition{"help_showing", &help_showing});
 	results->push_back(FeatureEnabledLocalDefinition{"frozen_time", &frozen_time});
+	results->push_back(FeatureEnabledLocalDefinition{"show_transparency", &show_transparency});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePhoneBillEnabled", &featurePhoneBillEnabled});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoGamePause", &featureGamePause});
 	results->push_back(FeatureEnabledLocalDefinition{"featureZeroBalance", &featureZeroBalance});

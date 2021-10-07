@@ -133,6 +133,9 @@
     <ClCompile Include="src\io\controller.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
+    <ClCompile Include="src\rage_thread\rage_thread.cpp">
+      <Filter>src\scripts</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\features\aimbot_esp.h">
@@ -270,6 +273,9 @@
     </ClInclude>
     <ClInclude Include="src\joaat.hpp">
       <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\rage_thread\rage_thread.h">
+      <Filter>inc\scripts</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -1018,6 +1024,12 @@
     </Filter>
     <Filter Include="inc\features">
       <UniqueIdentifier>{0b445460-2dc6-4b62-9682-8c503860bc7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="inc\scripts">
+      <UniqueIdentifier>{293ec3b6-cdde-4a4d-ab97-8c1f5d3050d7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\scripts">
+      <UniqueIdentifier>{c91b2fe0-4d6f-4fb2-8087-6352b2043985}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

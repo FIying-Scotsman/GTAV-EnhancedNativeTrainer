@@ -91,20 +91,13 @@ void update_speed_text(int speed, Vector3 player_coords)
 		numActualLines++;
 		UI::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 		UI::_ADD_TEXT_COMPONENT_SCALEFORM((char *)speedometerStatusLines[i].c_str());
-		UI::SET_TEXT_FONT(0);
-		UI::SET_TEXT_SCALE(size / 10, size / 10);
-		UI::SET_TEXT_WRAP(0.0, 1.0);
-		UI::SET_TEXT_COLOUR(col2_R, col2_G, col2_B, 255);
-		UI::SET_TEXT_CENTRE(0);
-		UI::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
-		UI::SET_TEXT_EDGE(100, 100, 100, 100, 205);
-		UI::SET_TEXT_LEADING(1);
-		UI::SET_TEXT_OUTLINE();
+		text_parameters(size / 10, size / 10, col2_R, col2_G, col2_B, 255);
 		UI::END_TEXT_COMMAND_DISPLAY_TEXT(textX, textY);
 		textY += 0.025f;
 	}
 
-	if (size < 4) { // draw background
+	//if (size < 4) { // draw background
+	if (SpeedSizeIndex < 1) { // draw background
 		if (NPC_RAGDOLL_VALUES[SpeedPositionIndexN] == 0) { //Bottom Right
 			rectXScaled = 1 - ((300 / (float)screen_w) / 4);
 			rectYScaled = 0.95 - (((0 + (1 * 18)) / (float)screen_h) * 5);

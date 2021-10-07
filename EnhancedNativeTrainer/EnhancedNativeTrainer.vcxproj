@@ -35,6 +35,7 @@
     <ClCompile Include="src\features\xenonColourMenu.cpp" />
     <ClCompile Include="src\io\config_io.cpp" />
     <ClCompile Include="src\io\controller.cpp" />
+    <ClCompile Include="src\rage_thread\rage_thread.cpp" />
     <ClCompile Include="src\storage\database.cpp" />
     <ClCompile Include="src\debug\debuglog.cpp" />
     <ClCompile Include="inc\sqlite3\sqlite3.c" />
@@ -82,6 +83,7 @@
     <ClInclude Include="src\io\controller.h" />
     <ClInclude Include="src\features\misc.h" />
     <ClInclude Include="src\joaat.hpp" />
+    <ClInclude Include="src\rage_thread\rage_thread.h" />
     <ClInclude Include="src\storage\database.h" />
     <ClInclude Include="src\debug\debuglog.h" />
     <ClInclude Include="inc\main.h" />

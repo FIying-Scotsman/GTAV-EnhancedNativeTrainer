@@ -34,13 +34,14 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "../version.h"
 #include "../utils.h"
 #include "../ui_support/file_dialog.h"
-#include "..\ui_support\menu_functions.h"
+#include "../ui_support/menu_functions.h"
 #include <set>
 #include <iostream>
 #include <vector>
 #include <psapi.h>
 #include <ctime>
 #include "../io/controller.h"
+#include "../rage_thread/rage_thread.h"
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
@@ -133,6 +134,7 @@ bool featureWantedNoPRoadB = false;
 bool featureWantedNoPRoadBUpdated = false;
 bool featureWantedLevelNoPBoats = false;
 bool featureWantedLevelNoPBoatsUpdated = false;
+bool featureWantedLevelNoPRam = false;
 bool featureWantedLevelNoSWATVehicles = false;
 bool featureWantedLevelNoSWATVehiclesUpdated = false;
 bool NoTaxiWhistling = false;
@@ -190,7 +192,7 @@ int PedsHealthIndex = 0;
 bool PedsHealthChanged = true;
 
 // Max Wanted Level
-int wanted_maxpossible_level = 3;
+int wanted_maxpossible_level = 4;
 bool wanted_maxpossible_level_Changed = true;
 
 // Player Armor
@@ -339,6 +341,19 @@ void onchange_player_discharge_mode(int value, SelectFromListMenuItem* source){
 void onchange_player_escapestars_mode(int value, SelectFromListMenuItem* source) {
 	current_escape_stars = value;
 	current_escape_stars_Changed = true;
+}
+
+// Get the horizontal and vertical screen sizes in pixel
+void GetDesktopResolution(int& horizontal, int& vertical)
+{
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow(); // Get a handle to the desktop window
+	GetWindowRect(hDesktop, &desktop); // Get the size of screen to the variable desktop
+	// The top left corner will have coordinates (0,0)
+	// and the bottom right corner will have coordinates
+	// (horizontal, vertical)
+	horizontal = desktop.right;
+	vertical = desktop.bottom;
 }
 
 void check_player_model(){
@@ -520,6 +535,18 @@ void engine_kill(){
 	VEHICLE::SET_VEHICLE_ENGINE_HEALTH(veh_killed, -4000);
 
 	set_status_text("You have destroyed this vehicle's engine for some reason");
+}
+
+void text_parameters(float s_x, float s_y, int c_r, int c_g, int c_b, int alpha) {
+	UI::SET_TEXT_FONT(0);
+	UI::SET_TEXT_SCALE(s_x, s_y);
+	UI::SET_TEXT_WRAP(0.0, 1.0);
+	UI::SET_TEXT_COLOUR(c_r, c_g, c_b, alpha);
+	UI::SET_TEXT_CENTRE(0);
+	UI::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
+	UI::SET_TEXT_EDGE(100, 100, 100, 100, 205);
+	UI::SET_TEXT_LEADING(1);
+	UI::SET_TEXT_OUTLINE();
 }
 
 // Updates all features that can be turned off by the game, being called each game frame
@@ -876,13 +903,10 @@ void update_features(){
 	if(featurePlayerInvincible && bPlayerExists){
 		if (getGameVersion() < VER_1_0_678_1_STEAM || getGameVersion() < VER_1_0_678_1_NOSTEAM) PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
 		if (getGameVersion() >= VER_1_0_678_1_STEAM || getGameVersion() >= VER_1_0_678_1_NOSTEAM) PLAYER::_0x733A643B5B0C53C1(player, TRUE);
-		Vector3 my_coords = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), 0);
-		FIRE::STOP_FIRE_IN_RANGE(my_coords.x, my_coords.y, my_coords.z, 2);
-		if (FIRE::IS_ENTITY_ON_FIRE(PLAYER::PLAYER_PED_ID())) FIRE::STOP_ENTITY_FIRE(PLAYER::PLAYER_PED_ID());
 	}
 	
 	// Fire Proof
-	if (featureFireProof && !featurePlayerInvincible) {
+	if (featureFireProof/* && !featurePlayerInvincible*/) {
 		Vector3 my_coords = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), 0);
 		FIRE::STOP_FIRE_IN_RANGE(my_coords.x, my_coords.y, my_coords.z, 2);
 		if (FIRE::IS_ENTITY_ON_FIRE(PLAYER::PLAYER_PED_ID())) FIRE::STOP_ENTITY_FIRE(PLAYER::PLAYER_PED_ID());
@@ -919,7 +943,7 @@ void update_features(){
 		if (NPC_RAGDOLL_VALUES[EngineRunningIndex] == 0) VEHICLE::SET_VEHICLE_ENGINE_ON(veh_engine, false, true, false);
 		veh_engine_t = false;
 	}
-	if (featureDisableIgnition) {
+	if (featureDisableIgnition && breaking_secs_tick == 0) {
 		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && veh_engine_t == false) {
 			veh_engine = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 			if (!VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(veh_engine)) {
@@ -993,6 +1017,28 @@ void update_features(){
 	else if (featureWantedLevelNoSWATVehiclesUpdated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(4, true);
 		featureWantedLevelNoSWATVehiclesUpdated = false;
+	}
+
+	// Less Aggressive Police Pursuit
+	if (featureWantedLevelNoPRam && PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) > 0) {
+		Vector3 my_cor = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+		float my_speed = ENTITY::GET_ENTITY_SPEED(PED::GET_VEHICLE_PED_IS_USING(playerPed));
+		const int arrSize4 = 1024;
+		Ped copram[arrSize4];
+		int count_cop_ram = worldGetAllPeds(copram, arrSize4);
+		for (int i = 0; i < count_cop_ram; i++) {
+			if ((PED::GET_PED_TYPE(copram[i]) == 6 || PED::GET_PED_TYPE(copram[i]) == 27 || PED::GET_PED_TYPE(copram[i]) == 29) && copram[i] != playerPed) {
+				Vector3 cop_cor = ENTITY::GET_ENTITY_COORDS(copram[i], true);
+				//float cop_speed = ENTITY::GET_ENTITY_SPEED(PED::GET_VEHICLE_PED_IS_USING(copram[i]));
+				float dist_diff_c_m = SYSTEM::VDIST(my_cor.x, my_cor.y, my_cor.z, cop_cor.x, cop_cor.y, cop_cor.z);
+				if (dist_diff_c_m < 30) { // 50 //  && cop_speed > my_speed
+					//AI::TASK_VEHICLE_TEMP_ACTION(copram[i], PED::GET_VEHICLE_PED_IS_USING(copram[i]), 27, 1); // 100
+					AI::SET_DRIVE_TASK_CRUISE_SPEED(copram[i], my_speed);
+					AI::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(copram[i], 10.0f); // 30
+					PED::SET_DRIVER_AGGRESSIVENESS(copram[i], 0.0f);
+				}
+			}
+		}
 	}
 
 	// No Whistling For Taxi
@@ -1240,7 +1286,7 @@ void update_features(){
 					PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(PLAYER::PLAYER_ID(), 0);
 				}
 
-				if (PED::IS_PED_SHOOTING(playerPed)) we_have_troubles = true;
+				//if (PED::IS_PED_SHOOTING(playerPed)) we_have_troubles = true;
 
 				if (we_have_troubles == false) {
 					GAMEPLAY::CLEAR_AREA_OF_COPS(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z, 20, 0);
@@ -1519,7 +1565,6 @@ void update_features(){
 			if (VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_ragdoll] > 0) {
 				Vector3 coords_me = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 				float tmp_v = VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_ragdoll];
-				//FIRE::ADD_OWNED_EXPLOSION(playerPed, coords_me.x, coords_me.y, coords_me.z, 29, 0.0f, false, true, VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_ragdoll]);
 				CAM::SHAKE_GAMEPLAY_CAM("SMALL_EXPLOSION_SHAKE", tmp_v / 5); // JOLT_SHAKE
 				been_damaged_by_weapon = false;
 				ragdoll_task = false;
@@ -1576,7 +1621,7 @@ void update_features(){
 		dive_glasses = true;
 		PED::CLEAR_PED_PROP(playerPed, 1);
 	}
-	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 0 && PED::GET_PED_PROP_INDEX(playerPed, 1) > 0) ped_prop_idx = PED::GET_PED_PROP_INDEX(playerPed, 1); // PED::GET_PED_PROP_INDEX(playerPed, 1) > -1
+	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 0 && PED::GET_PED_PROP_INDEX(playerPed, 1) > 0 && dive_glasses == false) ped_prop_idx = PED::GET_PED_PROP_INDEX(playerPed, 1); // PED::GET_PED_PROP_INDEX(playerPed, 1) > -1
 	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 0 && dive_glasses == true) {
 		if (ped_prop_idx > 0) PED::SET_PED_PROP_INDEX(playerPed, 1, ped_prop_idx, 0, 0); // ped_prop_idx > -1
 		dive_glasses = false;
@@ -1634,6 +1679,42 @@ void update_features(){
 	// Disable airbrake on death
 	if(ENTITY::IS_ENTITY_DEAD(playerPed)){
 		exit_airbrake_menu_if_showing();
+	}
+
+	if (is_hotkey_held_wanted_level() && PLAYER::IS_PLAYER_CONTROL_ON(player)) {
+		PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), false);
+		UI::HIDE_HUD_COMPONENT_THIS_FRAME(19);
+		UI::HIDE_HUD_COMPONENT_THIS_FRAME(20);
+
+		PLAYER::SET_MAX_WANTED_LEVEL(5);
+		if ((GetKeyState('0') & 0x8000) || (GetKeyState(VK_NUMPAD0) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 0, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
+		if ((GetKeyState('1') & 0x8000) || (GetKeyState(VK_NUMPAD1) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 1, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
+		if ((GetKeyState('2') & 0x8000) || (GetKeyState(VK_NUMPAD2) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 2, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
+		if ((GetKeyState('3') & 0x8000) || (GetKeyState(VK_NUMPAD3) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 3, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
+		if ((GetKeyState('4') & 0x8000) || (GetKeyState(VK_NUMPAD4) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 4, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
+		if ((GetKeyState('5') & 0x8000) || (GetKeyState(VK_NUMPAD5) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 5, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
+		if ((GetKeyState('6') & 0x8000) || (GetKeyState(VK_NUMPAD6) & 0x8000)) {
+			PLAYER::SET_PLAYER_WANTED_LEVEL(player, 0, 0);
+			PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(player, 0);
+		}
 	}
 }
 
@@ -1867,6 +1948,12 @@ bool maxwantedlevel_menu() {
 	toggleItem->caption = "No SWAT Vehicles";
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedLevelNoSWATVehicles;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Less Aggressive Police Pursuit";
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureWantedLevelNoPRam;
 	menuItems.push_back(toggleItem);
 
 	return draw_generic_menu<int>(menuItems, &PlayerWantedMaxPossibleLevelMenuIndex, caption, onconfirm_PlayerWantedMaxPossibleLevel_menu, NULL, NULL);
@@ -2381,13 +2468,13 @@ void reset_globals(){
 	current_player_movement = 0;
 	current_player_jumpfly = 0;
 	current_player_superjump = 0;
-	current_player_mostwanted = 0;
-	mostwanted_level_enable = 0;
-	wanted_maxpossible_level = 3;
+	current_player_mostwanted = 1;
+	mostwanted_level_enable = 1;
+	wanted_maxpossible_level = 4;
 	current_player_prison = 0;
 	current_player_escapemoney = 4;
 	current_player_discharge = 3;
-	current_escape_stars = 3;
+	current_escape_stars = 4;
 
 	featurePlayerDrunk =
 		featurePlayerInvincible =
@@ -2411,6 +2498,7 @@ void reset_globals(){
 		featureWantedLevelNoPHeli =
 		featureWantedNoPRoadB =
 		featureWantedLevelNoPBoats =
+		featureWantedLevelNoPRam =
 		featureWantedLevelNoSWATVehicles =
 		NoTaxiWhistling =
 		featurePlayerCanBeHeadshot =
@@ -2600,6 +2688,15 @@ void ScriptMain(){
 		else
 			write_text_to_log_file("Failed to Register texture file: " + fullPath + " as it does not exist!");
 		
+		write_text_to_log_file("Finding shop_controller script");
+
+		if (findShopController())
+		{
+			write_text_to_log_file("shop_controller script found; attempting to enable MP cars");
+			enableCarsGlobal();
+			write_text_to_log_file("MP cars enabled");
+		}
+
 		main();
 
 		write_text_to_log_file("ScriptMain ended");
@@ -2659,6 +2756,7 @@ void add_player_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* 
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPHeli", &featureWantedLevelNoPHeli});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedNoPRoadB", &featureWantedNoPRoadB});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPBoats", &featureWantedLevelNoPBoats});
+	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPRam", &featureWantedLevelNoPRam});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoSWATVehicles", &featureWantedLevelNoSWATVehicles});
 	results->push_back(FeatureEnabledLocalDefinition{"NoTaxiWhistling", &NoTaxiWhistling});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoScubaGearMask", &featureNoScubaGearMask});

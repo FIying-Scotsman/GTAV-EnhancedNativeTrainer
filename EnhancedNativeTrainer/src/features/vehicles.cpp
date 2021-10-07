@@ -37,17 +37,15 @@ using namespace std;
 //vehicle invincibility
 int VehInvincibilityIndex = 0;
 bool VehInvincibilityChanged = true;
-//bool featureVehInvincible = false;
-//bool featureVehInvincibleUpdated = false;
-//bool featureVehNoDamage = false;
-//bool featureVehInvulnIncludesCosmetic = false;
+bool featureVehInvincibleUpdated = false;
 
 bool feature3rdpersonviewonly = false;
 bool featureDaytimeonly = false;
 bool featureHazards = true;
 
+int DefaultPlateIndex = -1;
+
 bool window_up = true;
-bool high_speed = false;
 
 int tmp_menuindex = -1;
 int curr_c_pos = -1;
@@ -64,6 +62,10 @@ bool accelerating_c = false;
 Vehicle current_veh_e = -1;
 Vehicle temp_vehicle, playerVehicle_s = -1;
 Ped temp_ped = -1;
+
+bool repairing_engine = false;
+
+DWORD featureVehDoorOpenCloseTime = 0;
 
 std::vector<Object> SPIKES;
 bool s_message = false;
@@ -97,6 +99,23 @@ bool nitro_e = false;
 
 bool entered_sp_v = false;
 std::string  veh_to_spawn = "";
+
+// car thief vars
+bool featureRoutineOfRinger = false;
+bool featureRoutineAnimations = true;
+std::vector<Vehicle> VEHICLES_AVAILABLE;
+std::vector<Vehicle> VEHICLES_IGNITED;
+std::vector<Ped> PEDS_WATCHFUL;
+int activeLineIndexRoutineofringer = 0;
+int breaking_secs_passed, breaking_secs_curr, breaking_secs_tick = 0;
+int tick_pedcallingpolice, tick_pedcallingpolice_secs_passed, tick_pedcallingpolice_secs_curr = 0;
+bool time_to_call_the_police = false;
+bool featureShowPedCons = false;
+bool hijacked_vehicle_ror = false;
+Vehicle hijacking_veh_ror;
+std::vector<Blip> BLIPTABLE_ALPEDS;
+Blip blip_al_peds = -1;
+bool featureRoutineBars = true;
 
 int turn_angle = 0;
 int temp_angle = 0;
@@ -201,6 +220,8 @@ bool vehSaveSlotMenuInterrupt = false;
 bool requireRefreshOfVehSaveSlots = false;
 bool requireRefreshOfVehSlotMenu = false;
 
+bool featureShowIgnAnim = true;
+
 // Drop Anchor Variables
 Vector3 coords_b;
 Object b_rope = -1;
@@ -212,120 +233,92 @@ int speedBoostIndex = 0;
 
 // engine power stuff
 int engPowMultIndex = 0;
-bool powChanged = true;
 
 bool burnoutApplied = false;
+bool engPowMultApplied = false;
 
 //vehicle mass stuff
 int VehMassMultIndex = 0;
-bool massChanged = true;
 int current_player_forceshieldN = 0;
-bool player_massChanged = true;
 
 //Turn Signals
 const std::vector<std::string> VEH_TURN_SIGNALS_CAPTIONS{ "OFF", "Manual Only", "< 10 (MPH)", "< 20 (MPH)", "< 30 (MPH)", "< 40 (MPH)", "< 60 (MPH)", "< 80 (MPH)", "< 100 (MPH)", "< 120 (MPH)", "< 140 (MPH)", "< 160 (MPH)", "< 180 (MPH)", "< 200 (MPH)" };
 const int VEH_TURN_SIGNALS_VALUES[] = { 0, 1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
 int turnSignalsIndex = 0;
-bool turnSignalsChanged = true;
 
 //Turn Signals Angle
 const std::vector<std::string> VEH_TURN_SIGNALS_ANGLE_CAPTIONS{ "0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100" };
 const int VEH_TURN_SIGNALS_ANGLE_VALUES[] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
 int turnSignalsAngleIndex = 3;
-bool turnSignalsAngleChanged = true;
 int NitrousPowerIndex = 1;
-bool NitrousPowerChanged = true;
 
 //Turn Signals Off Acceleration
 int turnSignalsAccelerationIndex = 3;
-bool turnSignalsAccelerationChanged = true;
 int JumpyVehIndex = 0;
-bool JumpyVehChanged = true;
 int HeavyVehIndex = 0;
-bool HeavyVehChanged = true;
 
 //Custom Engine Power Multiplier
 int engCustomPowMultIndex = 0;
-bool engCustomPowMultChanged = true;
 int old_c_engine_index = 0;
 
 //Vehicle Invisibility
 int VehInvisIndexN = 0;
-bool VehInvisChanged = true;
 bool is_invisible = false;
 
 //Visualize Vehicle Indicators (Sprite)
 const std::vector<std::string> VEH_VISLIGHT_CAPTIONS{ "OFF", "1x", "3x", "5x", "7x", "10x", "12x" };
 const double VEH_VISLIGHT_VALUES[] = { 0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.2 };
 int VisLightIndex = 0;
-bool VisLight_Changed = true;
 
 //Visualize Vehicle Indicators (Vector)
 int VisLight3dIndex = 0;
-bool VisLight3d_Changed = true;
 
 //Speed Limiter
 int speedLimiterIndex = 0;
-bool speedLimiterChanged = true;
 int DoorAutolockIndex = 0;
-bool DoorAutolockChanged = true;
 int speedCityLimiterIndex = 0;
-bool speedCityLimiterChanged = true;
 int speedCountryLimiterIndex = 0;
-bool speedCountryLimiterChanged = true;
 
 //Lights OFF
 const std::vector<std::string> VEH_LIGHTSOFF_CAPTIONS{ "Never", "Daytime Only", "Always" };
 int lightsOffIndex = 0;
-bool lightsOffChanged = true;
 
 //Number Of Vehicles To Remember
 const std::vector<std::string> VEH_VEHREMEMBER_CAPTIONS{ "3", "5", "7", "10", "15", "20", "30", "40", "50", "Manually" };
 const int VEH_VEHREMEMBER_VALUES[] = { 3, 5, 7, 10, 15, 20, 30, 40, 50, 666 };
 int VehRememberIndex = 3;
-bool VehRemember_Changed = true;
 
 //Blip Size
 int VehBlipSizeIndex = 2;
-bool VehBlipSize_Changed = true;
 
 //Blip Colour
 int VehBlipColourIndex = 4;
-bool VehBlipColour_Changed = true;
 int VehColourIndex = 0;
-bool VehColour_Changed = true;
 
 //Blip Random Colour
 int VehRandomColourIndex = 0;
-bool VehRandomColour_Changed = true;
 
 //Blip Symbol
 int VehBlipSymbolIndexN = 0;
-bool VehBlipSymbol_Changed = true;
 
 //Blip Flashing
 int VehBlipFlashIndex = 0;
-bool VehBlipFlash_Changed = true;
 
 //Restore Tracked Vehicles On Game Restart
 int VehTrackedAutoSaveIndex = 0;
-bool VehTrackedAutoSaveChanged = true;
 
 //Keep The Engine Running
 const std::vector<std::string> VEH_ENGINERUNNING_CAPTIONS{ "Never", "Always", "Hold Exit To Kill Engine" };
 int EngineRunningIndex = 0;
-bool EngineRunning_Changed = true;
 
 //Infinite Rocket Boost
 const std::vector<std::string> VEH_INFINITEBOOST_CAPTIONS{ "OFF", "Hold", "Always" };
 int InfiniteBoostIndex = 0;
-bool InfiniteBoost_Changed = true;
 
 //Auto-shut engine after
 const std::vector<std::string> VEH_AUTO_SHUT_ENGINE_CAPTIONS{ "OFF", "5", "10", "20", "30" };
 const int VEH_AUTO_SHUT_ENGINE_VALUES[] = { 0, 5, 10, 20, 30 };
 int AutoShutEngineIndex = 0;
-bool AutoShutEngineChanged = true;
 
 // Hydraulics
 const std::vector<std::string> VEH_HYDRAULICS_CAPTIONS{ "OFF", "-0.20", "-0.10", "0.10", "0.20" };
@@ -334,7 +327,19 @@ int HydraulicsIndex = 0;
 
 // Nitrous
 int NitrousIndex = 0;
-bool NitrousChanged = true;
+
+// Car Thief
+const std::vector<std::string> VEH_RINGER_SKILL_CAPTIONS{ "Street Kid", "Professional" };
+int RingerSkillIndex = 1;
+
+const std::vector<std::string> VEH_RINGER_SECONDS_BREAK_CAPTIONS{ "1", "3", "5", "10", "15", "20", "25", "30", "40", "50", "60", "70", "80", "90", "100" };
+const int VEH_RINGER_SECONDS_BREAK_VALUES[] = { 1, 3, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100 };
+int RingerBreakSecIndex = 3;
+int RingerHotwireSecIndex = 2;
+int RingerBreakAttemptIndex = 2;
+int RingerDragOutIndex = 2;
+int RingerPedAlertnessIndex = 3;
+int RingerCallCopSecIndex = 3;
 
 // player in vehicle state... assume true initially since our quicksave might have us in a vehicle already, in which case we can't check if we just got into one
 bool oldVehicleState = true;
@@ -938,6 +943,52 @@ void add_blip(Vehicle vehicle) {
 	UI::SET_BLIP_AS_SHORT_RANGE(blip_veh, true);
 }
 
+void watchful_peds_around() {
+	Player playerPed = PLAYER::PLAYER_PED_ID();
+
+	const int ARR_PED_SIZE = 1024;
+	Ped vigilante_ped[ARR_PED_SIZE];
+	int ped_looking_you = worldGetAllPeds(vigilante_ped, ARR_PED_SIZE);
+	for (int vp = 0; vp < ped_looking_you; vp++) {
+		if (vigilante_ped[vp] != playerPed) {
+			Vector3 coordsme = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+			Vector3 coordsped = ENTITY::GET_ENTITY_COORDS(vigilante_ped[vp], true);
+			float dist_diff = SYSTEM::VDIST(coordsme.x, coordsme.y, coordsme.z, coordsped.x, coordsped.y, coordsped.z);
+			if (PED::IS_PED_HUMAN(vigilante_ped[vp]) && !PED::IS_PED_FLEEING(vigilante_ped[vp]) && !AI::IS_PED_RUNNING(vigilante_ped[vp])/* && !WEAPON::IS_PED_ARMED(vigilante_ped[vp], 7)*/ &&
+				PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, vigilante_ped[vp]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(vigilante_ped[vp], playerPed) != 0 &&
+				PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, vigilante_ped[vp]) != 1 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(vigilante_ped[vp], playerPed) != 1 &&
+				PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, vigilante_ped[vp]) != 2 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(vigilante_ped[vp], playerPed) != 2 &&
+				!PED::IS_PED_GROUP_MEMBER(vigilante_ped[vp], myENTGroup)/* && !VEHICLE::GET_PED_IN_VEHICLE_SEAT(hijacking_veh_ror, -1)/* && !PED::IS_PED_IN_COMBAT(vigilante_ped[vp], playerPed)*/) {
+				if (dist_diff < VEH_RINGER_SECONDS_BREAK_VALUES[RingerPedAlertnessIndex]) {
+					if (PED::IS_PED_FACING_PED(vigilante_ped[vp], playerPed, 100) && ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(vigilante_ped[vp], playerPed, 17)) {
+						if (PED::IS_PED_IN_ANY_VEHICLE(vigilante_ped[vp], false)) AI::CLEAR_PED_TASKS(vigilante_ped[vp]);
+						if (PED::GET_PED_TYPE(vigilante_ped[vp]) != 6 && PED::GET_PED_TYPE(vigilante_ped[vp]) != 27 && PED::GET_PED_TYPE(vigilante_ped[vp]) != 28 && PED::GET_PED_TYPE(vigilante_ped[vp]) != 29) {
+							AUDIO::_PLAY_AMBIENT_SPEECH1(vigilante_ped[vp], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
+							AI::TASK_SMART_FLEE_PED(vigilante_ped[vp], playerPed, 1000, -1, true, true);
+							AI::TASK_USE_MOBILE_PHONE_TIMED(vigilante_ped[vp], 10000);
+							PEDS_WATCHFUL.push_back(vigilante_ped[vp]);
+							ENTITY::SET_ENTITY_AS_MISSION_ENTITY(vigilante_ped[vp], true, true);
+							if (featureShowPedCons/* && hijacked_vehicle_ror == false*/) {
+								blip_al_peds = UI::ADD_BLIP_FOR_ENTITY(vigilante_ped[vp]);
+								UI::SET_BLIP_SPRITE(blip_al_peds, 1); // 42
+								UI::SET_BLIP_SCALE(blip_al_peds, 0.5);
+								UI::SET_BLIP_COLOUR(blip_al_peds, 1);
+								UI::SET_BLIP_AS_SHORT_RANGE(blip_al_peds, false);
+								BLIPTABLE_ALPEDS.push_back(blip_al_peds);
+							}
+							time_to_call_the_police = true;
+						}
+						if (PED::GET_PED_TYPE(vigilante_ped[vp]) == 6 || PED::GET_PED_TYPE(vigilante_ped[vp]) == 27 || PED::GET_PED_TYPE(vigilante_ped[vp]) == 29) {
+							time_to_call_the_police = true;
+							tick_pedcallingpolice = 200;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
 void save_tracked_veh() {
 	if (!VEHICLES_REMEMBER.empty()) {
 		ENTDatabase* database = get_database();
@@ -982,9 +1033,9 @@ bool onconfirm_vehdoor_menu(MenuItem<int> choice){
 				VEHICLE::SET_VEHICLE_DOOR_SHUT(veh, value, featureVehicleDoorInstant);
 			}
 		}
-		else{
-			set_status_text("Player isn't in a vehicle");
-		}
+		//else{
+		//	set_status_text("Player isn't in a vehicle");
+		//}
 	}
 	else if (choice.value == -5)//driver window roll
 	{
@@ -1292,10 +1343,6 @@ bool process_veh_seat_menu()
 	return draw_generic_menu<int>(menuItems, &vehSeatIndexMenuIndex, "Seat Options", onconfirm_seat_menu, NULL, NULL);
 }
 
-/*void on_toggle_invincibility(MenuItem<int> choice){
-	featureVehInvincibleUpdated = true;
-}*/
-
 bool onconfirm_colours_menu(MenuItem<int> choice)
 {
 	return false;
@@ -1599,6 +1646,89 @@ void process_engine_degrade_menu() {
 	draw_generic_menu<int>(menuItems, &activeLineIndexEngineDegrade, caption, onconfirm_enginedegrade_menu, NULL, NULL);
 }
 
+bool onconfirm_routineofringer_menu(MenuItem<int> choice)
+{
+	return false;
+}
+
+void process_routine_of_ringer_menu() {
+	const std::string caption = "Car Thief Options";
+
+	std::vector<MenuItem<int>*> menuItems;
+	SelectFromListMenuItem* listItem;
+	ToggleMenuItem<int>* toggleItem;
+
+	int i = 0;
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Enable";
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureRoutineOfRinger;
+	menuItems.push_back(toggleItem);
+	
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SKILL_CAPTIONS, onchange_skill_index);
+	listItem->wrap = false;
+	listItem->caption = "Thief Skills";
+	listItem->value = RingerSkillIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_index);
+	listItem->wrap = false;
+	listItem->caption = "Break In Timer (sec)";
+	listItem->value = RingerBreakSecIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_index);
+	listItem->wrap = false;
+	listItem->caption = "Hotwire Duration (sec)";
+	listItem->value = RingerHotwireSecIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_ped_alertness_index);
+	listItem->wrap = false;
+	listItem->caption = "Ped Suspicion Distance (m)";
+	listItem->value = RingerPedAlertnessIndex;
+	menuItems.push_back(listItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Show Alerted NPCs";
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureShowPedCons;
+	menuItems.push_back(toggleItem);
+
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_call_cop_index);
+	listItem->wrap = false;
+	listItem->caption = "Crime Reporting Delay (sec)";
+	listItem->value = RingerCallCopSecIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_breaking_attempt_index);
+	listItem->wrap = false;
+	listItem->caption = "Police Response To Break In";
+	listItem->value = RingerBreakAttemptIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_drag_out_index);
+	listItem->wrap = false;
+	listItem->caption = "Police Response For GTA";
+	listItem->value = RingerDragOutIndex;
+	menuItems.push_back(listItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Enable Animations";
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureRoutineAnimations;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Show Progress Bar";
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureRoutineBars;
+	menuItems.push_back(toggleItem);
+
+	draw_generic_menu<int>(menuItems, &activeLineIndexRoutineofringer, caption, onconfirm_routineofringer_menu, NULL, NULL);
+}
+
 bool onconfirm_fuel_menu(MenuItem<int> choice)
 {
 	switch (activeLineIndexFuel){
@@ -1692,15 +1822,15 @@ void process_fuel_menu(){
 	listItem->value = JerrycanPriceIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_FUELRANDOM1_CAPTIONS, onchange_random1_index);
+	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_random1_index);
 	listItem->wrap = false;
-	listItem->caption = "Random Vehicle Fuel From (%)";
+	listItem->caption = "Random Vehicle Fuel Min (%)";
 	listItem->value = Random1Index;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_FUELRANDOM2_CAPTIONS, onchange_random2_index);
+	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_random2_index);
 	listItem->wrap = false;
-	listItem->caption = "Random Vehicle Fuel Up To (%)";
+	listItem->caption = "Random Vehicle Fuel Max (%)";
 	listItem->value = Random2Index;
 	menuItems.push_back(listItem);
 
@@ -1732,6 +1862,12 @@ void process_fuel_menu(){
 	toggleItem->caption = "Hide Fuel Bar In First Person Mode";
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureHideFuelBar;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = "Show Ignition Animation";
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureShowIgnAnim;
 	menuItems.push_back(toggleItem);
 
 	draw_generic_menu<int>(menuItems, &activeLineIndexFuel, caption, onconfirm_fuel_menu, NULL, NULL);
@@ -2092,6 +2228,9 @@ bool onconfirm_veh_menu(MenuItem<int> choice){
 			else set_status_text("~r~Error: ~w~ Bomb doors require Cuban 800");
 		}
 			break;
+		case 51: // car thief
+			process_routine_of_ringer_menu();
+			break;
 		default:
 			break;
 	}
@@ -2135,7 +2274,6 @@ void process_veh_menu(){
 	listItem = new SelectFromListMenuItem(VEH_INVINC_MODE_CAPTIONS, onchange_veh_invincibility_mode);
 	listItem->wrap = false;
 	listItem->caption = "Vehicle Invincibility";
-	//listItem->value = get_current_veh_invincibility_mode();
 	listItem->value = VehInvincibilityIndex;
 	menuItems.push_back(listItem);
 
@@ -2237,7 +2375,7 @@ void process_veh_menu(){
 	menuItems.push_back(listItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Show Speed / Altitude";
+	item->caption = "Speed / Altitude";
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
@@ -2423,6 +2561,12 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureDisableIgnition;
 	menuItems.push_back(toggleItem);
 
+	item = new MenuItem<int>();
+	item->caption = "Car Thief";
+	item->value = i++;
+	item->isLeaf = false;
+	menuItems.push_back(item);
+
 	draw_generic_menu<int>(menuItems, &activeLineIndexVeh, caption, onconfirm_veh_menu, NULL, NULL);
 }
 
@@ -2529,7 +2673,20 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 		case VER_1_0_2189_0_STEAM:
 		case VER_1_0_2189_0_NOSTEAM:
 		case VER_1_0_2189_0_EGS:
+		case VER_1_0_2245_0_STEAM:
+		case VER_1_0_2245_0_NOSTEAM: 
+		case VER_1_0_2245_0_EGS:
 			*getGlobalPtr(4269479) = 1;
+
+		case VER_1_0_2372_0_STEAM:
+		case VER_1_0_2372_0_NOSTEAM:	  
+		case VER_1_0_2372_0_EGS:		  
+			*getGlobalPtr(4270934) = 1;
+
+		//case VER_1_0_2189_0_STEAM:
+		//case VER_1_0_2189_0_NOSTEAM:
+		//case VER_1_0_2189_0_EGS:
+		//	*getGlobalPtr(4269479) = 1;
 	}
 
 	// Disable Despawn Of DLC Vehicles
@@ -2540,12 +2697,11 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 	}
 	if (!featureDespawnScriptDisabled && featureDespawnScriptDisabledUpdated == true) {
 		SCRIPT::REQUEST_SCRIPT("shop_controller");
-		while (!SCRIPT::HAS_SCRIPT_LOADED("shop_controller")) {
-			SCRIPT::REQUEST_SCRIPT("shop_controller");
-			SYSTEM::WAIT(0);
+		while (!SCRIPT::HAS_SCRIPT_LOADED("shop_controller")) WAIT(0);
+		if (SCRIPT::HAS_SCRIPT_LOADED("shop_controller")) {
+			SYSTEM::START_NEW_SCRIPT("shop_controller", 5000);
+			featureDespawnScriptDisabledUpdated = false;
 		}
-		SYSTEM::START_NEW_SCRIPT("shop_controller", 5000);
-		featureDespawnScriptDisabledUpdated = false;
 	}
 
 	// Toggle Vehicle Alarm Check
@@ -2610,24 +2766,11 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 	}
 
 	// Invincible Vehicle
-	/*if (bPlayerExists && WORLD_GRAVITY_LEVEL_VALUES[VehInvincibilityIndex] == 0 && featureVehInvincibleUpdated == true && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		ENTITY::SET_ENTITY_INVINCIBLE(veh, FALSE);
-		ENTITY::SET_ENTITY_PROOFS(veh, 0, 0, 0, 0, 0, 0, 0, 0);
-		VEHICLE::SET_VEHICLE_TYRES_CAN_BURST(veh, 1);
-		VEHICLE::SET_VEHICLE_WHEELS_CAN_BREAK(veh, 1);
-		VEHICLE::SET_VEHICLE_CAN_BE_VISIBLY_DAMAGED(veh, 1);
-		for (int i = 0; i < 6; i++){
-			VEHICLE::_SET_VEHICLE_DOOR_BREAKABLE(veh, i, TRUE); //(Vehicle, doorIndex, isBreakable)
-		}
-		featureVehInvincibleUpdated = false;
-	}*/
-		
-	if (WORLD_GRAVITY_LEVEL_VALUES[VehInvincibilityIndex] > 0){
-		if (bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	if (WORLD_GRAVITY_LEVEL_VALUES[VehInvincibilityIndex] > 0) {
+		if (bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
 			bool featureVehNoDamage = false;
 			if (WORLD_GRAVITY_LEVEL_VALUES[VehInvincibilityIndex] > 1) featureVehNoDamage = true;
-			//featureVehInvincibleUpdated = true;
-
+			
 			if (FIRE::IS_ENTITY_ON_FIRE(veh)){
 				FIRE::STOP_ENTITY_FIRE(veh);
 			}
@@ -2659,6 +2802,18 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 				}
 			}
 		}
+		featureVehInvincibleUpdated = true;
+	}
+	if (WORLD_GRAVITY_LEVEL_VALUES[VehInvincibilityIndex] == 0 && featureVehInvincibleUpdated == true && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
+		ENTITY::SET_ENTITY_INVINCIBLE(veh, FALSE);
+		ENTITY::SET_ENTITY_PROOFS(veh, 0, 0, 0, 0, 0, 0, 0, 0);
+		VEHICLE::SET_VEHICLE_TYRES_CAN_BURST(veh, 1);
+		VEHICLE::SET_VEHICLE_WHEELS_CAN_BREAK(veh, 1);
+		VEHICLE::SET_VEHICLE_CAN_BE_VISIBLY_DAMAGED(veh, 1);
+		for (int i = 0; i < 6; i++) {
+			VEHICLE::_SET_VEHICLE_DOOR_BREAKABLE(veh, i, TRUE); //(Vehicle, doorIndex, isBreakable)
+		}
+		featureVehInvincibleUpdated = false;
 	}
 
 	// No Fall Off
@@ -2738,12 +2893,19 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 	if (is_hotkey_held_veh_extrapower() && bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
 		VEHICLE::_SET_VEHICLE_ENGINE_TORQUE_MULTIPLIER(veh, 1.8f);
 		VEHICLE::_SET_VEHICLE_ENGINE_POWER_MULTIPLIER(veh, 250.0f);
-		powChanged = true;
+		engPowMultApplied = true;
+		//powChanged = true;
 	}
-	else if (bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && VEH_ENG_POW_VALUES[engPowMultIndex] >= 0) { // engine power multiplier
+	if (!is_hotkey_held_veh_extrapower() && bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && VEH_ENG_POW_VALUES[engPowMultIndex] < 0 && engPowMultApplied == true) {
+		VEHICLE::_SET_VEHICLE_ENGINE_TORQUE_MULTIPLIER(veh, 1.0f);
+		VEHICLE::_SET_VEHICLE_ENGINE_POWER_MULTIPLIER(veh, 1.0);
+		engPowMultApplied = false;
+	}
+	// engine power multiplier
+	if (!is_hotkey_held_veh_extrapower() && bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && VEH_ENG_POW_VALUES[engPowMultIndex] >= 0) { 
 		VEHICLE::_SET_VEHICLE_ENGINE_TORQUE_MULTIPLIER(veh, 1.0f);
 		VEHICLE::_SET_VEHICLE_ENGINE_POWER_MULTIPLIER(veh, VEH_ENG_POW_VALUES[engPowMultIndex]);
-		powChanged = true;
+		//powChanged = true;
 	}
 	
 	// custom engine power multiplier
@@ -2803,17 +2965,13 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 			}
 		}
 	} 
-
+		
 	// Traction Control 
 	if (featureTractionControl && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
 		Vector3 vehspeed = ENTITY::GET_ENTITY_VELOCITY(PED::GET_VEHICLE_PED_IS_IN(playerPed, false));
 		if (vehspeed.x < 0) vehspeed.x = (vehspeed.x * -1);
 		if (vehspeed.y < 0) vehspeed.y = (vehspeed.y * -1);
-		if (vehspeed.x < 5 && vehspeed.y < 5 && high_speed == false) {
-			traction_tick = 0;
-			high_speed = true;
-		}
-		if (vehspeed.x > 4 || vehspeed.y > 4 || vehspeed.x < 0.1 || vehspeed.y < 0.1) high_speed = false;
+		if (!CONTROLS::IS_CONTROL_PRESSED(2, 71) && !CONTROLS::IS_CONTROL_PRESSED(2, 62) && !CONTROLS::IS_CONTROL_PRESSED(2, 72) && vehspeed.x < 3 && vehspeed.y < 3) traction_tick = 0;
 		if (CONTROLS::IS_CONTROL_PRESSED(2, 71) || CONTROLS::IS_CONTROL_PRESSED(2, 62) || CONTROLS::IS_CONTROL_PRESSED(2, 72)) {
 			engine_secs_passed = clock() / CLOCKS_PER_SEC;
 			if (((clock() / (CLOCKS_PER_SEC / 1000)) - engine_secs_curr) != 0) {
@@ -2822,18 +2980,15 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 			}
 		}
 		if (traction_tick < 100) {
-			if (traction_tick > 1 && traction_tick < 100 && CONTROLS::IS_CONTROL_PRESSED(2, 71)) VEHICLE::SET_VEHICLE_BRAKE_LIGHTS(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), false);
-			if (traction_tick > 1 && traction_tick < 50) {
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 71)) CONTROLS::_SET_CONTROL_NORMAL(0, 72, 0.5f);
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 72) || CONTROLS::IS_CONTROL_PRESSED(2, 62)) CONTROLS::_SET_CONTROL_NORMAL(0, 71, 0.5f);
-			}
-			if (traction_tick > 49 && traction_tick < 100) {
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 71)) CONTROLS::_SET_CONTROL_NORMAL(0, 72, 0.2f);
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 72) || CONTROLS::IS_CONTROL_PRESSED(2, 62)) CONTROLS::_SET_CONTROL_NORMAL(0, 71, 0.2f);
-			}
+			if (traction_tick < 50) VEHICLE::_SET_VEHICLE_ENGINE_TORQUE_MULTIPLIER(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), 0.2);
+			if (traction_tick > 49 && traction_tick < 100) VEHICLE::_SET_VEHICLE_ENGINE_TORQUE_MULTIPLIER(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), 0.6);
+		}
+		else
+		if (traction_tick > 99 && traction_tick < 109) {
+			VEHICLE::_SET_VEHICLE_ENGINE_TORQUE_MULTIPLIER(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), 1.0);
 		}
 	}
-	
+
 	// Vehicle Invisibility
 	if (FUEL_COLOURS_R_VALUES[VehInvisIndexN] > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
 		ENTITY::SET_ENTITY_ALPHA(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), FUEL_COLOURS_R_VALUES[VehInvisIndexN] - 10, 0);
@@ -2983,6 +3138,33 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 		}
 		if ((coords_b_m.z < height) && ((height - coords_b_m.z) > 2)) ENTITY::SET_ENTITY_COORDS(veh_anchor, coords_b.x, coords_b.y, coords_b.z, 1, 0, 0, 1);
 	}
+
+	if (is_hotkey_held_openclose_door()) {
+		PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), false);
+		UI::HIDE_HUD_COMPONENT_THIS_FRAME(19);
+		UI::HIDE_HUD_COMPONENT_THIS_FRAME(20);
+
+		int picked_door = -1;
+		if (GetKeyState('1') & 0x8000) picked_door = 0;
+		if (GetKeyState('2') & 0x8000) picked_door = 1;
+		if (GetKeyState('3') & 0x8000) picked_door = 2;
+		if (GetKeyState('4') & 0x8000) picked_door = 3;
+		if (GetKeyState('5') & 0x8000) picked_door = 4;
+		if (GetKeyState('6') & 0x8000) picked_door = 5;
+
+		Vehicle veh = -1;
+		if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1)) veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
+		if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1)) {
+			find_nearest_vehicle();
+			veh = temp_vehicle;
+		}
+		if (featureVehDoorOpenCloseTime + 100 < GetTickCount()) { // 150
+			float doorAngle = VEHICLE::GET_VEHICLE_DOOR_ANGLE_RATIO(veh, picked_door); //Best way I could figure out to detect if the part is animated.
+			if (doorAngle < 0.01) VEHICLE::SET_VEHICLE_DOOR_OPEN(veh, picked_door, false, 0);
+			else VEHICLE::SET_VEHICLE_DOOR_SHUT(veh, picked_door, 0);
+			featureVehDoorOpenCloseTime = GetTickCount();
+		}
+	} //else PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), true);
 
 	//////////////////////////////////////////////////// PLAYER/VEHICLE FORCE SHIELD ////////////////////////////////////////////////////////
 	if ((VEH_MASS_VALUES[VehMassMultIndex] > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && !PED::IS_PED_IN_ANY_PLANE(playerPed) && !PED::IS_PED_IN_ANY_HELI(playerPed)) || 
@@ -3694,7 +3876,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 			}
 		}
 		//
-
+		// main body
 		if ((featureRememberVehicles/* && bPlayerExists*/ && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && VEH_VEHREMEMBER_VALUES[VehRememberIndex] != 666) ||
 			(featureRememberVehicles/* && bPlayerExists*/ && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && VEH_VEHREMEMBER_VALUES[VehRememberIndex] == 666 && manual_veh_tr == true)) {
 			Vehicle veh_rem = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
@@ -3784,14 +3966,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 			numActualLines++;
 			UI::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 			UI::_ADD_TEXT_COMPONENT_SCALEFORM((char *)MileageStatusLines[i].c_str());
-			UI::SET_TEXT_FONT(0);
-			UI::SET_TEXT_SCALE(0.5, 0.5);
-			UI::SET_TEXT_WRAP(0.0, 1.0);
-			UI::SET_TEXT_COLOUR(255, 255, 255, 255); // 255, 128, 64, 255
-			UI::SET_TEXT_CENTRE(0);
-			UI::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
-			UI::SET_TEXT_EDGE(100, 100, 100, 100, 205);
-			UI::SET_TEXT_LEADING(1);
+			text_parameters(0.5, 0.5, 255, 255, 255, 255);
 			UI::END_TEXT_COMMAND_DISPLAY_TEXT(0.7, 0.9);
 		}
 
@@ -3863,7 +4038,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 ///////////////////////////// REMEMBER STEERING ANGLE //////////////////////////// ORIGINAL CODE BY MRGTAMODSGERMAN 
 	if (featureVehSteerAngle && !STREAMING::HAS_MODEL_LOADED(GAMEPLAY::GET_HASH_KEY("BMX"))) STREAMING::REQUEST_MODEL(GAMEPLAY::GET_HASH_KEY("BMX"));
 
-	if (featureVehSteerAngle && PED::IS_PED_IN_ANY_VEHICLE(playerPed, true) && CONTROLS::IS_CONTROL_PRESSED(2, 75)) { //  && !PED::IS_PED_ON_ANY_BIKE(playerPed)
+	if (featureVehSteerAngle && PED::IS_PED_IN_ANY_VEHICLE(playerPed, true) && CONTROLS::IS_CONTROL_PRESSED(2, 75)) { // && !PED::IS_PED_ON_ANY_BIKE(playerPed)
 		Vehicle myVehicle = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
 
 		Vector3 myvehicle_coords = ENTITY::GET_ENTITY_COORDS(myVehicle, true);
@@ -4180,7 +4355,243 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 		PED::SET_PED_CAN_SWITCH_WEAPON(playerPed, true);
 		veh_to_spawn = "";
 	}
-	if (!is_hotkey_held_saved_veh_spawn() && veh_to_spawn == "") PED::SET_PED_CAN_SWITCH_WEAPON(playerPed, true);
+	if (!is_hotkey_held_saved_veh_spawn() && veh_to_spawn == "" && !is_hotkey_held_openclose_door() && !is_hotkey_held_wanted_level()) PED::SET_PED_CAN_SWITCH_WEAPON(playerPed, true);
+
+///////////////////////////////////	CAR THIEF ///////////////////////////////////
+	if (featureRoutineOfRinger && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+		char* h_anim_dict = "veh@boat@predator@ds@base";
+		char* hw_anim_dict = "anim@veh@std@panto@ds@base";
+		char* animation_of_h = "hotwire";
+
+		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, false)) {
+			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+
+			if (VEHICLES_AVAILABLE.empty()) VEHICLES_AVAILABLE.push_back(veh);
+			if (!VEHICLES_AVAILABLE.empty()) {
+				bool exists_already = false;
+				for (int vh = 0; vh < VEHICLES_AVAILABLE.size(); vh++) {
+					if (VEHICLES_AVAILABLE[vh] == veh) exists_already = true;
+				}
+				if (exists_already == false) VEHICLES_AVAILABLE.push_back(veh);
+			}
+			hijacked_vehicle_ror = false;
+			
+			bool have_ignited_already = false;
+			if (!VEHICLES_IGNITED.empty()) {
+				for (int vi = 0; vi < VEHICLES_IGNITED.size(); vi++) {
+					if (VEHICLES_IGNITED[vi] == veh) have_ignited_already = true;
+				}
+			}
+
+			if ((VEHICLES_IGNITED.empty() || have_ignited_already == false) && VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(veh)) VEHICLES_IGNITED.push_back(veh);
+			if ((VEHICLES_IGNITED.empty() || have_ignited_already == false) && !VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(veh)) {
+				ENTITY::SET_ENTITY_AS_MISSION_ENTITY(veh, true, true);
+				VEHICLE::SET_VEHICLE_ENGINE_ON(veh, false, true, true);
+
+				if (CONTROLS::IS_CONTROL_PRESSED(2, 71)) {
+					breaking_secs_passed = clock() / CLOCKS_PER_SEC;
+					if (((clock() / CLOCKS_PER_SEC) - breaking_secs_curr) != 0) {
+						breaking_secs_tick = breaking_secs_tick + 1;
+						breaking_secs_curr = breaking_secs_passed;
+					}
+					float tmp_numerator = breaking_secs_tick;
+					float tmp_denominator = VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecIndex];
+					if (featureRoutineBars) GRAPHICS::DRAW_RECT(0.5, 0.9, 0.33 - ((tmp_numerator / tmp_denominator) / 3), 0.009, 255, 0, 0, 255);
+									
+					if (featureRoutineAnimations) {
+						if (!STREAMING::HAS_ANIM_DICT_LOADED(hw_anim_dict)) {
+							STREAMING::REQUEST_ANIM_DICT(hw_anim_dict);
+							while (!STREAMING::HAS_ANIM_DICT_LOADED(hw_anim_dict)) WAIT(0);
+						}
+						if (STREAMING::HAS_ANIM_DICT_LOADED(hw_anim_dict) && !ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), hw_anim_dict, animation_of_h, 3)) AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), hw_anim_dict, animation_of_h, 8.0, 8.0, -1, 32, 0, 0, 0, 0);
+					}
+
+					if (breaking_secs_tick >= VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecIndex]) {
+						VEHICLES_IGNITED.push_back(veh);
+						VEHICLE::SET_VEHICLE_NEEDS_TO_BE_HOTWIRED(veh, true);
+						WAIT(1000);
+						VEHICLE::SET_VEHICLE_ENGINE_ON(veh, true, false, false);
+						ENTITY::SET_ENTITY_AS_NO_LONGER_NEEDED(&veh);
+						breaking_secs_tick = 0;
+					}
+					watchful_peds_around();
+				}
+				if (CONTROLS::IS_CONTROL_RELEASED(2, 71) && breaking_secs_tick > 0) {
+					ENTITY::SET_ENTITY_AS_NO_LONGER_NEEDED(&veh);
+					breaking_secs_tick = 0;
+				}
+				if (breaking_secs_tick == 0 && ENTITY::IS_ENTITY_PLAYING_ANIM(playerPed, hw_anim_dict, animation_of_h, 3)) AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), hw_anim_dict, animation_of_h, 1.0);
+			}
+		} // end of in vehicle
+
+		if (time_to_call_the_police == true && !featureWantedLevelFrozen) {
+			tick_pedcallingpolice_secs_passed = clock() / CLOCKS_PER_SEC;
+			if (((clock() / CLOCKS_PER_SEC) - tick_pedcallingpolice_secs_curr) != 0) {
+				tick_pedcallingpolice = tick_pedcallingpolice + 1;
+				tick_pedcallingpolice_secs_curr = tick_pedcallingpolice_secs_passed;
+			}
+			if (tick_pedcallingpolice > VEH_RINGER_SECONDS_BREAK_VALUES[RingerCallCopSecIndex]) {
+				PLAYER::SET_MAX_WANTED_LEVEL(5);
+				if (hijacked_vehicle_ror == false && PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < VEH_STARSPUNISH_VALUES[RingerBreakAttemptIndex]) PLAYER::SET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID(), VEH_STARSPUNISH_VALUES[RingerBreakAttemptIndex], 0);
+				if (hijacked_vehicle_ror == true && PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < VEH_STARSPUNISH_VALUES[RingerDragOutIndex]) PLAYER::SET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID(), VEH_STARSPUNISH_VALUES[RingerDragOutIndex], 0);
+				PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(PLAYER::PLAYER_ID(), 0);
+				time_to_call_the_police = false;
+				tick_pedcallingpolice = 0;
+				if (!BLIPTABLE_ALPEDS.empty()) {
+					for (int j = 0; j < BLIPTABLE_ALPEDS.size(); j++) {
+						if (UI::DOES_BLIP_EXIST(BLIPTABLE_ALPEDS[j])) UI::REMOVE_BLIP(&BLIPTABLE_ALPEDS[j]);
+					}
+					BLIPTABLE_ALPEDS.clear();
+					BLIPTABLE_ALPEDS.shrink_to_fit();
+				}
+				for (int j = 0; j < PEDS_WATCHFUL.size(); j++) ENTITY::SET_ENTITY_AS_NO_LONGER_NEEDED(&PEDS_WATCHFUL[j]);
+				if (!PEDS_WATCHFUL.empty()) {
+					PEDS_WATCHFUL.clear();
+					PEDS_WATCHFUL.shrink_to_fit();
+				}
+			}
+			if (!PEDS_WATCHFUL.empty()) {
+				bool still_alive = false;
+				for (int sa = 0; sa < PEDS_WATCHFUL.size(); sa++) {
+					if (!PED::IS_PED_DEAD_OR_DYING(PEDS_WATCHFUL[sa], true)) still_alive = true;
+					if (PED::IS_PED_DEAD_OR_DYING(PEDS_WATCHFUL[sa], true) && UI::DOES_BLIP_EXIST(BLIPTABLE_ALPEDS[sa])) UI::REMOVE_BLIP(&BLIPTABLE_ALPEDS[sa]);
+				}
+				if (still_alive == false) {
+					tick_pedcallingpolice = 0;
+					time_to_call_the_police = false;
+					if (!BLIPTABLE_ALPEDS.empty()) {
+						for (int j = 0; j < BLIPTABLE_ALPEDS.size(); j++) {
+							if (UI::DOES_BLIP_EXIST(BLIPTABLE_ALPEDS[j])) UI::REMOVE_BLIP(&BLIPTABLE_ALPEDS[j]);
+						}
+						BLIPTABLE_ALPEDS.clear();
+						BLIPTABLE_ALPEDS.shrink_to_fit();
+					}
+					for (int j = 0; j < PEDS_WATCHFUL.size(); j++) ENTITY::SET_ENTITY_AS_NO_LONGER_NEEDED(&PEDS_WATCHFUL[j]);
+					if (!PEDS_WATCHFUL.empty()) {
+						PEDS_WATCHFUL.clear();
+						PEDS_WATCHFUL.shrink_to_fit();
+					}
+				}
+			}
+		}
+
+		if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, false)) {
+			if (PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed) != hijacking_veh_ror) hijacked_vehicle_ror = false;
+			if (hijacked_vehicle_ror == false) {
+				hijacking_veh_ror = PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed);
+				if (VEHICLE::GET_PED_IN_VEHICLE_SEAT(hijacking_veh_ror, -1) != 0) {
+					hijacked_vehicle_ror = true;
+				}
+			}
+
+			const int arrSize_sp_r = 1024;
+			Vehicle surr_vehs_r[arrSize_sp_r];
+			int count_surr_veh_r = worldGetAllVehicles(surr_vehs_r, arrSize_sp_r);
+
+			if (MISC_TRAINERCONTROL_VALUES[RingerSkillIndex] == 1 && CONTROLS::IS_CONTROL_JUST_PRESSED(2, 23) && breaking_secs_tick == 0) {
+				find_nearest_vehicle();
+				Vector3 coordsme = ENTITY::GET_ENTITY_COORDS(playerPed, true);
+				Vector3 coordsveh_l = ENTITY::_GET_ENTITY_BONE_COORDS(temp_vehicle, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(temp_vehicle, "door_dside_f"));
+				Vector3 coordsveh_r = ENTITY::_GET_ENTITY_BONE_COORDS(temp_vehicle, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(temp_vehicle, "door_pside_f"));
+				float dist_diff_l = SYSTEM::VDIST(coordsme.x, coordsme.y, coordsme.z, coordsveh_l.x, coordsveh_l.y, coordsveh_l.z);
+				float dist_diff_r = SYSTEM::VDIST(coordsme.x, coordsme.y, coordsme.z, coordsveh_r.x, coordsveh_r.y, coordsveh_r.z);
+				if (dist_diff_l < 3 || dist_diff_r < 3) {
+					if (!VEHICLES_AVAILABLE.empty()) {
+						bool exists_already = false;
+						for (int vh = 0; vh < VEHICLES_AVAILABLE.size(); vh++) {
+							if (VEHICLES_AVAILABLE[vh] == temp_vehicle) exists_already = true;
+						}
+						if (exists_already == false && VEHICLE::GET_VEHICLE_DOOR_LOCK_STATUS(temp_vehicle) == 2) breaking_secs_tick = 1;
+					}
+					if (VEHICLES_AVAILABLE.empty() && VEHICLE::GET_VEHICLE_DOOR_LOCK_STATUS(temp_vehicle) == 2) breaking_secs_tick = 1;
+				}
+			}
+			if (MISC_TRAINERCONTROL_VALUES[RingerSkillIndex] == 1 && CONTROLS::IS_CONTROL_PRESSED(2, 23) && breaking_secs_tick > 0) {
+				breaking_secs_passed = clock() / CLOCKS_PER_SEC;
+				if (((clock() / CLOCKS_PER_SEC) - breaking_secs_curr) != 0) {
+					breaking_secs_tick = breaking_secs_tick + 1;
+					breaking_secs_curr = breaking_secs_passed;
+				}
+
+				float tmp_numerator = breaking_secs_tick; 
+				float tmp_denominator = VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex];
+				if (featureRoutineBars) GRAPHICS::DRAW_RECT(0.5, 0.9, 0.33 - ((tmp_numerator / tmp_denominator) / 3), 0.009, 255, 255, 255, 255);
+
+				AI::TASK_STAND_STILL(playerPed, 1);
+
+				if (featureRoutineAnimations) {
+					if (!STREAMING::HAS_ANIM_DICT_LOADED(h_anim_dict)) {
+						STREAMING::REQUEST_ANIM_DICT(h_anim_dict);
+						while (!STREAMING::HAS_ANIM_DICT_LOADED(h_anim_dict)) WAIT(0);
+					}
+					if (STREAMING::HAS_ANIM_DICT_LOADED(h_anim_dict) && !ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), h_anim_dict, animation_of_h, 3)) AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), h_anim_dict, animation_of_h, 8.0, 8.0, -1, 32, 0, 0, 0, 0);
+				}
+
+				if (breaking_secs_tick >= VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex]) {
+					VEHICLES_AVAILABLE.push_back(temp_vehicle);
+					VEHICLE::SET_VEHICLE_IS_CONSIDERED_BY_PLAYER(temp_vehicle, true);
+					VEHICLE::SET_VEHICLE_DOORS_LOCKED(temp_vehicle, 0);
+					breaking_secs_tick = 0;
+					AI::CLEAR_PED_TASKS(playerPed);
+				}
+			}
+
+			if (breaking_secs_tick == 0 && ENTITY::IS_ENTITY_PLAYING_ANIM(playerPed, h_anim_dict, animation_of_h, 3)) AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), h_anim_dict, animation_of_h, 1.0);
+
+			if (breaking_secs_tick > 0 || hijacked_vehicle_ror == true) {
+				watchful_peds_around();
+			}
+
+			if (MISC_TRAINERCONTROL_VALUES[RingerSkillIndex] == 1 && CONTROLS::IS_CONTROL_RELEASED(2, 23) && breaking_secs_tick > 0) {
+				breaking_secs_tick = 0;
+				AI::CLEAR_PED_TASKS(playerPed);
+			}
+
+			for (int ror = 0; ror < count_surr_veh_r; ror++) {
+				if (ENTITY::IS_ENTITY_A_MISSION_ENTITY(surr_vehs_r[ror]) && !VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs_r[ror]) && ENTITY::DOES_ENTITY_BELONG_TO_THIS_SCRIPT(surr_vehs_r[ror], 1) == 0) { // || ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) == GAMEPLAY::GET_HASH_KEY("BAGGER")
+					bool own_veh = false;
+					if (VEHICLES_IGNITED.empty()) VEHICLES_IGNITED.push_back(surr_vehs_r[ror]);
+					if (!VEHICLES_IGNITED.empty()) {
+						for (int vi = 0; vi < VEHICLES_IGNITED.size(); vi++) {
+							if (VEHICLES_IGNITED[vi] == surr_vehs_r[ror]) own_veh = true;
+						}
+						if (own_veh == false) VEHICLES_IGNITED.push_back(surr_vehs_r[ror]);
+					}
+				}
+				
+				if (MISC_TRAINERCONTROL_VALUES[RingerSkillIndex] == 0 || (MISC_TRAINERCONTROL_VALUES[RingerSkillIndex] == 1 && (VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror])) ||
+					VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror])) || VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]))) && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("HANDLER") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("VOLATOL") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("MICROLIGHT") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUSTER") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUMP") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("WINKY") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUNE2") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUNE4") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUNE5") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("VAGRANT") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUNE3") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("DUNE") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("BIFTA") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("LOCUST") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("RUSTON") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("RAPTOR") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("PEYOTE") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("ZION2") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("FELON2") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("WINDSOR2") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("COGCABRIO") && 
+					ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("MAMBA") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("SCRAMJET") && ENTITY::GET_ENTITY_MODEL(surr_vehs_r[ror]) != GAMEPLAY::GET_HASH_KEY("COQUETTE2") && 
+					VEHICLE::GET_CONVERTIBLE_ROOF_STATE(surr_vehs_r[ror]) == 0)) {
+					bool me_own_already = false;
+					if (!VEHICLES_AVAILABLE.empty()) {
+						for (int vh = 0; vh < VEHICLES_AVAILABLE.size(); vh++) {
+							if (VEHICLES_AVAILABLE[vh] == surr_vehs_r[ror]) me_own_already = true;
+						}
+					}
+
+					if (!ENTITY::IS_ENTITY_A_MISSION_ENTITY(surr_vehs_r[ror]) && !VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs_r[ror]) && !VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 0) &&
+						!VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 1) && me_own_already == false && breaking_secs_tick < VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex] + 1) {
+						VEHICLE::SET_VEHICLE_IS_CONSIDERED_BY_PLAYER(surr_vehs_r[ror], false);
+						VEHICLE::SET_VEHICLE_DOORS_LOCKED(surr_vehs_r[ror], 2);
+					}
+					if (ENTITY::IS_ENTITY_A_MISSION_ENTITY(surr_vehs_r[ror]) || VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs_r[ror]) || VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 0) ||
+						VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 1) || me_own_already == true || breaking_secs_tick > VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex]) {
+						VEHICLE::SET_VEHICLE_IS_CONSIDERED_BY_PLAYER(surr_vehs_r[ror], true);
+						VEHICLE::SET_VEHICLE_DOORS_LOCKED(surr_vehs_r[ror], 0);
+					}
+				}
+			}
+		} // end of not in vehicle
+	}
+///////////////////////////////////
 
 	// testing code; DO NOT DELETE
 	//if(bPlayerExists && PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) && IsKeyJustUp(KeyConfig::KEY_VEH_STOP)){
@@ -4296,9 +4707,16 @@ void reset_vehicle_globals() {
 	SpeedingCityIndex = 3;
 	DetectionRangeIndex = 3;
 	PirsuitRangeIndexN = 4;
-	StarsPunishIndex = 0;
+	StarsPunishIndex = 1;
 	EngineRunningIndex = 0;
 	AutoShutEngineIndex = 0;
+	RingerSkillIndex = 1;
+	RingerBreakSecIndex = 3;
+	RingerHotwireSecIndex = 2;
+	RingerBreakAttemptIndex = 2;
+	RingerDragOutIndex = 2;
+	RingerPedAlertnessIndex = 3;
+	RingerCallCopSecIndex = 3;
 	HydraulicsIndex = 0;
 	VisLightIndex = 0;
 	VisLight3dIndex = 0;
@@ -4315,8 +4733,8 @@ void reset_vehicle_globals() {
 	RefuelingSpeedIndex = 6;
 	FuelPriceIndex = 7;
 	JerrycanPriceIndex = 12;
-	Random1Index = 1;
-	Random2Index = 1;
+	Random1Index = 2;
+	Random2Index = 3;
 	BarPositionIndexN = 0;
 
 	CarEngineHealthIndexN = 7;
@@ -4331,6 +4749,8 @@ void reset_vehicle_globals() {
 	HeliEngineDegradeIndex = 5;
 	BoatEngineDegradeIndex = 5;
 
+	DefaultPlateIndex = -1;
+
 	featureSpeedOnFoot =
 	featureKMH =
 	feature3rdpersonviewonly = 
@@ -4338,7 +4758,6 @@ void reset_vehicle_globals() {
 	featureSpeedOnGround =
 	featureSpeedInAir =
 	
-	//featureVehInvincible =
 		featureVehSteerAngle = 
 		featureRollWhenShoot =
 		featureTractionControl =
@@ -4370,13 +4789,16 @@ void reset_vehicle_globals() {
 		featureAutoalarm =
 		featureFuelGauge =
 		featureRestoreTracked =
+		featureRoutineOfRinger =
+		featureShowPedCons =
 		featureVehLightsOn = false;
 
 	featureLockVehicleDoorsUpdated = false;
+	featureRoutineAnimations = true;
 		featureBlipNumber = true;
+		featureRoutineBars = true;
 		featureHazards = true;
 		featureWearHelmetOffUpdated = true;
-		//featureVehInvincibleUpdated = true;
 		featurePoliceVehicleBlip = true;
 		featurePoliceNoFlip = true;
 		featureAltitude = true;
@@ -4393,11 +4815,10 @@ void reset_vehicle_globals() {
 		featureNoLightsNightTime = true;
 		featureEscapingPolice = true;
 		featureVehLightsOnUpdated = true;
+		featureShowIgnAnim = true;
 
 	featureDespawnScriptDisabled = false;
 	featureDespawnScriptDisabledUpdated = false;
-	//featureVehNoDamage = false;
-	//featureVehInvulnIncludesCosmetic = false;
 }
 
 void keyboard_tip_message(char* curr_message_s) {
@@ -4575,6 +4996,19 @@ Vehicle do_spawn_vehicle(DWORD model, std::string modelTitle, bool cleanup){
 
 		VEHICLE::SET_VEHICLE_DIRT_LEVEL(veh, 0.0f);
 
+		if (DefaultPlateIndex != -1 && DefaultPlateIndex < VEHICLE::GET_NUMBER_OF_VEHICLE_NUMBER_PLATES()) {
+			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
+			VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh, DefaultPlateIndex);
+		}
+		if (DefaultPlateIndex != -1 && DefaultPlateIndex >= VEHICLE::GET_NUMBER_OF_VEHICLE_NUMBER_PLATES()) DefaultPlateIndex = -1;
+
+		if (featureRoutineOfRinger) {
+			VEHICLES_AVAILABLE.push_back(veh);
+			VEHICLES_IGNITED.push_back(veh);
+		}
+
+		ENTITY::RESET_ENTITY_ALPHA(veh);
+
 		WAIT(0);
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 		if(cleanup){
@@ -4591,8 +5025,6 @@ Vehicle do_spawn_vehicle(DWORD model, std::string modelTitle, bool cleanup){
 void add_vehicle_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoVehFallOff", &featureNoVehFallOff}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehicleDoorInstant", &featureVehicleDoorInstant});
-	//results->push_back(FeatureEnabledLocalDefinition{"featureVehInvincible", &featureVehInvincible, &featureVehInvincibleUpdated});
-	//results->push_back(FeatureEnabledLocalDefinition{"featureVehNoDamage", &featureVehNoDamage, &featureVehInvincibleUpdated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehSpawnInto", &featureVehSpawnInto});
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehSteerAngle", &featureVehSteerAngle});
 	results->push_back(FeatureEnabledLocalDefinition{"featureRollWhenShoot", &featureRollWhenShoot});
@@ -4629,6 +5061,7 @@ void add_vehicle_feature_enablements(std::vector<FeatureEnabledLocalDefinition>*
 	results->push_back(FeatureEnabledLocalDefinition{"featureFuel", &featureFuel});
 	results->push_back(FeatureEnabledLocalDefinition{"featureFuelGauge", &featureFuelGauge});
 	results->push_back(FeatureEnabledLocalDefinition{"featureHideFuelBar", &featureHideFuelBar});
+	results->push_back(FeatureEnabledLocalDefinition{"featureShowIgnAnim", &featureShowIgnAnim});
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehMassMult", &featureVehMassMult});
 	results->push_back(FeatureEnabledLocalDefinition{"featureSpeedOnFoot", &featureSpeedOnFoot});
 	results->push_back(FeatureEnabledLocalDefinition{"featureKMH", &featureKMH});
@@ -4641,12 +5074,15 @@ void add_vehicle_feature_enablements(std::vector<FeatureEnabledLocalDefinition>*
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehSpawnTuned", &featureVehSpawnTuned});
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehSpawnOptic", &featureVehSpawnOptic});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWearHelmetOff", &featureWearHelmetOff, &featureWearHelmetOffUpdated});
-	//results->push_back(FeatureEnabledLocalDefinition{"featureVehInvulnIncludesCosmetic", &featureVehInvulnIncludesCosmetic, &featureVehInvincibleUpdated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDespawnScriptDisabled", &featureDespawnScriptDisabled}); // , &featureDespawnScriptDisabledUpdated
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehLightsOn", &featureVehLightsOn, &featureVehLightsOnUpdated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureEngineDegrade", &featureEngineDegrade});
 	results->push_back(FeatureEnabledLocalDefinition{"featureEngineHealthBar", &featureEngineHealthBar});
 	results->push_back(FeatureEnabledLocalDefinition{"featureLimpMode", &featureLimpMode});
+	results->push_back(FeatureEnabledLocalDefinition{"featureRoutineOfRinger", &featureRoutineOfRinger});
+	results->push_back(FeatureEnabledLocalDefinition{"featureRoutineBars", &featureRoutineBars});
+	results->push_back(FeatureEnabledLocalDefinition{"featureRoutineAnimations", &featureRoutineAnimations});
+	results->push_back(FeatureEnabledLocalDefinition{"featureShowPedCons", &featureShowPedCons});
 }
 
 bool spawn_tracked_car(int slot, std::string caption) {
@@ -4780,6 +5216,13 @@ bool spawn_tracked_car(int slot, std::string caption) {
 		add_blip(veh);
 		BLIPTABLE_VEH.push_back(blip_veh);
 		VEHICLES_REMEMBER.push_back(veh);
+
+		if (featureRoutineOfRinger) {
+			VEHICLES_AVAILABLE.push_back(veh);
+			VEHICLES_IGNITED.push_back(veh);
+		}
+
+		ENTITY::RESET_ENTITY_ALPHA(veh);
 	}
 
 	for (std::vector<TrackedVehicleDBRow*>::iterator it = savedTVehs.begin(); it != savedTVehs.end(); ++it) {
@@ -4815,11 +5258,11 @@ bool spawn_saved_car(int slot, std::string caption){
 		VEHICLE::SET_VEHICLE_WINDOW_TINT(veh, savedVeh->windowTint); 
 
 		VEHICLE::SET_VEHICLE_WHEEL_TYPE(veh, savedVeh->wheelType);
-		
+		//
 		for each (SavedVehicleExtraDBRow *extra in savedVeh->extras){
 			VEHICLE::SET_VEHICLE_EXTRA(veh, extra->extraID, (extra->extraState == 1) ? 0 : -1);
 		}
-
+		//
 		for each (SavedVehicleModDBRow *mod in savedVeh->mods){
 			if(mod->isToggle){
 				VEHICLE::TOGGLE_VEHICLE_MOD(veh, mod->modID, mod->modState);
@@ -4832,7 +5275,7 @@ bool spawn_saved_car(int slot, std::string caption){
 		int currmod = VEHICLE::GET_VEHICLE_MOD(veh, 23);
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, currmod, savedVeh->customTyres);
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, currmod, savedVeh->customTyres);
-
+		
 		if(savedVeh->livery != -1){
 			VEHICLE::SET_VEHICLE_LIVERY(veh, savedVeh->livery);
 		}
@@ -4909,8 +5352,15 @@ bool spawn_saved_car(int slot, std::string caption){
 			C_ENGINE_VEHICLE.push_back(veh);
 		}
 
+		if (featureRoutineOfRinger) {
+			VEHICLES_AVAILABLE.push_back(veh);
+			VEHICLES_IGNITED.push_back(veh);
+		}
+
+		ENTITY::RESET_ENTITY_ALPHA(veh);
+
 		ENTITY::SET_VEHICLE_AS_NO_LONGER_NEEDED(&veh);
-	}
+	} // end of else
 
 	for(std::vector<SavedVehicleDBRow*>::iterator it = savedVehs.begin(); it != savedVehs.end(); ++it){
 		delete (*it);
@@ -5254,6 +5704,13 @@ void add_vehicle_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"StarsPunishIndex", std::to_string(StarsPunishIndex)});
 	results->push_back(StringPairSettingDBRow{"EngineRunningIndex", std::to_string(EngineRunningIndex)});
 	results->push_back(StringPairSettingDBRow{"AutoShutEngineIndex", std::to_string(AutoShutEngineIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerSkillIndex", std::to_string(RingerSkillIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerBreakSecIndex", std::to_string(RingerBreakSecIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerHotwireSecIndex", std::to_string(RingerHotwireSecIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerBreakAttemptIndex", std::to_string(RingerBreakAttemptIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerDragOutIndex", std::to_string(RingerDragOutIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerPedAlertnessIndex", std::to_string(RingerPedAlertnessIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerCallCopSecIndex", std::to_string(RingerCallCopSecIndex)});
 	results->push_back(StringPairSettingDBRow{"HydraulicsIndex", std::to_string(HydraulicsIndex)});
 	results->push_back(StringPairSettingDBRow{"VisLightIndex", std::to_string(VisLightIndex)});
 	results->push_back(StringPairSettingDBRow{"VisLight3dIndex", std::to_string(VisLight3dIndex)});
@@ -5287,6 +5744,7 @@ void add_vehicle_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"FuelColours_R_IndexN", std::to_string(FuelColours_R_IndexN)});
 	results->push_back(StringPairSettingDBRow{"FuelColours_G_IndexN", std::to_string(FuelColours_G_IndexN)});
 	results->push_back(StringPairSettingDBRow{"FuelColours_B_IndexN", std::to_string(FuelColours_B_IndexN)});
+	results->push_back(StringPairSettingDBRow{"DefaultPlateIndex", std::to_string(DefaultPlateIndex)});
 }
 
 void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settings){
@@ -5333,6 +5791,9 @@ void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settin
 		}
 		else if (setting.name.compare("DoorAutolockIndex") == 0) {
 			DoorAutolockIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("DefaultPlateIndex") == 0) {
+			DefaultPlateIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("turnSignalsAccelerationIndex") == 0) {
 			turnSignalsAccelerationIndex = stoi(setting.value);
@@ -5408,6 +5869,27 @@ void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settin
 		}
 		else if (setting.name.compare("AutoShutEngineIndex") == 0) {
 			AutoShutEngineIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerSkillIndex") == 0) {
+		RingerSkillIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerBreakSecIndex") == 0) {
+		RingerBreakSecIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerHotwireSecIndex") == 0) {
+		RingerHotwireSecIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerBreakAttemptIndex") == 0) {
+		RingerBreakAttemptIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerDragOutIndex") == 0) {
+		RingerDragOutIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerPedAlertnessIndex") == 0) {
+		RingerPedAlertnessIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerCallCopSecIndex") == 0) {
+		RingerCallCopSecIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("HydraulicsIndex") == 0) {
 			HydraulicsIndex = stoi(setting.value);
@@ -5514,26 +5996,7 @@ void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settin
 	}
 }
 
-/*int get_current_veh_invincibility_mode(){
-	if(!featureVehInvincible){
-		return 0;
-	}
-	else if(!featureVehNoDamage){
-		return 1;
-	}
-	else if(!featureVehInvulnIncludesCosmetic){
-		return 2;
-	}
-	return 3;
-}*/
-
 void onchange_veh_invincibility_mode(int value, SelectFromListMenuItem* source){
-	//featureVehInvincible = (value > 0);
-	//featureVehNoDamage = (value > 1);
-	//featureVehInvulnIncludesCosmetic = (value > 2);
-
-	//featureVehInvincibleUpdated = true;
-	
 	VehInvincibilityIndex = value;
 	VehInvincibilityChanged = true;
 }
@@ -5548,7 +6011,7 @@ int get_current_veh_eng_pow_index(){
 
 void onchange_veh_eng_pow_index(int value, SelectFromListMenuItem* source){
 	engPowMultIndex = value;
-	powChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_never_dirty(int value, SelectFromListMenuItem* source) {
@@ -5558,82 +6021,82 @@ void onchange_veh_never_dirty(int value, SelectFromListMenuItem* source) {
 
 void onchange_veh_mass_index(int value, SelectFromListMenuItem* source){
 	VehMassMultIndex = value;
-	massChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_player_forceshield_mode(int value, SelectFromListMenuItem* source) {
 	current_player_forceshieldN = value;
-	player_massChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_infiniteboost_index(int value, SelectFromListMenuItem* source) {
 	InfiniteBoostIndex = value;
-	InfiniteBoost_Changed = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_nitrous_index(int value, SelectFromListMenuItem* source) {
 	NitrousIndex = value;
-	NitrousChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_turn_signals_index(int value, SelectFromListMenuItem* source){
 	turnSignalsIndex = value;
-	turnSignalsChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_turn_signals_angle_index(int value, SelectFromListMenuItem* source) {
 	turnSignalsAngleIndex = value;
-	turnSignalsAngleChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_nitrous_power_index(int value, SelectFromListMenuItem* source) {
 	NitrousPowerIndex = value;
-	NitrousPowerChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_turn_signals_acceleration_index(int value, SelectFromListMenuItem* source) {
 	turnSignalsAccelerationIndex = value;
-	turnSignalsAccelerationChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_jumpy_index(int value, SelectFromListMenuItem* source) {
 	JumpyVehIndex = value;
-	JumpyVehChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_heavy_veh_index(int value, SelectFromListMenuItem* source) {
 	HeavyVehIndex = value;
-	HeavyVehChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_custom_eng_pow_index(int value, SelectFromListMenuItem* source) {
 	engCustomPowMultIndex = value;
-	engCustomPowMultChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_invisibility_index(int value, SelectFromListMenuItem* source) {
 	VehInvisIndexN = value;
-	VehInvisChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_lightsOff_index(int value, SelectFromListMenuItem* source){
 	lightsOffIndex = value;
-	lightsOffChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_speedlimiter_index(int value, SelectFromListMenuItem* source){
 	speedLimiterIndex = value;
-	speedLimiterChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_cityspeedlimiter_index(int value, SelectFromListMenuItem* source) {
 	speedCityLimiterIndex = value;
-	speedCityLimiterChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_veh_countryspeedlimiter_index(int value, SelectFromListMenuItem* source) {
 	speedCountryLimiterIndex = value;
-	speedCountryLimiterChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_speed_size_index(int value, SelectFromListMenuItem* source){
@@ -5648,7 +6111,7 @@ void onchange_speed_position_index(int value, SelectFromListMenuItem* source){
 
 void onchange_door_autolock_index(int value, SelectFromListMenuItem* source) {
 	DoorAutolockIndex = value;
-	DoorAutolockChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_fuel_background_opacity_index(int value, SelectFromListMenuItem* source){
@@ -5716,6 +6179,41 @@ void onchange_veh_autoshutengine_index(int value, SelectFromListMenuItem* source
 	PositionChanged = true;
 }
 
+void onchange_skill_index(int value, SelectFromListMenuItem* source) {
+	RingerSkillIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_breaking_into_index(int value, SelectFromListMenuItem* source) {
+	RingerBreakSecIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_hotwire_index(int value, SelectFromListMenuItem* source) {
+	RingerHotwireSecIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_breaking_attempt_index(int value, SelectFromListMenuItem* source) {
+	RingerBreakAttemptIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_drag_out_index(int value, SelectFromListMenuItem* source) {
+	RingerDragOutIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_ped_alertness_index(int value, SelectFromListMenuItem* source) {
+	RingerPedAlertnessIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_call_cop_index(int value, SelectFromListMenuItem* source) {
+	RingerCallCopSecIndex = value;
+	PositionChanged = true;
+}
+
 void onchange_veh_hydraulics_index(int value, SelectFromListMenuItem* source) {
 	HydraulicsIndex = value;
 	PositionChanged = true;
@@ -5753,7 +6251,7 @@ void onchange_veh_blipflash_index(int value, SelectFromListMenuItem* source){
 
 void onchange_veh_trackedautosave_index(int value, SelectFromListMenuItem* source) {
 	VehTrackedAutoSaveIndex = value;
-	VehTrackedAutoSaveChanged = true;
+	PositionChanged = true;
 }
 
 void onchange_fuel_blips_index(int value, SelectFromListMenuItem* source){
@@ -5896,7 +6394,6 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 		return NULL;
 	}
 
-	//TODO: Change modelName to a hash (i.e RAGE_JOAAT()) so it compares 2 hashes and not a string -> hash
 	for each (VehicleImage vimg in ALL_VEH_IMAGES){
 		if(vimg.modelName == choice.value){
 			MenuItemImage* image = new MenuItemImage();
@@ -6010,6 +6507,8 @@ void fix_vehicle(){
 
 			VEHICLE::SET_VEHICLE_INDICATOR_LIGHTS(veh, 1, false); // left signal 
 			VEHICLE::SET_VEHICLE_INDICATOR_LIGHTS(veh, 0, false); // right signal	
+
+			repairing_engine = true;
 
 			set_status_text("Vehicle repaired");
 		}

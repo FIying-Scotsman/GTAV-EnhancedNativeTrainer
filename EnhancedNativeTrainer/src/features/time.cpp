@@ -136,6 +136,29 @@ void onchange_hotkey_flow_rate_callback(int value, SelectFromListMenuItem *sourc
 	HotkeyFlowRateIndex = value, HotkeyFlowRateChanged = true, HotkeyFlowRateLocked = false;
 }
 
+void onchange_hotkey_freeze_unfreeze_time() {
+	if (timeFlowRateIndex != 0) {
+		frozentimestate = timeFlowRateIndex;
+		timeFlowRateIndex = 0;
+		timeFlowRateChanged = true;
+		set_status_text("Time is frozen");
+		requireRefreshOfTime = true;
+	}
+	else
+	{
+		if (frozentimestate != -1) {
+			timeFlowRateIndex = frozentimestate;
+			timeFlowRateChanged = true;
+		}
+		else {
+			timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
+			timeFlowRateChanged = true;
+		}
+		set_status_text("Time is unfrozen");
+		requireRefreshOfTime = true;
+	}
+}
+
 bool onconfirm_time_flowrate_menu(MenuItem<int> choice) {
 	if (choice.value == 0) {
 		if (featureTimeSynced) {
@@ -143,26 +166,7 @@ bool onconfirm_time_flowrate_menu(MenuItem<int> choice) {
 		}
 	}
 	else if (choice.value == 666) {
-		if (timeFlowRateIndex != 0) {
-			frozentimestate = timeFlowRateIndex;
-			timeFlowRateIndex = 0;
-			timeFlowRateChanged = true;
-			set_status_text("Time is frozen");
-			requireRefreshOfTime = true;
-		}
-		else
-		{
-			if (frozentimestate != -1) {
-				timeFlowRateIndex = frozentimestate;
-				timeFlowRateChanged = true;
-			}
-			else {
-				timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
-				timeFlowRateChanged = true;
-			}
-			set_status_text("Time is unfrozen");
-			requireRefreshOfTime = true;
-		}
+		onchange_hotkey_freeze_unfreeze_time();
 	}
 	return false;
 }
@@ -228,7 +232,7 @@ void all_time_flow_rate() {
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Fast Time Switching [rAlt + 1-8, rAlt + -/+]";
+		togItem->caption = "Fast Time Switching [rAlt + 1-8, rAlt + Npad-/+]";
 		togItem->value = 0;
 		togItem->toggleValue = &featurehotkeytime;
 		togItem->toggleValueUpdated = NULL;
@@ -1059,10 +1063,10 @@ void update_time_features(Player player){
 		if (GetKeyState(VK_RMENU) & 0x8000 && GetKeyState('8') & 0x8000) {
 			movetime_set(21, 0);
 		}
-		if (GetKeyState(VK_RMENU) & 0x8000 && GetKeyState(VK_OEM_PLUS) & 0x8000) {
+		if (GetKeyState(VK_RMENU) & 0x8000 && (/*(GetKeyState(VK_OEM_PLUS) & 0x8000) || */(GetKeyState('0') & 0x8000) || (GetKeyState(VK_ADD) & 0x8000))) {
 			movetime_fivemin_forward();
 		}
-		if (GetKeyState(VK_RMENU) & 0x8000 && GetKeyState(VK_OEM_MINUS) & 0x8000) {
+		if (GetKeyState(VK_RMENU) & 0x8000 && (/*(GetKeyState(VK_OEM_MINUS) & 0x8000) || */(GetKeyState('9') & 0x8000) || (GetKeyState(VK_SUBTRACT) & 0x8000))) {
 			movetime_fivemin_backward();
 		}
 	}

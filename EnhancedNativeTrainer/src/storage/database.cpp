@@ -1164,6 +1164,222 @@ void ENTDatabase::save_vehicle_mods(Vehicle veh, sqlite3_int64 rowID)
 	mutex_unlock();
 }
 
+bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 slot)
+{
+	mutex_lock();
+
+	std::stringstream ss;
+	ss << "INSERT OR REPLACE INTO ENT_SAVED_VEHICLES VALUES (";
+	for (int i = 0; i < 43; i++)
+	{
+		if (i > 0)
+		{
+			ss << ", ";
+		}
+		ss << "?";
+	}
+	ss << ");";
+
+	/*
+	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \ 1
+			saveName TEXT NOT NULL, \ 2
+			model INTEGER NOT NULL, \ 3
+			colourPrimary INTEGER, \ 4
+			colourSecondary INTEGER, \ 5
+			colourExtraPearl INTEGER, \ 6
+			colourExtraWheel INTEGER, \ 7
+			colourMod1Type INTEGER, \ 8
+			colourMod1Colour INTEGER, \ 9
+			colourMod1P3 INTEGER, \ 10
+			colourMod2Type INTEGER, \ 11
+			colourMod2Colour INTEGER, \ 12
+			colourCustom1R INTEGER, \ 13
+			colourCustom1G INTEGER, \ 14
+			colourCustom1B INTEGER, \ 15
+			colourCustom2R INTEGER, \ 16
+			colourCustom2G INTEGER, \ 17
+			colourCustom2B INTEGER, \ 18
+
+	*/
+
+	sqlite3_stmt* stmt;
+	const char* pzTest;
+	auto ssStr = ss.str();
+	int rc = sqlite3_prepare_v2(db, ssStr.c_str(), ssStr.length(), &stmt, &pzTest);
+	bool result = true;
+
+	if (rc != SQLITE_OK)
+	{
+		write_text_to_log_file("Vehicle save failed");
+		write_text_to_log_file(sqlite3_errmsg(db));
+		result = false;
+	}
+	else
+	{
+		int index = 1;
+		if (slot == -1)
+		{
+			sqlite3_bind_null(stmt, index++);
+		}
+		else
+		{
+			sqlite3_bind_int64(stmt, index++, slot);
+		}
+		sqlite3_bind_text(stmt, index++, saveName.c_str(), saveName.length(), 0); //save name
+		sqlite3_bind_int(stmt, index++, ENTITY::GET_ENTITY_MODEL(veh)); //model
+
+		int primaryCol, secondaryCol;
+		VEHICLE::GET_VEHICLE_COLOURS(veh, &primaryCol, &secondaryCol);
+		sqlite3_bind_int(stmt, index++, primaryCol);
+		sqlite3_bind_int(stmt, index++, secondaryCol);
+
+		int pearlCol, wheelCol;
+		VEHICLE::GET_VEHICLE_EXTRA_COLOURS(veh, &pearlCol, &wheelCol);
+		sqlite3_bind_int(stmt, index++, pearlCol);
+		sqlite3_bind_int(stmt, index++, wheelCol);
+
+		int mod1a, mod1b, mod1c;
+		VEHICLE::GET_VEHICLE_MOD_COLOR_1(veh, &mod1a, &mod1b, &mod1c);
+		sqlite3_bind_int(stmt, index++, mod1a);
+		sqlite3_bind_int(stmt, index++, mod1b);
+		sqlite3_bind_int(stmt, index++, mod1c);
+
+		int mod2a, mod2b;
+		VEHICLE::GET_VEHICLE_MOD_COLOR_2(veh, &mod2a, &mod2b);
+		sqlite3_bind_int(stmt, index++, mod2a);
+		sqlite3_bind_int(stmt, index++, mod2b);
+
+		if (VEHICLE::GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM(veh))
+		{
+			int custR1, custG1, custB1;
+			VEHICLE::GET_VEHICLE_CUSTOM_PRIMARY_COLOUR(veh, &custR1, &custG1, &custB1);
+			sqlite3_bind_int(stmt, index++, custR1);
+			sqlite3_bind_int(stmt, index++, custG1);
+			sqlite3_bind_int(stmt, index++, custB1);
+		}
+		else
+		{
+			sqlite3_bind_int(stmt, index++, -1);
+			sqlite3_bind_int(stmt, index++, -1);
+			sqlite3_bind_int(stmt, index++, -1);
+		}
+
+		if (VEHICLE::GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM(veh))
+		{
+			int custR2, custG2, custB2;
+			VEHICLE::GET_VEHICLE_CUSTOM_SECONDARY_COLOUR(veh, &custR2, &custG2, &custB2);
+			sqlite3_bind_int(stmt, index++, custR2);
+			sqlite3_bind_int(stmt, index++, custG2);
+			sqlite3_bind_int(stmt, index++, custB2);
+		}
+		else
+		{
+			sqlite3_bind_int(stmt, index++, -1);
+			sqlite3_bind_int(stmt, index++, -1);
+			sqlite3_bind_int(stmt, index++, -1);
+		}
+
+		/*
+		livery INTEGER, \ 19
+		plateText TEXT, \ 20
+		plateType INTEGER, \ 21
+		wheelType INTEGER, \ 22
+		windowTint INTEGER, \ 23
+		burstableTyres INTEGER \ 24
+		engineSound STRING, \ 25
+		xenonColour INTEGER, \ 26
+		*/
+
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_LIVERY(veh));
+
+		char* plateText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
+		sqlite3_bind_text(stmt, index++, plateText, strlen(plateText), 0);
+
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_WHEEL_TYPE(veh));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_WINDOW_TINT(veh));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_TYRES_CAN_BURST(veh) ? 1 : 0);
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23) ? 1 : 0);
+
+		//sqlite3_bind_text(stmt, index++, CURRSOUNDENGINE[0], strlen(plateText), 0);
+		/*
+		dirtLevel REAL DEFAULT 0, \ 25
+			fadeLevel REAL DEFAULT 0, \ 26
+			neonR INTEGER DEFAULT - 1, \ 27
+			neonG INTEGER DEFAULT - 1, \ 28
+			neonB INTEGER DEFAULT - 1, \ 29
+			neon0Enabled INTEGER DEFAULT 0, \ 30
+			neon1Enabled INTEGER DEFAULT 0, \ 21
+			neon2Enabled INTEGER DEFAULT 0, \ 32
+			neon3Enabled INTEGER DEFAULT 0 \*/
+
+		sqlite3_bind_double(stmt, index++, VEHICLE::GET_VEHICLE_DIRT_LEVEL(veh));
+		sqlite3_bind_double(stmt, index++, VEHICLE::GET_VEHICLE_ENVEFF_SCALE(veh));
+
+		int neonR, neonG, neonB;
+		VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &neonR, &neonG, &neonB);
+		sqlite3_bind_int(stmt, index++, neonR);
+		sqlite3_bind_int(stmt, index++, neonG);
+		sqlite3_bind_int(stmt, index++, neonB);
+
+		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 0));
+		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 1));
+		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 2));
+		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 3));
+
+		int tyreSmokeR, tyreSmokeG, tyreSmokeB;
+		VEHICLE::GET_VEHICLE_TYRE_SMOKE_COLOR(veh, &tyreSmokeR, &tyreSmokeG, &tyreSmokeB);
+		sqlite3_bind_int(stmt, index++, tyreSmokeR);
+		sqlite3_bind_int(stmt, index++, tyreSmokeG);
+		sqlite3_bind_int(stmt, index++, tyreSmokeB);
+
+		sqlite3_bind_int(stmt, index++, VEHICLE::IS_VEHICLE_A_CONVERTIBLE(veh, 0) && VEHICLE::GET_CONVERTIBLE_ROOF_STATE(veh));
+
+		//dashColour INTEGER,
+		//interiorColour INTEGER
+		int dashCol, interiorCol;
+		VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &dashCol);
+		VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &interiorCol);
+		sqlite3_bind_int(stmt, index++, dashCol);
+		sqlite3_bind_int(stmt, index++, interiorCol);
+
+		char* tmp_i = (char*)current_picked_engine_sound.c_str();
+		sqlite3_bind_text(stmt, index++, tmp_i, strlen(tmp_i), 0);
+		current_picked_engine_sound = "";
+
+		int xenonColour = -1;
+		if (getGameVersion() > 45) xenonColour = VEHICLE::GET_VEHICLE_XENON_COLOUR(veh);
+		sqlite3_bind_int(stmt, index++, xenonColour);
+
+		int powerMultiplier = -1;
+		for (int kl = 0; kl < C_ENGINE_M.size(); kl++) {
+			if (C_ENGINE_VEHICLE[kl] == veh) {
+				powerMultiplier = C_ENGINE_M[kl];
+			}
+		}
+		sqlite3_bind_int(stmt, index++, powerMultiplier);
+
+		// commit
+		sqlite3_step(stmt);
+		sqlite3_finalize(stmt);
+
+		sqlite3_int64 newRowID = sqlite3_last_insert_rowid(db);
+
+		//if we're updating, delete any pre-existing children
+		if (slot != -1)
+		{
+			delete_saved_vehicle_children(slot);
+		}
+
+		save_vehicle_extras(veh, newRowID);
+		save_vehicle_mods(veh, newRowID);
+	}
+
+	mutex_unlock();
+
+	return result;
+}
+
 void ENTDatabase::save_skin_components(Ped ped, sqlite3_int64 rowID)
 {
 	mutex_lock();
@@ -1296,222 +1512,6 @@ bool ENTDatabase::save_skin(Ped ped, std::string saveName, sqlite3_int64 slot)
 
 	save_skin_components(ped, newRowID);
 	save_skin_props(ped, newRowID);
-
-	mutex_unlock();
-
-	return result;
-}
-
-bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 slot) 
-{
-	mutex_lock();
-
-	std::stringstream ss;
-	ss << "INSERT OR REPLACE INTO ENT_SAVED_VEHICLES VALUES (";
-	for (int i = 0; i < 43; i++)
-	{
-		if (i > 0)
-		{
-			ss << ", ";
-		}
-		ss << "?";
-	}
-	ss << ");"; 
-
-	/*
-	id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, \ 1
-			saveName TEXT NOT NULL, \ 2
-			model INTEGER NOT NULL, \ 3
-			colourPrimary INTEGER, \ 4
-			colourSecondary INTEGER, \ 5
-			colourExtraPearl INTEGER, \ 6
-			colourExtraWheel INTEGER, \ 7
-			colourMod1Type INTEGER, \ 8
-			colourMod1Colour INTEGER, \ 9
-			colourMod1P3 INTEGER, \ 10
-			colourMod2Type INTEGER, \ 11
-			colourMod2Colour INTEGER, \ 12
-			colourCustom1R INTEGER, \ 13
-			colourCustom1G INTEGER, \ 14
-			colourCustom1B INTEGER, \ 15
-			colourCustom2R INTEGER, \ 16
-			colourCustom2G INTEGER, \ 17
-			colourCustom2B INTEGER, \ 18
-
-	*/
-
-	sqlite3_stmt *stmt;
-	const char *pzTest;
-	auto ssStr = ss.str();
-	int rc = sqlite3_prepare_v2(db, ssStr.c_str(), ssStr.length(), &stmt, &pzTest);
-	bool result = true;
-
-	if (rc != SQLITE_OK)
-	{
-		write_text_to_log_file("Vehicle save failed");
-		write_text_to_log_file(sqlite3_errmsg(db));
-		result = false;
-	}
-	else
-	{
-		int index = 1;
-		if (slot == -1)
-		{
-			sqlite3_bind_null(stmt, index++);
-		}
-		else
-		{
-			sqlite3_bind_int64(stmt, index++, slot);
-		}
-		sqlite3_bind_text(stmt, index++, saveName.c_str(), saveName.length(), 0); //save name
-		sqlite3_bind_int(stmt, index++, ENTITY::GET_ENTITY_MODEL(veh)); //model
-
-		int primaryCol, secondaryCol;
-		VEHICLE::GET_VEHICLE_COLOURS(veh, &primaryCol, &secondaryCol);
-		sqlite3_bind_int(stmt, index++, primaryCol);
-		sqlite3_bind_int(stmt, index++, secondaryCol);
-
-		int pearlCol, wheelCol;
-		VEHICLE::GET_VEHICLE_EXTRA_COLOURS(veh, &pearlCol, &wheelCol);
-		sqlite3_bind_int(stmt, index++, pearlCol);
-		sqlite3_bind_int(stmt, index++, wheelCol);
-
-		int mod1a, mod1b, mod1c;
-		VEHICLE::GET_VEHICLE_MOD_COLOR_1(veh, &mod1a, &mod1b, &mod1c);
-		sqlite3_bind_int(stmt, index++, mod1a);
-		sqlite3_bind_int(stmt, index++, mod1b);
-		sqlite3_bind_int(stmt, index++, mod1c);
-
-		int mod2a, mod2b;
-		VEHICLE::GET_VEHICLE_MOD_COLOR_2(veh, &mod2a, &mod2b);
-		sqlite3_bind_int(stmt, index++, mod2a);
-		sqlite3_bind_int(stmt, index++, mod2b);
-
-		if (VEHICLE::GET_IS_VEHICLE_PRIMARY_COLOUR_CUSTOM(veh))
-		{
-			int custR1, custG1, custB1;
-			VEHICLE::GET_VEHICLE_CUSTOM_PRIMARY_COLOUR(veh, &custR1, &custG1, &custB1);
-			sqlite3_bind_int(stmt, index++, custR1);
-			sqlite3_bind_int(stmt, index++, custG1);
-			sqlite3_bind_int(stmt, index++, custB1);
-		}
-		else
-		{
-			sqlite3_bind_int(stmt, index++, -1);
-			sqlite3_bind_int(stmt, index++, -1);
-			sqlite3_bind_int(stmt, index++, -1);
-		}
-
-		if (VEHICLE::GET_IS_VEHICLE_SECONDARY_COLOUR_CUSTOM(veh))
-		{
-			int custR2, custG2, custB2;
-			VEHICLE::GET_VEHICLE_CUSTOM_SECONDARY_COLOUR(veh, &custR2, &custG2, &custB2);
-			sqlite3_bind_int(stmt, index++, custR2);
-			sqlite3_bind_int(stmt, index++, custG2);
-			sqlite3_bind_int(stmt, index++, custB2);
-		}
-		else
-		{
-			sqlite3_bind_int(stmt, index++, -1);
-			sqlite3_bind_int(stmt, index++, -1);
-			sqlite3_bind_int(stmt, index++, -1);
-		}
-
-		/*
-		livery INTEGER, \ 19
-		plateText TEXT, \ 20
-		plateType INTEGER, \ 21
-		wheelType INTEGER, \ 22
-		windowTint INTEGER, \ 23
-		burstableTyres INTEGER \ 24
-		engineSound STRING, \ 25
-		xenonColour INTEGER, \ 26
-		*/
-
-		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_LIVERY(veh)); 
-
-		char* plateText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
-		sqlite3_bind_text(stmt, index++, plateText, strlen(plateText), 0);
-
-		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh));
-		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_WHEEL_TYPE(veh));
-		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_WINDOW_TINT(veh));
-		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_TYRES_CAN_BURST(veh) ? 1 : 0);
-		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh,23) ? 1 : 0);
-		
-		//sqlite3_bind_text(stmt, index++, CURRSOUNDENGINE[0], strlen(plateText), 0);
-		/*
-		dirtLevel REAL DEFAULT 0, \ 25
-			fadeLevel REAL DEFAULT 0, \ 26
-			neonR INTEGER DEFAULT - 1, \ 27
-			neonG INTEGER DEFAULT - 1, \ 28
-			neonB INTEGER DEFAULT - 1, \ 29
-			neon0Enabled INTEGER DEFAULT 0, \ 30
-			neon1Enabled INTEGER DEFAULT 0, \ 21
-			neon2Enabled INTEGER DEFAULT 0, \ 32
-			neon3Enabled INTEGER DEFAULT 0 \*/
-
-		sqlite3_bind_double(stmt, index++, VEHICLE::GET_VEHICLE_DIRT_LEVEL(veh));
-		sqlite3_bind_double(stmt, index++, VEHICLE::GET_VEHICLE_ENVEFF_SCALE(veh));
-
-		int neonR, neonG, neonB;
-		VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &neonR, &neonG, &neonB);
-		sqlite3_bind_int(stmt, index++, neonR);
-		sqlite3_bind_int(stmt, index++, neonG);
-		sqlite3_bind_int(stmt, index++, neonB);
-
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 0));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 1));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 2));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 3));
-
-		int tyreSmokeR, tyreSmokeG, tyreSmokeB;
-		VEHICLE::GET_VEHICLE_TYRE_SMOKE_COLOR(veh, &tyreSmokeR, &tyreSmokeG, &tyreSmokeB);
-		sqlite3_bind_int(stmt, index++, tyreSmokeR);
-		sqlite3_bind_int(stmt, index++, tyreSmokeG);
-		sqlite3_bind_int(stmt, index++, tyreSmokeB);
-
-		sqlite3_bind_int(stmt, index++, VEHICLE::IS_VEHICLE_A_CONVERTIBLE(veh, 0) && VEHICLE::GET_CONVERTIBLE_ROOF_STATE(veh));
-
-		//dashColour INTEGER,
-		//interiorColour INTEGER
-		int dashCol, interiorCol;
-		VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &dashCol);
-		VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &interiorCol);
-		sqlite3_bind_int(stmt, index++, dashCol);
-		sqlite3_bind_int(stmt, index++, interiorCol);
-
-		char* tmp_i = (char*)current_picked_engine_sound.c_str();
-		sqlite3_bind_text(stmt, index++, tmp_i, strlen(tmp_i), 0);
-		current_picked_engine_sound = "";
-
-		int xenonColour = -1;
-		if (getGameVersion() > 45) xenonColour = VEHICLE::GET_VEHICLE_XENON_COLOUR(veh);
-		sqlite3_bind_int(stmt, index++, xenonColour); 
-
-		int powerMultiplier = -1;
-		for (int kl = 0; kl < C_ENGINE_M.size(); kl++) {
-			if (C_ENGINE_VEHICLE[kl] == veh) {
-				powerMultiplier = C_ENGINE_M[kl];
-			}
-		}
-		sqlite3_bind_int(stmt, index++, powerMultiplier);
-
-		// commit
-		sqlite3_step(stmt);
-		sqlite3_finalize(stmt);
-
-		sqlite3_int64 newRowID = sqlite3_last_insert_rowid(db);
-
-		//if we're updating, delete any pre-existing children
-		if (slot != -1)
-		{
-			delete_saved_vehicle_children(slot);
-		}
-
-		save_vehicle_extras(veh, newRowID);
-		save_vehicle_mods(veh, newRowID);
-	}
 
 	mutex_unlock();
 

@@ -8,7 +8,6 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
-
 #include "world.h"
 #include "area_effect.h"
 #include "script.h"
@@ -230,7 +229,6 @@ void process_world_weathersettings_menu() {
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = "Heavy Snow";
-	//toggleItem->value = 7;
 	toggleItem->toggleValue = &featureSnow;
 	toggleItem->toggleValueUpdated = &featureSnowUpdated;
 	menuItems.push_back(toggleItem);
@@ -285,10 +283,7 @@ bool onconfirm_weather_menu(MenuItem<std::string> choice)
 	std::stringstream ss; ss << "Weather Frozen at: " << lastWeatherName;
 	switch (choice.currentMenuIndex)
 	{
-	case 0:
-		process_world_weathersettings_menu();
-		break;
-	case 1: 
+	case 0: 
 		// reset weather
 		GAMEPLAY::CLEAR_OVERRIDE_WEATHER();
 		GAMEPLAY::CLEAR_WEATHER_TYPE_PERSIST();
@@ -327,12 +322,11 @@ bool onconfirm_weather_menu(MenuItem<std::string> choice)
 
 void process_weather_menu()
 {
-	const int lineCount = 17;
+	const int lineCount = 16;
 
 	const std::string caption = "Weather Options";
 	
 	StringStandardOrToggleMenuDef lines[lineCount] = {
-		{ "Weather Settings", "FREEZEWEATHER", NULL, NULL, false },
 		{ "Reset Weather", "RESETWEATHER", NULL, NULL, true },
 		{ "Extra Sunny", "EXTRASUNNY", NULL, NULL, true },
 		{ "Clear", "CLEAR", NULL, NULL, true },
@@ -507,6 +501,9 @@ bool onconfirm_world_menu(MenuItem<int> choice)
 		process_weather_menu();
 		break;
 	case -4:
+		process_world_weathersettings_menu();
+		break;
+	case -5:
 		process_clouds_menu();
 		break;
 	case 2:
@@ -518,37 +515,41 @@ bool onconfirm_world_menu(MenuItem<int> choice)
 
 void process_world_menu()
 {
-	const int lineCount = 8; // Amount of cases +1
-
 	const std::string caption = "World Options";
 
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem *listItem;
 	ToggleMenuItem<int>* togItem;
 
-	MenuItem<int> *areaItem = new MenuItem<int>();
-	areaItem->isLeaf = false;
-	areaItem->caption = "People";
-	areaItem->value = -1;
-	menuItems.push_back(areaItem);
+	MenuItem<int> *item = new MenuItem<int>();
+	item->isLeaf = false;
+	item->caption = "People";
+	item->value = -1;
+	menuItems.push_back(item);
 
-	areaItem = new MenuItem<int>();
-	areaItem->isLeaf = false;
-	areaItem->caption = "Vehicles";
-	areaItem->value = -2;
-	menuItems.push_back(areaItem);
+	item = new MenuItem<int>();
+	item->isLeaf = false;
+	item->caption = "Vehicles";
+	item->value = -2;
+	menuItems.push_back(item);
 
-	MenuItem<int> *weatherItem = new MenuItem<int>();
-	weatherItem->isLeaf = false;
-	weatherItem->caption = "Weather";
-	weatherItem->value = -3;
-	menuItems.push_back(weatherItem);
+	item = new MenuItem<int>();
+	item->isLeaf = false;
+	item->caption = "Weather";
+	item->value = -3;
+	menuItems.push_back(item);
 
-	MenuItem<int> *cloudsItem = new MenuItem<int>();
-	cloudsItem->isLeaf = false;
-	cloudsItem->caption = "Clouds";
-	cloudsItem->value = -4;
-	menuItems.push_back(cloudsItem);
+	item = new MenuItem<int>();
+	item->isLeaf = false;
+	item->caption = "Weather Settings";
+	item->value = -4;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->isLeaf = false;
+	item->caption = "Clouds";
+	item->value = -5;
+	menuItems.push_back(item);
 	
 	listItem = new SelectFromListMenuItem(WORLD_GRAVITY_LEVEL_CAPTIONS, onchange_gravity_level_index);
 	listItem->wrap = false;
@@ -809,6 +810,7 @@ void update_world_features()
 	{
 		PED::SET_CREATE_RANDOM_COPS(featureWorldRandomCops);
 		PED::SET_CREATE_RANDOM_COPS_ON_SCENARIOS(featureWorldRandomCops);
+		PED::SET_CREATE_RANDOM_COPS_NOT_ON_SCENARIOS(featureWorldRandomCops);
 		featureWorldRandomCopsUpdated = false;
 	}
 
@@ -1130,12 +1132,12 @@ void update_world_features()
 	// Waves Intensity
 	if (featureSnow) {
 		winter_water_tick = winter_water_tick + 1;
-		if (winter_water_tick < 7000) GAMEPLAY::_0xC54A08C85AE4D410(3.0f); // 10000
-		if (winter_water_tick > 6999 && winter_water_tick < 7300) GAMEPLAY::_0xC54A08C85AE4D410(0.0f); // 9999 10300
+		if (winter_water_tick < 7000) GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(3.0f); // 10000
+		if (winter_water_tick > 6999 && winter_water_tick < 7300) GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(0.0f); // 9999 10300
 		if (winter_water_tick > 7299) winter_water_tick = 0; // 10299
 	}
 	if ((WORLD_WAVES_VALUES[WorldWavesIndex] != -2 && !featureSnow && winter_water_tick > 0) || wavesstrength_toggle == false) { // WORLD_WAVES_VALUES[WorldWavesIndex] == -1
-		GAMEPLAY::_0xC54A08C85AE4D410(0.0f);
+		GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(0.0f);
 		WATER::_RESET_WAVES_INTENSITY();
 		winter_water_tick = 0;
 		wavesstrength_changed = WORLD_WAVES_VALUES[WorldWavesIndex];
@@ -1143,7 +1145,7 @@ void update_world_features()
 	}
 	if (wavesstrength_changed != WORLD_WAVES_VALUES[WorldWavesIndex]) wavesstrength_toggle = false;
 	if (WORLD_WAVES_VALUES[WorldWavesIndex] != -1 && WORLD_WAVES_VALUES[WorldWavesIndex] != -2) WATER::_SET_WAVES_INTENSITY(WORLD_WAVES_VALUES[WorldWavesIndex]);
-	if (WORLD_WAVES_VALUES[WorldWavesIndex] != -1 && WORLD_WAVES_VALUES[WorldWavesIndex] == -2) GAMEPLAY::_0xC54A08C85AE4D410(1.0f);
+	if (WORLD_WAVES_VALUES[WorldWavesIndex] != -1 && WORLD_WAVES_VALUES[WorldWavesIndex] == -2) GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(1.0f);
 	
 	// Lightning Intensity
 	if (WORLD_LIGHTNING_INTENSITY_VALUES[featureLightIntensityIndex] > -2 && (GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() == 3061285535 || GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() == 3373937154)) { // GET_NEXT_WEATHER_TYPE_HASH_NAME
@@ -1286,15 +1288,6 @@ void update_world_features()
 				slippery_s = slippery_s + 1;
 				if (slippery_s < slip_index_s && INTERIOR::_ARE_COORDS_COLLIDING_WITH_EXTERIOR(coords_slip_ped.x, coords_slip_ped.y, coords_slip_ped.z)) VEHICLE::SET_VEHICLE_REDUCE_GRIP(bus_veh[i], true);
 				if (slippery_s > slip_index_s - 1 && slippery_s < 20) VEHICLE::SET_VEHICLE_REDUCE_GRIP(bus_veh[i], false); // slip_index * 2
-				// bike
-				//if (VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(bus_veh[i])) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(bus_veh[i]))) {
-				//	int vehslipspeed = ENTITY::GET_ENTITY_SPEED(bus_veh[i]);
-				//	if (vehslipspeed > 5 || (vehslipspeed < 6 && CONTROLS::IS_CONTROL_RELEASED(2, 71))) {
-				//		if ((slippery_s < (slip_index_s / 5) || (slippery_s > (slip_index_s / 4) - 1 && slippery_s < (slip_index_s / 3))) && INTERIOR::_ARE_COORDS_COLLIDING_WITH_EXTERIOR(coords_slip_ped.x, coords_slip_ped.y, coords_slip_ped.z)) // 4 3 2
-				//			VEHICLE::SET_VEHICLE_GRAVITY(bus_veh[i], false);
-				//		if ((slippery_s > (slip_index_s / 5) - 1 && slippery_s < (slip_index_s / 4)) || (slippery_s > (slip_index_s / 3) - 1 && slippery_s < 20)) VEHICLE::SET_VEHICLE_GRAVITY(bus_veh[i], true);
-				//	}
-				//}
 				if (slippery_s > 19) slippery_s = 0; 
 				srand(time(0));
 				int time11 = (rand() % 3000 + 0); // UP MARGIN + DOWN MARGIN
@@ -1332,15 +1325,6 @@ void update_world_features()
 					slippery_r = slippery_r + 1;
 					if (slippery_r < slip_index && INTERIOR::_ARE_COORDS_COLLIDING_WITH_EXTERIOR(coords_slip_r.x, coords_slip_r.y, coords_slip_r.z)) VEHICLE::SET_VEHICLE_REDUCE_GRIP(bus_veh[i], true);
 					if (slippery_r > slip_index - 1 && slippery_r < 20) VEHICLE::SET_VEHICLE_REDUCE_GRIP(bus_veh[i], false);
-					// bike
-					//if (VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(bus_veh[i])) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(bus_veh[i]))) {
-					//	int vehslipspeed = ENTITY::GET_ENTITY_SPEED(bus_veh[i]);
-					//	if (vehslipspeed > 5 || (vehslipspeed < 6 && CONTROLS::IS_CONTROL_RELEASED(2, 71))) {
-					//		if ((slippery_s < (slip_index / 5) || (slippery_s > (slip_index / 4) - 1 && slippery_s < (slip_index / 3))) && INTERIOR::_ARE_COORDS_COLLIDING_WITH_EXTERIOR(coords_slip_r.x, coords_slip_r.y, coords_slip_r.z)) // 4 3 2
-					//			VEHICLE::SET_VEHICLE_GRAVITY(bus_veh[i], false);
-					//		if ((slippery_s > (slip_index / 5) - 1 && slippery_s < (slip_index / 4)) || (slippery_s > (slip_index / 3) - 1 && slippery_s < 20)) VEHICLE::SET_VEHICLE_GRAVITY(bus_veh[i], true);
-					//	}
-					//}
 					if (slippery_r > 19) slippery_r = 0; 
 					// normalize speed
 					Vector3 my_coords_sl = ENTITY::GET_ENTITY_COORDS(PED::GET_VEHICLE_PED_IS_IN(PLAYER::PLAYER_PED_ID(), 0), true);
@@ -1492,16 +1476,9 @@ void update_world_features()
 				GRAPHICS::SET_DRAW_ORIGIN(head_c.x, head_c.y, head_c.z + 0.5, 0);
 				UI::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 				UI::_ADD_TEXT_COMPONENT_SCALEFORM((char *)curr_h_t.c_str());
-				UI::SET_TEXT_FONT(0);
-				UI::SET_TEXT_SCALE(0.5, 0.5);
-				UI::SET_TEXT_WRAP(0.0, 1.0);
-				UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-				UI::SET_TEXT_CENTRE(0);
-				UI::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
-				UI::SET_TEXT_EDGE(0, 0, 0, 0, 255);
-				UI::SET_TEXT_OUTLINE();
-				UI::SET_TEXT_LEADING(1);
+				text_parameters(0.5, 0.5, 255, 242, 0, 255);
 				UI::END_TEXT_COMMAND_DISPLAY_TEXT(0, 0);
+				GRAPHICS::CLEAR_DRAW_ORIGIN();
 			}
 			// NPC No Gravity Peds
 			if (NPC_RAGDOLL_VALUES[NoPedsGravityIndex] > 0 && bus_ped[i] != PLAYER::PLAYER_PED_ID() && !PED::IS_PED_IN_ANY_VEHICLE(bus_ped[i], false)) {

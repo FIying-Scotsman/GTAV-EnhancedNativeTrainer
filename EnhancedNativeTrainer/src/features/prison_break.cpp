@@ -58,7 +58,7 @@ int current_player_escapemoney = 4;
 bool current_player_escapemoney_Changed = true;
 int current_player_discharge = 3;
 bool current_player_discharge_Changed = true;
-int current_escape_stars = 3;
+int current_escape_stars = 4;
 bool current_escape_stars_Changed = true;
 
 ////////////////////////////////////////// PRISON BREAK //////////////////////////////////////////

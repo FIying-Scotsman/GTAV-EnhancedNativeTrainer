@@ -51,6 +51,8 @@ std::string lastImmediatePlayDict;
 std::string lastImmediatePlayAnim;
 int lastImmediateType = 0;
 
+//const int CATEGORY_MOVE_IDLE = 91;
+//const int CATEGORY_MOVE_WALK = 92;
 const int CATEGORY_FACIAL_NOW = 94;
 const int CATEGORY_GENERAL_NOW = 95;
 const int CATEGORY_SCENARIOS = 96;
@@ -3701,6 +3703,12 @@ bool onconfirm_anim_menu(MenuItem<int> choice)
 			PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
 			break;
 		}
+		//case CATEGORY_MOVE_IDLE:
+		//	PED::CLEAR_PED_ALTERNATE_MOVEMENT_ANIM(playerPed, 0, true);
+		//	break;
+		//case CATEGORY_MOVE_WALK:
+		//	PED::CLEAR_PED_ALTERNATE_MOVEMENT_ANIM(playerPed, 1, true);
+		//	break;
 		return false;
 	}
 
@@ -3739,6 +3747,8 @@ bool onconfirm_anim_menu(MenuItem<int> choice)
 				return false;
 			}
 		}
+		//case CATEGORY_MOVE_IDLE:
+		//case CATEGORY_MOVE_WALK:
 		break;
 		}
 
@@ -3784,6 +3794,8 @@ bool process_anims_menu()
 			currentMenuNode = facialsNode;
 			break;
 		case CATEGORY_GENERAL_NOW:
+		//case CATEGORY_MOVE_IDLE:
+		//case CATEGORY_MOVE_WALK:
 		default:
 			currentMenuNode = rootNode;
 			break;
@@ -3798,6 +3810,8 @@ bool process_anims_menu()
 		switch (currentAnimMenuMode)
 		{
 		case 0: //placeholder to supress warning. To be removed!
+		//case CATEGORY_MOVE_IDLE:
+		//case CATEGORY_MOVE_WALK:
 			break;
 		}
 	}
@@ -3837,6 +3851,12 @@ bool process_anims_menu()
 	case CATEGORY_GENERAL_NOW:
 		caption = "Player Anims";
 		break;
+	//case CATEGORY_MOVE_IDLE:
+	//	caption = "Idle Anims";
+	//	break;
+	//case CATEGORY_MOVE_WALK:
+	//	caption = "Walking Anims";
+	//	break;
 	}
 
 	std::stringstream caption_ss;
@@ -3897,6 +3917,18 @@ bool process_anims_menu_top()
 	item->value = CATEGORY_GENERAL_NOW;
 	menuItems.push_back(item);
 
+	//item = new MenuItem<int>();
+	//item->isLeaf = false;
+	//item->caption = "Movement Idle Anims";
+	//item->value = CATEGORY_MOVE_IDLE;
+	//menuItems.push_back(item);
+
+	//item = new MenuItem<int>();
+	//item->isLeaf = false;
+	//item->caption = "Movement Walking Anims";
+	//item->value = CATEGORY_MOVE_WALK;
+	//menuItems.push_back(item);
+
 	draw_generic_menu<int>(menuItems, 0, "Animation Types", onconfirm_anim_top_menu, NULL, NULL, NULL);
 
 	return false;
@@ -3955,6 +3987,12 @@ void do_play_anim(Ped playerPed, char* dict, char* anim, int mode)
 	if (mode == 4) { // CATEGORY_CLIPSET:
 		PED::SET_PED_MOVEMENT_CLIPSET(playerPed, anim, 1.0f);
 	}
+	//if (mode == 91) { // CATEGORY_MOVE_IDLE
+	//	PED::SET_PED_ALTERNATE_MOVEMENT_ANIM(playerPed, 0, dict, anim, 0, true);
+	//}
+	//if (mode == 92) { // CATEGORY_MOVE_WALK
+	//	PED::SET_PED_ALTERNATE_MOVEMENT_ANIM(playerPed, 1, dict, anim, 0, true);
+	//}
 }
 
 void cleanup_anims()

@@ -34,13 +34,13 @@ const int VEH_DETECTIONRANGE_VALUES[] = { 3, 5, 10, 20, 30, 50, 100, 200, 500 };
 extern int DetectionRangeIndex;
 
 //Pirsuit Range
-const std::vector<std::string> VEH_PIRSUITRANGE_CAPTIONS{ "300m", "400m", "500m", "600m", "700m", "800m"/*, "900m", "1000m", "1200m", "1500m", "2000m"*/ };
-const int VEH_PIRSUITRANGE_VALUES[] = { 300, 400, 500, 600, 700, 800/*, 900, 1000, 1200, 1500, 2000*/ };
+const std::vector<std::string> VEH_PIRSUITRANGE_CAPTIONS{ "300m", "400m", "500m", "600m", "700m", "800m" };
+const int VEH_PIRSUITRANGE_VALUES[] = { 300, 400, 500, 600, 700, 800 };
 extern int PirsuitRangeIndexN;
 
 //Stars If Try To Escape
-const std::vector<std::string> VEH_STARSPUNISH_CAPTIONS{ "2 Stars", "3 Stars", "4 Stars", "5 Stars" };
-const int VEH_STARSPUNISH_VALUES[] = { 2, 3, 4, 5 };
+const std::vector<std::string> VEH_STARSPUNISH_CAPTIONS{ "1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars" };
+const int VEH_STARSPUNISH_VALUES[] = { 1, 2, 3, 4, 5 };
 extern int StarsPunishIndex;
 
 //Most Wanted

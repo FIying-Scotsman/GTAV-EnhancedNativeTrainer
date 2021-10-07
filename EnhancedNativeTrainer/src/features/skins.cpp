@@ -768,6 +768,7 @@ bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 		case 5:
 			PED::CLEAR_ALL_PED_PROPS(playerPed);
 			clear_props_m = -1;
+			ped_prop_idx = -1;
 			break;
 		case 6:
 			PED::CLEAR_ALL_PED_PROPS(playerPed);
