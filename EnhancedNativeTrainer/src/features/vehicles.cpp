@@ -100,23 +100,6 @@ bool nitro_e = false;
 bool entered_sp_v = false;
 std::string  veh_to_spawn = "";
 
-// car thief vars
-bool featureRoutineOfRinger = false;
-bool featureRoutineAnimations = true;
-std::vector<Vehicle> VEHICLES_AVAILABLE;
-std::vector<Vehicle> VEHICLES_IGNITED;
-std::vector<Ped> PEDS_WATCHFUL;
-int activeLineIndexRoutineofringer = 0;
-int breaking_secs_passed, breaking_secs_curr, breaking_secs_tick = 0;
-int tick_pedcallingpolice, tick_pedcallingpolice_secs_passed, tick_pedcallingpolice_secs_curr = 0;
-bool time_to_call_the_police = false;
-bool featureShowPedCons = false;
-bool hijacked_vehicle_ror = false;
-Vehicle hijacking_veh_ror;
-std::vector<Blip> BLIPTABLE_ALPEDS;
-Blip blip_al_peds = -1;
-bool featureRoutineBars = true;
-
 int turn_angle = 0;
 int temp_angle = 0;
 bool turning_started = false;
@@ -328,14 +311,36 @@ int HydraulicsIndex = 0;
 // Nitrous
 int NitrousIndex = 0;
 
+// car thief vars
+bool featureRoutineOfRinger = false;
+bool featureRoutineAnimations = true;
+std::vector<Vehicle> VEHICLES_AVAILABLE;
+std::vector<Vehicle> VEHICLES_IGNITED;
+std::vector<Ped> PEDS_WATCHFUL;
+int activeLineIndexRoutineofringer = 0;
+int breaking_secs_passed, breaking_secs_curr, breaking_secs_tick = 0;
+int tick_pedcallingpolice, tick_pedcallingpolice_secs_passed, tick_pedcallingpolice_secs_curr = 0;
+bool time_to_call_the_police = false;
+bool featureShowPedCons = false;
+bool hijacked_vehicle_ror = false;
+Vehicle hijacking_veh_ror;
+std::vector<Blip> BLIPTABLE_ALPEDS;
+Blip blip_al_peds = -1;
+bool featureRoutineBars = true;
+float tmp_denominator = 1;
+float tmp_i_denominator = 1;
+Vehicle veh_rnd = -1;
+
 // Car Thief
 const std::vector<std::string> VEH_RINGER_SKILL_CAPTIONS{ "Street Kid", "Professional" };
 int RingerSkillIndex = 1;
 
 const std::vector<std::string> VEH_RINGER_SECONDS_BREAK_CAPTIONS{ "1", "3", "5", "10", "15", "20", "25", "30", "40", "50", "60", "70", "80", "90", "100" };
 const int VEH_RINGER_SECONDS_BREAK_VALUES[] = { 1, 3, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100 };
-int RingerBreakSecIndex = 3;
-int RingerHotwireSecIndex = 2;
+int RingerBreakSecMaxIndex = 3;
+int RingerBreakSecMinIndex = 3;
+int RingerHotwireSecMaxIndex = 2;
+int RingerHotwireSecMinIndex = 2;
 int RingerBreakAttemptIndex = 2;
 int RingerDragOutIndex = 2;
 int RingerPedAlertnessIndex = 3;
@@ -1674,14 +1679,26 @@ void process_routine_of_ringer_menu() {
 
 	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_index);
 	listItem->wrap = false;
-	listItem->caption = "Break In Timer (sec)";
-	listItem->value = RingerBreakSecIndex;
+	listItem->caption = "Break In Timer Max (sec)";
+	listItem->value = RingerBreakSecMaxIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_min_index);
+	listItem->wrap = false;
+	listItem->caption = "Break In Timer Min (sec)";
+	listItem->value = RingerBreakSecMinIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_index);
 	listItem->wrap = false;
-	listItem->caption = "Hotwire Duration (sec)";
-	listItem->value = RingerHotwireSecIndex;
+	listItem->caption = "Hotwire Duration Max (sec)";
+	listItem->value = RingerHotwireSecMaxIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_min_index);
+	listItem->wrap = false;
+	listItem->caption = "Hotwire Duration Min (sec)";
+	listItem->value = RingerHotwireSecMinIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_ped_alertness_index);
@@ -4395,8 +4412,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 						breaking_secs_curr = breaking_secs_passed;
 					}
 					float tmp_numerator = breaking_secs_tick;
-					float tmp_denominator = VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecIndex];
-					if (featureRoutineBars) GRAPHICS::DRAW_RECT(0.5, 0.9, 0.33 - ((tmp_numerator / tmp_denominator) / 3), 0.009, 255, 0, 0, 255);
+					if (featureRoutineBars) GRAPHICS::DRAW_RECT(0.5, 0.9, 0.33 - ((tmp_numerator / tmp_i_denominator) / 3), 0.009, 255, 0, 0, 255);
 									
 					if (featureRoutineAnimations) {
 						if (!STREAMING::HAS_ANIM_DICT_LOADED(hw_anim_dict)) {
@@ -4406,7 +4422,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 						if (STREAMING::HAS_ANIM_DICT_LOADED(hw_anim_dict) && !ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), hw_anim_dict, animation_of_h, 3)) AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), hw_anim_dict, animation_of_h, 8.0, 8.0, -1, 32, 0, 0, 0, 0);
 					}
 
-					if (breaking_secs_tick >= VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecIndex]) {
+					if (breaking_secs_tick >= tmp_i_denominator) { // VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecIndex]
 						VEHICLES_IGNITED.push_back(veh);
 						VEHICLE::SET_VEHICLE_NEEDS_TO_BE_HOTWIRED(veh, true);
 						WAIT(1000);
@@ -4501,9 +4517,25 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 						for (int vh = 0; vh < VEHICLES_AVAILABLE.size(); vh++) {
 							if (VEHICLES_AVAILABLE[vh] == temp_vehicle) exists_already = true;
 						}
-						if (exists_already == false && VEHICLE::GET_VEHICLE_DOOR_LOCK_STATUS(temp_vehicle) == 2) breaking_secs_tick = 1;
+						if (exists_already == false && VEHICLE::GET_VEHICLE_DOOR_LOCK_STATUS(temp_vehicle) == 2) {
+							breaking_secs_tick = 1;
+							srand(time(0));
+							if (veh_rnd == -1 || veh_rnd != temp_vehicle) {
+								veh_rnd = temp_vehicle;
+								tmp_denominator = (VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecMinIndex] + rand() % ((VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecMaxIndex] - VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecMinIndex]) + 1)); // DOWN MARGIN + UP MARGIN
+								tmp_i_denominator = (VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecMinIndex] + rand() % ((VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecMaxIndex] - VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecMinIndex]) + 1)); // DOWN MARGIN + UP MARGIN
+							}
+						}
 					}
-					if (VEHICLES_AVAILABLE.empty() && VEHICLE::GET_VEHICLE_DOOR_LOCK_STATUS(temp_vehicle) == 2) breaking_secs_tick = 1;
+					if (VEHICLES_AVAILABLE.empty() && VEHICLE::GET_VEHICLE_DOOR_LOCK_STATUS(temp_vehicle) == 2) {
+						breaking_secs_tick = 1;
+						srand(time(0));
+						if (veh_rnd == -1 || veh_rnd != temp_vehicle) {
+							veh_rnd = temp_vehicle;
+							tmp_denominator = (VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecMinIndex] + rand() % ((VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecMaxIndex] - VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecMinIndex]) + 1)); // DOWN MARGIN + UP MARGIN
+							tmp_i_denominator = (VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecMinIndex] + rand() % ((VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecMaxIndex] - VEH_RINGER_SECONDS_BREAK_VALUES[RingerHotwireSecMinIndex]) + 1)); // DOWN MARGIN + UP MARGIN
+						}
+					}
 				}
 			}
 			if (MISC_TRAINERCONTROL_VALUES[RingerSkillIndex] == 1 && CONTROLS::IS_CONTROL_PRESSED(2, 23) && breaking_secs_tick > 0) {
@@ -4514,7 +4546,6 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 				}
 
 				float tmp_numerator = breaking_secs_tick; 
-				float tmp_denominator = VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex];
 				if (featureRoutineBars) GRAPHICS::DRAW_RECT(0.5, 0.9, 0.33 - ((tmp_numerator / tmp_denominator) / 3), 0.009, 255, 255, 255, 255);
 
 				AI::TASK_STAND_STILL(playerPed, 1);
@@ -4527,11 +4558,12 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 					if (STREAMING::HAS_ANIM_DICT_LOADED(h_anim_dict) && !ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), h_anim_dict, animation_of_h, 3)) AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), h_anim_dict, animation_of_h, 8.0, 8.0, -1, 32, 0, 0, 0, 0);
 				}
 
-				if (breaking_secs_tick >= VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex]) {
+				if (breaking_secs_tick >= tmp_denominator) {
 					VEHICLES_AVAILABLE.push_back(temp_vehicle);
 					VEHICLE::SET_VEHICLE_IS_CONSIDERED_BY_PLAYER(temp_vehicle, true);
 					VEHICLE::SET_VEHICLE_DOORS_LOCKED(temp_vehicle, 0);
 					breaking_secs_tick = 0;
+					veh_rnd = -1;
 					AI::CLEAR_PED_TASKS(playerPed);
 				}
 			}
@@ -4578,12 +4610,12 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 					}
 
 					if (!ENTITY::IS_ENTITY_A_MISSION_ENTITY(surr_vehs_r[ror]) && !VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs_r[ror]) && !VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 0) &&
-						!VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 1) && me_own_already == false && breaking_secs_tick < VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex] + 1) {
+						!VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 1) && me_own_already == false && breaking_secs_tick < tmp_denominator + 1) {
 						VEHICLE::SET_VEHICLE_IS_CONSIDERED_BY_PLAYER(surr_vehs_r[ror], false);
 						VEHICLE::SET_VEHICLE_DOORS_LOCKED(surr_vehs_r[ror], 2);
 					}
 					if (ENTITY::IS_ENTITY_A_MISSION_ENTITY(surr_vehs_r[ror]) || VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs_r[ror]) || VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 0) ||
-						VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 1) || me_own_already == true || breaking_secs_tick > VEH_RINGER_SECONDS_BREAK_VALUES[RingerBreakSecIndex]) {
+						VEHICLE::IS_VEHICLE_DOOR_DAMAGED(surr_vehs_r[ror], 1) || me_own_already == true || breaking_secs_tick > tmp_denominator) {
 						VEHICLE::SET_VEHICLE_IS_CONSIDERED_BY_PLAYER(surr_vehs_r[ror], true);
 						VEHICLE::SET_VEHICLE_DOORS_LOCKED(surr_vehs_r[ror], 0);
 					}
@@ -4711,8 +4743,10 @@ void reset_vehicle_globals() {
 	EngineRunningIndex = 0;
 	AutoShutEngineIndex = 0;
 	RingerSkillIndex = 1;
-	RingerBreakSecIndex = 3;
-	RingerHotwireSecIndex = 2;
+	RingerBreakSecMaxIndex = 3;
+	RingerBreakSecMinIndex = 3;
+	RingerHotwireSecMaxIndex = 2;
+	RingerHotwireSecMinIndex = 2;
 	RingerBreakAttemptIndex = 2;
 	RingerDragOutIndex = 2;
 	RingerPedAlertnessIndex = 3;
@@ -5705,8 +5739,10 @@ void add_vehicle_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"EngineRunningIndex", std::to_string(EngineRunningIndex)});
 	results->push_back(StringPairSettingDBRow{"AutoShutEngineIndex", std::to_string(AutoShutEngineIndex)});
 	results->push_back(StringPairSettingDBRow{"RingerSkillIndex", std::to_string(RingerSkillIndex)});
-	results->push_back(StringPairSettingDBRow{"RingerBreakSecIndex", std::to_string(RingerBreakSecIndex)});
-	results->push_back(StringPairSettingDBRow{"RingerHotwireSecIndex", std::to_string(RingerHotwireSecIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerBreakSecMaxIndex", std::to_string(RingerBreakSecMaxIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerBreakSecMinIndex", std::to_string(RingerBreakSecMinIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerHotwireSecMaxIndex", std::to_string(RingerHotwireSecMaxIndex)});
+	results->push_back(StringPairSettingDBRow{"RingerHotwireSecMinIndex", std::to_string(RingerHotwireSecMinIndex)});
 	results->push_back(StringPairSettingDBRow{"RingerBreakAttemptIndex", std::to_string(RingerBreakAttemptIndex)});
 	results->push_back(StringPairSettingDBRow{"RingerDragOutIndex", std::to_string(RingerDragOutIndex)});
 	results->push_back(StringPairSettingDBRow{"RingerPedAlertnessIndex", std::to_string(RingerPedAlertnessIndex)});
@@ -5873,11 +5909,17 @@ void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settin
 		else if (setting.name.compare("RingerSkillIndex") == 0) {
 		RingerSkillIndex = stoi(setting.value);
 		}
-		else if (setting.name.compare("RingerBreakSecIndex") == 0) {
-		RingerBreakSecIndex = stoi(setting.value);
+		else if (setting.name.compare("RingerBreakSecMaxIndex") == 0) {
+		RingerBreakSecMaxIndex = stoi(setting.value);
 		}
-		else if (setting.name.compare("RingerHotwireSecIndex") == 0) {
-		RingerHotwireSecIndex = stoi(setting.value);
+		else if (setting.name.compare("RingerBreakSecMinIndex") == 0) {
+		RingerBreakSecMinIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerHotwireSecMaxIndex") == 0) {
+		RingerHotwireSecMaxIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("RingerHotwireSecMinIndex") == 0) {
+		RingerHotwireSecMinIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("RingerBreakAttemptIndex") == 0) {
 		RingerBreakAttemptIndex = stoi(setting.value);
@@ -6185,12 +6227,22 @@ void onchange_skill_index(int value, SelectFromListMenuItem* source) {
 }
 
 void onchange_breaking_into_index(int value, SelectFromListMenuItem* source) {
-	RingerBreakSecIndex = value;
+	RingerBreakSecMaxIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_breaking_into_min_index(int value, SelectFromListMenuItem* source) {
+	RingerBreakSecMinIndex = value;
 	PositionChanged = true;
 }
 
 void onchange_hotwire_index(int value, SelectFromListMenuItem* source) {
-	RingerHotwireSecIndex = value;
+	RingerHotwireSecMaxIndex = value;
+	PositionChanged = true;
+}
+
+void onchange_hotwire_min_index(int value, SelectFromListMenuItem* source) {
+	RingerHotwireSecMinIndex = value;
 	PositionChanged = true;
 }
 
