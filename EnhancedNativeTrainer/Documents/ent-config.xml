@@ -110,6 +110,11 @@
 	<controller function="KEY_OBJECTPLACER_FREEZE_POSITION" button1="192" button2="-1"/>
 </controller_keys>
 
+<!--Reset ENT's settings if you're crashing during load. RESET BACK TO FALSE WHEN DONE.-->
+ <quick_setting>
+    <force_reset reset_all_settings="false"/>
+</quick_setting>
+
  <!--Weather Order-->
  <weather_list>
     <weather position="WEATHER_1" name="EXTRASUNNY"/>

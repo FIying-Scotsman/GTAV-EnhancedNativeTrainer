@@ -18,7 +18,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #include "keyboard.h"
 
-class KeyConfig{
+class KeyConfig{ 
 	public:
 
 	static const std::string KEY_TOGGLE_MAIN_MENU;

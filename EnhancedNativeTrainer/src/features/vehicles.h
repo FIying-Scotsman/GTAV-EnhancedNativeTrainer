@@ -1018,40 +1018,69 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 	//Xmas 2023 - Chop Shop DLC
 	{ RAGE_JOAAT("BENSON2"), "candc_2023_2", "benson2" },
 	{ RAGE_JOAAT("BOXVILLE6"), "candc_2023_2", "boxville6" },
-	{ RAGE_JOAAT("POLGAUNTLET"), "ENT_vehicle_previews", "VP_POLGAUNTLET" },//
-	{ RAGE_JOAAT("POLICE4"), "candc_2023_2", "police4" },//
-	{ RAGE_JOAAT("POLICE5"), "candc_2023_2", "police5" },//
+	{ RAGE_JOAAT("POLGAUNTLET"), "ENT_vehicle_previews", "VP_POLGAUNTLET" },
+	{ RAGE_JOAAT("POLICE4"), "candc_2023_2", "police4" },
+	{ RAGE_JOAAT("POLICE5"), "candc_2023_2", "police5" },
 	{ RAGE_JOAAT("PRANGER"), "candc_2023_2", "pranger" },
-	{ RAGE_JOAAT("RIOT"), "candc_2023_2", "riot" },//
-	{ RAGE_JOAAT("ALEUTIAN"), "lgm_dlc_2023_2", "aleutian" },//
+	{ RAGE_JOAAT("RIOT"), "candc_2023_2", "riot" },
+	{ RAGE_JOAAT("ALEUTIAN"), "lgm_dlc_2023_2", "aleutian" },
 	{ RAGE_JOAAT("BALLER8"), "lgm_dlc_2023_2", "baller8" },
-	{ RAGE_JOAAT("TURISMO3"), "lgm_dlc_2023_2", "turismo3" },//
-	{ RAGE_JOAAT("ASTEROPE2"), "sssa_dlc_2023_2", "asterope2" },//
+	{ RAGE_JOAAT("TURISMO3"), "lgm_dlc_2023_2", "turismo3" },
+	{ RAGE_JOAAT("ASTEROPE2"), "sssa_dlc_2023_2", "asterope2" },
 	{ RAGE_JOAAT("CAVALCADE3"), "sssa_dlc_2023_2", "cavalcade3" },
-	{ RAGE_JOAAT("DOMINATOR9"), "sssa_dlc_2023_2", "dominator9" },//
+	{ RAGE_JOAAT("DOMINATOR9"), "sssa_dlc_2023_2", "dominator9" },
 	{ RAGE_JOAAT("DORADO"), "sssa_dlc_2023_2", "dorado" },
-	{ RAGE_JOAAT("FR36"), "sssa_dlc_2023_2", "fr36" },//
-	{ RAGE_JOAAT("IMPALER5"), "sssa_dlc_2023_2", "impaler5" },//
+	{ RAGE_JOAAT("FR36"), "sssa_dlc_2023_2", "fr36" },
+	{ RAGE_JOAAT("IMPALER5"), "sssa_dlc_2023_2", "impaler5" },
 	{ RAGE_JOAAT("IMPALER6"), "sssa_dlc_2023_2", "impaler6" },
 	{ RAGE_JOAAT("TERMINUS"), "sssa_dlc_2023_2", "terminus" },
-	{ RAGE_JOAAT("VIGERO3"), "sssa_dlc_2023_2", "vigero3" },//
-	{ RAGE_JOAAT("VIVANITE"), "sssa_dlc_2023_2", "vivanite" },//
-	{ RAGE_JOAAT("DRIFTYOSEMITE"), "ENT_vehicle_previews", "VP_YOSEMITE" },//
-	{ RAGE_JOAAT("DRIFTFR36"), "sssa_dlc_2023_2", "fr36" },//
-	{ RAGE_JOAAT("PHANTOM4"), "ENT_vehicle_previews", "VP_PHANTOM4" },//
-	{ RAGE_JOAAT("DRIFTEUROS"), "ENT_vehicle_previews", "VP_EUROS" },//
-	{ RAGE_JOAAT("DRIFTREMUS"), "ENT_vehicle_previews", "VP_REMUS" },//
-	{ RAGE_JOAAT("DRIFTZR350"), "ENT_vehicle_previews", "VP_ZR350" },//
-	{ RAGE_JOAAT("DRIFTTAMPA"), "ENT_vehicle_previews", "VP_TAMPA" },//
-	{ RAGE_JOAAT("DRIFTJESTER"), "ENT_vehicle_previews", "VP_JESTER" },//
-	{ RAGE_JOAAT("DRIFTFUTO"), "ENT_vehicle_previews", "VP_FUTO" },//
-	{ RAGE_JOAAT("FREIGHT2"), "ENT_vehicle_previews", "VP_FREIGHT2" },//
-	{ RAGE_JOAAT("TOWTRUCK3"), "ENT_vehicle_previews", "VP_TOWTRUCK4" },//
-	{ RAGE_JOAAT("TOWTRUCK4"), "ENT_vehicle_previews", "VP_TOWTRUCK3" },//
-	{ RAGE_JOAAT("TRAILERS5"), "ENT_vehicle_previews", "VP_TRAILERHOLIDAY" },//
-	{ RAGE_JOAAT("TVTRAILER2"), "ENT_vehicle_previews", "VP_TRAILERPANIC" },//
-	{ RAGE_JOAAT("BOATTRAILER2"), "ENT_vehicle_previews", "VP_BOATTRAILER3" },//
-	{ RAGE_JOAAT("BOATTRAILER3"), "ENT_vehicle_previews", "VP_BOATTRAILER2" },//
+	{ RAGE_JOAAT("VIGERO3"), "sssa_dlc_2023_2", "vigero3" },
+	{ RAGE_JOAAT("VIVANITE"), "sssa_dlc_2023_2", "vivanite" },
+	{ RAGE_JOAAT("DRIFTYOSEMITE"), "ENT_vehicle_previews", "VP_YOSEMITE" },
+	{ RAGE_JOAAT("DRIFTFR36"), "sssa_dlc_2023_2", "fr36" },
+	{ RAGE_JOAAT("PHANTOM4"), "ENT_vehicle_previews", "VP_PHANTOM4" },
+	{ RAGE_JOAAT("DRIFTEUROS"), "ENT_vehicle_previews", "VP_EUROS" },
+	{ RAGE_JOAAT("DRIFTREMUS"), "ENT_vehicle_previews", "VP_REMUS" },
+	{ RAGE_JOAAT("DRIFTZR350"), "ENT_vehicle_previews", "VP_ZR350" },
+	{ RAGE_JOAAT("DRIFTTAMPA"), "ENT_vehicle_previews", "VP_TAMPA" },
+	{ RAGE_JOAAT("DRIFTJESTER"), "ENT_vehicle_previews", "VP_JESTER" },
+	{ RAGE_JOAAT("DRIFTFUTO"), "ENT_vehicle_previews", "VP_FUTO" },
+	{ RAGE_JOAAT("FREIGHT2"), "ENT_vehicle_previews", "VP_FREIGHT2" },
+	{ RAGE_JOAAT("TOWTRUCK3"), "ENT_vehicle_previews", "VP_TOWTRUCK4" },
+	{ RAGE_JOAAT("TOWTRUCK4"), "ENT_vehicle_previews", "VP_TOWTRUCK3" },
+	{ RAGE_JOAAT("TRAILERS5"), "ENT_vehicle_previews", "VP_TRAILERHOLIDAY" },
+	{ RAGE_JOAAT("TVTRAILER2"), "ENT_vehicle_previews", "VP_TRAILERPANIC" },
+	{ RAGE_JOAAT("BOATTRAILER2"), "ENT_vehicle_previews", "VP_BOATTRAILER3" },
+	{ RAGE_JOAAT("BOATTRAILER3"), "ENT_vehicle_previews", "VP_BOATTRAILER2" },
+	//Summer 2024 - Bounty DLC
+	{ RAGE_JOAAT("DRAFTER"), "lgm_dlc_vinewood", "drafter" },
+	{ RAGE_JOAAT("EMERUS"), "lgm_dlc_vinewood", "emerus" },
+	{ RAGE_JOAAT("JUGULAR"), "lgm_dlc_vinewood", "jugular" },
+	{ RAGE_JOAAT("KRIEGER"), "lgm_dlc_vinewood", "krieger" },
+	{ RAGE_JOAAT("LOCUST"), "lgm_dlc_vinewood", "locust" },
+	{ RAGE_JOAAT("NEO"), "lgm_dlc_vinewood", "neo" },
+	{ RAGE_JOAAT("NOVAK"), "lgm_dlc_vinewood", "novak" },
+	{ RAGE_JOAAT("PARAGON"), "lgm_dlc_vinewood", "paragon" },
+	{ RAGE_JOAAT("RROCKET"), "lgm_dlc_vinewood", "rrocket" },
+	{ RAGE_JOAAT("S80"), "lgm_dlc_vinewood", "s80" },
+	{ RAGE_JOAAT("THRAX"), "lgm_dlc_vinewood", "thrax" },
+	{ RAGE_JOAAT("ZORRUSSO"), "lgm_dlc_vinewood", "zorrusso" },
+	{ RAGE_JOAAT("COQUETTE5"), "lgm_dlc_2024_1", "coquette5" },
+	{ RAGE_JOAAT("ENVISAGE"), "lgm_dlc_2024_1", "envisage" },
+	{ RAGE_JOAAT("EUROSX32"), "lgm_dlc_2024_1", "eurosx32" },
+	{ RAGE_JOAAT("NIOBE"), "lgm_dlc_2024_1", "niobe" },
+	{ RAGE_JOAAT("PARAGON3"), "lgm_dlc_2024_1", "paragon3" },
+	{ RAGE_JOAAT("PIPISTRELLO"), "lgm_dlc_2024_1", "pipistrello" },
+	{ RAGE_JOAAT("CASTIGATOR"), "sssa_dlc_2024_1", "castigator" },
+	{ RAGE_JOAAT("DOMINATOR10"), "sssa_dlc_2024_1", "dominator10" },
+	{ RAGE_JOAAT("PIZZABOY"), "sssa_dlc_2024_1", "pizzaboy" },
+	{ RAGE_JOAAT("VORSCHLAG"), "sssa_dlc_2024_1", "vorschlag" },
+	{ RAGE_JOAAT("YOSEMITE4"), "sssa_dlc_2024_1", "yosemite4" },
+	{ RAGE_JOAAT("POLDOM10"), "candc_dlc_2024_1", "poldom10" },
+	{ RAGE_JOAAT("POLDORADO"), "candc_dlc_2024_1", "poldorado" },
+	{ RAGE_JOAAT("POLGREENW"), "candc_dlc_2024_1", "polgreenw" },
+	{ RAGE_JOAAT("POLIMPALER5"), "candc_dlc_2024_1", "polimpaler5" },
+	{ RAGE_JOAAT("POLIMPALER6"), "candc_dlc_2024_1", "polimpaler6" }
 };
 
 /***

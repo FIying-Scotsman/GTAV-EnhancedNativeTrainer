@@ -20,15 +20,15 @@ BSTR keyconf_bstr;
 TrainerConfig *config = NULL;
 
 /**Read the XML config file. Currently contains keyboard choices.*/
-void read_config_file(){
-	TrainerConfig *result = new TrainerConfig();
+void read_config_file() {
+	TrainerConfig* result = new TrainerConfig();
 
 	CoInitialize(NULL);
 
 	//read XML
 	MSXML2::IXMLDOMDocumentPtr spXMLDoc;
 	spXMLDoc.CreateInstance(__uuidof(MSXML2::DOMDocument60));
-	if(!spXMLDoc->load("Enhanced Native Trainer/ent-config.xml")){
+	if (!spXMLDoc->load("Enhanced Native Trainer/ent-config.xml")) {
 		write_text_to_log_file("No config found, using defaults");
 		config = result; //the default config
 	}
@@ -37,61 +37,61 @@ void read_config_file(){
 	IXMLDOMNodeListPtr nodes = spXMLDoc->selectNodes(L"//ent-config/keys/key");
 	long length;
 	nodes->get_length(&length);
-	for(int i = 0; i < length; i++){
-		IXMLDOMNode *node;
+	for (int i = 0; i < length; i++) {
+		IXMLDOMNode* node;
 		nodes->get_item(i, &node);
-		IXMLDOMNamedNodeMap *attribs;
+		IXMLDOMNamedNodeMap* attribs;
 		node->get_attributes(&attribs);
 
 		long length_attribs;
 		attribs->get_length(&length_attribs);
 
-		char *attrib_key_func = NULL;
-		char *attrib_key_value = NULL;
+		char* attrib_key_func = NULL;
+		char* attrib_key_value = NULL;
 		bool modCtrl = false;
 		bool modAlt = false;
 		bool modShift = false;
 
-		for(long j = 0; j < length_attribs; j++){
-			IXMLDOMNode *attribNode;
+		for (long j = 0; j < length_attribs; j++) {
+			IXMLDOMNode* attribNode;
 			attribs->get_item(j, &attribNode);
 			attribNode->get_nodeName(&keyconf_bstr);
-			if(wcscmp(keyconf_bstr, L"function") == 0){
+			if (wcscmp(keyconf_bstr, L"function") == 0) {
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
 				attrib_key_func = _com_util::ConvertBSTRToString(V_BSTR(&var));
 			}
-			else if(wcscmp(keyconf_bstr, L"value") == 0){
+			else if (wcscmp(keyconf_bstr, L"value") == 0) {
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
 				attrib_key_value = _com_util::ConvertBSTRToString(V_BSTR(&var));
 			}
-			else if(wcscmp(keyconf_bstr, L"modCtrl") == 0){
+			else if (wcscmp(keyconf_bstr, L"modCtrl") == 0) {
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
 				char* value = _com_util::ConvertBSTRToString(V_BSTR(&var));
-				if(value != 0 && _strcmpi(value, "true") == 0){
+				if (value != 0 && _strcmpi(value, "true") == 0) {
 					modCtrl = true;
 				}
 			}
-			else if(wcscmp(keyconf_bstr, L"modAlt") == 0){
+			else if (wcscmp(keyconf_bstr, L"modAlt") == 0) {
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
 				char* value = _com_util::ConvertBSTRToString(V_BSTR(&var));
-				if(value != 0 && _strcmpi(value, "true") == 0){
+				if (value != 0 && _strcmpi(value, "true") == 0) {
 					modAlt = true;
 				}
 			}
-			else if(wcscmp(keyconf_bstr, L"modShift") == 0){
+			else if (wcscmp(keyconf_bstr, L"modShift") == 0) {
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
 				char* value = _com_util::ConvertBSTRToString(V_BSTR(&var));
-				if(value != 0 && _strcmpi(value, "true") == 0){
+				if (value != 0 && _strcmpi(value, "true") == 0) {
 					modShift = true;
 				}
 			}
@@ -100,7 +100,7 @@ void read_config_file(){
 			attribNode->Release();
 		}
 
-		if(attrib_key_func != NULL && attrib_key_value != NULL){
+		if (attrib_key_func != NULL && attrib_key_value != NULL) {
 			result->get_key_config()->set_key(attrib_key_func, attrib_key_value, modCtrl, modAlt, modShift);
 		}
 
@@ -156,7 +156,7 @@ void read_config_file(){
 
 		// here must be a code to store keybinds somewhere.
 		if (attrib_controller_func != NULL) {
- 
+
 			if (attrib_button1_v == NULL)
 			{
 				std::stringstream ss;
@@ -172,7 +172,7 @@ void read_config_file(){
 				write_text_to_log_file(ss.str());
 				controller_binds.at(attrib_controller_func) = std::pair(attrib_button1_v, attrib_button2_v);
 			}
-			else 
+			else
 			{
 				std::stringstream ss;
 				ss << "[ERROR] Could not find controller function " << attrib_controller_func << " in controller bind map. Skipping.";
@@ -189,7 +189,7 @@ void read_config_file(){
 		}
 
 		delete attrib_controller_func;
-	
+
 		attribs->Release();
 		node->Release();
 	}
@@ -207,7 +207,7 @@ void read_config_file(){
 		attribs->get_length(&length_attribs);
 
 		char* map_stuff = NULL;
-		
+
 		for (long j = 0; j < length_attribs; j++) {
 			IXMLDOMNode* attribNode;
 			attribs->get_item(j, &attribNode);
@@ -224,7 +224,7 @@ void read_config_file(){
 		}
 
 		delete map_stuff;
-		
+
 		attribs->Release();
 		node->Release();
 	}
@@ -333,11 +333,51 @@ void read_config_file(){
 		node->Release();
 	}
 
-	//nodes->Release(); //don't do this, it crashes on exit
-	spXMLDoc.Release();
-	CoUninitialize();
+	// Reset ENT
+	nodes = spXMLDoc->selectNodes(L"//ent-config/quick_setting/force_reset");
+	nodes->get_length(&length);
+	for (int i = 0; i < length; i++) {
+		IXMLDOMNode* node;
+		nodes->get_item(i, &node);
+		IXMLDOMNamedNodeMap* attribs;
+		node->get_attributes(&attribs);
 
-	config = result;
+		long length_attribs;
+		attribs->get_length(&length_attribs);
+
+		for (long j = 0; j < length_attribs; j++) {
+			IXMLDOMNode* attribNode;
+			attribs->get_item(j, &attribNode);
+			attribNode->get_nodeName(&keyconf_bstr);
+			if (wcscmp(keyconf_bstr, L"reset_all_settings") == 0) {
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				char* value = _com_util::ConvertBSTRToString(V_BSTR(&var));
+				if (value != 0 && _strcmpi(value, "true") == 0) {
+					std::stringstream ss;  ss << "reset_all_settings set to " << value << "; attempting to reset all settings.";
+					write_text_to_log_file(ss.str());
+					reset_globals();
+					ss.clear();
+					ss << "reset_all_settings complete.";
+					write_text_to_log_file(ss.str());
+					//var = (char*)"false"; -- doesn't want to update the value.
+					//attribNode->put_nodeValue(var);
+				}
+				SysFreeString(keyconf_bstr);
+				attribNode->Release();
+			}
+
+			attribs->Release();
+			node->Release();
+		}
+
+		//nodes->Release(); //don't do this, it crashes on exit
+		spXMLDoc.Release();
+		CoUninitialize();
+
+		config = result;
+	}
 }
 
 void read_config_ini_file(){
