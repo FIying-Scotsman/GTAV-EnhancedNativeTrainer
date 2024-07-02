@@ -333,51 +333,6 @@ void read_config_file() {
 		node->Release();
 	}
 
-	// Reset ENT
-	nodes = spXMLDoc->selectNodes(L"//ent-config/quick_setting/force_reset");
-	nodes->get_length(&length);
-	for (int i = 0; i < length; i++) {
-		IXMLDOMNode* node;
-		nodes->get_item(i, &node);
-		IXMLDOMNamedNodeMap* attribs;
-		node->get_attributes(&attribs);
-
-		long length_attribs;
-		attribs->get_length(&length_attribs);
-
-		for (long j = 0; j < length_attribs; j++) {
-			IXMLDOMNode* attribNode;
-			attribs->get_item(j, &attribNode);
-			attribNode->get_nodeName(&keyconf_bstr);
-			if (wcscmp(keyconf_bstr, L"reset_all_settings") == 0) {
-				VARIANT var;
-				VariantInit(&var);
-				attribNode->get_nodeValue(&var);
-				char* value = _com_util::ConvertBSTRToString(V_BSTR(&var));
-				if (value != 0 && _strcmpi(value, "true") == 0) {
-					std::stringstream ss;  ss << "reset_all_settings set to " << value << "; attempting to reset all settings.";
-					write_text_to_log_file(ss.str());
-					reset_globals();
-					ss.clear();
-					ss << "reset_all_settings complete.";
-					write_text_to_log_file(ss.str());
-					//var = (char*)"false"; -- doesn't want to update the value.
-					//attribNode->put_nodeValue(var);
-				}
-				SysFreeString(keyconf_bstr);
-				attribNode->Release();
-			}
-
-			attribs->Release();
-			node->Release();
-		}
-
-		//nodes->Release(); //don't do this, it crashes on exit
-		spXMLDoc.Release();
-		CoUninitialize();
-
-		config = result;
-	}
 }
 
 void read_config_ini_file(){
