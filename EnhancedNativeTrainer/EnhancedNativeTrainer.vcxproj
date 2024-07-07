@@ -377,7 +377,7 @@
     <LinkIncremental>true</LinkIncremental>
     <TargetExt>.asi</TargetExt>
     <IntDir>tmp\$(Configuration)\</IntDir>
-    <OutDir>bin\$(Configuration)\</OutDir>
+    <OutDir>F:\Relax\Grand Theft Auto V</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
