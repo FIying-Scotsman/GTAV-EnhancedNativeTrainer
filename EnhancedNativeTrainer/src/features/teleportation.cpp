@@ -98,6 +98,7 @@ const std::vector<tele_location> LOCATIONS_LANDMARKS = {
 	{ "Epsilon Building Entrance", -698.472f, 46.3927f, 44.0338f },
 	{ "Far North San Andreas", 24.775f, 7644.102f, 19.055f },
 	{ "FIB Carpark", 141.20440000f, -717.21670000f, 34.76831000f},
+	{ "Fort Zancudo Carrier", -3244.62100000f, 3937.22100000f, 16.64630100f, IPLS_M24_CARRIER, {}, {}, false },
 	{ "Galilee Pier", 1299.17f, 4216.22f, 33.9087f },
 	{ "Golf Club", -1373.22f, 50.4852f, 53.7018f },
 	{ "Grove Street", 117.11f, -1951.27f, 20.7498f },
@@ -329,6 +330,7 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Chop Shop Warehouse 1", 930.00000000f, -2270.00000000f, -50.00000000f, { "m23_2_int_placement_m23_2_interior_1_int_counterfeit_milo_" }, {}, {}, false },
 	{ "Chop Shop Warehouse 2", 1220.00000000f, -2280.00000000f, -50.00000000f, { "m23_2_int_placement_m23_2_interior_3_int_warehouse_milo_" }, {}, {}, false },
 	{ "Chop Shop Warehouse 3", 1000.00000000f, -2200.00000000f, -50.00000000f, { "m23_2_int_placement_m23_2_interior_7_dlc_int_warehouse2_milo_" }, {}, {}, false },
+	{ "Davis Bail Office", 565.887f, -2688.762f, -50.000f, { "m24_1_bailoffice_davis" }, {}, {}, false },
 	{ "Del Perro Heights Apt 27", -1468.02100000f, -529.94370000f, 49.72156000f, { "hei_hw1_blimp_interior_27_dlc_apart_high_new_milo_" }, {}, {}, false },
 	{ "Del Perro Heights Apt 28", -1468.14f, -541.815f, 73.4442f, {}, {}, {}, false },
 	{ "Eclipse Blvd Garage", 520.0f, -2625.0f, -49.0f, { "xm3_int_placement_xm3_interior_1_dlc_int_02_xm3_milo_" }, {}, {}, false },
@@ -380,6 +382,7 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Tinsel Towers Apt 42", -614.86f, 40.6783f, 97.6f, {}, {}, {}, false },
 	{ "Upgraded Base", 462.09f, 4820.42f, -59.0f, IPL_PROPS_DOOMSDAY_MAIN_BASE, {}, { IPL_PROPS_FACILITY }, false },
 	{ "Vespucci Boulevard Studio Flat", 342.8157f, -997.4288f, -99.4041f, { "hei_hw1_blimp_interior_v_apart_midspaz_milo_" }, {}, {}, false },
+	{ "Vinewood Club Garage", 649.73970000f, -2688.76200000f, -50.00000000f, { "m24_1_int_placement_m24_1_interior_dlc_int_bounty_milo_" }, {}, {}, false },
 	{ "Weazel Plaza Apt 9", -909.10170000f, -438.19030000f, 114.39970000f, { "hw1_blimp_interior_v_apartment_high_milo__9" }, {}, {}, false },
 	{ "Weazel Plaza Apt 11", -889.30300000f, -451.77510000f, 119.32700000f, { "hw1_blimp_interior_v_apartment_high_milo__11" }, {}, {}, false },
 }; 

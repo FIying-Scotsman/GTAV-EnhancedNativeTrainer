@@ -315,7 +315,7 @@ bool onconfirm_weather_menu(MenuItem<std::string> choice)
 
 void process_weather_menu()
 {
-	const int lineCount = 16;
+	const int lineCount = 19;
 
 	const std::string caption = "Weather Options";
 	
@@ -335,7 +335,9 @@ void process_weather_menu()
 		{ "Blizzard", "BLIZZARD", NULL, NULL, true },
 		{ "Light Snow", "SNOWLIGHT", NULL, NULL, true },
 		{ "Christmas", "XMAS", NULL, NULL, true },
-		{ "Halloween", "HALLOWEEN", NULL, NULL, true }
+		{ "Halloween", "HALLOWEEN", NULL, NULL, true },
+		{ "Rain Halloween", "RAIN_HALLOWEEN", NULL, NULL, true },
+		{ "Snow Halloween", "SNOW_HALLOWEEN", NULL, NULL, true }
 	};
 
 	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexWeather, caption, onconfirm_weather_menu);

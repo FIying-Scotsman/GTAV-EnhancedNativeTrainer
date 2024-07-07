@@ -1034,24 +1034,24 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 	{ RAGE_JOAAT("IMPALER5"), "sssa_dlc_2023_2", "impaler5" },
 	{ RAGE_JOAAT("IMPALER6"), "sssa_dlc_2023_2", "impaler6" },
 	{ RAGE_JOAAT("TERMINUS"), "sssa_dlc_2023_2", "terminus" },
-	{ RAGE_JOAAT("VIGERO3"), "sssa_dlc_2023_2", "vigero3" },
-	{ RAGE_JOAAT("VIVANITE"), "sssa_dlc_2023_2", "vivanite" },
-	{ RAGE_JOAAT("DRIFTYOSEMITE"), "ENT_vehicle_previews", "VP_YOSEMITE" },
-	{ RAGE_JOAAT("DRIFTFR36"), "sssa_dlc_2023_2", "fr36" },
-	{ RAGE_JOAAT("PHANTOM4"), "ENT_vehicle_previews", "VP_PHANTOM4" },
-	{ RAGE_JOAAT("DRIFTEUROS"), "ENT_vehicle_previews", "VP_EUROS" },
-	{ RAGE_JOAAT("DRIFTREMUS"), "ENT_vehicle_previews", "VP_REMUS" },
-	{ RAGE_JOAAT("DRIFTZR350"), "ENT_vehicle_previews", "VP_ZR350" },
-	{ RAGE_JOAAT("DRIFTTAMPA"), "ENT_vehicle_previews", "VP_TAMPA" },
-	{ RAGE_JOAAT("DRIFTJESTER"), "ENT_vehicle_previews", "VP_JESTER" },
-	{ RAGE_JOAAT("DRIFTFUTO"), "ENT_vehicle_previews", "VP_FUTO" },
-	{ RAGE_JOAAT("FREIGHT2"), "ENT_vehicle_previews", "VP_FREIGHT2" },
-	{ RAGE_JOAAT("TOWTRUCK3"), "ENT_vehicle_previews", "VP_TOWTRUCK4" },
-	{ RAGE_JOAAT("TOWTRUCK4"), "ENT_vehicle_previews", "VP_TOWTRUCK3" },
-	{ RAGE_JOAAT("TRAILERS5"), "ENT_vehicle_previews", "VP_TRAILERHOLIDAY" },
-	{ RAGE_JOAAT("TVTRAILER2"), "ENT_vehicle_previews", "VP_TRAILERPANIC" },
-	{ RAGE_JOAAT("BOATTRAILER2"), "ENT_vehicle_previews", "VP_BOATTRAILER3" },
-	{ RAGE_JOAAT("BOATTRAILER3"), "ENT_vehicle_previews", "VP_BOATTRAILER2" },
+	{ RAGE_JOAAT("VIGERO3"), "sssa_dlc_2023_2", "vigero3" },//
+	{ RAGE_JOAAT("VIVANITE"), "sssa_dlc_2023_2", "vivanite" },//
+	{ RAGE_JOAAT("DRIFTYOSEMITE"), "ENT_vehicle_previews", "VP_YOSEMITE" },//
+	{ RAGE_JOAAT("DRIFTFR36"), "sssa_dlc_2023_2", "fr36" },//
+	{ RAGE_JOAAT("PHANTOM4"), "ENT_vehicle_previews", "VP_PHANTOM4" },//
+	{ RAGE_JOAAT("DRIFTEUROS"), "ENT_vehicle_previews", "VP_EUROS" },//
+	{ RAGE_JOAAT("DRIFTREMUS"), "ENT_vehicle_previews", "VP_REMUS" },//
+	{ RAGE_JOAAT("DRIFTZR350"), "ENT_vehicle_previews", "VP_ZR350" },//
+	{ RAGE_JOAAT("DRIFTTAMPA"), "ENT_vehicle_previews", "VP_TAMPA" },//
+	{ RAGE_JOAAT("DRIFTJESTER"), "ENT_vehicle_previews", "VP_JESTER" },//
+	{ RAGE_JOAAT("DRIFTFUTO"), "ENT_vehicle_previews", "VP_FUTO" },//
+	{ RAGE_JOAAT("FREIGHT2"), "ENT_vehicle_previews", "VP_FREIGHT2" },//
+	{ RAGE_JOAAT("TOWTRUCK3"), "ENT_vehicle_previews", "VP_TOWTRUCK4" },//
+	{ RAGE_JOAAT("TOWTRUCK4"), "ENT_vehicle_previews", "VP_TOWTRUCK3" },//
+	{ RAGE_JOAAT("TRAILERS5"), "ENT_vehicle_previews", "VP_TRAILERHOLIDAY" },//
+	{ RAGE_JOAAT("TVTRAILER2"), "ENT_vehicle_previews", "VP_TRAILERPANIC" },//
+	{ RAGE_JOAAT("BOATTRAILER2"), "ENT_vehicle_previews", "VP_BOATTRAILER3" },//
+	{ RAGE_JOAAT("BOATTRAILER3"), "ENT_vehicle_previews", "VP_BOATTRAILER2" },//
 	//Summer 2024 - Bounty DLC
 	{ RAGE_JOAAT("DRAFTER"), "lgm_dlc_vinewood", "drafter" },
 	{ RAGE_JOAAT("EMERUS"), "lgm_dlc_vinewood", "emerus" },

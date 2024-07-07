@@ -137,7 +137,7 @@ const std::vector<char*> IPL_PROPS_SCRAP = {
 	"v_ilev_rc_door1",
 };
 
-const std::vector<const char*> IPLS_BIKER_TUNNEL = {
+/*const std::vector<const char*> IPLS_BIKER_TUNNEL = {
 	"bkr_id1_11_interior_id1_11_tunnel1_int",
 	"bkr_id1_11_interior_id1_11_tunnel2_int",
 	"bkr_id1_11_interior_id1_11_tunnel3_int",
@@ -146,7 +146,7 @@ const std::vector<const char*> IPLS_BIKER_TUNNEL = {
 	"bkr_id1_11_interior_id1_11_tunnel6_int",
 	"bkr_id1_11_interior_id1_11_tunnel7_int",
 	"bkr_id1_11_interior_id1_11_tunnel8_int"
-};
+};*/
 
 const std::vector<const char*> IPLS_NORTH_YANKTON = {
 	"plg_01",
@@ -243,6 +243,17 @@ std::vector<char*> IPL_PROPS_BIKER_FORGERY_WAREHOUSE = {
 	"clutter",
 	"interior_upgrade",
 	"chair01",
+};
+
+const std::vector<const char*> IPLS_M24_CARRIER = {
+	"M24_1_carrier",
+	"M24_1_carrier_int1",
+	"M24_1_carrier_int2",
+	"M24_1_carrier_int3",
+	"M24_1_carrier_int4",
+	"M24_1_carrier_int5",
+	"M24_1_carrier_int6",
+	"m24_1_carrier_ladders",
 };
 
 std::vector<char*> IPL_PROPS_BIKER_FAKE_CASH_WAREHOUSE = {

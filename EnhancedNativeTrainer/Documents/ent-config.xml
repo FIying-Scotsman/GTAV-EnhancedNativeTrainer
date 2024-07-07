@@ -269,6 +269,14 @@
 	<disabled_stuff sname="apa_yacht_grp03_1_int"/>
 	<disabled_stuff sname="apa_yacht_grp03_3"/>
 	<disabled_stuff sname="apa_yacht_grp03_3_int"/>
+	<stuff sname="M24_1_carrier"/>
+	<stuff sname="M24_1_carrier_int1"/>
+	<stuff sname="M24_1_carrier_int2"/>
+	<stuff sname="M24_1_carrier_int3"/>
+	<stuff sname="M24_1_carrier_int4"/>
+	<stuff sname="M24_1_carrier_int5"/>
+	<stuff sname="M24_1_carrier_int6"/>
+	<stuff sname="m24_1_carrier_ladders"/>
  </map_stuff_list>
 
 </ent-config>
