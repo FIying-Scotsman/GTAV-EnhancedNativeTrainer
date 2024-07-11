@@ -277,6 +277,9 @@
     <ClInclude Include="src\rage_thread\rage_thread.h">
       <Filter>inc\scripts</Filter>
     </ClInclude>
+    <ClInclude Include="inc\stdafx.h">
+      <Filter>inc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Documents\veh-previews\airtug.png">

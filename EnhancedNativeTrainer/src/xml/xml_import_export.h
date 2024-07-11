@@ -7,11 +7,13 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <string>
 #include <sstream>
 #include <iostream>
+#include "..\..\inc\stdafx.h"
 
 #include "filestream.hpp"
 #include "../storage/database.h"
 
-#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
+
+//#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
 
 bool generate_xml_for_propset(SavedPropSet* props, std::string outputFile);
 

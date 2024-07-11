@@ -58,6 +58,7 @@
     <ClCompile Include="src\xml\xml_import_export.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="inc\stdafx.h" />
     <ClInclude Include="src\common\vectorHelper.h" />
     <ClInclude Include="src\datasets\data_props.h" />
     <ClInclude Include="src\ent-enums.h" />
@@ -419,6 +420,7 @@
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>4530;4996;4267</DisableSpecificWarnings>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
