@@ -1162,8 +1162,8 @@ bool draw_generic_menu(MenuParameters<T> params){
 								  350.0f,//line W
 								  50.0f,//line H
 								  15.0f,//line T
-								  0.0f,//line L
-								  15.0f,//text X offset
+								  35.0f,//line L
+								  45.0f,//text X offset
 								  false,
 								  true,
 								  (currentLine + 1),
