@@ -375,13 +375,13 @@ private:
 			VEHICLE::GET_VEHICLE_EXTRA_COLOURS(veh, &pearl, &wheel);
 			VEHICLE::SET_VEHICLE_EXTRA_COLOURS(veh, pearl, colorindex);
 			break;
-        case 5:
-            VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(veh, colorindex);
-            break;
-        case 6:
-            VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(veh, colorindex);
-            break;
-        }
+		case 5:
+			VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(veh, colorindex);
+			break;
+		case 6:
+			VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(veh, colorindex);
+			break;
+		}
 	}
 };
 
@@ -1162,8 +1162,8 @@ bool draw_generic_menu(MenuParameters<T> params){
 								  350.0f,//line W
 								  50.0f,//line H
 								  15.0f,//line T
-								  0.0f,//line L
-								  15.0f,//text X offset
+								  35.0f,//line L
+								  45.0f,//text X offset
 								  false,
 								  true,
 								  (currentLine + 1),
@@ -1239,21 +1239,49 @@ bool draw_generic_menu(MenuParameters<T> params){
 				break;
 			}
 			else{
-				if(bDown){
+				if(bDown){// If the user presses the Down key
 					menu_beep();
-					currentSelectionIndex++;
-					if(currentSelectionIndex >= totalItems || (currentSelectionIndex >= lineStartPosition + itemsOnThisLine)){
-						currentSelectionIndex = lineStartPosition;
+					if(currentSelectionIndex < lineStartPosition + itemsOnThisLine - 1 && currentSelectionIndex < totalItems - 1){
+						currentSelectionIndex++; // Not at bottom, move down normally
+					} else {
+						int currentPage = lineStartPosition / itemsPerLine; // Calculate current page
+						int maxPages = (totalItems + itemsPerLine - 1) / itemsPerLine; // Total pages
+						if(currentPage < maxPages - 1){ // If next page exists
+							currentPage++;
+							lineStartPosition = currentPage * itemsPerLine; // Update page start index
+							itemsOnThisLine = min(itemsPerLine, totalItems - lineStartPosition); // Update items on current page
+							currentSelectionIndex = lineStartPosition; // Jump to new page top
+						} else {
+							// Reached bottom of last page, wrap to first page top
+							currentPage = 0;
+							lineStartPosition = 0;
+							itemsOnThisLine = min(itemsPerLine, totalItems); // First page items
+							currentSelectionIndex = 0; // Move to first page top (first item)
+						}
 					}
-					waitTime = 150;
+					waitTime = 150; // Set wait time to 150ms to prevent repeated triggers
 				}
-				else if(bUp){
+				else if(bUp){// If the user presses the Up key
 					menu_beep();
-					currentSelectionIndex--;
-					if(currentSelectionIndex < 0 || (currentSelectionIndex < lineStartPosition)){
-						currentSelectionIndex = lineStartPosition + itemsOnThisLine - 1;
+					if(currentSelectionIndex > lineStartPosition){
+						currentSelectionIndex--; // Not at top, move up normally
+					} else {
+						int currentPage = lineStartPosition / itemsPerLine; // Calculate current page
+						int maxPages = (totalItems + itemsPerLine - 1) / itemsPerLine; // Total pages
+						if(currentPage > 0){ // If previous page exists
+							currentPage--;
+							lineStartPosition = currentPage * itemsPerLine; // Update page start index
+							itemsOnThisLine = min(itemsPerLine, totalItems - lineStartPosition); // Update items on current page
+							currentSelectionIndex = lineStartPosition + itemsOnThisLine - 1; // Jump to new page bottom
+						} else {
+							// Reached first page top, wrap to last item
+							currentSelectionIndex = totalItems - 1; // Directly target last item
+							currentPage = maxPages - 1; // Set to last page
+							lineStartPosition = currentPage * itemsPerLine; // Update page start to ensure visibility
+							itemsOnThisLine = min(itemsPerLine, totalItems - lineStartPosition); // Update items on current page
+						}
 					}
-					waitTime = 150;
+					waitTime = 150; // Set wait time to 150ms to prevent repeated triggers
 				}
 				else if(bLeft){
 					menu_beep();
