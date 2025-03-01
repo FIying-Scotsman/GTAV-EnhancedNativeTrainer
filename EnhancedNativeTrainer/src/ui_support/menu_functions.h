@@ -20,6 +20,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\io.h"
 #include "..\features\airbrake.h"
 #include "..\utils.h"
+//#include "..\features\misc.h"
+//#include "..\features\script.h"
 
 #include "entcolor.h"
 
@@ -43,6 +45,10 @@ extern bool mouse_view_control;
 extern bool help_showing;
 extern bool frozen_time;
 extern bool been_damaged;
+
+// Trainer Scrolling Controls
+const std::vector<std::string> MISC_TRAINERCONTROLSCROLLING_CAPTIONS{ "Page Scrolling", "Fast Scroll" };
+extern int TrainerControlScrollingIndex;
 
 static const char* LOCAL_TEXTURE_DICT = "LOCALTEXTURES";
 
@@ -1241,9 +1247,19 @@ bool draw_generic_menu(MenuParameters<T> params){
 			else{
 				if(bDown){// If the user presses the Down key
 					menu_beep();
-					if(currentSelectionIndex < lineStartPosition + itemsOnThisLine - 1 && currentSelectionIndex < totalItems - 1){
+					if (TrainerControlScrollingIndex == 0)
+					{
+						currentSelectionIndex++;
+						if (currentSelectionIndex >= totalItems || (currentSelectionIndex >= lineStartPosition + itemsOnThisLine)) {
+							currentSelectionIndex = lineStartPosition;
+						}
+					}
+					else
+					if(TrainerControlScrollingIndex == 1 && currentSelectionIndex < lineStartPosition + itemsOnThisLine - 1 && currentSelectionIndex < totalItems - 1) 
+					{
 						currentSelectionIndex++; // Not at bottom, move down normally
-					} else {
+					} 
+					else {
 						int currentPage = lineStartPosition / itemsPerLine; // Calculate current page
 						int maxPages = (totalItems + itemsPerLine - 1) / itemsPerLine; // Total pages
 						if(currentPage < maxPages - 1){ // If next page exists
@@ -1263,7 +1279,16 @@ bool draw_generic_menu(MenuParameters<T> params){
 				}
 				else if(bUp){// If the user presses the Up key
 					menu_beep();
-					if(currentSelectionIndex > lineStartPosition){
+					if (TrainerControlScrollingIndex == 0)
+					{
+						currentSelectionIndex--;
+						if (currentSelectionIndex < 0 || (currentSelectionIndex < lineStartPosition)) {
+							currentSelectionIndex = lineStartPosition + itemsOnThisLine - 1;
+						}
+					}
+					else
+					if (TrainerControlScrollingIndex == 1 && currentSelectionIndex > lineStartPosition)
+					{
 						currentSelectionIndex--; // Not at top, move up normally
 					} else {
 						int currentPage = lineStartPosition / itemsPerLine; // Calculate current page

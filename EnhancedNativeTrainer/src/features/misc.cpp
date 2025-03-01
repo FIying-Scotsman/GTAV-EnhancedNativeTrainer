@@ -198,6 +198,10 @@ bool RadioSwitchingChanged = true;
 int TrainerControlIndex = 0;
 bool TrainerControlChanged = true;
 
+// Trainer Scrolling Controls
+int TrainerControlScrollingIndex = 0;
+bool TrainerControlScrollingChanged = true;
+
 void onchange_hotkey_function(int value, SelectFromListMenuItem* source){
 	change_hotkey_function(source->extras.at(0), value);
 }
@@ -332,6 +336,12 @@ void process_misc_trainerconfig_menu(){
 	listItem->wrap = false;
 	listItem->caption = "Control Navigation";
 	listItem->value = TrainerControlIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(MISC_TRAINERCONTROLSCROLLING_CAPTIONS, onchange_misc_trainercontrolscrolling_index);
+	listItem->wrap = false;
+	listItem->caption = "Menu Scrolling";
+	listItem->value = TrainerControlScrollingIndex;
 	menuItems.push_back(listItem);
 
 	//ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
@@ -1033,6 +1043,11 @@ void onchange_misc_trainercontrol_index(int value, SelectFromListMenuItem* sourc
 	TrainerControlChanged = true;
 }
 
+void onchange_misc_trainercontrolscrolling_index(int value, SelectFromListMenuItem* source) {
+	TrainerControlScrollingIndex = value;
+	TrainerControlScrollingChanged = true;
+}
+
 void onchange_misc_def_menutab_index(int value, SelectFromListMenuItem* source) {
 	DefMenuTabIndex = value;
 	DefMenuTabChanged = true;
@@ -1087,6 +1102,7 @@ void reset_misc_globals(){
 	RadioOffIndex = 0;
 	RadioSwitchingIndex = 0;
 	TrainerControlIndex = 0;
+	TrainerControlScrollingIndex = 0;
 	PhoneFreeSecondsIndex = 0;
 	PhoneBikeAnimationIndex = 0;
 	DefMenuTabIndex = 0;
@@ -2006,6 +2022,7 @@ void add_misc_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"RadioOffIndex", std::to_string(RadioOffIndex)});
 	results->push_back(StringPairSettingDBRow{"RadioSwitchingIndex", std::to_string(RadioSwitchingIndex)});
 	results->push_back(StringPairSettingDBRow{"TrainerControlIndex", std::to_string(TrainerControlIndex)});
+	results->push_back(StringPairSettingDBRow{"TrainerControlScrollingIndex", std::to_string(TrainerControlScrollingIndex)});
 	results->push_back(StringPairSettingDBRow{"PhoneFreeSecondsIndex", std::to_string(PhoneFreeSecondsIndex)});
 	results->push_back(StringPairSettingDBRow{"PhoneBikeAnimationIndex", std::to_string(PhoneBikeAnimationIndex)});
 	results->push_back(StringPairSettingDBRow{"DefMenuTabIndex", std::to_string(DefMenuTabIndex)});
@@ -2032,6 +2049,9 @@ void handle_generic_settings_misc(std::vector<StringPairSettingDBRow>* settings)
 		}
 		else if (setting.name.compare("TrainerControlIndex") == 0) {
 			TrainerControlIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("TrainerControlScrollingIndex") == 0) {
+			TrainerControlScrollingIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("PhoneFreeSecondsIndex") == 0){
 			PhoneFreeSecondsIndex = stoi(setting.value);
