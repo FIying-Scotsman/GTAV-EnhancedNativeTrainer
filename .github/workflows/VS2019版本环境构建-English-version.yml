@@ -1,0 +1,47 @@
+name: VS2019版本环境构建-English-version
+
+on:
+  push:
+    branches: [ "ENT-55.1-English-version" ]
+
+env:
+  SOLUTION_FILE_PATH: ./EnhancedNativeTrainer.sln
+  BUILD_CONFIGURATION: Release
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2019
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.1
+      with:
+        vs-version: '16.0'
+
+    - name: Build
+      run: msbuild ${{env.SOLUTION_FILE_PATH}} /p:Configuration=${{env.BUILD_CONFIGURATION}}
+
+    - name: Debug Output Path
+      run: |
+        echo "Listing all files in project directory"
+        dir
+        echo "Listing all files in EnhancedNativeTrainer directory"
+        dir EnhancedNativeTrainer
+        echo "Listing all files in bin directory"
+        dir EnhancedNativeTrainer\bin
+        echo "Listing all files in bin/Release directory (if exists)"
+        dir EnhancedNativeTrainer\bin\Release || echo "bin\Release directory does not exist"
+
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: EnhancedNativeTrainer [VS2019-Release]
+        path: |
+          EnhancedNativeTrainer/bin/Release/
