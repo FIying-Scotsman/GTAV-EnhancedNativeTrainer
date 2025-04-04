@@ -34,6 +34,11 @@ int activeLineIndexCopArmed = 0;
 int activeLineIndexPedAgainstWeapons = 0;
 int activeLineIndexPowerPunchWeapons = 0;
 
+// Sucking Grenades
+static bool shown_vacuum_message = false; 
+// Gravity Gun
+static bool shown_gravitygun_message = false;
+
 // saved weapons variables
 bool requireRefreshOfWeaponSaveSlotMenu = false;
 std::string activeSavedWeaponSlotName;
@@ -1694,6 +1699,9 @@ void reset_weapon_globals(){
 		featurePunchMeleeWeapons =
 		featurePunchFireWeapons =
 		featureGravityGun = false;
+
+	shown_vacuum_message = false;
+	shown_gravitygun_message = false;
 }
 
 void update_weapon_features(BOOL bPlayerExists, Player player){
@@ -1821,7 +1829,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 						s_vacuum_secs_curr = s_vacuum_secs_passed;
 					}
 				}
-				if (vacuum_seconds < 16 && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_GRENADELAUNCHER")) set_status_text("Equip the ~g~ Grenade Launcher");
+				if (!shown_vacuum_message) {// Removed weapon check
+					set_status_text("Equip the ~g~ Grenade Launcher");
+					shown_vacuum_message = true;// Limit the number of times displayed
+				}
 				Vector3 obj_cor = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
 				float c_x, c_y, c_z = 0.0;
 				Hash grenade = ENTITY::GET_ENTITY_MODEL(objects_g[i]);
@@ -1899,6 +1910,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				} // end of grenade
 			} // end of sucking grenades
 		} // end of for
+	} else {  // Adding an else branch
+		if (!featureWeaponVacuumGrenades) {
+			shown_vacuum_message = false;// Reset Marker
+		}
 	}
 
 	// Infinite Ammo
@@ -2480,7 +2495,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		Ped tempPed;
 		Hash tempWeap;
 
-		if (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN")) set_status_text("Equip the ~g~ Stungun");
+		if (!shown_gravitygun_message) {// Removed weapon check
+			set_status_text("Equip the ~g~ Stungun");
+			shown_gravitygun_message = true; // Limit the number of times displayed
+		}
 
 		if(!grav_target_locked) PLAYER::GET_ENTITY_PLAYER_IS_FREE_AIMING_AT(PLAYER::PLAYER_ID(), &grav_entity);
 
@@ -2551,6 +2569,8 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		//featureGravityGunUpdated = false;
 
 		//set_status_text("Gravity gun: ~r~called");
+	} else {// Adding an else branch
+		shown_gravitygun_message = false;  // Reset Marker
 	}
 }
 
