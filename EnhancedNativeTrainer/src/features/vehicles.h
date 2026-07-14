@@ -1143,7 +1143,22 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 	{ RAGE_JOAAT("DRIFTDOMINATOR9"), "sssa_dlc_2023_2", "dominator9" }, 
 	{ RAGE_JOAAT("DRIFTKEITORA"), "sssa_dlc_2025_2", "keitora" }, 
 	{ RAGE_JOAAT("DRIFTRT3000"), "sssa_dlc_tuner", "rt3000" }, 
-	{ RAGE_JOAAT("DRIFTSENTINEL2"), "sssa_dlc_business2", "sentinel" }
+	{ RAGE_JOAAT("DRIFTSENTINEL2"), "sssa_dlc_business2", "sentinel" },
+	//The Kortz Center Heist
+	{ RAGE_JOAAT("MERULA"), "sssa_dlc_2026_1", "merula" },
+	{ RAGE_JOAAT("ESTRIDE"), "sssa_dlc_2026_1", "estride" },
+	{ RAGE_JOAAT("LAUFER"), "sssa_dlc_2026_1", "laufer" },
+	{ RAGE_JOAAT("CARTUCCIA"), "lgm_dlc_2026_1", "cartuccia" },
+	{ RAGE_JOAAT("HORUS"), "lgm_dlc_2026_1", "horus" },
+	{ RAGE_JOAAT("WARDEN"), "lgm_dlc_2026_1", "warden" },
+	{ RAGE_JOAAT("VELONOGT"), "lgm_dlc_2026_1", "velenogt" },
+	{ RAGE_JOAAT("LRCGT"), "lgm_dlc_2026_1", "lrcgt" },
+	{ RAGE_JOAAT("POLIGNUS"), "candc_dlc_2026_1", "polignus" },
+	{ RAGE_JOAAT("DRIFTDOMINATOR8"), "ENT_vehicle_previews", "" },
+	{ RAGE_JOAAT("DRIFTCOQUETTE"), "ENT_vehicle_previews", "" },
+	{ RAGE_JOAAT("DRIFTELEGY"), "ENT_vehicle_previews", "" },
+	{ RAGE_JOAAT("CARACARA3"), "ENT_vehicle_previews", "" },
+	{ RAGE_JOAAT("TRFLAT2"), "ENT_vehicle_previews", "" }
 };
 
 /***
