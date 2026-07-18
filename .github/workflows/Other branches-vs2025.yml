@@ -19,7 +19,7 @@ env:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-2025
 
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +30,11 @@ jobs:
         uses: microsoft/setup-msbuild@v2
         with:
           vs-version: "[18.0,19.0)"
+
+      - name: Show Visual Studio installation
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -all
 
       - name: Get Version
         id: version
