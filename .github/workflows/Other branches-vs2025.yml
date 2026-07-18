@@ -31,6 +31,13 @@ jobs:
         with:
           vs-version: "[18.0,19.0)"
 
+      - name: Get Version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep -oP 'VERSION_STRING\s*=\s*"\K[^"]+' version.sh || echo "unknown")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build
         run: >
           msbuild ${{ env.SOLUTION_FILE_PATH }}
@@ -43,12 +50,12 @@ jobs:
         run: |
           Compress-Archive `
             -Path EnhancedNativeTrainer/bin/Release/* `
-            -DestinationPath EnhancedNativeTrainer-nightly.zip
+            -DestinationPath EnhancedNativeTrainer-nightly-${{ steps.version.outputs.version }}-${{ github.sha }}.zip
 
       - name: Upload Nightly Artifact
         uses: actions/upload-artifact@v4
         with:
           name: EnhancedNativeTrainer-nightly-${{ github.sha }}
-          path: EnhancedNativeTrainer-nightly.zip
+          path: EnhancedNativeTrainer-nightly-*.zip
           retention-days: 14
           if-no-files-found: error
