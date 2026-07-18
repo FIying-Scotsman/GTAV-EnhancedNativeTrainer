@@ -15,12 +15,52 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\ui_support\menu_functions.h"
 #include "script.h"
 
-const std::vector<std::string> TIME_SPEED_CAPTIONS{ "Minimum", "0.1x", "0.2x", "0.3x", "0.4x", "0.5x", "0.6x", "0.7x", "0.8x", "0.9x", "1x (Normal)" };
-const std::vector<float> TIME_SPEED_VALUES{ 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f };
+const Option<float> TIME_SPEED_OPTIONS[] = {
+	{ "Minimum", 0.0f },
+	{ "0.1x", 0.1f },
+	{ "0.2x", 0.2f },
+	{ "0.3x", 0.3f },
+	{ "0.4x", 0.4f },
+	{ "0.5x", 0.5f },
+	{ "0.6x", 0.6f },
+	{ "0.7x", 0.7f },
+	{ "0.8x", 0.8f },
+	{ "0.9x", 0.9f },
+	{ "1x (Normal)", 1.0f }
+};
+const std::vector<std::string> TIME_SPEED_CAPTIONS = captionsOf(TIME_SPEED_OPTIONS);
+const std::vector<float> TIME_SPEED_VALUES = valuesOf(TIME_SPEED_OPTIONS);
 const int DEFAULT_TIME_SPEED = 10;
 
-const std::vector<std::string> TIME_FLOW_RATE_CAPTIONS{ "Frozen Time (0s/s)", "Half a Second per Second", "Real Time (1s/s)", "2 Seconds per Second", "3 Seconds per Second", "5 Seconds per Second", "6 Seconds per Second", "10 Seconds per Second", "12 Seconds per Second", "15 Seconds per Second", "Normal Time (30s/s)", "1 Minute per Second", "2 Minutes per Second", "3 Minutes per Second", "5 Minutes per Second", "6 Minutes per Second", "10 Minutes per Second", "12 Minutes per Second", "15 Minutes per Second", "30 Minutes per Second", "1 Hour per Second", "3 Hours per Second", "6 Hours per Second", "12 Hours per Second", "1 Day per Second" }; // 25
-const std::vector<float> TIME_FLOW_RATE_VALUES{ 0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 6.0f, 10.0f, 12.0f, 15.0f, 30.0f, 60.0f, 120.0f, 180.0f, 300.0f, 360.0f, 600.0f, 720.0f, 900.0f, 1800.0f, 3600.0f, 10800.0f, 21600.0f, 43200.0f, 86400.0f };
+const Option<float> TIME_FLOW_RATE_OPTIONS[] = { // 25
+	{ "Frozen Time (0s/s)", 0.0f },
+	{ "Half a Second per Second", 0.5f },
+	{ "Real Time (1s/s)", 1.0f },
+	{ "2 Seconds per Second", 2.0f },
+	{ "3 Seconds per Second", 3.0f },
+	{ "5 Seconds per Second", 5.0f },
+	{ "6 Seconds per Second", 6.0f },
+	{ "10 Seconds per Second", 10.0f },
+	{ "12 Seconds per Second", 12.0f },
+	{ "15 Seconds per Second", 15.0f },
+	{ "Normal Time (30s/s)", 30.0f },
+	{ "1 Minute per Second", 60.0f },
+	{ "2 Minutes per Second", 120.0f },
+	{ "3 Minutes per Second", 180.0f },
+	{ "5 Minutes per Second", 300.0f },
+	{ "6 Minutes per Second", 360.0f },
+	{ "10 Minutes per Second", 600.0f },
+	{ "12 Minutes per Second", 720.0f },
+	{ "15 Minutes per Second", 900.0f },
+	{ "30 Minutes per Second", 1800.0f },
+	{ "1 Hour per Second", 3600.0f },
+	{ "3 Hours per Second", 10800.0f },
+	{ "6 Hours per Second", 21600.0f },
+	{ "12 Hours per Second", 43200.0f },
+	{ "1 Day per Second", 86400.0f }
+};
+const std::vector<std::string> TIME_FLOW_RATE_CAPTIONS = captionsOf(TIME_FLOW_RATE_OPTIONS);
+const std::vector<float> TIME_FLOW_RATE_VALUES = valuesOf(TIME_FLOW_RATE_OPTIONS);
 const int DEFAULT_TIME_FLOW_RATE = 10;
 
 const int DEFAULT_HOTKEY_FLOW_RATE = 10;
@@ -40,8 +80,10 @@ bool featureTimeSynced = false;
 bool featureShowtime = false;
 bool featurehotkeytime = false;
 bool featureSpeedAimInVeh = false;
-bool timeFlowRateChanged = true, timeFlowRateLocked = true;
-bool HotkeyFlowRateChanged = true, HotkeyFlowRateLocked = true;
+bool timeFlowRateChanged = true;
+bool timeFlowRateLocked = true;
+bool HotkeyFlowRateChanged = true;
+bool HotkeyFlowRateLocked = true;
 
 bool slow_aim = false;
 
@@ -786,7 +828,9 @@ void update_time_features(Player player){
 	if(timeFlowRateIndex != DEFAULT_TIME_FLOW_RATE){
 		TIME::PAUSE_CLOCK(true);
 		if(timeFlowRateIndex > 0){
-			int hours, minutes, seconds = static_cast<int>(static_cast<float>(SYSTEM::TIMERA()) / timeFactor);
+			int hours = 0;
+			int minutes = 0;
+			int seconds = static_cast<int>(static_cast<float>(SYSTEM::TIMERA()) / timeFactor);
 			hours = seconds / 3600, seconds %= 3600;
 			minutes = seconds / 60, seconds %= 60;
 			SYSTEM::SETTIMERA(SYSTEM::TIMERA() - static_cast<int>(static_cast<float>(hours * 3600 + minutes * 60 + seconds) * timeFactor));

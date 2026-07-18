@@ -20,6 +20,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\io.h"
 #include "..\features\airbrake.h"
 #include "..\utils.h"
+#include "..\common\option_table.h"
 //#include "..\features\misc.h"
 //#include "..\features\script.h"
 
@@ -190,7 +191,10 @@ class CashItem: public MenuItem <T>{
 	virtual ~CashItem(){
 	}
 
-	int cash = 100000, multiplier = 10, min = -1000000000, max = 1000000000;
+	int cash = 100000;
+	int multiplier = 10;
+	int min = -1000000000;
+	int max = 1000000000;
 
 	virtual bool onConfirm();
 	virtual bool isAbsorbingLeftAndRightEvents(){
@@ -208,7 +212,12 @@ class CashItem: public MenuItem <T>{
 template<class T>
 class ColorItem: public MenuItem<T>{
 	public:
-	int colorval, part, component, increment = 15, min = 0, max = 255;
+	int colorval = 0;
+	int part = 0;
+	int component = 0;
+	int increment = 15;
+	int min = 0;
+	int max = 255;
 
 	virtual ~ColorItem(){
 		// Supposed to be empty
@@ -230,7 +239,12 @@ class ColorItem: public MenuItem<T>{
 template<class T>
 class PaintColorItem : public MenuItem<T>{
 public:
-	int colorval, part, component, increment = 1, min = 0, max = 255;
+	int colorval = 0;
+	int part = 0;
+	int component = 0;
+	int increment = 1;
+	int min = 0;
+	int max = 255;
 
 	virtual ~PaintColorItem(){
 		// Supposed to be empty
@@ -295,7 +309,11 @@ private:
 template<class T>
 class PaintIndexItem : public MenuItem<T>{
 public:
-	int colorindex, part, increment = 1, min = 0, max = 160;
+	int colorindex = 0;
+	int part = 0;
+	int increment = 1;
+	int min = 0;
+	int max = 160;
 
 	virtual ~PaintIndexItem(){
 		// Supposed to be empty
@@ -401,7 +419,9 @@ enum LifeItemType{
 template<class T>
 class LifeItem: public MenuItem<T>{
 	public:
-	int life, minimum = 0, maximum = 34464;
+	int life = 0;
+	int minimum = 0;
+	int maximum = 34464;
 	LifeItemType lifeType;
 
 	virtual ~LifeItem(){

@@ -52,12 +52,59 @@ struct XenonColour {
 
 const std::vector<std::string> VEH_INVINC_MODE_CAPTIONS{ "OFF", "Mech. Only", "Mech. + Visual", "Mech. + Vis. + Cosmetic" };
 
-const std::vector<std::string> VEH_MASS_CAPTIONS{ "OFF", "3x", "5x", "10x", "30x", "50x", "Mayhem" };
-const int VEH_MASS_VALUES[] = { 0, 5, 10, 30, 50, 100, 50000 };
+const Option<int> VEH_MASS_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "3x", 5 },
+	{ "5x", 10 },
+	{ "10x", 30 },
+	{ "30x", 50 },
+	{ "50x", 100 },
+	{ "Mayhem", 50000 }
+};
+const std::vector<std::string> VEH_MASS_CAPTIONS = captionsOf(VEH_MASS_OPTIONS);
+const std::vector<int> VEH_MASS_VALUES = valuesOf(VEH_MASS_OPTIONS);
 extern int current_player_forceshieldN;
 
-const std::vector<std::string> VEH_SPEEDLIMITER_CAPTIONS{ "OFF", "5 (MPH)", "10 (MPH)", "15 (MPH)", "20 (MPH)", "25 (MPH)", "30 (MPH)", "35 (MPH)", "40 (MPH)", "45 (MPH)", "50 (MPH)", "55 (MPH)", "60 (MPH)", "65 (MPH)", "70 (MPH)", "75 (MPH)", "80 (MPH)", "85 (MPH)", "90 (MPH)", "95 (MPH)", "100 (MPH)", "105 (MPH)", "110 (MPH)", "115 (MPH)", "120 (MPH)", "125 (MPH)", "130 (MPH)", "135 (MPH)", "140 (MPH)", "145 (MPH)", "150 (MPH)", "160 (MPH)", "170 (MPH)", "180 (MPH)", "190 (MPH)", "200 (MPH)" };
-const int VEH_SPEEDLIMITER_VALUES[] = { 0, 2, 4, 7, 9, 11, 13, 16, 18, 20, 22, 24, 27, 29, 31, 33, 36, 38, 40, 42, 44, 46, 48, 51, 53, 55, 57, 59, 61, 63, 66, 70, 75, 80, 85, 89 };
+const Option<int> VEH_SPEEDLIMITER_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "5 (MPH)", 2 },
+	{ "10 (MPH)", 4 },
+	{ "15 (MPH)", 7 },
+	{ "20 (MPH)", 9 },
+	{ "25 (MPH)", 11 },
+	{ "30 (MPH)", 13 },
+	{ "35 (MPH)", 16 },
+	{ "40 (MPH)", 18 },
+	{ "45 (MPH)", 20 },
+	{ "50 (MPH)", 22 },
+	{ "55 (MPH)", 24 },
+	{ "60 (MPH)", 27 },
+	{ "65 (MPH)", 29 },
+	{ "70 (MPH)", 31 },
+	{ "75 (MPH)", 33 },
+	{ "80 (MPH)", 36 },
+	{ "85 (MPH)", 38 },
+	{ "90 (MPH)", 40 },
+	{ "95 (MPH)", 42 },
+	{ "100 (MPH)", 44 },
+	{ "105 (MPH)", 46 },
+	{ "110 (MPH)", 48 },
+	{ "115 (MPH)", 51 },
+	{ "120 (MPH)", 53 },
+	{ "125 (MPH)", 55 },
+	{ "130 (MPH)", 57 },
+	{ "135 (MPH)", 59 },
+	{ "140 (MPH)", 61 },
+	{ "145 (MPH)", 63 },
+	{ "150 (MPH)", 66 },
+	{ "160 (MPH)", 70 },
+	{ "170 (MPH)", 75 },
+	{ "180 (MPH)", 80 },
+	{ "190 (MPH)", 85 },
+	{ "200 (MPH)", 89 }
+};
+const std::vector<std::string> VEH_SPEEDLIMITER_CAPTIONS = captionsOf(VEH_SPEEDLIMITER_OPTIONS);
+const std::vector<int> VEH_SPEEDLIMITER_VALUES = valuesOf(VEH_SPEEDLIMITER_OPTIONS);
 extern int speedLimiterIndex;
 extern int speedCityLimiterIndex;
 extern int speedCountryLimiterIndex;
@@ -66,8 +113,30 @@ extern bool featureLockVehicleDoors;
 extern bool featureLockVehicleDoorsUpdated;
 
 // engine power stuff
-const std::vector<std::string> VEH_ENG_POW_CAPTIONS{ "OFF", "1x", "5x", "10x", "25x", "50x", "75x", "100x", "125x", "150x", "175x", "200x", "225x", "250x", "275x", "300x", "325x", "350x", "375x", "400x" };
-const int VEH_ENG_POW_VALUES[] = { -1, 0, 5, 10, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400 };
+const Option<int> VEH_ENG_POW_OPTIONS[] = {
+	{ "OFF", -1 },
+	{ "1x", 0 },
+	{ "5x", 5 },
+	{ "10x", 10 },
+	{ "25x", 25 },
+	{ "50x", 50 },
+	{ "75x", 75 },
+	{ "100x", 100 },
+	{ "125x", 125 },
+	{ "150x", 150 },
+	{ "175x", 175 },
+	{ "200x", 200 },
+	{ "225x", 225 },
+	{ "250x", 250 },
+	{ "275x", 275 },
+	{ "300x", 300 },
+	{ "325x", 325 },
+	{ "350x", 350 },
+	{ "375x", 375 },
+	{ "400x", 400 }
+};
+const std::vector<std::string> VEH_ENG_POW_CAPTIONS = captionsOf(VEH_ENG_POW_OPTIONS);
+const std::vector<int> VEH_ENG_POW_VALUES = valuesOf(VEH_ENG_POW_OPTIONS);
 extern int engPowMultIndex;
 
 extern int engCustomPowMultIndex;
@@ -75,12 +144,37 @@ extern std::vector<int> C_ENGINE_M;
 extern std::vector<Vehicle> C_ENGINE_VEHICLE;
 
 //Blip Colour
-const std::vector<std::string> VEH_BLIPCOLOUR_CAPTIONS{ "White", "Red", "Green", "Blue", "Orange", "Purple", "Grey", "Brown", "Pink", "Dark Green", "Dark Purple", "Dark Blue" };
-const int VEH_BLIPCOLOUR_VALUES[] = { 0, 1, 2, 3, 17, 19, 20, 21, 23, 25, 27, 29 };
+const Option<int> VEH_BLIPCOLOUR_OPTIONS[] = {
+	{ "White", 0 },
+	{ "Red", 1 },
+	{ "Green", 2 },
+	{ "Blue", 3 },
+	{ "Orange", 17 },
+	{ "Purple", 19 },
+	{ "Grey", 20 },
+	{ "Brown", 21 },
+	{ "Pink", 23 },
+	{ "Dark Green", 25 },
+	{ "Dark Purple", 27 },
+	{ "Dark Blue", 29 }
+};
+const std::vector<std::string> VEH_BLIPCOLOUR_CAPTIONS = captionsOf(VEH_BLIPCOLOUR_OPTIONS);
+const std::vector<int> VEH_BLIPCOLOUR_VALUES = valuesOf(VEH_BLIPCOLOUR_OPTIONS);
 
 // Vehicle Colour
-const std::vector<std::string> VEH_COLOUR_CAPTIONS{ "OFF", "White", "Red", "Green", "Blue", "Orange", "Purple", "Pink", "Yellow" };
-const int VEH_COLOUR_VALUES[] = { -1, 134, 27, 139, 64, 38, 145, 135, 88 };
+const Option<int> VEH_COLOUR_OPTIONS[] = {
+	{ "OFF", -1 },
+	{ "White", 134 },
+	{ "Red", 27 },
+	{ "Green", 139 },
+	{ "Blue", 64 },
+	{ "Orange", 38 },
+	{ "Purple", 145 },
+	{ "Pink", 135 },
+	{ "Yellow", 88 }
+};
+const std::vector<std::string> VEH_COLOUR_CAPTIONS = captionsOf(VEH_COLOUR_OPTIONS);
+const std::vector<int> VEH_COLOUR_VALUES = valuesOf(VEH_COLOUR_OPTIONS);
 extern int VehColourIndex;
 
 // Vehicle Random Colour
@@ -88,19 +182,63 @@ const std::vector<std::string> VEH_RAND_COLOUR_CAPTIONS{ "Both Colours", "Primar
 extern int VehRandomColourIndex;
 
 //Turn Signals Off Acceleration
-const std::vector<std::string> VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS{ "OFF", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
-const int VEH_TURN_SIGNALS_ACCELERATION_VALUES[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+const Option<int> VEH_TURN_SIGNALS_ACCELERATION_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "1", 1 },
+	{ "2", 2 },
+	{ "3", 3 },
+	{ "4", 4 },
+	{ "5", 5 },
+	{ "6", 6 },
+	{ "7", 7 },
+	{ "8", 8 },
+	{ "9", 9 },
+	{ "10", 10 }
+};
+const std::vector<std::string> VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS = captionsOf(VEH_TURN_SIGNALS_ACCELERATION_OPTIONS);
+const std::vector<int> VEH_TURN_SIGNALS_ACCELERATION_VALUES = valuesOf(VEH_TURN_SIGNALS_ACCELERATION_OPTIONS);
 
 //Blip Size
-const std::vector<std::string> VEH_BLIPSIZE_CAPTIONS{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10" };
-const double VEH_BLIPSIZE_VALUES[] = { 0.3, 0.5, 0.8, 1.0, 1.2, 1.5, 1.7, 2.0, 2.5, 3.0 };
+const Option<double> VEH_BLIPSIZE_OPTIONS[] = {
+	{ "1", 0.3 },
+	{ "2", 0.5 },
+	{ "3", 0.8 },
+	{ "4", 1.0 },
+	{ "5", 1.2 },
+	{ "6", 1.5 },
+	{ "7", 1.7 },
+	{ "8", 2.0 },
+	{ "9", 2.5 },
+	{ "10", 3.0 }
+};
+const std::vector<std::string> VEH_BLIPSIZE_CAPTIONS = captionsOf(VEH_BLIPSIZE_OPTIONS);
+const std::vector<double> VEH_BLIPSIZE_VALUES = valuesOf(VEH_BLIPSIZE_OPTIONS);
 
-const std::vector<std::string> VEH_BLIPSYMBOL_CAPTIONS{ "Standard", "Player", "Waypoint", "ArrowUpOutlined" };
-const std::vector<int> VEH_BLIPSYMBOL_VALUES{ 1, 6, 8, 11 };
+const Option<int> VEH_BLIPSYMBOL_OPTIONS[] = {
+	{ "Standard", 1 },
+	{ "Player", 6 },
+	{ "Waypoint", 8 },
+	{ "ArrowUpOutlined", 11 }
+};
+const std::vector<std::string> VEH_BLIPSYMBOL_CAPTIONS = captionsOf(VEH_BLIPSYMBOL_OPTIONS);
+const std::vector<int> VEH_BLIPSYMBOL_VALUES = valuesOf(VEH_BLIPSYMBOL_OPTIONS);
 
 //Turn Signals Angle
-const std::vector<std::string> VEH_TURN_SIGNALS_ANGLE_CAPTIONS{ "0", "10", "20", "30", "40", "50", "60", "70", "80", "90", "100" };
-const int VEH_TURN_SIGNALS_ANGLE_VALUES[] = { 0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
+const Option<int> VEH_TURN_SIGNALS_ANGLE_OPTIONS[] = {
+	{ "0", 0 },
+	{ "10", 10 },
+	{ "20", 20 },
+	{ "30", 30 },
+	{ "40", 40 },
+	{ "50", 50 },
+	{ "60", 60 },
+	{ "70", 70 },
+	{ "80", 80 },
+	{ "90", 90 },
+	{ "100", 100 }
+};
+const std::vector<std::string> VEH_TURN_SIGNALS_ANGLE_CAPTIONS = captionsOf(VEH_TURN_SIGNALS_ANGLE_OPTIONS);
+const std::vector<int> VEH_TURN_SIGNALS_ANGLE_VALUES = valuesOf(VEH_TURN_SIGNALS_ANGLE_OPTIONS);
 
 extern int NPCVehicleDamageOnCollIndex;
 

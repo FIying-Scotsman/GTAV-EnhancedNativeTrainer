@@ -36,7 +36,9 @@ int E_Time_tick_mileage = 0;
 float e_mileage = 0;
 float e_randomize = -1;
 
-int EngineCooling_secs_passed, EngineCooling_secs_curr, EngineCooling_seconds = -1;
+int EngineCooling_secs_passed = 0;
+int EngineCooling_secs_curr = 0;
+int EngineCooling_seconds = -1;
 
 bool featureEngineDegrade = false;
 bool featureEngineHealthBar = false;

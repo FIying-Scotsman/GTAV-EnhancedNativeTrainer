@@ -863,7 +863,8 @@ bool onconfirm_paint_menu_type(MenuItem<int> choice){
 		paints = PAINTS_BY_TYPE[whichtype];
 	}
 
-	int matchIndex = 0, ps = paints.size();
+	int matchIndex = 0;
+	int ps = paints.size();
 
     switch (whichpart){
     case 5:
@@ -1004,7 +1005,11 @@ void apply_paint(PaintColor whichpaint){
 		if(PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
 			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 
-			int primary, secondary, pearl, wheel, colorIndex = whichpaint.colorIndex;
+			int primary = 0;
+			int secondary = 0;
+			int pearl = 0;
+			int wheel = 0;
+			int colorIndex = whichpaint.colorIndex;
 			VEHICLE::GET_VEHICLE_COLOURS(veh, &primary, &secondary);
 			VEHICLE::GET_VEHICLE_EXTRA_COLOURS(veh, &pearl, &wheel);
 

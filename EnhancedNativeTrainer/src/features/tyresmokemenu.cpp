@@ -36,7 +36,9 @@ bool onconfirm_smoke_selection(MenuItem<int> choice){
 void set_smoke(bool applied, std::vector<int> extras){
 	int loc = extras.at(0);
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	int rCol, bCol, gCol = bCol = rCol = 0;
+	int rCol = 0;
+	int bCol = 0;
+	int gCol = 0;
 	bool lightFound = false;
 
 	if(!is_this_a_car(veh) || !is_this_a_motorcycle(veh)){
@@ -63,7 +65,9 @@ bool process_smoke_colour_menu(){
 	int colIndex = -1;
 
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	int r = 0, g = 0, b = 0;
+	int r = 0;
+	int g = 0;
+	int b = 0;
 	VEHICLE::GET_VEHICLE_TYRE_SMOKE_COLOR(veh, &r, &g, &b);
 
 	for(int i = 0; i < SMOKE_COLORS.size(); i++){

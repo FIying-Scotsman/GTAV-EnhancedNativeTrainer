@@ -18,7 +18,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 // peds don't like Weapons variables
 int tick_pedagainstweapons = 0;
-int pw_tick_secs_passed, pw_tick_secs_curr = 0;
+int pw_tick_secs_passed = 0;
+int pw_tick_secs_curr = 0;
 bool featurePedAgainstWeapons = false;
 bool featureAgainstMeleeWeapons = false;
 bool featurePedAgainst = true;

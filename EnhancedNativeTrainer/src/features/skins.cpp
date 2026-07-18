@@ -27,7 +27,9 @@ bool featurepersprops = false;
 // auto skin variables
 bool auto_skin = false;
 bool reset_skin = false;
-int skin_tick, skin_tick_secs_passed, skin_tick_secs_curr = 0;
+int skin_tick = 0;
+int skin_tick_secs_passed = 0;
+int skin_tick_secs_curr = 0;
 Ped oldplayerSkin = -1;
 
 int skinDetailMenuIndex = 0;

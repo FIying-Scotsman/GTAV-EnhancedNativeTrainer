@@ -25,7 +25,9 @@ int activeLineIndexWeatherConfig = 0;
 std::string mixed_w1 = "EXTRASUNNY";
 std::string mixed_w2 = "CLEAR";
 float t_counter = 0.0;
-int w_secs_passed, w_secs_curr, w_seconds = -1;
+int w_secs_passed = 0;
+int w_secs_curr = 0;
+int w_seconds = -1;
 std::string lastWeather;
 std::string lastWeather_2;
 int weather_counter = 0;
@@ -43,7 +45,8 @@ int cop_blip_perm = -2;
 
 Vehicle veh_i_last_used = -1;
 
-int acid_counter, acid_counter_p = -1;
+int acid_counter = 0;
+int acid_counter_p = -1;
 
 bool snow_e = false;
 
@@ -54,12 +57,15 @@ bool no_grip_snowing_e = false;
 bool no_grip_when_wet_e = false;
 
 // peds chance to slip
-int s_tick_secs_passed, s_tick_secs_curr = 0;
-int l_tick_secs_curr, lightning_seconds = 0;
+int s_tick_secs_passed = 0;
+int s_tick_secs_curr = 0;
+int l_tick_secs_curr = 0;
+int lightning_seconds = 0;
 bool slipped = false;
 Ped temp_ped_s = -1;
 
-int slippery_s, slippery_r = 0;
+int slippery_s = 0;
+int slippery_r = 0;
 
 int winter_water_tick = 0;
 
@@ -127,7 +133,9 @@ bool featureMPMap = false;
 bool featureMPMapUpdated = true;
 int MPMapCounter = 0;
 
-bool radar_map_toogle_1, radar_map_toogle_2, radar_map_toogle_3 = false;
+bool radar_map_toogle_1 = false;
+bool radar_map_toogle_2 = false;
+bool radar_map_toogle_3 = false;
 
 std::string lastClouds;
 std::string lastCloudsName;
@@ -147,8 +155,13 @@ int RadarReducedGripRainingCustomIndex = 0;
 bool RadarReducedGripRainingChanged = true;
 
 // Wind Strength
-const std::vector<std::string> WORLD_WIND_STRENGTH_CAPTIONS{ "Calm", "Gentle Breeze", "Strong Breeze" };
-const int WORLD_WIND_STRENGTH_VALUES[] = { 0, 3, 999 };
+const Option<int> WORLD_WIND_STRENGTH_OPTIONS[] = {
+	{ "Calm", 0 },
+	{ "Gentle Breeze", 3 },
+	{ "Strong Breeze", 999 }
+};
+const std::vector<std::string> WORLD_WIND_STRENGTH_CAPTIONS = captionsOf(WORLD_WIND_STRENGTH_OPTIONS);
+const std::vector<int> WORLD_WIND_STRENGTH_VALUES = valuesOf(WORLD_WIND_STRENGTH_OPTIONS);
 int WindStrengthIndex = 0;
 bool WindStrengthChanged = true;
 
@@ -157,26 +170,67 @@ int WorldWavesIndex = 0;
 bool WorldWavesChanged = true;
 
 // Lightning Intensity
-const std::vector<std::string> WORLD_LIGHTNING_INTENSITY_CAPTIONS{ "OFF", "Often", "Very Often" };
-const int WORLD_LIGHTNING_INTENSITY_VALUES[] = { -2, 3, -1 };
+const Option<int> WORLD_LIGHTNING_INTENSITY_OPTIONS[] = {
+	{ "OFF", -2 },
+	{ "Often", 3 },
+	{ "Very Often", -1 }
+};
+const std::vector<std::string> WORLD_LIGHTNING_INTENSITY_CAPTIONS = captionsOf(WORLD_LIGHTNING_INTENSITY_OPTIONS);
+const std::vector<int> WORLD_LIGHTNING_INTENSITY_VALUES = valuesOf(WORLD_LIGHTNING_INTENSITY_OPTIONS);
 int featureLightIntensityIndex = 0;
 bool featureLightIntensityChanged = true;
 
 // Train Speed
-const std::vector<std::string> WORLD_TRAIN_SPEED_CAPTIONS{ "OFF", "0.0", "5.0", "15.0", "30.0", "60.0", "80.0", "130.0", "200.0", "300.0" };
-const float WORLD_TRAIN_SPEED_VALUES[] = { -1.0, 0.0, 5.0, 15.0, 30.0, 60.0, 80.0, 130.0, 200.0, 300.0 };
+const Option<float> WORLD_TRAIN_SPEED_OPTIONS[] = {
+	{ "OFF", -1.0 },
+	{ "0.0", 0.0 },
+	{ "5.0", 5.0 },
+	{ "15.0", 15.0 },
+	{ "30.0", 30.0 },
+	{ "60.0", 60.0 },
+	{ "80.0", 80.0 },
+	{ "130.0", 130.0 },
+	{ "200.0", 200.0 },
+	{ "300.0", 300.0 }
+};
+const std::vector<std::string> WORLD_TRAIN_SPEED_CAPTIONS = captionsOf(WORLD_TRAIN_SPEED_OPTIONS);
+const std::vector<float> WORLD_TRAIN_SPEED_VALUES = valuesOf(WORLD_TRAIN_SPEED_OPTIONS);
 int TrainSpeedIndex = 0;
 bool TrainSpeedChanged = true;
 
 // No Freeroam Activities
-const std::vector<std::string> WORLD_FREEROAM_ACTIVITIES_CAPTIONS{ "OFF", "Base Jumps", "Races", "Darts", "Golf", "Hunting", "Pilot School", "Shooting Range", "Tennis", "Triathlon", "Yoga", "ALL" };
-const int WORLD_FREEROAM_ACTIVITIES_VALUES[] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11 };
+const Option<int> WORLD_FREEROAM_ACTIVITIES_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "Base Jumps", 1 },
+	{ "Races", 2 },
+	{ "Darts", 3 },
+	{ "Golf", 4 },
+	{ "Hunting", 5 },
+	{ "Pilot School", 6 },
+	{ "Shooting Range", 7 },
+	{ "Tennis", 8 },
+	{ "Triathlon", 9 },
+	{ "Yoga", 10 },
+	{ "ALL", 11 }
+};
+const std::vector<std::string> WORLD_FREEROAM_ACTIVITIES_CAPTIONS = captionsOf(WORLD_FREEROAM_ACTIVITIES_OPTIONS);
+const std::vector<int> WORLD_FREEROAM_ACTIVITIES_VALUES = valuesOf(WORLD_FREEROAM_ACTIVITIES_OPTIONS);
 int featureFreeroamActivitiesIndex = 0;
 bool featureFreeroamActivitiesChanged = true;
 
 // Change Weather
-const std::vector<std::string> MISC_WEATHER_CHANGE_CAPTIONS{ "Default", "Every 1 Min", "Every 3 Min", "Every 5 Min", "Every 7 Min", "Every 10 Min", "Every 15 Min", "Every 30 Min" };
-const int MISC_WEATHER_CHANGE_VALUES[] = { 0, 60, 180, 300, 420, 600, 900, 1800 };
+const Option<int> MISC_WEATHER_CHANGE_OPTIONS[] = {
+	{ "Default", 0 },
+	{ "Every 1 Min", 60 },
+	{ "Every 3 Min", 180 },
+	{ "Every 5 Min", 300 },
+	{ "Every 7 Min", 420 },
+	{ "Every 10 Min", 600 },
+	{ "Every 15 Min", 900 },
+	{ "Every 30 Min", 1800 }
+};
+const std::vector<std::string> MISC_WEATHER_CHANGE_CAPTIONS = captionsOf(MISC_WEATHER_CHANGE_OPTIONS);
+const std::vector<int> MISC_WEATHER_CHANGE_VALUES = valuesOf(MISC_WEATHER_CHANGE_OPTIONS);
 int WeatherChangeIndex = 0;
 bool WeatherChangeChanged = true;
 

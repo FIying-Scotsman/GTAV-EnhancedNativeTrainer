@@ -58,9 +58,13 @@
     <ClCompile Include="src\xml\xml_import_export.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\common\option_table.h" />
     <ClInclude Include="src\common\vectorHelper.h" />
     <ClInclude Include="src\datasets\data_props.h" />
     <ClInclude Include="src\ent-enums.h" />
+    <ClInclude Include="src\vehicle_enums.h" />
+    <ClInclude Include="src\vehicle_hashes.h" />
+    <ClInclude Include="src\weapon_enums.h" />
     <ClInclude Include="src\features\aimbot_esp.h" />
     <ClInclude Include="src\features\airbrake.h" />
     <ClInclude Include="src\features\anims.h" />

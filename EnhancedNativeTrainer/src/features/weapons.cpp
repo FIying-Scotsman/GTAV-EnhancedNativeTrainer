@@ -52,12 +52,18 @@ bool requireRefreshOfWeaponSlotMenu = false;
 // give all weapons automatically variables
 bool featureGiveAllWeapons = false;
 bool featureAddAllWeaponsAttachments = false;
-int tick_allw, tick_firemode = 0;
-int w_tick_secs_passed, w_tick_secs_curr = 0;
-int tick_a_allw, w_a_tick_secs_curr = 0;
-Ped oldplayerPed_W, oldplayerPed_A = -1;
-bool PlayerUpdated_w, PlayerUpdated_a = true;
-int tick_s_allw, ss_tick_secs_curr = 0;
+int tick_allw = 0;
+int tick_firemode = 0;
+int w_tick_secs_passed = 0;
+int w_tick_secs_curr = 0;
+int tick_a_allw = 0;
+int w_a_tick_secs_curr = 0;
+Ped oldplayerPed_W = 0;
+Ped oldplayerPed_A = -1;
+bool PlayerUpdated_w = false;
+bool PlayerUpdated_a = true;
+int tick_s_allw = 0;
+int ss_tick_secs_curr = 0;
 Ped oldplayerPed_s = -1;
 bool PlayerUpdated_s = true;
 
@@ -75,8 +81,10 @@ int WeapFlashDistIndex = 0;
 bool WeapFlashDistChanged = true;
 
 bool featureWeaponInfiniteAmmo = false;
-bool featureWeaponInfiniteParachutes = false, featureWeaponInfiniteParachutesUpdated = false;
-bool featureWeaponNoParachutes = false, featureWeaponNoParachutesUpdated = false;
+bool featureWeaponInfiniteParachutes = false;
+bool featureWeaponInfiniteParachutesUpdated = false;
+bool featureWeaponNoParachutes = false;
+bool featureWeaponNoParachutesUpdated = false;
 bool featureWeaponNoReload = false;
 bool featureCopTakeWeapon = false;
 bool featureWeaponFireAmmo = false;
@@ -111,7 +119,9 @@ bool featurePowerPunch = false;
 bool someonehasgunandshooting = false;
 Ped shooting_criminal = -1;
 
-int s_vacuum_secs_passed, s_vacuum_secs_curr, vacuum_seconds = 0;
+int s_vacuum_secs_passed = 0;
+int s_vacuum_secs_curr = 0;
+int vacuum_seconds = 0;
 
 Ped temp_nearest_ped = -1;
 bool force_nearest_ped = false;
@@ -138,7 +148,9 @@ bool saved_parachute = false;
 int saved_parachute_tint = 0;
 int saved_armour = 0;
 
-int tick_rap_allw, w_tick_rap_secs_passed, ss_tick_rap_secs_curr = 0;
+int tick_rap_allw = 0;
+int w_tick_rap_secs_passed = 0;
+int ss_tick_rap_secs_curr = 0;
 
 //bool do_give_weapon(std::string modelName);
 
@@ -161,14 +173,24 @@ int VehCurrWeaponIndex = 0;
 bool VehCurrWeaponChanged = true;
 
 // Cop Wanted Level
-const std::vector<std::string> WEAPONS_COPALARM_CAPTIONS{ "One Star", "Two Stars Or Less", "Three Stars Or Less", "Four Stars Or Less", "Five Stars Or Less", "Always" };
-const int WEAPONS_COPALARM_VALUES[] = { 1, 2, 3, 4, 5, 6 };
+constexpr Option<int> COPALARM_OPTIONS[] = {
+	{ "One Star", 1 }, { "Two Stars Or Less", 2 }, { "Three Stars Or Less", 3 },
+	{ "Four Stars Or Less", 4 }, { "Five Stars Or Less", 5 }, { "Always", 6 }
+};
+const std::vector<std::string> WEAPONS_COPALARM_CAPTIONS = captionsOf(COPALARM_OPTIONS);
+const std::vector<int> WEAPONS_COPALARM_VALUES_VEC = valuesOf(COPALARM_OPTIONS);
+const int* const WEAPONS_COPALARM_VALUES = WEAPONS_COPALARM_VALUES_VEC.data();
 int CopAlarmIndex = 1;
 bool CopAlarmChanged = true;
 
 // Rapid Fire Speed
-const std::vector<std::string> WEAPONS_RAPIDFIRE_CAPTIONS{ "-8", "-7", "-6", "-5", "-4", "-3", "-2", "-1", "Default" };
-const int WEAPONS_RAPIDFIRE_VALUES[] = { 40, 35, 30, 25, 20, 15, 10, 5, -1 };
+constexpr Option<int> RAPIDFIRE_OPTIONS[] = {
+	{ "-8", 40 }, { "-7", 35 }, { "-6", 30 }, { "-5", 25 }, { "-4", 20 },
+	{ "-3", 15 }, { "-2", 10 }, { "-1", 5 }, { "Default", -1 }
+};
+const std::vector<std::string> WEAPONS_RAPIDFIRE_CAPTIONS = captionsOf(RAPIDFIRE_OPTIONS);
+const std::vector<int> WEAPONS_RAPIDFIRE_VALUES_VEC = valuesOf(RAPIDFIRE_OPTIONS);
+const int* const WEAPONS_RAPIDFIRE_VALUES = WEAPONS_RAPIDFIRE_VALUES_VEC.data();
 int RapidFireIndex = 8;
 bool RapidFireChanged = true;
 
@@ -414,7 +436,8 @@ void add_all_weapons_attachments(Ped choice) {
 	for (int a = 0; a < WEAPONTYPES_MOD.size(); a++) {
 		for (int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++) {
 			char *weaponName = (char *)WEAPONTYPES_MOD.at(a).c_str(), *compName = (char *)VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName), compHash = GAMEPLAY::GET_HASH_KEY(compName);
+			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+			Hash compHash = GAMEPLAY::GET_HASH_KEY(compName);
 			if (!WEAPON::HAS_PED_GOT_WEAPON(choice, weaponHash, 0)) {
 				break;
 			}
@@ -1245,7 +1268,8 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			for(int a = 0; a < WEAPONTYPES_MOD.size(); a++){
 				for(int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++){
 					char *weaponName = (char *) WEAPONTYPES_MOD.at(a).c_str(), *compName = (char *) VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-					Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName), compHash = GAMEPLAY::GET_HASH_KEY(compName);
+					Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+					Hash compHash = GAMEPLAY::GET_HASH_KEY(compName);
 					if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
 						break;
 					}
@@ -1834,7 +1858,9 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 					shown_vacuum_message = true;// Limit the number of times displayed
 				}
 				Vector3 obj_cor = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
-				float c_x, c_y, c_z = 0.0;
+				float c_x = 0;
+				float c_y = 0;
+				float c_z = 0.0;
 				Hash grenade = ENTITY::GET_ENTITY_MODEL(objects_g[i]);
 				if (/*grenade == 0x1152354B || */grenade == 0x741FD3C4) {
 					Vector3 gr_cor = ENTITY::GET_ENTITY_COORDS(objects_g[i], TRUE);

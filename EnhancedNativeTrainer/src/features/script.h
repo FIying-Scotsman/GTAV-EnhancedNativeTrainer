@@ -51,14 +51,41 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <fstream>
 
 //Player Health
-const std::vector<std::string> PLAYER_HEALTH_CAPTIONS{ "OFF", "1", "10", "20", "30", "50", "100", "200", "300", "500", "1000", "5000", "10000", "20000", "30000" };
-const int PLAYER_HEALTH_VALUES[] = { 0, 101, 110, 120, 130, 150, 200, 300, 400, 600, 1100, 5100, 10100, 20100, 30100 };
+const Option<int> PLAYER_HEALTH_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "1", 101 },
+	{ "10", 110 },
+	{ "20", 120 },
+	{ "30", 130 },
+	{ "50", 150 },
+	{ "100", 200 },
+	{ "200", 300 },
+	{ "300", 400 },
+	{ "500", 600 },
+	{ "1000", 1100 },
+	{ "5000", 5100 },
+	{ "10000", 10100 },
+	{ "20000", 20100 },
+	{ "30000", 30100 }
+};
+const std::vector<std::string> PLAYER_HEALTH_CAPTIONS = captionsOf(PLAYER_HEALTH_OPTIONS);
+const std::vector<int> PLAYER_HEALTH_VALUES = valuesOf(PLAYER_HEALTH_OPTIONS);
 extern int PedsHealthIndex;
 extern bool PedsHealthChanged;
 
 //Waves Intensity
-const std::vector<std::string> WORLD_WAVES_CAPTIONS{ "Default", "No Waves", "5x", "10x", "20x", "30x", "50x", "Freeze Waves" };
-const int WORLD_WAVES_VALUES[] = { -1, -2, 7, 10, 20, 30, 50, -100000000 }; // -400000
+const Option<int> WORLD_WAVES_OPTIONS[] = { // -400000
+	{ "Default", -1 },
+	{ "No Waves", -2 },
+	{ "5x", 7 },
+	{ "10x", 10 },
+	{ "20x", 20 },
+	{ "30x", 30 },
+	{ "50x", 50 },
+	{ "Freeze Waves", -100000000 }
+};
+const std::vector<std::string> WORLD_WAVES_CAPTIONS = captionsOf(WORLD_WAVES_OPTIONS);
+const std::vector<int> WORLD_WAVES_VALUES = valuesOf(WORLD_WAVES_OPTIONS);
 extern int WorldWavesIndex;
 
 extern Vehicle temp_vehicle;
@@ -251,8 +278,13 @@ extern int time_since_d;
 extern int time_since_a;
 
 // NPC Ragdoll If Shot
-const std::vector<std::string> NPC_RAGDOLL_CAPTIONS{ "OFF", "Never", "Always" };
-const int NPC_RAGDOLL_VALUES[] = { 0, 1, 2 };
+const Option<int> NPC_RAGDOLL_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "Never", 1 },
+	{ "Always", 2 }
+};
+const std::vector<std::string> NPC_RAGDOLL_CAPTIONS = captionsOf(NPC_RAGDOLL_OPTIONS);
+const std::vector<int> NPC_RAGDOLL_VALUES = valuesOf(NPC_RAGDOLL_OPTIONS);
 
 const int MISC_TRAINERCONTROL_VALUES[] = { 0, 1 };
 

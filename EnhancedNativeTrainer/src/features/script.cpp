@@ -59,7 +59,9 @@ int last_player_slot_seen = 0;
 
 int game_frame_num = 0;
 
-int jumpfly_secs_passed, jumpfly_secs_curr, jumpfly_tick = 0;
+int jumpfly_secs_passed = 0;
+int jumpfly_secs_curr = 0;
+int jumpfly_tick = 0;
 
 int fuelLevelOffset = -1;
 int fuelTankOffset = -1;
@@ -128,7 +130,8 @@ bool featureWantedLevelFrozenUpdated = false;
 //bool featureLevitation = false;
 bool featureNoScubaGearMask = false;
 bool featureNoScubaSound = false;
-bool super_jump_no_parachute, super_jump_intheair = false;
+bool super_jump_no_parachute = false;
+bool super_jump_intheair = false;
 bool manual_instant = false;
 bool first_person_rotate = false;
 bool featureWantedLevelNoPHeli = false;
@@ -145,7 +148,8 @@ bool featurePlayerCanBeHeadshot = false;
 bool featureRespawnsWhereDied = false;
 bool lev_message = false;
 bool engine_running = true;
-bool we_have_troubles, iaminside = false;
+bool we_have_troubles = false;
+bool iaminside = false;
 bool been_injured = true;
 bool p_invisible = false;
 bool featurePlayerLife = false;
@@ -155,13 +159,18 @@ bool apply_pressed = false;
 bool featureRagdollIfInjured = false;
 
 // ragdoll if injured variables
-bool been_damaged_by_weapon, ragdoll_task = false;
-float been_damaged_health, been_damaged_armor = -1;
+bool been_damaged_by_weapon = false;
+bool ragdoll_task = false;
+float been_damaged_health = 0;
+float been_damaged_armor = -1;
 int ragdoll_seconds = 0; 
 //
 Ped oldplayerPed = -1;
-int playerDataMenuIndex, playerPrisonMenuIndex, playerForceshieldMenuIndex = 0; // tick, 
-int scr_tick_secs_passed, scr_tick_secs_curr = 0;
+int playerDataMenuIndex = 0;
+int playerPrisonMenuIndex = 0;
+int playerForceshieldMenuIndex = 0; // tick, 
+int scr_tick_secs_passed = 0;
+int scr_tick_secs_curr = 0;
 int NPCragdollMenuIndex = 0;
 int PlayerMovementMenuIndex = 0;
 int PlayerMostWantedMenuIndex = 0;
@@ -180,11 +189,34 @@ char* mplayer_models[] = { "mp_f_freemode_01", "mp_m_freemode_01" };
 
 const char* CLIPSET_DRUNK = "move_m@drunk@verydrunk";
 
-const std::vector<std::string> GRAVITY_CAPTIONS{ "Minimum", "0.1x", "0.5x", "0.75x", "1x (Normal)" };
-const float GRAVITY_VALUES[] = { 0.0f, 0.1f, 0.5f, 0.75f, 1.0f };
+const Option<float> GRAVITY_OPTIONS[] = {
+	{ "Minimum", 0.0f },
+	{ "0.1x", 0.1f },
+	{ "0.5x", 0.5f },
+	{ "0.75x", 0.75f },
+	{ "1x (Normal)", 1.0f }
+};
+const std::vector<std::string> GRAVITY_CAPTIONS = captionsOf(GRAVITY_OPTIONS);
+const std::vector<float> GRAVITY_VALUES = valuesOf(GRAVITY_OPTIONS);
 
-const std::vector<std::string> REGEN_CAPTIONS{ "No Regeneration", "0.1x", "0.25x", "0.5x", "1x (Normal)", "2x", "5x", "10x", "20x", "50x", "100x", "200x", "500x", "1000x" };
-const float REGEN_VALUES[] = { 0.0f, 0.1f, 0.25f, 0.5f, 1.0f, 2.0f, 5.0f, 10.0f, 20.0f, 50.0f, 100.0f, 200.0f, 500.0f, 1000.0f };
+const Option<float> REGEN_OPTIONS[] = {
+	{ "No Regeneration", 0.0f },
+	{ "0.1x", 0.1f },
+	{ "0.25x", 0.25f },
+	{ "0.5x", 0.5f },
+	{ "1x (Normal)", 1.0f },
+	{ "2x", 2.0f },
+	{ "5x", 5.0f },
+	{ "10x", 10.0f },
+	{ "20x", 20.0f },
+	{ "50x", 50.0f },
+	{ "100x", 100.0f },
+	{ "200x", 200.0f },
+	{ "500x", 500.0f },
+	{ "1000x", 1000.0f }
+};
+const std::vector<std::string> REGEN_CAPTIONS = captionsOf(REGEN_OPTIONS);
+const std::vector<float> REGEN_VALUES = valuesOf(REGEN_OPTIONS);
 int current_regen_speed = 4;
 bool current_regen_speed_changed = true;
 
@@ -199,8 +231,18 @@ int wanted_maxpossible_level = 4;
 bool wanted_maxpossible_level_Changed = true;
 
 // Player Armor
-const std::vector<std::string> PLAYER_ARMOR_CAPTIONS{ "OFF", "0", "15", "20", "30", "40", "50", "100" };
-const int PLAYER_ARMOR_VALUES[] = { -1, 0, 15, 20, 30, 40, 50, 100 };
+const Option<int> PLAYER_ARMOR_OPTIONS[] = {
+	{ "OFF", -1 },
+	{ "0", 0 },
+	{ "15", 15 },
+	{ "20", 20 },
+	{ "30", 30 },
+	{ "40", 40 },
+	{ "50", 50 },
+	{ "100", 100 }
+};
+const std::vector<std::string> PLAYER_ARMOR_CAPTIONS = captionsOf(PLAYER_ARMOR_OPTIONS);
+const std::vector<int> PLAYER_ARMOR_VALUES = valuesOf(PLAYER_ARMOR_OPTIONS);
 int current_player_armor = 7;
 bool current_player_armor_Changed = true;
 int current_player_stats = 0;
@@ -230,8 +272,22 @@ int curr_cam = -1;
 int curr_hlth = -1;
 
 // Player Running Speed && Hancock Mode
-const std::vector<std::string> PLAYER_MOVEMENT_CAPTIONS{ "Normal", "0.5x", "1x", "2x", "3x", "4x", "5x", "6x", "7x", "8x", "9x", "10x" };
-const double PLAYER_MOVEMENT_VALUES[] = { 0.00, 0.60, 1.00, 2.00, 3.00, 4.00, 5.00, 6.00, 7.00, 8.00, 9.00, 10.00 };
+const Option<double> PLAYER_MOVEMENT_OPTIONS[] = {
+	{ "Normal", 0.00 },
+	{ "0.5x", 0.60 },
+	{ "1x", 1.00 },
+	{ "2x", 2.00 },
+	{ "3x", 3.00 },
+	{ "4x", 4.00 },
+	{ "5x", 5.00 },
+	{ "6x", 6.00 },
+	{ "7x", 7.00 },
+	{ "8x", 8.00 },
+	{ "9x", 9.00 },
+	{ "10x", 10.00 }
+};
+const std::vector<std::string> PLAYER_MOVEMENT_CAPTIONS = captionsOf(PLAYER_MOVEMENT_OPTIONS);
+const std::vector<double> PLAYER_MOVEMENT_VALUES = valuesOf(PLAYER_MOVEMENT_OPTIONS);
 int current_player_movement = 0;
 bool current_player_movement_Changed = true; 
 int current_player_jumpfly = 0;

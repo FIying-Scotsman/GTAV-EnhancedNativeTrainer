@@ -7,8 +7,16 @@ extern bool featureDriverAgainst;
 extern bool featurePoliceAgainst;
 
 // Chance Of Police Calling
-const std::vector<std::string> WEAPONS_CHANCEPOLICECALLING_CAPTIONS{ "Zero", "Tiny", "Some", "50/50", "Good", "Great" };
-const int WEAPONS_CHANCEPOLICECALLING_VALUES[] = { 0, 2, 10, 30, 50, 70 };
+const Option<int> WEAPONS_CHANCEPOLICECALLING_OPTIONS[] = {
+	{ "Zero", 0 },
+	{ "Tiny", 2 },
+	{ "Some", 10 },
+	{ "50/50", 30 },
+	{ "Good", 50 },
+	{ "Great", 70 }
+};
+const std::vector<std::string> WEAPONS_CHANCEPOLICECALLING_CAPTIONS = captionsOf(WEAPONS_CHANCEPOLICECALLING_OPTIONS);
+const std::vector<int> WEAPONS_CHANCEPOLICECALLING_VALUES = valuesOf(WEAPONS_CHANCEPOLICECALLING_OPTIONS);
 extern int ChancePoliceCallingIndex;
 extern bool ChancePoliceCallingChanged;
 

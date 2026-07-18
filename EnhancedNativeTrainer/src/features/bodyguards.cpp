@@ -29,13 +29,15 @@ const int BODYGUARD_LIMIT = 7;
 Ped cop_to_kill;
 float dist_diff = -1;
 
-int pop, all_selected = -1;
+int pop = 0;
+int all_selected = -1;
 std::vector<Hash> WEAPONS;
 std::vector<Ped> spawnedENTBodyguards;
 std::vector<Hash> spawnedBodyguardsSecWeap;
 std::vector<bool*> bodyguardWeaponsToggle[8];
 bool bodyguardWeaponsToggleInitialized = false;
-bool bod_pass, me_to_follow = false;
+bool bod_pass = false;
+bool me_to_follow = false;
 std::vector<Vehicle> B_VEHICLE;
 Hash tmp_w = -1;
 
@@ -79,7 +81,8 @@ bool hotkey_b = false;
 int b_follow_m = -2;
 
 bool added_nearest_b = false;
-Ped bodyGuard, temp_bodyguard = -1;
+Ped bodyGuard = 0;
+Ped temp_bodyguard = -1;
 
 // modify skin
 int skinBodDetailMenuIndex = 0;
@@ -130,8 +133,13 @@ int BodyBlipSymbolIndexN = 0;
 bool BodyBlipSymbol_Changed = true;
 
 //Group Formation
-const std::vector<std::string> BODY_GROUPFORMATION_CAPTIONS{ "Default", "Circle Around Leader", "Line With Leader At Center" };
-const int BODY_GROUPFORMATION_VALUES[] = { 0, 1, 3 };
+const Option<int> BODY_GROUPFORMATION_OPTIONS[] = {
+	{ "Default", 0 },
+	{ "Circle Around Leader", 1 },
+	{ "Line With Leader At Center", 3 }
+};
+const std::vector<std::string> BODY_GROUPFORMATION_CAPTIONS = captionsOf(BODY_GROUPFORMATION_OPTIONS);
+const std::vector<int> BODY_GROUPFORMATION_VALUES = valuesOf(BODY_GROUPFORMATION_OPTIONS);
 int BodyGroupFormationIndex = 1;
 bool BodyGroupFormationChanged = true;
 
@@ -150,8 +158,16 @@ bool FollowInVehicleChanged = true;
 int BodyHealthIndex = 6;
 bool BodyHealthChanged = true;
 
-const std::vector<std::string> SKINS_ANIMALS_CAPTIONS{ "Chop", "German Shepherd", "Husky", "Mountain Lion", "Panther", "Retriever" };
-const std::vector<std::string> SKINS_ANIMALS_VALUES{ "a_c_chop", "a_c_shepherd", "a_c_husky", "a_c_mtlion", "a_c_Panther", "a_c_retriever" };
+const Option<std::string> SKINS_ANIMALS_OPTIONS[] = {
+	{ "Chop", "a_c_chop" },
+	{ "German Shepherd", "a_c_shepherd" },
+	{ "Husky", "a_c_husky" },
+	{ "Mountain Lion", "a_c_mtlion" },
+	{ "Panther", "a_c_Panther" },
+	{ "Retriever", "a_c_retriever" }
+};
+const std::vector<std::string> SKINS_ANIMALS_CAPTIONS = captionsOf(SKINS_ANIMALS_OPTIONS);
+const std::vector<std::string> SKINS_ANIMALS_VALUES = valuesOf(SKINS_ANIMALS_OPTIONS);
 
 // Modify Skin
 std::string getBodSkinDetailAttribDescription(int i)
@@ -1574,7 +1590,8 @@ void do_spawn_bodyguard(){
 	bodyGuard = -1;
 	bool exist_already = false;
 	DWORD bodyGuardModel = -1;
-	float random_category, random_bodyguard = -1;
+	float random_category = 0;
+	float random_bodyguard = -1;
 
 	if (hotkey_boddyguard == true && hotkey_b == false) {
 		hotkey_b = true;
@@ -2010,7 +2027,8 @@ void maintain_bodyguards(){
 				for (int a = 0; a < WEAPONTYPES_MOD.size(); a++) {
 					for (int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++) {
 						char* weaponName = (char*)WEAPONTYPES_MOD.at(a).c_str(), * compName = (char*)VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-						Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName), compHash = GAMEPLAY::GET_HASH_KEY(compName);
+						Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+						Hash compHash = GAMEPLAY::GET_HASH_KEY(compName);
 						if (weaponHash == WEAPON::GET_SELECTED_PED_WEAPON(PLAYER::PLAYER_PED_ID())) {
 							if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(PLAYER::PLAYER_PED_ID(), weaponHash, compHash)) {
 								WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(spawnedENTBodyguards[i], WEAPON::GET_SELECTED_PED_WEAPON(spawnedENTBodyguards[i]), compHash);

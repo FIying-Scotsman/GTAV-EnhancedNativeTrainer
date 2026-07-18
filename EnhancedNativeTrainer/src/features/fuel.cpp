@@ -52,9 +52,15 @@ bool featureHideFuelBar = false;
 
 bool gauge_ini = false;
 
-int IdleConsume_secs_passed, IdleConsume_secs_curr, IdleConsume_seconds = -1;
-int f_secs_passed, f_secs_curr, f_seconds = -1;
-int ref_secs_passed, ref_secs_curr, ref_seconds = 0;
+int IdleConsume_secs_passed = 0;
+int IdleConsume_secs_curr = 0;
+int IdleConsume_seconds = -1;
+int f_secs_passed = 0;
+int f_secs_curr = 0;
+int f_seconds = -1;
+int ref_secs_passed = 0;
+int ref_secs_curr = 0;
+int ref_seconds = 0;
 
 float curr_fuel_perc = -1.0f;
 float curr_fuel_a = -1.0f;

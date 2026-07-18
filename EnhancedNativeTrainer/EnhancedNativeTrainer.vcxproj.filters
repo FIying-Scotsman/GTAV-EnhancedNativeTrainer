@@ -225,6 +225,9 @@
     <ClInclude Include="src\common\vectorHelper.h">
       <Filter>inc\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\option_table.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
     <ClInclude Include="src\ui_support\entcolor.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
@@ -238,6 +241,15 @@
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="src\ent-enums.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vehicle_enums.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vehicle_hashes.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\weapon_enums.h">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\main.h">

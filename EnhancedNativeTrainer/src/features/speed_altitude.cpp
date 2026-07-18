@@ -38,8 +38,10 @@ bool SizeChanged = true;
 int SpeedPositionIndexN = 0;
 bool PositionChanged = true;
 
-float textX, textY = -1;
-float rectXScaled, rectYScaled = -1;
+float textX = 0;
+float textY = -1;
+float rectXScaled = 0;
+float rectYScaled = -1;
 
 //////////////////////////////////////////// SHOW SPEED / ALTITUDE ///////////////////////////////////////////
 void update_speed_text(int speed, Vector3 player_coords)

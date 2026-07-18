@@ -14,20 +14,48 @@ extern int TelChauffeurIndex;
 extern bool TelChauffeur_Changed;
 
 //Chauffeur Speed
-const std::vector<std::string> TEL_CHAUFFEUR_SPEED_CAPTIONS{ "20", "40", "70", "100", "120", "150", "200" }; // "30", "50", 
-const int TEL_CHAUFFEUR_SPEED_VALUES[] = { 20, 40, 70, 100, 120, 150, 200 }; // 30, 50, 
+const Option<int> TEL_CHAUFFEUR_SPEED_OPTIONS[] = { // "30", "50",  // 30, 50, 
+	{ "20", 20 },
+	{ "40", 40 },
+	{ "70", 70 },
+	{ "100", 100 },
+	{ "120", 120 },
+	{ "150", 150 },
+	{ "200", 200 }
+};
+const std::vector<std::string> TEL_CHAUFFEUR_SPEED_CAPTIONS = captionsOf(TEL_CHAUFFEUR_SPEED_OPTIONS);
+const std::vector<int> TEL_CHAUFFEUR_SPEED_VALUES = valuesOf(TEL_CHAUFFEUR_SPEED_OPTIONS);
 extern int TelChauffeur_speed_IndexN;
 extern bool TelChauffeur_speed_Changed;
 
 //Chauffeur Altitude
-const std::vector<std::string> TEL_CHAUFFEUR_ALTITUDE_CAPTIONS{ "10", "30", "50", "100", "200", "300", "500", "1000", "1500", "2000", "2500" };
-const int TEL_CHAUFFEUR_ALTITUDE_VALUES[] = { 10, 30, 50, 100, 200, 300, 500, 1000, 1500, 2000, 2500 };
+const Option<int> TEL_CHAUFFEUR_ALTITUDE_OPTIONS[] = {
+	{ "10", 10 },
+	{ "30", 30 },
+	{ "50", 50 },
+	{ "100", 100 },
+	{ "200", 200 },
+	{ "300", 300 },
+	{ "500", 500 },
+	{ "1000", 1000 },
+	{ "1500", 1500 },
+	{ "2000", 2000 },
+	{ "2500", 2500 }
+};
+const std::vector<std::string> TEL_CHAUFFEUR_ALTITUDE_CAPTIONS = captionsOf(TEL_CHAUFFEUR_ALTITUDE_OPTIONS);
+const std::vector<int> TEL_CHAUFFEUR_ALTITUDE_VALUES = valuesOf(TEL_CHAUFFEUR_ALTITUDE_OPTIONS);
 extern int TelChauffeur_altitude_Index;
 extern bool TelChauffeur_altitude_Changed;
 
 //Driving Styles
-const std::vector<std::string> TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS{ "Careless Driver", "Careful Driver", "Prioritise Shortcuts", "Straight To Target" };
-const int TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES[] = { 786468, 1074528293, 262144, 16777216 };
+const Option<int> TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS[] = {
+	{ "Careless Driver", 786468 },
+	{ "Careful Driver", 1074528293 },
+	{ "Prioritise Shortcuts", 262144 },
+	{ "Straight To Target", 16777216 }
+};
+const std::vector<std::string> TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS = captionsOf(TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS);
+const std::vector<int> TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES = valuesOf(TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS);
 extern int TelChauffeur_drivingstyles_Index;
 extern bool TelChauffeur_drivingstyles_Changed;
 

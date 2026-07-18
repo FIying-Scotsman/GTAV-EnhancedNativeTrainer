@@ -26,7 +26,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 // prison break variables
 bool riot_attempt = false;
 int tick_callpoliceaboutfugitive = 0;
-bool detained, in_prison = false;
+bool detained = false;
+bool in_prison = false;
 bool will_pay_money_for_escape = false;
 int alert_level = 0;
 bool npc_skin = false;
@@ -34,18 +35,24 @@ int time_in_prison_tick = -1;
 bool out_of_prison = true;
 bool ExPrisonerDrunk = false;
 int ExPrisonerDrunk_tick = -1;
-int secs, mins, secs_difference = -1;
+int secs = 0;
+int mins = 0;
+int secs_difference = -1;
 int seconds_to_show = 60;
 char* seconds_to_show_char = "60";
 char* minutes_to_show_char = "60";
 char seconds_to_show_char_modifiable[2], minutes_to_show_char_modifiable[2];
 bool clear_wanted_level = false;
 int populate_tick = 0;
-int pb_tick_secs_passed, pb_tick_secs_curr = 0;
+int pb_tick_secs_passed = 0;
+int pb_tick_secs_curr = 0;
 Hash JailGuard_Weapon2 = -1;
-Ped prisonPed, temp_ped1, temp_ped2 = -1;
+Ped prisonPed = 0;
+Ped temp_ped1 = 0;
+Ped temp_ped2 = -1;
 std::vector<Ped> ADDITIONAL_PRISONERS;
-bool alert_police_about_fugitive_close, alert_police_about_fugitive_distant = false;
+bool alert_police_about_fugitive_close = false;
+bool alert_police_about_fugitive_distant = false;
 
 bool featurePrison_Hardcore = false;
 bool featurePrison_Robe = false;
@@ -72,9 +79,12 @@ void prison_break()
 		Ped guards[arrSize3];
 		int count_prison_guards = worldGetAllPeds(guards, arrSize3);
 
-		float distance_from_center_x, distance_from_center_y = -1;
-		float distance_from_guard_x, distance_from_guard_y = -1;
-		float distance_guard_from_center_x, distance_guard_from_center_y = -1;
+		float distance_from_center_x = 0;
+		float distance_from_center_y = -1;
+		float distance_from_guard_x = 0;
+		float distance_from_guard_y = -1;
+		float distance_guard_from_center_x = 0;
+		float distance_guard_from_center_y = -1;
 
 		// Prison center coords
 		float prison_x = 1689.69;

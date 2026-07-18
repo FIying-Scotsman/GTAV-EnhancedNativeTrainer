@@ -58,8 +58,21 @@ const std::vector<std::string> MISC_FILTERS_VALUES{ "DEFAULT", "AmbientPUSH", "B
 const std::vector<std::string> MISC_TRAINERCONTROL_CAPTIONS{ "On Release", "On Press" };
 extern int TrainerControlIndex;
 
-const std::vector<std::string> MISC_PHONE_BILL_CAPTIONS{ "10$", "50$", "100$", "500$", "1000$", "5000$", "10000$", "50000$", "100000$", "500000$", "1000000$" };
-const float MISC_PHONE_BILL_VALUES[] = { 10.0, 50.0, 100.0, 500.0, 1000.0, 5000.0, 10000.0, 50000.0, 100000.0, 500000.0, 1000000.0 };
+const Option<float> MISC_PHONE_BILL_OPTIONS[] = {
+	{ "10$", 10.0 },
+	{ "50$", 50.0 },
+	{ "100$", 100.0 },
+	{ "500$", 500.0 },
+	{ "1000$", 1000.0 },
+	{ "5000$", 5000.0 },
+	{ "10000$", 10000.0 },
+	{ "50000$", 50000.0 },
+	{ "100000$", 100000.0 },
+	{ "500000$", 500000.0 },
+	{ "1000000$", 1000000.0 }
+};
+const std::vector<std::string> MISC_PHONE_BILL_CAPTIONS = captionsOf(MISC_PHONE_BILL_OPTIONS);
+const std::vector<float> MISC_PHONE_BILL_VALUES = valuesOf(MISC_PHONE_BILL_OPTIONS);
 
 extern const Hash PLAYER_ZERO;
 extern const Hash PLAYER_ONE;
@@ -69,12 +82,31 @@ extern const Hash SP0_TOTAL_CASH;
 extern const Hash SP1_TOTAL_CASH;
 extern const Hash SP2_TOTAL_CASH;
 
-const std::vector<std::string> MISC_DEF_MENUTAB_CAPTIONS{ "OFF", "Map", "Brief", "Friends", "Gallery", "Game", "Settings", "Stats", "Store", "Online" };
-const int MISC_DEF_MANUTAB_VALUES[] = { -2, -1, 1, 2, 3, 5, 6, 10, 18, 42 };
+const Option<int> MISC_DEF_MENUTAB_OPTIONS[] = {
+	{ "OFF", -2 },
+	{ "Map", -1 },
+	{ "Brief", 1 },
+	{ "Friends", 2 },
+	{ "Gallery", 3 },
+	{ "Game", 5 },
+	{ "Settings", 6 },
+	{ "Stats", 10 },
+	{ "Store", 18 },
+	{ "Online", 42 }
+};
+const std::vector<std::string> MISC_DEF_MENUTAB_CAPTIONS = captionsOf(MISC_DEF_MENUTAB_OPTIONS);
+const std::vector<int> MISC_DEF_MANUTAB_VALUES = valuesOf(MISC_DEF_MENUTAB_OPTIONS);
 extern int DefMenuTabIndex;
 
-const std::vector<std::string> MISC_PHONE_FREESECONDS_CAPTIONS{ "0", "3", "5", "10", "15" };
-const int MISC_PHONE_FREESECONDS_VALUES[] = { 0, 3, 5, 10, 15 };
+const Option<int> MISC_PHONE_FREESECONDS_OPTIONS[] = {
+	{ "0", 0 },
+	{ "3", 3 },
+	{ "5", 5 },
+	{ "10", 10 },
+	{ "15", 15 }
+};
+const std::vector<std::string> MISC_PHONE_FREESECONDS_CAPTIONS = captionsOf(MISC_PHONE_FREESECONDS_OPTIONS);
+const std::vector<int> MISC_PHONE_FREESECONDS_VALUES = valuesOf(MISC_PHONE_FREESECONDS_OPTIONS);
 
 extern bool featureGamePause;
 

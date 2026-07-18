@@ -47,8 +47,10 @@ bool featureGamePause = false;
 bool featureZeroBalance = false;
 bool featurePhone3DOnBike = false;
 bool featureNoPhoneOnHUD = false;
-int secs_passed, secs_curr = -1;
-float temp_seconds, bill_seconds = 0;
+int secs_passed = 0;
+int secs_curr = -1;
+float temp_seconds = 0;
+float bill_seconds = 0;
 float bill_to_pay = -1;
 
 bool featureDisableRecording = false;
@@ -56,11 +58,14 @@ bool featureNoNotifications = false;
 
 // dynamic health bar variables
 bool featureDynamicHealthBar = false;
-int temp_h, temp_h_d = -1;
+int temp_h = 0;
+int temp_h_d = -1;
 bool dynamic_loading = true;
 bool been_damaged = false;
-float curr_damaged_health, curr_damaged_armor = -1;
-int healthbar_secs_curr, healthbar_seconds = -1; 
+float curr_damaged_health = 0;
+float curr_damaged_armor = -1;
+int healthbar_secs_curr = 0;
+int healthbar_seconds = -1;
 float health_bar_x = 0.015;
 float health_bar_y = 0.966;
 
@@ -79,12 +84,15 @@ bool p_exist = false;
 
 bool radio_pressed = false;
 
-int r_secs_passed, r_secs_curr, r_seconds = -1;
+int r_secs_passed = 0;
+int r_secs_curr = 0;
+int r_seconds = -1;
 
 bool radio_v_checked = false;
 bool no_blur_initialized = false;
 
-bool no_phone, bill_no_phone = false;
+bool no_phone = false;
+bool bill_no_phone = false;
 
 Vehicle playerVeh = -1;
 
@@ -96,17 +104,23 @@ static uintptr_t* g_unkRadioStationData;
 bool skip_track_pressed = false;
 
 // Cutscene Viewer & First Person Cutscene Camera
-bool cutscene_is_playing, cutscene_being_watched, found_ped_in_cutscene = false;
+bool cutscene_is_playing = false;
+bool cutscene_being_watched = false;
+bool found_ped_in_cutscene = false;
 bool con_disabled = false;
 bool manual_cutscene = false;
-Ped curr_cut_ped_me, my_first_coords, curr_cut_ped, switched_c = -1;
+Ped curr_cut_ped_me = 0;
+Ped my_first_coords = 0;
+Ped curr_cut_ped = 0;
+Ped switched_c = -1;
 bool featureFirstPersonCutscene = false;
 
 bool featurePlayerRadio = false;
 bool featureDisablePhone = false;
 bool featureDisablePhoneMenu = false;
 bool featurePlayerRadioUpdated = false;
-bool featureRadioFreeze = false, featureRadioFreezeUpdated = false;
+bool featureRadioFreeze = false;
+bool featureRadioFreezeUpdated = false;
 bool featureBoostRadio = true;
 bool featureRealisticRadioVolume = false;
 bool featureWantedMusic = false;
@@ -149,7 +163,8 @@ Camera StuntCam = NULL;
 
 // First Person Cutscene Camera Variables
 Cam CutCam = NULL;
-Object xaxis, zaxis = -1;
+Object xaxis = 0;
+Object zaxis = -1;
 
 // Main characters
 const Hash PLAYER_ZERO = 0xD7114C9;
@@ -178,8 +193,16 @@ int DefMenuTabIndex = 0;
 bool DefMenuTabChanged = true;
 
 // Default Phone
-const std::vector<std::string> MISC_PHONE_DEFAULT_CAPTIONS{ "OFF", "Michael's", "Trevor's", "Franklin's", "Military", "Prologue" };
-const int MISC_PHONE_DEFAULT_VALUES[] = { -1, 0, 1, 2, 3, 4 };
+const Option<int> MISC_PHONE_DEFAULT_OPTIONS[] = {
+	{ "OFF", -1 },
+	{ "Michael's", 0 },
+	{ "Trevor's", 1 },
+	{ "Franklin's", 2 },
+	{ "Military", 3 },
+	{ "Prologue", 4 }
+};
+const std::vector<std::string> MISC_PHONE_DEFAULT_CAPTIONS = captionsOf(MISC_PHONE_DEFAULT_OPTIONS);
+const std::vector<int> MISC_PHONE_DEFAULT_VALUES = valuesOf(MISC_PHONE_DEFAULT_OPTIONS);
 int PhoneDefaultIndex = 0;
 bool PhoneDefaultChanged = true;
 
@@ -189,8 +212,18 @@ int RadioOffIndex = 0;
 bool RadioOffChanged = true;
 
 // Radio Station Shuffle
-const std::vector<std::string> MISC_RADIO_SWITCHING_CAPTIONS{ "OFF", "Via 'Next Radio Track'", "Every 3 Min", "Every 5 Min", "Every 7 Min", "Every 10 Min", "Every 15 Min", "Every 30 Min" };
-const int MISC_RADIO_SWITCHING_VALUES[] = { 0, 1, 180, 300, 420, 600, 900, 1800 };
+const Option<int> MISC_RADIO_SWITCHING_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "Via 'Next Radio Track'", 1 },
+	{ "Every 3 Min", 180 },
+	{ "Every 5 Min", 300 },
+	{ "Every 7 Min", 420 },
+	{ "Every 10 Min", 600 },
+	{ "Every 15 Min", 900 },
+	{ "Every 30 Min", 1800 }
+};
+const std::vector<std::string> MISC_RADIO_SWITCHING_CAPTIONS = captionsOf(MISC_RADIO_SWITCHING_OPTIONS);
+const std::vector<int> MISC_RADIO_SWITCHING_VALUES = valuesOf(MISC_RADIO_SWITCHING_OPTIONS);
 int RadioSwitchingIndex = 0;
 bool RadioSwitchingChanged = true;
 

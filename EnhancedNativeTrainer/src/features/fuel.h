@@ -9,8 +9,26 @@ extern bool featureFuelGauge;
 extern bool featureHideFuelBar;
 
 //Car Fuel
-const std::vector<std::string> VEH_CARFUEL_CAPTIONS{ "NO", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15" };
-const int VEH_CARFUEL_VALUES[] = { 0, 20000000, 10000000, 5000000, 3000000, 2000000, 1500000, 1000000, 800000, 700000, 650000, 600000, 400000, 350000, 220000, 100000 };
+const Option<int> VEH_CARFUEL_OPTIONS[] = {
+	{ "NO", 0 },
+	{ "1", 20000000 },
+	{ "2", 10000000 },
+	{ "3", 5000000 },
+	{ "4", 3000000 },
+	{ "5", 2000000 },
+	{ "6", 1500000 },
+	{ "7", 1000000 },
+	{ "8", 800000 },
+	{ "9", 700000 },
+	{ "10", 650000 },
+	{ "11", 600000 },
+	{ "12", 400000 },
+	{ "13", 350000 },
+	{ "14", 220000 },
+	{ "15", 100000 }
+};
+const std::vector<std::string> VEH_CARFUEL_CAPTIONS = captionsOf(VEH_CARFUEL_OPTIONS);
+const std::vector<int> VEH_CARFUEL_VALUES = valuesOf(VEH_CARFUEL_OPTIONS);
 //const std::vector<std::string> VEH_CARFUEL_CAPTIONS{ "NO", "0.1", "0.5", "1.0", "1.4", "1.8", "2.2", "2.6", "2.8", "3.0", "3.3", "3.6", "5.0", "6.0", "8.0", "10.0" };
 //const int VEH_CARFUEL_VALUES[] = { 0, 20000000, 10000000, 5000000, 3500000, 3000000, 2600000, 2200000, 1800000, 1700000, 1600000, 1400000, 1300000, 1000000, 400000, 100000 };
 extern int CarConsumptionIndex;
@@ -21,13 +39,50 @@ extern int HeliConsumptionIndex;
 extern int IdleConsumptionIndex;
 
 //Refueling Speed
-const std::vector<std::string> VEH_REFUELSPEED_CAPTIONS{ "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14" };
-const int VEH_REFUELSPEED_VALUES[] = { 1, 2, 4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192 };
+const Option<int> VEH_REFUELSPEED_OPTIONS[] = {
+	{ "1", 1 },
+	{ "2", 2 },
+	{ "3", 4 },
+	{ "4", 8 },
+	{ "5", 16 },
+	{ "6", 32 },
+	{ "7", 64 },
+	{ "8", 128 },
+	{ "9", 256 },
+	{ "10", 512 },
+	{ "11", 1024 },
+	{ "12", 2048 },
+	{ "13", 4096 },
+	{ "14", 8192 }
+};
+const std::vector<std::string> VEH_REFUELSPEED_CAPTIONS = captionsOf(VEH_REFUELSPEED_OPTIONS);
+const std::vector<int> VEH_REFUELSPEED_VALUES = valuesOf(VEH_REFUELSPEED_OPTIONS);
 extern int RefuelingSpeedIndex;
 
 //Fuel Price
-const std::vector<std::string> VEH_FUELPRICE_CAPTIONS{ "NO", "0.1", "0.5", "1.0", "2.0", "3.0", "4.0", "5.0", "10.0", "20.0", "30.0", "50.0", "100.0", "200.0", "300.0", "500.0", "1000.0", "5000.0", "10000.0" };
-const double VEH_FUELPRICE_VALUES[] = { 0, 0.1, 0.5, 1, 2, 3, 4, 5, 10, 20, 30, 50, 100, 200, 300, 500, 1000, 5000, 10000 };
+const Option<double> VEH_FUELPRICE_OPTIONS[] = {
+	{ "NO", 0 },
+	{ "0.1", 0.1 },
+	{ "0.5", 0.5 },
+	{ "1.0", 1 },
+	{ "2.0", 2 },
+	{ "3.0", 3 },
+	{ "4.0", 4 },
+	{ "5.0", 5 },
+	{ "10.0", 10 },
+	{ "20.0", 20 },
+	{ "30.0", 30 },
+	{ "50.0", 50 },
+	{ "100.0", 100 },
+	{ "200.0", 200 },
+	{ "300.0", 300 },
+	{ "500.0", 500 },
+	{ "1000.0", 1000 },
+	{ "5000.0", 5000 },
+	{ "10000.0", 10000 }
+};
+const std::vector<std::string> VEH_FUELPRICE_CAPTIONS = captionsOf(VEH_FUELPRICE_OPTIONS);
+const std::vector<double> VEH_FUELPRICE_VALUES = valuesOf(VEH_FUELPRICE_OPTIONS);
 extern int FuelPriceIndex;
 extern int JerrycanPriceIndex;
 

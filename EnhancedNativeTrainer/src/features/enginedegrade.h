@@ -15,8 +15,21 @@ extern int BoatEngineHealthIndexN;
 extern int RestorationSpeedIndexN;
 
 // Engine Damage Speed (% Per Mile)
-const std::vector<std::string> VEH_ENGINEDEGRADE_CAPTIONS{ "0.1", "0.5", "0.7", "1.0", "1.5", "2.0", "3.0", "5.0", "7.0", "10.0", "20.0" };
-const double VEH_ENGINEDEGRADE_VALUES[] = { 0.1, 0.5, 0.7, 1.0, 1.5, 2.0, 3.0, 5.0, 7.0, 10.0, 20.0 };
+const Option<double> VEH_ENGINEDEGRADE_OPTIONS[] = {
+	{ "0.1", 0.1 },
+	{ "0.5", 0.5 },
+	{ "0.7", 0.7 },
+	{ "1.0", 1.0 },
+	{ "1.5", 1.5 },
+	{ "2.0", 2.0 },
+	{ "3.0", 3.0 },
+	{ "5.0", 5.0 },
+	{ "7.0", 7.0 },
+	{ "10.0", 10.0 },
+	{ "20.0", 20.0 }
+};
+const std::vector<std::string> VEH_ENGINEDEGRADE_CAPTIONS = captionsOf(VEH_ENGINEDEGRADE_OPTIONS);
+const std::vector<double> VEH_ENGINEDEGRADE_VALUES = valuesOf(VEH_ENGINEDEGRADE_OPTIONS);
 extern int CarEngineDegradeIndex;
 extern int BikeEngineDegradeIndex;
 extern int PlaneEngineDegradeIndex;

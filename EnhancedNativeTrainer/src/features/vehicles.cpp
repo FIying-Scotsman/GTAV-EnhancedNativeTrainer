@@ -54,13 +54,16 @@ int veh_jumped_n = 0;
 
 Camera AvisaCam = NULL;
 
-int Accel_secs_passed, Accel_secs_curr, Accel_seconds = 0;
+int Accel_secs_passed = 0;
+int Accel_secs_curr = 0;
+int Accel_seconds = 0;
 
 bool reversing_c = false;
 bool accelerating_c = false; 
 
 Vehicle current_veh_e = -1;
-Vehicle temp_vehicle, playerVehicle_s = -1;
+Vehicle temp_vehicle = 0;
+Vehicle playerVehicle_s = -1;
 Ped temp_ped = -1;
 
 bool repairing_engine = false;
@@ -76,16 +79,22 @@ char* curr_message = "";
 bool keyboard_on_screen_already = false;
 
 bool airstrike = false;
-Object nuke1, nuke2, nuke3 = -1;
-float nuke_h1_coord, nuke_h2_coord, nuke_h3_coord = -1;
+Object nuke1 = 0;
+Object nuke2 = 0;
+Object nuke3 = -1;
+float nuke_h1_coord = 0;
+float nuke_h2_coord = 0;
+float nuke_h3_coord = -1;
 
-bool viz_veh_ind_left, viz_veh_ind_right = false;
+bool viz_veh_ind_left = false;
+bool viz_veh_ind_right = false;
 
 bool char_wheel = false;
 Vehicle last_used;
 int curr_array_veh = -1;
 
-bool turn_check_left, turn_check_right = false;
+bool turn_check_left = false;
+bool turn_check_right = false;
 bool controllightsenabled_l = false;
 bool controllightsenabled_r = false;
 bool autocontrol = false;
@@ -107,9 +116,12 @@ bool turning_started = false;
 int traction_tick = 0;
 int Time_tick_mileage = 0;
 
-int trck_secs_passed, trck_secs_curr, trck_seconds = -1;
+int trck_secs_passed = 0;
+int trck_secs_curr = 0;
+int trck_seconds = -1;
 
-float mileage, signal_meters = 0;
+float mileage = 0;
+float signal_meters = 0;
 
 bool featureNoVehFallOff = false;
 bool featureVehSteerAngle = false;
@@ -134,8 +146,14 @@ bool featureLockVehicleDoors = false;
 bool featureLockVehicleDoorsUpdated = false;
 bool featureWearHelmetOff = false;
 bool featureWearHelmetOffUpdated = false;
-bool featureVehLightsOn = false, featureVehLightsOnUpdated = false;
-bool window_roll, interior_lights, veh_searching, veh_alarm, veh_brake_toggle, vehicle_burnout_toggle = false;
+bool featureVehLightsOn = false;
+bool featureVehLightsOnUpdated = false;
+bool window_roll = false;
+bool interior_lights = false;
+bool veh_searching = false;
+bool veh_alarm = false;
+bool veh_brake_toggle = false;
+bool vehicle_burnout_toggle = false;
 bool police_light_t = false;
 int lights = -1;
 
@@ -145,7 +163,8 @@ Vehicle veh_l = -1;
 int currseat = -1;
 
 int engine_tick = 0;
-int engine_secs_passed, engine_secs_curr = 0;
+int engine_secs_passed = 0;
+int engine_secs_curr = 0;
 
 bool manual_veh_tr = false;
 
@@ -225,8 +244,24 @@ int VehMassMultIndex = 0;
 int current_player_forceshieldN = 0;
 
 //Turn Signals
-const std::vector<std::string> VEH_TURN_SIGNALS_CAPTIONS{ "OFF", "Manual Only", "< 10 (MPH)", "< 20 (MPH)", "< 30 (MPH)", "< 40 (MPH)", "< 60 (MPH)", "< 80 (MPH)", "< 100 (MPH)", "< 120 (MPH)", "< 140 (MPH)", "< 160 (MPH)", "< 180 (MPH)", "< 200 (MPH)" };
-const int VEH_TURN_SIGNALS_VALUES[] = { 0, 1, 5, 10, 15, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
+const Option<int> VEH_TURN_SIGNALS_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "Manual Only", 1 },
+	{ "< 10 (MPH)", 5 },
+	{ "< 20 (MPH)", 10 },
+	{ "< 30 (MPH)", 15 },
+	{ "< 40 (MPH)", 20 },
+	{ "< 60 (MPH)", 30 },
+	{ "< 80 (MPH)", 40 },
+	{ "< 100 (MPH)", 50 },
+	{ "< 120 (MPH)", 60 },
+	{ "< 140 (MPH)", 70 },
+	{ "< 160 (MPH)", 80 },
+	{ "< 180 (MPH)", 90 },
+	{ "< 200 (MPH)", 100 }
+};
+const std::vector<std::string> VEH_TURN_SIGNALS_CAPTIONS = captionsOf(VEH_TURN_SIGNALS_OPTIONS);
+const std::vector<int> VEH_TURN_SIGNALS_VALUES = valuesOf(VEH_TURN_SIGNALS_OPTIONS);
 int turnSignalsIndex = 0;
 
 //Turn Signals Angle
@@ -249,8 +284,17 @@ int VehInvisIndexN = 0;
 bool is_invisible = false;
 
 //Visualize Vehicle Indicators (Sprite)
-const std::vector<std::string> VEH_VISLIGHT_CAPTIONS{ "OFF", "1x", "3x", "5x", "7x", "10x", "12x" };
-const double VEH_VISLIGHT_VALUES[] = { 0, 0.01, 0.03, 0.05, 0.07, 0.1, 0.2 };
+const Option<double> VEH_VISLIGHT_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "1x", 0.01 },
+	{ "3x", 0.03 },
+	{ "5x", 0.05 },
+	{ "7x", 0.07 },
+	{ "10x", 0.1 },
+	{ "12x", 0.2 }
+};
+const std::vector<std::string> VEH_VISLIGHT_CAPTIONS = captionsOf(VEH_VISLIGHT_OPTIONS);
+const std::vector<double> VEH_VISLIGHT_VALUES = valuesOf(VEH_VISLIGHT_OPTIONS);
 int VisLightIndex = 0;
 
 //Visualize Vehicle Indicators (Vector)
@@ -267,8 +311,20 @@ const std::vector<std::string> VEH_LIGHTSOFF_CAPTIONS{ "Never", "Daytime Only", 
 int lightsOffIndex = 0;
 
 //Number Of Vehicles To Remember
-const std::vector<std::string> VEH_VEHREMEMBER_CAPTIONS{ "3", "5", "7", "10", "15", "20", "30", "40", "50", "Manually" };
-const int VEH_VEHREMEMBER_VALUES[] = { 3, 5, 7, 10, 15, 20, 30, 40, 50, 666 };
+const Option<int> VEH_VEHREMEMBER_OPTIONS[] = {
+	{ "3", 3 },
+	{ "5", 5 },
+	{ "7", 7 },
+	{ "10", 10 },
+	{ "15", 15 },
+	{ "20", 20 },
+	{ "30", 30 },
+	{ "40", 40 },
+	{ "50", 50 },
+	{ "Manually", 666 }
+};
+const std::vector<std::string> VEH_VEHREMEMBER_CAPTIONS = captionsOf(VEH_VEHREMEMBER_OPTIONS);
+const std::vector<int> VEH_VEHREMEMBER_VALUES = valuesOf(VEH_VEHREMEMBER_OPTIONS);
 int VehRememberIndex = 3;
 
 //Blip Size
@@ -302,13 +358,27 @@ const std::vector<std::string> VEH_INFINITEBOOST_CAPTIONS{ "OFF", "Hold", "Alway
 int InfiniteBoostIndex = 0;
 
 //Auto-shut engine after
-const std::vector<std::string> VEH_AUTO_SHUT_ENGINE_CAPTIONS{ "OFF", "5", "10", "20", "30" };
-const int VEH_AUTO_SHUT_ENGINE_VALUES[] = { 0, 5, 10, 20, 30 };
+const Option<int> VEH_AUTO_SHUT_ENGINE_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "5", 5 },
+	{ "10", 10 },
+	{ "20", 20 },
+	{ "30", 30 }
+};
+const std::vector<std::string> VEH_AUTO_SHUT_ENGINE_CAPTIONS = captionsOf(VEH_AUTO_SHUT_ENGINE_OPTIONS);
+const std::vector<int> VEH_AUTO_SHUT_ENGINE_VALUES = valuesOf(VEH_AUTO_SHUT_ENGINE_OPTIONS);
 int AutoShutEngineIndex = 0;
 
 // Hydraulics
-const std::vector<std::string> VEH_HYDRAULICS_CAPTIONS{ "OFF", "-0.20", "-0.10", "0.10", "0.20" };
-const float VEH_HYDRAULICS_VALUES[] = { 0.0f, -0.20f, -0.10f, 0.10f, 0.20f };
+const Option<float> VEH_HYDRAULICS_OPTIONS[] = {
+	{ "OFF", 0.0f },
+	{ "-0.20", -0.20f },
+	{ "-0.10", -0.10f },
+	{ "0.10", 0.10f },
+	{ "0.20", 0.20f }
+};
+const std::vector<std::string> VEH_HYDRAULICS_CAPTIONS = captionsOf(VEH_HYDRAULICS_OPTIONS);
+const std::vector<float> VEH_HYDRAULICS_VALUES = valuesOf(VEH_HYDRAULICS_OPTIONS);
 int HydraulicsIndex = 0;
 
 // Nitrous
@@ -321,8 +391,12 @@ std::vector<Vehicle> VEHICLES_AVAILABLE;
 std::vector<Vehicle> VEHICLES_IGNITED;
 std::vector<Ped> PEDS_WATCHFUL;
 int activeLineIndexRoutineofringer = 0;
-int breaking_secs_passed, breaking_secs_curr, breaking_secs_tick = 0;
-int tick_pedcallingpolice, tick_pedcallingpolice_secs_passed, tick_pedcallingpolice_secs_curr = 0;
+int breaking_secs_passed = 0;
+int breaking_secs_curr = 0;
+int breaking_secs_tick = 0;
+int tick_pedcallingpolice = 0;
+int tick_pedcallingpolice_secs_passed = 0;
+int tick_pedcallingpolice_secs_curr = 0;
 bool time_to_call_the_police = false;
 bool featureShowPedCons = false;
 bool hijacked_vehicle_ror = false;
@@ -340,8 +414,25 @@ Vehicle veh_rnd = -1;
 const std::vector<std::string> VEH_RINGER_SKILL_CAPTIONS{ "Street Kid", "Professional" };
 int RingerSkillIndex = 1;
 
-const std::vector<std::string> VEH_RINGER_SECONDS_BREAK_CAPTIONS{ "1", "3", "5", "10", "15", "20", "25", "30", "40", "50", "60", "70", "80", "90", "100" };
-const int VEH_RINGER_SECONDS_BREAK_VALUES[] = { 1, 3, 5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100 };
+const Option<int> VEH_RINGER_SECONDS_BREAK_OPTIONS[] = {
+	{ "1", 1 },
+	{ "3", 3 },
+	{ "5", 5 },
+	{ "10", 10 },
+	{ "15", 15 },
+	{ "20", 20 },
+	{ "25", 25 },
+	{ "30", 30 },
+	{ "40", 40 },
+	{ "50", 50 },
+	{ "60", 60 },
+	{ "70", 70 },
+	{ "80", 80 },
+	{ "90", 90 },
+	{ "100", 100 }
+};
+const std::vector<std::string> VEH_RINGER_SECONDS_BREAK_CAPTIONS = captionsOf(VEH_RINGER_SECONDS_BREAK_OPTIONS);
+const std::vector<int> VEH_RINGER_SECONDS_BREAK_VALUES = valuesOf(VEH_RINGER_SECONDS_BREAK_OPTIONS);
 int RingerBreakSecMaxIndex = 3;
 int RingerBreakSecMinIndex = 3;
 int RingerHotwireSecMaxIndex = 2;
@@ -375,7 +466,8 @@ struct HashNode
 
 std::array<std::vector<unsigned int>, 0x20> vehicleModels;
 
-int doorOptionsMenuIndex, vehSeatIndexMenuIndex = 0;
+int doorOptionsMenuIndex = 0;
+int vehSeatIndexMenuIndex = 0;
 
 int savedVehicleListSortMethod = 0;
 bool vehSaveSortMenuInterrupt = false;

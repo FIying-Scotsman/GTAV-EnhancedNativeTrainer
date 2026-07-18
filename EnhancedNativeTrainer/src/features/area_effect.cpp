@@ -82,7 +82,9 @@ bool time_to_chase = false;
 bool time_to_attack = true;
 std::vector<Ped> pursuer;
 std::vector<Vehicle> v_collided;
-int s_secs_passed, s_secs_curr, s_seconds = 0;
+int s_secs_passed = 0;
+int s_secs_curr = 0;
+int s_seconds = 0;
 
 // vigilante blips
 Blip blip_vigilante = -1;

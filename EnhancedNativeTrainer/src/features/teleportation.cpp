@@ -769,8 +769,14 @@ const static std::vector<std::string> MENU_LOCATION_CATEGORIES{ "Safehouses", "L
 static std::vector<tele_location> VOV_LOCATIONS[] = { LOCATIONS_SAFE, LOCATIONS_LANDMARKS, LOCATIONS_HIGH, LOCATIONS_UNDERWATER, LOCATIONS_INTERIORS, LOCATIONS_REQSCEN, LOCATIONS_ONLINE, LOCATIONS_ACTORS, LOCATIONS_COLLECTIBLES, LOCATIONS_STUNTS/*, LOCATIONS_BROKEN, LOCATIONS_JELLMAN*/ };
 
 //3D Marker Symbol
-const std::vector<std::string> TEL_3DMARKER_CAPTIONS{ "1", "2", "3", "4" }; // "0", // "4", "6", , "8" , "5"
-const int TEL_3DMARKER_VALUES[] = { 1, 2, 3, 5 }; // 0, 4, 6, , 22 , 21
+const Option<int> TEL_3DMARKER_OPTIONS[] = { // "0", // "4", "6", , "8" , "5" // 0, 4, 6, , 22 , 21
+	{ "1", 1 },
+	{ "2", 2 },
+	{ "3", 3 },
+	{ "4", 5 }
+};
+const std::vector<std::string> TEL_3DMARKER_CAPTIONS = captionsOf(TEL_3DMARKER_OPTIONS);
+const std::vector<int> TEL_3DMARKER_VALUES = valuesOf(TEL_3DMARKER_OPTIONS);
 int Tel3dmarkerIndexN = 1;
 bool Tel3dmarker_Changed = true;
 
