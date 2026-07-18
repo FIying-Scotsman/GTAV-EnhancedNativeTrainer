@@ -2,16 +2,11 @@ name: Release Build
 
 on:
   push:
-    branches:
-      - master
-      - main
+    tags:
+      - 'v*'
 
 permissions:
-  contents: read
-
-concurrency:
-  group: release-${{ github.ref }}
-  cancel-in-progress: true
+  contents: write
 
 env:
   SOLUTION_FILE_PATH: ./EnhancedNativeTrainer.sln
@@ -31,6 +26,13 @@ jobs:
         with:
           vs-version: "[18.0,19.0)"
 
+      - name: Get Version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep -oP 'VERSION_STRING\s*=\s*"\K[^"]+' version.sh || echo "${GITHUB_REF_NAME}")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Build
         run: >
           msbuild ${{ env.SOLUTION_FILE_PATH }}
@@ -43,12 +45,10 @@ jobs:
         run: |
           Compress-Archive `
             -Path EnhancedNativeTrainer/bin/Release/* `
-            -DestinationPath EnhancedNativeTrainer-release.zip
+            -DestinationPath EnhancedNativeTrainer-${{ steps.version.outputs.version }}.zip
 
-      - name: Upload Release Artifact
-        uses: actions/upload-artifact@v4
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
         with:
-          name: EnhancedNativeTrainer-release
-          path: EnhancedNativeTrainer-release.zip
-          retention-days: 90
-          if-no-files-found: error
+          generate_release_notes: true
+          files: EnhancedNativeTrainer-${{ steps.version.outputs.version }}.zip
