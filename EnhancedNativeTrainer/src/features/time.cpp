@@ -150,24 +150,18 @@ bool onconfirm_time_set_menu(MenuItem<int> choice){
 
 void onconfirm_time_flow_rate(MenuItem<int> choice) {
 	if (timeFlowRateLocked = !timeFlowRateLocked) {
-		std::ostringstream ss;
-		ss << "Time flow rate: " << TIME_FLOW_RATE_CAPTIONS.at(choice.value);
-		set_status_text(ss.str());
+		set_status_text(tr("TimeMenu.TimeFlowRatePrefix", "Time flow rate: ") + TIME_FLOW_RATE_CAPTIONS.at(choice.value));
 	}
 }
 
 void onchange_game_speed_callback(int value, SelectFromListMenuItem* source) {
 	timeSpeedIndex = value;
-	std::ostringstream ss;
-	ss << "Game speed: " << TIME_SPEED_CAPTIONS.at(value);
-	set_status_text(ss.str());
+	set_status_text(tr("TimeMenu.GameSpeedPrefix", "Game speed: ") + TIME_SPEED_CAPTIONS.at(value));
 }
 
 void onchange_aiming_speed_callback(int value, SelectFromListMenuItem* source) {
 	timeSpeedIndexWhileAiming = value;
-	std::ostringstream ss;
-	ss << "Aiming speed: " << TIME_SPEED_CAPTIONS.at(value);
-	set_status_text(ss.str());
+	set_status_text(tr("TimeMenu.AimingSpeedPrefix", "Aiming speed: ") + TIME_SPEED_CAPTIONS.at(value));
 }
 
 void onchange_time_flow_rate_callback(int value, SelectFromListMenuItem *source) {
@@ -234,13 +228,13 @@ void all_time_flow_rate() {
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
-		SelectFromListMenuItem *listItem = new SelectFromListMenuItem(TIME_SPEED_CAPTIONS, onchange_hotkey_flow_rate_callback);
+		SelectFromListMenuItem *listItem = new SelectFromListMenuItem(&TIME_SPEED_CAPTIONS, onchange_hotkey_flow_rate_callback);
 		listItem->wrap = false;
 		listItem->caption = tr("TimeMenu.GlobalGameSpeed", "Global Game Speed");
 		listItem->value = HotkeyFlowRateIndex;
 		menuItems.push_back(listItem);
 
-		listItem = new SelectFromListMenuItem(TIME_SPEED_CAPTIONS, onchange_aiming_speed_callback);
+		listItem = new SelectFromListMenuItem(&TIME_SPEED_CAPTIONS, onchange_aiming_speed_callback);
 		listItem->wrap = false;
 		listItem->caption = tr("TimeMenu.GameSpeedWhileAiming", "Game Speed While Aiming");
 		listItem->value = timeSpeedIndexWhileAiming;
@@ -253,7 +247,7 @@ void all_time_flow_rate() {
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
-		listItem = new SelectFromListMenuItem(TIME_FLOW_RATE_CAPTIONS, onchange_time_flow_rate_callback);
+		listItem = new SelectFromListMenuItem(&TIME_FLOW_RATE_CAPTIONS, onchange_time_flow_rate_callback);
 		listItem->caption = tr("TimeMenu.TimeFlowRate", "Time Flow Rate");
 		listItem->value = timeFlowRateIndex;
 		listItem->wrap = false;

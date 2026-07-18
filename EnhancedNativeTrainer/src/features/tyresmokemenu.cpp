@@ -14,16 +14,8 @@ void onhighlight_smoke_selection(MenuItem<int> choice){
 }
 
 bool onconfirm_smoke_selection(MenuItem<int> choice){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
-		return true;
-	}
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
 		set_status_text(tr("TyreSmokeMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return true;
 	}

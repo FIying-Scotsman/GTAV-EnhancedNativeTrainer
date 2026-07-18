@@ -294,9 +294,8 @@ void update_prop_placement_text()
 void create_prop_placement_help_text()
 {
 	//Debug
-	std::stringstream ss;
-
-	/*ss << "Heading: " << pp_cur_heading << " Rotation: " << pp_cur_rotation.z
+	/*std::stringstream ss;
+	ss << "Heading: " << pp_cur_heading << " Rotation: " << pp_cur_rotation.z
 	<< "\n xVect: " << xVect << "yVect: " << yVect;*/
 
 	std::string pp_travel_speedStr;
@@ -343,13 +342,8 @@ void create_prop_placement_help_text()
 	propPlacerStatusLines.push_back("Press 'Menu Back' to save and exit this mode");
 	propPlacerStatusLines.push_back(" ");
 
-	ss << "Current Travel Speed: ~HUD_COLOUR_WHITE~" << pp_travel_speedStr;
-	propPlacerStatusLines.push_back(ss.str());
-	ss.str(""); ss.clear();
-
-	ss << "Object Frozen On Exit: ~HUD_COLOUR_WHITE~" << (currentProp.isImmovable ? "Yes": "No");
-	propPlacerStatusLines.push_back(ss.str());
-	ss.str(""); ss.clear();
+	propPlacerStatusLines.push_back("Current Travel Speed: ~HUD_COLOUR_WHITE~" + pp_travel_speedStr);
+	propPlacerStatusLines.push_back(std::string("Object Frozen On Exit: ~HUD_COLOUR_WHITE~") + (currentProp.isImmovable ? "Yes" : "No"));
 
 	propPlacerStatusTextDrawTicksMax = GetTickCount() + 2500;
 	propPlacerStatusTextGxtEntry = false;

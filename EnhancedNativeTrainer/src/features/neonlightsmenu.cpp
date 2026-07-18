@@ -25,16 +25,8 @@ void onhighlight_neon_lights_selection(MenuItem<int> choice){
 }
 
 bool onconfirm_neon_lights_selection(MenuItem<int> choice){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
-		return true;
-	}
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
 		set_status_text(tr("NeonMenu.RErrorRPlayerIsnTInAVehicle", "~r~Error:~r~ Player isn't in a vehicle"));
 		return true;
 	}
@@ -162,21 +154,11 @@ bool onconfirm_neon_menu(MenuItem<int> choice){
 
 
 bool process_neon_lights_menu(){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
-		return false;
-	}
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
 		set_status_text(tr("NeonMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
-
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()); // Get current vehicle
 
 	if(!is_this_a_car(veh) && !is_this_a_motorcycle(veh)){
 		set_status_text(tr("NeonMenu.CanTAddNeonLightsToThisVehicle", "Can't add neon lights to this vehicle"));
@@ -193,9 +175,7 @@ bool process_neon_lights_menu(){
 
 	for(int loc = 0; loc <= 3; loc++){
 		FunctionDrivenToggleMenuItem<int> *neonLightsToggle = new FunctionDrivenToggleMenuItem<int>();
-		std::ostringstream ss;
-		ss << "Enable Neons: " << getNeonPositionLabel(loc);
-		neonLightsToggle->caption = ss.str();
+		neonLightsToggle->caption = tr("NeonMenu.EnableNeonsPrefix", "Enable Neons: ") + getNeonPositionLabel(loc);
 		neonLightsToggle->getter_call = is_neonLights;
 		neonLightsToggle->setter_call = set_neonLights;
 		neonLightsToggle->extra_arguments.push_back(loc);

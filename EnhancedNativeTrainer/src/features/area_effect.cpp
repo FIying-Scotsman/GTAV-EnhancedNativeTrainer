@@ -215,13 +215,13 @@ void process_areaeffect_peds_menu(){
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_peds_health_index);
+	listItem = new SelectFromListMenuItem(&PLAYER_HEALTH_CAPTIONS, onchange_peds_health_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.PedsHealth", "Peds Health");
 	listItem->value = PedsHealthIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_ped_accuracy_index);
+	listItem = new SelectFromListMenuItem(&WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_ped_accuracy_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.PedsAccuracy", "Peds Accuracy");
 	listItem->value = PedAccuracyIndex;
@@ -263,7 +263,7 @@ void process_areaeffect_peds_menu(){
 	togItem->toggleValue = &featurePedsIncludePilots;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_world_no_peds_gravity_index);
+	listItem = new SelectFromListMenuItem(&WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_world_no_peds_gravity_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.NPCNoGravityPeds", "NPC No Gravity Peds");
 	listItem->value = NoPedsGravityIndex;
@@ -289,7 +289,7 @@ void process_areaeffect_peds_menu(){
 	togItem->toggleValue = &featureLawAbidingCitizens;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_vigilante_blips_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_vigilante_blips_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.ShowVigilanteBlips", "Show Vigilante Blips");
 	listItem->value = VigilanteBlipIndex;
@@ -302,7 +302,7 @@ void process_areaeffect_vehicle_menu(){
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem *listItem;
 
-	listItem = new SelectFromListMenuItem(VEH_INVINC_MODE_CAPTIONS, onchange_veh_ped_invincibility_mode);
+	listItem = new SelectFromListMenuItem(&VEH_INVINC_MODE_CAPTIONS, onchange_veh_ped_invincibility_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.AllVehiclesInvincible", "All Vehicles Invincible");
 	listItem->value = VehPedInvincibilityIndex;
@@ -362,7 +362,7 @@ void process_areaeffect_vehicle_menu(){
 	togItem->toggleValue = &featureNPCReducedGripVehicles;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_world_npc_vehicles_speed_index);
+	listItem = new SelectFromListMenuItem(&WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_world_npc_vehicles_speed_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.NPCVehiclesForcedSpeed", "NPC Vehicles Forced Speed");
 	listItem->value = NPCVehicleSpeedIndex;
@@ -374,7 +374,7 @@ void process_areaeffect_vehicle_menu(){
 	togItem->toggleValue = &featureBoostNPCRadio;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(VEH_COLOUR_CAPTIONS, onchange_world_npc_vehicles_colour_index);
+	listItem = new SelectFromListMenuItem(&VEH_COLOUR_CAPTIONS, onchange_world_npc_vehicles_colour_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.NPCVehiclesColour", "NPC Vehicles Colour");
 	listItem->value = VehColourIndex;
@@ -386,7 +386,7 @@ void process_areaeffect_vehicle_menu(){
 	togItem->toggleValue = &featureBusLight;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_world_npc_veh_damageoncoll_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_world_npc_veh_damageoncoll_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.DestroyCarOnCollision", "Destroy Car On Collision");
 	listItem->value = NPCVehicleDamageOnCollIndex;
@@ -417,7 +417,7 @@ void process_areaeffect_advanced_ped_menu(){
 	togItem->toggleValue = &featureAngryPedsTargetYou;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS, onchange_world_selective_peds_angry_index);
+	listItem = new SelectFromListMenuItem(&WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS, onchange_world_selective_peds_angry_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.PedType", "Ped Type");
 	listItem->value = WorldSelectivePedsIndex;
@@ -441,13 +441,13 @@ void process_areaeffect_peds_weapons_menu() {
 	togItem->toggleValue = &featurePedsWeapons;
 	menuItems.push_back(togItem);
 
-	SelectFromListMenuItem* listItem = new SelectFromListMenuItem(PED_WEAPON_TITLES, onchange_areaeffect_ped_weapons);
+	SelectFromListMenuItem* listItem = new SelectFromListMenuItem(&PED_WEAPON_TITLES, onchange_areaeffect_ped_weapons);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.PedsArmedWith", "Peds Armed With...");
 	listItem->value = pedWeaponSetIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PED_WEAPONS_SELECTIVE_CAPTIONS, onchange_ped_weapons_selective_index);
+	listItem = new SelectFromListMenuItem(&PED_WEAPONS_SELECTIVE_CAPTIONS, onchange_ped_weapons_selective_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.CustomWeapon", "Custom Weapon");
 	listItem->value = PedWeaponsSelectiveIndex;

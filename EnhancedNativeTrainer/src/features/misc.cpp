@@ -243,19 +243,17 @@ bool process_misc_hotkey_menu(){
 	std::vector<MenuItem<int>*> menuItems;
 
 	for(int i = 1; i < 10; i++){
-		std::ostringstream itemCaption;
+		std::string itemCaption = tr("HotkeysMenu.HotkeyPrefix", "Hotkey ") + std::to_string(i);
 		std::vector<std::string> captions;
 		void(*callback)(int, SelectFromListMenuItem*);
 
-		itemCaption << "Hotkey " << i;
-
 		bool keyAssigned = get_config()->get_key_config()->is_hotkey_assigned(i);
 		if(!keyAssigned){
-			captions.push_back("Key Not Bound");
+			captions.push_back(tr("HotkeysMenu.KeyNotBound", "Key Not Bound"));
 			callback = NULL;
 
 			SelectFromListMenuItem* item = new SelectFromListMenuItem(captions, callback);
-			item->caption = itemCaption.str();
+			item->caption = itemCaption;
 			item->value = NULL;
 			menuItems.push_back(item);
 		}
@@ -266,7 +264,7 @@ bool process_misc_hotkey_menu(){
 			callback = onchange_hotkey_function;
 
 			SelectFromListMenuItem* item = new SelectFromListMenuItem(captions, callback);
-			item->caption = itemCaption.str();
+			item->caption = itemCaption;
 			item->wrap = keyAssigned;
 			item->extras.push_back(i);
 			item->value = get_hotkey_function_index(i);
@@ -365,13 +363,13 @@ void process_misc_trainerconfig_menu(){
 	stdItem->isLeaf = false;
 	menuItems.push_back(stdItem);
 
-	listItem = new SelectFromListMenuItem(MISC_TRAINERCONTROL_CAPTIONS, onchange_misc_trainercontrol_index);
+	listItem = new SelectFromListMenuItem(&MISC_TRAINERCONTROL_CAPTIONS, onchange_misc_trainercontrol_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.ControlNavigation", "Control Navigation");
 	listItem->value = TrainerControlIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(MISC_TRAINERCONTROLSCROLLING_CAPTIONS, onchange_misc_trainercontrolscrolling_index);
+	listItem = new SelectFromListMenuItem(&MISC_TRAINERCONTROLSCROLLING_CAPTIONS, onchange_misc_trainercontrolscrolling_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.MenuScrolling", "Menu Scrolling");
 	listItem->value = TrainerControlScrollingIndex;
@@ -682,7 +680,7 @@ void process_def_menutab_menu() {
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem *listItem;
 	
-	listItem = new SelectFromListMenuItem(MISC_DEF_MENUTAB_CAPTIONS, onchange_misc_def_menutab_index);
+	listItem = new SelectFromListMenuItem(&MISC_DEF_MENUTAB_CAPTIONS, onchange_misc_def_menutab_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.DefaultPauseMenuTab", "Default Pause Menu Tab");
 	listItem->value = DefMenuTabIndex;
@@ -717,13 +715,13 @@ void process_billsettings_menu() {
 	toggleItem->toggleValue = &featurePhoneBillEnabled;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_BILL_CAPTIONS, onchange_misc_phone_bill_index);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_BILL_CAPTIONS, onchange_misc_phone_bill_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.AmountPerMinute", "Amount Per Minute");
 	listItem->value = PhoneBillIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_FREESECONDS_CAPTIONS, onchange_misc_phone_freeseconds_index);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_FREESECONDS_CAPTIONS, onchange_misc_phone_freeseconds_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.FirstFreeSeconds", "First Free Seconds");
 	listItem->value = PhoneFreeSecondsIndex;
@@ -758,7 +756,7 @@ void process_phoneonbike_menu() {
 	toggleItem->toggleValue = &featureNoPhoneOnHUD;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_FREESECONDS_CAPTIONS, onchange_misc_phone_bike_index);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_FREESECONDS_CAPTIONS, onchange_misc_phone_bike_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.AnimationType", "Animation Type");
 	listItem->value = PhoneBikeAnimationIndex;
@@ -790,7 +788,7 @@ void process_phone_bill_menu(){
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_DEFAULT_CAPTIONS, onchange_misc_phone_default_index);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_DEFAULT_CAPTIONS, onchange_misc_phone_default_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.DefaultPhoneModel", "Default Phone Model");
 	listItem->value = PhoneDefaultIndex;
@@ -847,7 +845,7 @@ void process_radio_settings_menu() {
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(MISC_RADIO_OFF_CAPTIONS, onchange_misc_radio_off_index);
+	listItem = new SelectFromListMenuItem(&MISC_RADIO_OFF_CAPTIONS, onchange_misc_radio_off_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.RadioOff", "Radio Off");
 	listItem->value = RadioOffIndex;
@@ -864,7 +862,7 @@ void process_radio_settings_menu() {
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(MISC_RADIO_SWITCHING_CAPTIONS, onchange_misc_radio_switching_index);
+	listItem = new SelectFromListMenuItem(&MISC_RADIO_SWITCHING_CAPTIONS, onchange_misc_radio_switching_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MiscMenu.RadioStationShuffle", "Radio Station Shuffle");
 	listItem->value = RadioSwitchingIndex;

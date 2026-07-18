@@ -335,9 +335,7 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 			modItemNameStr ="No " + armour_label;
 		}
 		else {
-			std::ostringstream ss;
-			ss << "Stock " << mod_slots[lastSelectedModValue];
-			modItemNameStr = ss.str();
+			modItemNameStr = tr("VehModMenu.StockPrefix", "Stock ") + mod_slots[lastSelectedModValue];
 		}
 	}
 	else if (category == 11) //Engine
@@ -349,7 +347,6 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 	}
 	else if (category == 12 || category == 13 || category == 52) //brakes, trans or aircraft handling
 	{
-		std::ostringstream ss;
 		if (category == 12){
 			//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 			int index_modified = index + 1;
@@ -381,9 +378,7 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 	}
 	else if (category == 16) //Armor
 	{
-		std::ostringstream ss;
-		ss << ((index + 1) * 20) << "% " << UI::_GET_LABEL_TEXT("CMOD_GLD2_0");
-		modItemNameStr = ss.str();
+		modItemNameStr = std::to_string((index + 1) * 20) + "% " + UI::_GET_LABEL_TEXT("CMOD_GLD2_0");
 	}
 	else{ 
 		char* modItemNameChr = VEHICLE::GET_MOD_TEXT_LABEL(veh, category, index);
@@ -397,12 +392,10 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 		}
 
 		if (!foundName){
-			std::ostringstream ss;
 			if(category <= 50 || mod_slots[lastSelectedModValue] != "")
-				ss << mod_slots[lastSelectedModValue] << " Item " << (index + 1);
+				modItemNameStr = mod_slots[lastSelectedModValue] + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(index + 1);
 			else
-				ss <<getLocalisedModCategory(category) << " Item " << (index + 1);
-			modItemNameStr = ss.str();
+				modItemNameStr = getLocalisedModCategory(category) + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(index + 1);
 		}
 	}
 
@@ -526,45 +519,33 @@ bool process_vehmod_wheel_selection_menu(){
 	std::vector<MenuItem<int> *> menuItems;
 	MenuItem<int> *item;
 	int count = VEHICLE::GET_NUM_VEHICLE_MODS(veh, 23); // WHEEL_CATEGORY_COUNTS[VEHICLE::GET_VEHICLE_WHEEL_TYPE(veh)];
-	std::ostringstream ss;
+	std::string countSuffix = " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(count) + ")";
 
 	if (is_this_a_motorcycle(veh)){
 		item = new MenuItem<int>();
-		ss << "All ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.All", "All") + countSuffix;
 		item->value = 0;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		item = new MenuItem<int>();
-		ss << "Front ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.Front", "Front") + countSuffix;
 		item->value = 1;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		item = new MenuItem<int>();
-		ss << "Rear ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.Rear", "Rear") + countSuffix;
 		item->value = 2;
 		item->isLeaf = false;
 		menuItems.push_back(item);
-
-		ss.str(""), ss.clear();
 	}
 	else{
 		item = new MenuItem<int>();
-		ss << "All ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.All", "All") + countSuffix;
 		item->value = 0;
 		item->isLeaf = false;
 		menuItems.push_back(item);
-
-		ss.str(""), ss.clear();
 	}
 
 	return draw_generic_menu<int>(menuItems, nullptr, getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_SELECTION), onconfirm_vehmod_wheel_selection_menu, nullptr, nullptr, nullptr);
@@ -593,9 +574,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		std::string modItemNameStr = getNormalItemTitle(veh, lastSelectedModValue, choice.value);
 
 		VEHICLE::SET_VEHICLE_MOD(veh, lastSelectedModValue, choice.value, 1);
-		std::ostringstream ss;
-		ss << modItemNameStr << " Applied";
-		set_status_text(ss.str());
+		set_status_text(modItemNameStr + tr("VehModMenu.AppliedSuffix", " Applied"));
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_WINDOW_TINT){
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
@@ -713,9 +692,7 @@ bool process_vehmod_category_special_menu(int category){
 			item->caption = tr("VehModMenu.Default", "Default");
 		}
 		else{
-			std::ostringstream ss;
-			ss << getLocalisedModCategory(category) << " Item " << i;
-			item->caption = ss.str();
+			item->caption = getLocalisedModCategory(category) + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(i);
 		}
 		item->value = values.at(i);
 		item->isLeaf = true;
@@ -756,9 +733,7 @@ bool process_vehmod_engine_sound() {
 			item->caption = tr("VehModMenu.Default", "Default");
 		}
 		else {
-			std::ostringstream ss;
-			ss << getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND) << " Item " << i;
-			item->caption = ss.str();
+			item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND) + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(i);
 		}
 		item->value = values.at(i);
 		item->isLeaf = true;
@@ -774,7 +749,7 @@ bool process_custom_engine_multiplier() {
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem* listItem;
 
-	listItem = new SelectFromListMenuItem(VEH_ENG_POW_CAPTIONS, onchange_custom_eng_pow_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENG_POW_CAPTIONS, onchange_custom_eng_pow_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehModMenu.CustomEnginePowerMultiplier", "Custom Engine Power Multiplier");
 	listItem->value = engCustomPowMultIndex;
@@ -839,7 +814,6 @@ bool process_vehmod_engine_sound_menu() {
 
 	std::vector<MenuItem<int> *> menuItems;
 	MenuItem<int> *item;
-	std::ostringstream ss;
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("VehModMenu.Enable", "Enable");
@@ -848,8 +822,7 @@ bool process_vehmod_engine_sound_menu() {
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	ss << "All ~HUD_COLOUR_GREYLIGHT~(" << ENGINE_SOUND_COUNT << ")";
-	item->caption = ss.str();
+	item->caption = tr("VehModMenu.All", "All") + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(ENGINE_SOUND_COUNT) + ")";
 	item->value = 0;
 	item->isLeaf = false;
 	menuItems.push_back(item);
@@ -859,8 +832,6 @@ bool process_vehmod_engine_sound_menu() {
 	item->value = 1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
-
-	ss.str(""), ss.clear();
 
 	return draw_generic_menu<int>(menuItems, nullptr, getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND), onconfirm_vehmod_engine_sound_menu, nullptr, nullptr, nullptr);
 }
@@ -1060,8 +1031,6 @@ bool process_vehmod_menu(){
 
 	const std::string caption = "Vehicle Mod Options";
 
-	std::ostringstream ss;
-
 	std::vector<MenuItem<int>*> menuItems;
 	
 	if (!isWeird) { //!isWeird && !isAircraft
@@ -1118,14 +1087,10 @@ bool process_vehmod_menu(){
 
 				int mods = VEHICLE::GET_NUM_VEHICLE_MODS(veh, i);
 				if (mods > 0) {
-					ss.str(""), ss.clear();
-					if(mod_slots[i] != "")
-						ss << mod_slots[i] << " ~HUD_COLOUR_GREYLIGHT~(" << (mods + 1) << ")";
-					else 
-						ss << getLocalisedModCategory(i) << " ~HUD_COLOUR_GREYLIGHT~(" << (mods + 1) << ")";
+					std::string label = (mod_slots[i] != "") ? mod_slots[i] : getLocalisedModCategory(i);
 
 					MenuItem<int>* item = new MenuItem<int>();
-					item->caption = ss.str();
+					item->caption = label + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(mods + 1) + ")";
 					item->value = compIndex;
 					item->isLeaf = false;
 					menuItems.push_back(item);
@@ -1136,36 +1101,25 @@ bool process_vehmod_menu(){
 			mod_slots.clear();
 		}
 
-		ss.str(""), ss.clear();
-
 		int tintCount = VEHICLE::GET_NUM_VEHICLE_WINDOW_TINTS();
 		MenuItem<int> *item = new MenuItem<int>();
-		ss << getLocalisedModCategory(SPECIAL_ID_FOR_WINDOW_TINT) << " ~HUD_COLOUR_GREYLIGHT~(" << tintCount << ")";
-		item->caption = ss.str();
+		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_WINDOW_TINT) + tr("VehModMenu.CountSuffixPrefix", " ~HUD_COLOUR_GREYLIGHT~(") + std::to_string(tintCount) + ")";
 		item->value = SPECIAL_ID_FOR_WINDOW_TINT;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		int plateCount = VEHICLE::GET_NUMBER_OF_VEHICLE_NUMBER_PLATES();
 		item = new MenuItem<int>();
-		ss << getLocalisedModCategory(SPECIAL_ID_FOR_LICENSE_PLATES) << " ~HUD_COLOUR_GREYLIGHT~(" << plateCount << ")";
-		item->caption = ss.str();
+		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_LICENSE_PLATES) + tr("VehModMenu.CountSuffixPrefix", " ~HUD_COLOUR_GREYLIGHT~(") + std::to_string(plateCount) + ")";
 		item->value = SPECIAL_ID_FOR_LICENSE_PLATES;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		item = new MenuItem<int>();
-		ss << getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_CATEGORY) << " ~HUD_COLOUR_GREYLIGHT~(" << wheel_names.size() << ")";
-		item->caption = ss.str();
+		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_CATEGORY) + tr("VehModMenu.CountSuffixPrefix", " ~HUD_COLOUR_GREYLIGHT~(") + std::to_string(wheel_names.size()) + ")";
 		item->value = SPECIAL_ID_FOR_WHEEL_CATEGORY;
 		item->isLeaf = false;
 		menuItems.push_back(item);
-
-		ss.str(""), ss.clear();
 
 		item = new MenuItem<int>();
 		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_SELECTION);
@@ -1173,8 +1127,6 @@ bool process_vehmod_menu(){
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-		
 		item = new MenuItem<int>();
 		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND);
 		item->value = SPECIAL_ID_FOR_ENGINE_SOUND;
@@ -1254,15 +1206,13 @@ bool process_vehmod_menu(){
 			continue;
 		}
 
-		ss << "Toggle Extra #" << a;
 		toggleItem = new FunctionDrivenToggleMenuItem<int>();
-		toggleItem->caption = ss.str();
+		toggleItem->caption = tr("VehModMenu.ToggleExtraPrefix", "Toggle Extra #") + std::to_string(a);
 		toggleItem->getter_call = is_extra_enabled;
 		toggleItem->setter_call = set_extra_enabled;
 		toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 		toggleItem->extra_arguments.push_back(a);
 		menuItems.push_back(toggleItem);
-		ss.str(""), ss.clear();
 	}
 	
 	if (menuItems.size() == 0){

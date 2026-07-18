@@ -346,9 +346,7 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		break;
 	default:
 	{
-		std::ostringstream ss;
-		ss << "Hotkey " << (hotkey + 1) << " has unrecognised function";
-		set_status_text(ss.str());
+		set_status_text(tr("HotkeysMenu.HotkeyPrefix", "Hotkey ") + std::to_string(hotkey + 1) + tr("HotkeysMenu.HasUnrecognisedFunctionSuffix", " has unrecognised function"));
 		break;
 	}
 	}
@@ -403,9 +401,7 @@ void add_hotkey_generic_settings(std::vector<StringPairSettingDBRow>* results)
 {
 	for (int i = 0; i < MAX_HOTKEYS; i++)
 	{
-		std::ostringstream ss;
-		ss << "hotkey_" << i;
-		results->push_back(StringPairSettingDBRow{ ss.str(), std::to_string(functionIDs[i]) });
+		results->push_back(StringPairSettingDBRow{ "hotkey_" + std::to_string(i), std::to_string(functionIDs[i]) });
 	}
 }
 

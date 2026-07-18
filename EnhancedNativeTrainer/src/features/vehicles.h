@@ -1305,6 +1305,10 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 
 std::string get_vehicle_make_and_model(int modelHash);
 
+// Resolves the local player's current vehicle. Returns false (leaving *outVeh
+// untouched) if the player ped doesn't exist or isn't currently in a vehicle.
+bool try_get_players_vehicle(Vehicle* outVeh);
+
 void process_veh_menu();
 
 void process_speed_menu();

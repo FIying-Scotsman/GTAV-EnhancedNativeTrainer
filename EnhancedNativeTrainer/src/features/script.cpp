@@ -45,6 +45,13 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #pragma warning(disable : 4244 4305) // double <-> float conversions
 
+// A feature toggle plus its "apply once" dirty flag, kept together instead of
+// as two independently-named parallel globals per feature.
+struct ToggleFeature {
+	bool enabled = false;
+	bool updated = false;
+};
+
 bool AIMBOT_INCLUDED = true;
 
 std::string C_WEATHER_C;
@@ -107,8 +114,7 @@ bool onlineWarningShown = false;
 bool injured_drunk = false;
 
 // features
-bool featurePlayerInvincible = false;
-bool featurePlayerInvincibleUpdated = false;
+ToggleFeature featurePlayerInvincible{false, false};
 bool featureNoFallDamage = false;
 bool featureFireProof = false;
 bool featurePlayerIgnoredByPolice = false;
@@ -119,8 +125,7 @@ bool featurePlayerFastRun = false;
 bool featurePlayerRunApartments = false;
 bool featurePlayerInvisible = false;
 bool featurePlayerInvisibleInVehicle = false;
-bool featurePlayerDrunk = false;
-bool featurePlayerDrunkUpdated = false;
+ToggleFeature featurePlayerDrunk{false, false};
 bool featureNightVision = false;
 bool featureNightVisionUpdated = false;
 bool featureThermalVision = false;
@@ -134,15 +139,11 @@ bool super_jump_no_parachute = false;
 bool super_jump_intheair = false;
 bool manual_instant = false;
 bool first_person_rotate = false;
-bool featureWantedLevelNoPHeli = false;
-bool featureWantedLevelNoPHeliUpdated = false;
-bool featureWantedNoPRoadB = false;
-bool featureWantedNoPRoadBUpdated = false;
-bool featureWantedLevelNoPBoats = false;
-bool featureWantedLevelNoPBoatsUpdated = false;
+ToggleFeature featureWantedLevelNoPHeli{false, false};
+ToggleFeature featureWantedNoPRoadB{false, false};
+ToggleFeature featureWantedLevelNoPBoats{false, false};
 bool featureWantedLevelNoPRam = false;
-bool featureWantedLevelNoSWATVehicles = false;
-bool featureWantedLevelNoSWATVehiclesUpdated = false;
+ToggleFeature featureWantedLevelNoSWATVehicles{false, false};
 bool NoTaxiWhistling = false;
 bool featurePlayerCanBeHeadshot = false;
 bool featureRespawnsWhereDied = false;
@@ -152,8 +153,7 @@ bool we_have_troubles = false;
 bool iaminside = false;
 bool been_injured = true;
 bool p_invisible = false;
-bool featurePlayerLife = false;
-bool featurePlayerLifeUpdated = true;
+ToggleFeature featurePlayerLife{false, true};
 bool featurePlayerStatsUpdated = true;
 bool apply_pressed = false;
 bool featureRagdollIfInjured = false;
@@ -511,9 +511,9 @@ void check_player_model(){
 }
 
 void invincibility_switching(){
-	featurePlayerInvincible = !featurePlayerInvincible;
-	featurePlayerInvincibleUpdated = true;
-	if (featurePlayerInvincible) set_status_text(tr("MainMenu.InvincibilityON", "Invincibility ON"));
+	featurePlayerInvincible.enabled = !featurePlayerInvincible.enabled;
+	featurePlayerInvincible.updated = true;
+	if (featurePlayerInvincible.enabled) set_status_text(tr("MainMenu.InvincibilityON", "Invincibility ON"));
 	else set_status_text(tr("MainMenu.InvincibilityOFF", "Invincibility OFF"));
 	WAIT(100);
 }
@@ -947,29 +947,29 @@ void update_features(){
 	update_time_features(player);
 
 	// Invincible
-	if(featurePlayerInvincibleUpdated){
-		if(bPlayerExists && !featurePlayerInvincible){
+	if(featurePlayerInvincible.updated){
+		if(bPlayerExists && !featurePlayerInvincible.enabled){
 			if (getGameVersion() < VER_1_0_678_1_STEAM || getGameVersion() < VER_1_0_678_1_NOSTEAM) PLAYER::SET_PLAYER_INVINCIBLE(player, FALSE);
 			if (getGameVersion() >= VER_1_0_678_1_STEAM || getGameVersion() >= VER_1_0_678_1_NOSTEAM) PLAYER::_0x733A643B5B0C53C1(player, FALSE);
 		}
 		WAIT(100);
-		featurePlayerInvincibleUpdated = false;
+		featurePlayerInvincible.updated = false;
 		WAIT(100);
 	}
-	if(featurePlayerInvincible && bPlayerExists){
+	if(featurePlayerInvincible.enabled && bPlayerExists){
 		if (getGameVersion() < VER_1_0_678_1_STEAM || getGameVersion() < VER_1_0_678_1_NOSTEAM) PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
 		if (getGameVersion() >= VER_1_0_678_1_STEAM || getGameVersion() >= VER_1_0_678_1_NOSTEAM) PLAYER::_0x733A643B5B0C53C1(player, TRUE);
 	}
 	
 	// Fire Proof
-	if (featureFireProof/* && !featurePlayerInvincible*/) {
+	if (featureFireProof/* && !featurePlayerInvincible.enabled*/) {
 		Vector3 my_coords = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), 0);
 		FIRE::STOP_FIRE_IN_RANGE(my_coords.x, my_coords.y, my_coords.z, 2);
 		if (FIRE::IS_ENTITY_ON_FIRE(PLAYER::PLAYER_PED_ID())) FIRE::STOP_ENTITY_FIRE(PLAYER::PLAYER_PED_ID());
 	}
 
 	// No Fall Damage
-	if (featureNoFallDamage && !featurePlayerInvincible) {
+	if (featureNoFallDamage && !featurePlayerInvincible.enabled) {
 		if (PED::IS_PED_FALLING(playerPed) || PED::IS_PED_IN_PARACHUTE_FREE_FALL(playerPed)) falling_down = true;
 		if (falling_down) PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
 		if (!PED::IS_PED_FALLING(playerPed) && !PED::IS_PED_IN_PARACHUTE_FREE_FALL(playerPed) && falling_down) {
@@ -1034,46 +1034,46 @@ void update_features(){
 	}
 	
 	// No Police Helicopters
-	if (featureWantedLevelNoPHeli) {
+	if (featureWantedLevelNoPHeli.enabled) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(2, false);
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(12, false);
-		featureWantedLevelNoPHeliUpdated = true;
+		featureWantedLevelNoPHeli.updated = true;
 	}
-	else if (featureWantedLevelNoPHeliUpdated == true) {
+	else if (featureWantedLevelNoPHeli.updated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(2, true);
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(12, true);
-		featureWantedLevelNoPHeliUpdated = false;
+		featureWantedLevelNoPHeli.updated = false;
 	}
 
 	// No Road Blocks
-	if (featureWantedNoPRoadB) {
+	if (featureWantedNoPRoadB.enabled) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(8, false);
-		featureWantedNoPRoadBUpdated = true;
+		featureWantedNoPRoadB.updated = true;
 	}
-	else if (featureWantedNoPRoadBUpdated == true) {
+	else if (featureWantedNoPRoadB.updated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(8, true);
-		featureWantedNoPRoadBUpdated = false;
+		featureWantedNoPRoadB.updated = false;
 	}
 
 	// No Police Boats
-	if (featureWantedLevelNoPBoats) {
+	if (featureWantedLevelNoPBoats.enabled) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(13, false);
-		featureWantedLevelNoPBoatsUpdated = true;
+		featureWantedLevelNoPBoats.updated = true;
 	}
-	else if (featureWantedLevelNoPBoatsUpdated == true) {
+	else if (featureWantedLevelNoPBoats.updated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(13, true);
-		featureWantedLevelNoPBoatsUpdated = false;
+		featureWantedLevelNoPBoats.updated = false;
 	}
 
 	// No SWAT Vehicles
-	if (featureWantedLevelNoSWATVehicles) {
+	if (featureWantedLevelNoSWATVehicles.enabled) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(4, false);
-		featureWantedLevelNoSWATVehiclesUpdated = true;
+		featureWantedLevelNoSWATVehicles.updated = true;
 
 	}
-	else if (featureWantedLevelNoSWATVehiclesUpdated == true) {
+	else if (featureWantedLevelNoSWATVehicles.updated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(4, true);
-		featureWantedLevelNoSWATVehiclesUpdated = false;
+		featureWantedLevelNoSWATVehicles.updated = false;
 	}
 
 	// Less Aggressive Police Pursuit
@@ -1259,7 +1259,7 @@ void update_features(){
 	}
 
 	// Player Can Be Headshot
-	if (featurePlayerCanBeHeadshot && !featurePlayerInvincible) {
+	if (featurePlayerCanBeHeadshot && !featurePlayerInvincible.enabled) {
 		Vector3 coords_bullet_p = PED::GET_PED_BONE_COORDS(playerPed, 31086, 0, 0, 0); // head bone
 		if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_bullet_p.x, coords_bullet_p.y, coords_bullet_p.z, 0.1, 0, 0)) {
 			PED::CLEAR_PED_LAST_DAMAGE_BONE(playerPed);
@@ -1291,19 +1291,19 @@ void update_features(){
 				GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_calf_r.x, coords_calf_r.y, coords_calf_r.z, 0.4, 0, 0) || GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_pelvis.x, coords_pelvis.y, coords_pelvis.z, 0.2, 0, 0))) {
 				been_injured = true;
 			}
-			if (NPC_RAGDOLL_VALUES[current_limp_if_injured] == 1 && ((!featurePlayerLife && curr_health < 80) || (featurePlayerLife && curr_health < ((80.0 / 100.0) * curr_set_h)) ||
+			if (NPC_RAGDOLL_VALUES[current_limp_if_injured] == 1 && ((!featurePlayerLife.enabled && curr_health < 80) || (featurePlayerLife.enabled && curr_health < ((80.0 / 100.0) * curr_set_h)) ||
 				been_injured == true)) PED::SET_PED_MOVEMENT_CLIPSET(playerPed, "move_injured_generic", 1.0f); // @walk // 90
-			if (NPC_RAGDOLL_VALUES[current_limp_if_injured] == 2 && ((!featurePlayerLife && curr_health < 80) || (featurePlayerLife && curr_health < ((80.0 / 100.0) * curr_set_h)) || been_injured == true) && injured_drunk == false) {
+			if (NPC_RAGDOLL_VALUES[current_limp_if_injured] == 2 && ((!featurePlayerLife.enabled && curr_health < 80) || (featurePlayerLife.enabled && curr_health < ((80.0 / 100.0) * curr_set_h)) || been_injured == true) && injured_drunk == false) {
 				PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
 				STREAMING::REQUEST_ANIM_SET("move_m@drunk@verydrunk");
 				while (!STREAMING::HAS_ANIM_SET_LOADED("move_m@drunk@verydrunk")) WAIT(1);
 				PED::SET_PED_MOVEMENT_CLIPSET(playerPed, "move_m@drunk@verydrunk", 1.0f);
 				injured_drunk = true;
 			}
-			if (((!featurePlayerLife && curr_health < 30) ||
-				(featurePlayerLife && curr_health < ((30.0 / 100.0) * curr_set_h))) && !ENTITY::IS_ENTITY_DEAD(playerPed)) CONTROLS::DISABLE_CONTROL_ACTION(2, 22, 1); // jump
-			if ((!featurePlayerLife && curr_health < 50) || (featurePlayerLife && curr_health < ((50.0 / 100.0) * curr_set_h)) || been_injured == true) CONTROLS::DISABLE_CONTROL_ACTION(2, 21, 1); // sprint
-			if ((!featurePlayerLife && curr_health > 79) || (featurePlayerLife && curr_health > ((80.0 / 100.0) * curr_set_h) - 1) || (time_since_d > 100 && time_since_d < 5000) ||
+			if (((!featurePlayerLife.enabled && curr_health < 30) ||
+				(featurePlayerLife.enabled && curr_health < ((30.0 / 100.0) * curr_set_h))) && !ENTITY::IS_ENTITY_DEAD(playerPed)) CONTROLS::DISABLE_CONTROL_ACTION(2, 22, 1); // jump
+			if ((!featurePlayerLife.enabled && curr_health < 50) || (featurePlayerLife.enabled && curr_health < ((50.0 / 100.0) * curr_set_h)) || been_injured == true) CONTROLS::DISABLE_CONTROL_ACTION(2, 21, 1); // sprint
+			if ((!featurePlayerLife.enabled && curr_health > 79) || (featurePlayerLife.enabled && curr_health > ((80.0 / 100.0) * curr_set_h) - 1) || (time_since_d > 100 && time_since_d < 5000) ||
 				(time_since_a > 100 && time_since_a < 5000) || (injured_drunk == true && NPC_RAGDOLL_VALUES[current_limp_if_injured] != 2) || player_died == true) {
 				PED::CLEAR_PED_LAST_DAMAGE_BONE(playerPed);
 				ENTITY::CLEAR_ENTITY_LAST_DAMAGE_ENTITY(playerPed);
@@ -1314,11 +1314,11 @@ void update_features(){
 		}
 		if (curr_cam != VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured] || curr_hlth != curr_health) enable_camera_injured = false;
 		if (VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured] > 0 && enable_camera_injured == false) {
-			if ((!featurePlayerLife && curr_health < 80) || (featurePlayerLife && curr_health < ((80.0 / 100.0) * curr_set_h))) {
+			if ((!featurePlayerLife.enabled && curr_health < 80) || (featurePlayerLife.enabled && curr_health < ((80.0 / 100.0) * curr_set_h))) {
 				float tmp_v = VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured];
 				CAM::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", tmp_v / 3);
 			}
-			if ((!featurePlayerLife && curr_health > 79) || (featurePlayerLife && curr_health > ((80.0 / 100.0) * curr_set_h) - 1)) CAM::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", 0.0f);
+			if ((!featurePlayerLife.enabled && curr_health > 79) || (featurePlayerLife.enabled && curr_health > ((80.0 / 100.0) * curr_set_h) - 1)) CAM::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", 0.0f);
 			enable_camera_injured = true;
 			curr_cam = VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured];
 			curr_hlth = curr_health;
@@ -1381,9 +1381,9 @@ void update_features(){
 	}
 
 	////////////////////////////////////// PLAYER DATA ////////////////////////////////////////////////
-	if ((bPlayerExists && featurePlayerLife && featurePlayerLifeUpdated) || (bPlayerExists && featurePlayerLife && PLAYER_ARMOR_VALUES[current_player_stats] > -1 && featurePlayerStatsUpdated) || apply_pressed == true || player_d_armour == true) {
+	if ((bPlayerExists && featurePlayerLife.enabled && featurePlayerLife.updated) || (bPlayerExists && featurePlayerLife.enabled && PLAYER_ARMOR_VALUES[current_player_stats] > -1 && featurePlayerStatsUpdated) || apply_pressed == true || player_d_armour == true) {
 		if (!STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) { 
-			if ((featurePlayerLifeUpdated && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) || (player_d_armour == true && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()))) {
+			if ((featurePlayerLife.updated && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) || (player_d_armour == true && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()))) {
 				if (PLAYER_HEALTH_VALUES[current_player_health] > 0) {
 					PED::SET_PED_MAX_HEALTH(playerPed, PLAYER_HEALTH_VALUES[current_player_health]);
 					ENTITY::SET_ENTITY_HEALTH(playerPed, PLAYER_HEALTH_VALUES[current_player_health]);
@@ -1395,7 +1395,7 @@ void update_features(){
 				player_d_armour = false;
 			}
 			oldplayerPed = playerPed;
-			featurePlayerLifeUpdated = false;
+			featurePlayerLife.updated = false;
 
 			if (PLAYER_ARMOR_VALUES[current_player_stats] > -1 && featurePlayerStatsUpdated && GAMEPLAY::GET_MISSION_FLAG() == 0) {
 				if (PED::GET_PED_TYPE(playerPed) == 0) {
@@ -1438,16 +1438,16 @@ void update_features(){
 	} 
 	
 	if ((time_since_d > -1 && time_since_d < 2000) || (player_died == true && !featureNoAutoRespawn)) {
-		featurePlayerLifeUpdated = true;
+		featurePlayerLife.updated = true;
 		featurePlayerStatsUpdated = true;
-		if (!featurePlayerLife) dynamic_loading = true;
+		if (!featurePlayerLife.enabled) dynamic_loading = true;
 		if (detained == false && alert_level == 0) player_died = false;
 	}
 	
 	if ((playerPed != oldplayerPed) || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) { // If You Switch Character Your Health & Armor Will Be Restored
-		featurePlayerLifeUpdated = true;
+		featurePlayerLife.updated = true;
 		featurePlayerStatsUpdated = true;
-		if (!featurePlayerLife) dynamic_loading = true;
+		if (!featurePlayerLife.enabled) dynamic_loading = true;
 	}
 
 	if (PLAYER_ARMOR_VALUES[current_player_stats] > -1 && GAMEPLAY::GET_MISSION_FLAG() == 1 && !SCRIPT::HAS_SCRIPT_LOADED("stats_controller")) {
@@ -1602,7 +1602,7 @@ void update_features(){
 			been_damaged_armor = curr_playerArmour;
 		}
 
-		if (featurePlayerInvincible) {
+		if (featurePlayerInvincible.enabled) {
 			Vector3 coords_bullet = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 			if (GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_bullet.x, coords_bullet.y, coords_bullet.z, 1.0, 0, 0) && !PED::IS_PED_RAGDOLL(playerPed) && PED::IS_PED_ON_FOOT(playerPed) && ragdoll_seconds == 0 &&
 				!PED::IS_PED_SHOOTING(playerPed)) {
@@ -1620,7 +1620,7 @@ void update_features(){
 				AUDIO::PLAY_PAIN(ScreamType, 0, 0);
 				AUDIO::_PLAY_AMBIENT_SPEECH1(PLAYER::PLAYER_ID(), "GENERIC_SHOCKED_HIGH", "SPEECH_PARAMS_FORCE");
 				if (PED::GET_PED_ARMOUR(playerPed) > 4 && (ragdollType == 2 || ragdollType == 3)) PED::SET_PED_TO_RAGDOLL(playerPed, time1, time2, ragdollType, true, true, false);
-				if (PED::GET_PED_ARMOUR(playerPed) < 5 || featurePlayerInvincible) PED::SET_PED_TO_RAGDOLL(playerPed, time1, time2, ragdollType, true, true, false);
+				if (PED::GET_PED_ARMOUR(playerPed) < 5 || featurePlayerInvincible.enabled) PED::SET_PED_TO_RAGDOLL(playerPed, time1, time2, ragdollType, true, true, false);
 				been_damaged_by_weapon = false;
 				ragdoll_task = true;
 			}
@@ -1708,9 +1708,9 @@ void update_features(){
 	}
 	
 	// Player Drunk
-	if(featurePlayerDrunkUpdated) {
-		featurePlayerDrunkUpdated = false;
-		if(featurePlayerDrunk){
+	if(featurePlayerDrunk.updated) {
+		featurePlayerDrunk.updated = false;
+		if(featurePlayerDrunk.enabled){
 			STREAMING::REQUEST_ANIM_SET((char*) CLIPSET_DRUNK);
 			while(!STREAMING::HAS_ANIM_SET_LOADED((char*) CLIPSET_DRUNK)){
 				make_periodic_feature_call();
@@ -1723,7 +1723,7 @@ void update_features(){
 			PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
 			CAM::STOP_GAMEPLAY_CAM_SHAKING(true);
 		}
-		AUDIO::SET_PED_IS_DRUNK(playerPed, featurePlayerDrunk);
+		AUDIO::SET_PED_IS_DRUNK(playerPed, featurePlayerDrunk.enabled);
 	}
 
 	// Night Vision
@@ -1793,7 +1793,7 @@ void updateFrozenWantedFeature(int level){
 
 bool onconfirm_playerData_menu(MenuItem<int> choice){
 	if (choice.value == -1) {
-		featurePlayerLifeUpdated = true;
+		featurePlayerLife.updated = true;
 		featurePlayerStatsUpdated = true;
 		apply_pressed = true;
 		set_status_text(tr("MainMenu.SettingsWereApplied", "Settings were applied"));
@@ -1843,9 +1843,7 @@ bool onconfirm_powerpunch_menu(MenuItem<int> choice)
 	case 5:
 	{
 		if (WEAPONS_POWERPUNCH_VALUES[PowerPunchIndex] != 55) {
-			std::ostringstream ss;
-			ss << "~r~Warning! Enable Manual Mode To Use It";
-			set_status_text(ss.str());
+			set_status_text(tr("MainMenu.WarningEnableManualModeToUseIt", "~r~Warning! Enable Manual Mode To Use It"));
 		}
 		keyboard_on_screen_already = true;
 		set_curr_message(tr("MainMenu.EnterPunchStrength", "Enter punch strength:")); // power punch strength
@@ -1896,7 +1894,7 @@ void process_powerpunch_menu() {
 	toggleItem->toggleValue = &featurePunchFireWeapons;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_POWERPUNCH_CAPTIONS, onchange_power_punch_index);
+	listItem = new SelectFromListMenuItem(&WEAPONS_POWERPUNCH_CAPTIONS, onchange_power_punch_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.PowerPunchStrength", "Power Punch Strength");
 	listItem->value = PowerPunchIndex;
@@ -1924,8 +1922,8 @@ bool process_player_life_menu(){
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MainMenu.ApplyOnLoadRespawnChange", "Apply On Load/Respawn/Change");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featurePlayerLife;
-	toggleItem->toggleValueUpdated = &featurePlayerLifeUpdated;
+	toggleItem->toggleValue = &featurePlayerLife.enabled;
+	toggleItem->toggleValueUpdated = &featurePlayerLife.updated;
 	menuItems.push_back(toggleItem);
 	
 	item = new MenuItem<int>();
@@ -1934,25 +1932,25 @@ bool process_player_life_menu(){
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_player_health_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_HEALTH_CAPTIONS, onchange_player_health_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.SetPlayerHealth", "Set Player Health");
 	listItem->value = current_player_health;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PLAYER_ARMOR_CAPTIONS, onchange_player_armor_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_ARMOR_CAPTIONS, onchange_player_armor_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.SetPlayerArmor", "Set Player Armor");
 	listItem->value = current_player_armor;
 	menuItems.push_back(listItem);
 	
-	listItem = new SelectFromListMenuItem(REGEN_CAPTIONS, onchange_regen_callback);
+	listItem = new SelectFromListMenuItem(&REGEN_CAPTIONS, onchange_regen_callback);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.HealthRegenerationRate", "Health Regeneration Rate");
 	listItem->value = current_regen_speed;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PLAYER_ARMOR_CAPTIONS, onchange_player_stats_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_ARMOR_CAPTIONS, onchange_player_stats_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.CharacterAbilityStats", "Character Ability Stats");
 	listItem->value = current_player_stats;
@@ -1976,7 +1974,7 @@ bool maxwantedlevel_menu() {
 	toggleItem->toggleValue = &featureWantedLevelFrozen;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_wanted_maxpossible_level_mode);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_player_wanted_maxpossible_level_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.MaxWantedLevel", "Max Wanted Level");
 	listItem->value = wanted_maxpossible_level;
@@ -1991,25 +1989,25 @@ bool maxwantedlevel_menu() {
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MainMenu.NoPoliceHelicopters", "No Police Helicopters");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWantedLevelNoPHeli;
+	toggleItem->toggleValue = &featureWantedLevelNoPHeli.enabled;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MainMenu.NoPoliceBoats", "No Police Boats");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWantedLevelNoPBoats;
+	toggleItem->toggleValue = &featureWantedLevelNoPBoats.enabled;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MainMenu.NoRoadBlocks", "No Road Blocks");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWantedNoPRoadB;
+	toggleItem->toggleValue = &featureWantedNoPRoadB.enabled;
 	menuItems.push_back(toggleItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MainMenu.NoSWATVehicles", "No SWAT Vehicles");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWantedLevelNoSWATVehicles;
+	toggleItem->toggleValue = &featureWantedLevelNoSWATVehicles.enabled;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
@@ -2036,13 +2034,13 @@ bool mostwanted_menu() {
 	toggleItem->toggleValue = &featurePlayerMostWanted;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_mostwanted_level_mode);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_player_mostwanted_level_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.WantedStatusAt", "Wanted Status At");
 	listItem->value = mostwanted_level_enable;
 	menuItems.push_back(listItem);
 	
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_mostwanted_mode);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_player_mostwanted_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.WantedStarsIfSeen", "Wanted Stars If Seen");
 	listItem->value = current_player_mostwanted;
@@ -2078,19 +2076,19 @@ bool player_movement_speed() {
 	toggleItem->toggleValue = &featurePlayerFastRun;
 	menuItems.push_back(toggleItem);
 	
-	listItem = new SelectFromListMenuItem(PLAYER_MOVEMENT_CAPTIONS, onchange_player_superjump_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_MOVEMENT_CAPTIONS, onchange_player_superjump_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.SuperJump", "Super Jump");
 	listItem->value = current_player_superjump;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PLAYER_MOVEMENT_CAPTIONS, onchange_player_jumpfly_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_MOVEMENT_CAPTIONS, onchange_player_jumpfly_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.HancockMode", "Hancock Mode");
 	listItem->value = current_player_jumpfly;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PLAYER_MOVEMENT_CAPTIONS, onchange_player_movement_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_MOVEMENT_CAPTIONS, onchange_player_movement_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.RunningSpeed", "Running Speed:");
 	listItem->value = current_player_movement; 
@@ -2099,8 +2097,8 @@ bool player_movement_speed() {
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MainMenu.Drunk", "Drunk");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featurePlayerDrunk;
-	toggleItem->toggleValueUpdated = &featurePlayerDrunkUpdated;
+	toggleItem->toggleValue = &featurePlayerDrunk.enabled;
+	toggleItem->toggleValueUpdated = &featurePlayerDrunk.updated;
 	menuItems.push_back(toggleItem);
 	
 	return draw_generic_menu<int>(menuItems, &PlayerMovementMenuIndex, caption, onconfirm_PlayerMovement_menu, NULL, NULL);
@@ -2115,7 +2113,7 @@ bool process_ragdoll_menu() {
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_no_ragdoll_mode);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_no_ragdoll_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.NoRagdoll", "No Ragdoll");
 	listItem->value = current_no_ragdoll;
@@ -2127,25 +2125,25 @@ bool process_ragdoll_menu() {
 	toggleItem->toggleValue = &featureRagdollIfInjured;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_shake_ragdoll_mode);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_shake_ragdoll_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.ShakeCameraIfShot", "Shake Camera If Shot");
 	listItem->value = feature_shake_ragdoll;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(NPC_RAGDOLL_CAPTIONS, onchange_NPC_ragdoll_mode);
+	listItem = new SelectFromListMenuItem(&NPC_RAGDOLL_CAPTIONS, onchange_NPC_ragdoll_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.NPCRagdollIfShot", "NPC Ragdoll If Shot");
 	listItem->value = current_npc_ragdoll;
 	menuItems.push_back(listItem);
 	
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_limp_if_injured_mode);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_limp_if_injured_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.LimpIfInjured", "Limp If Injured");
 	listItem->value = current_limp_if_injured;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_shake_injured_mode);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_shake_injured_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.ShakeCameraIfInjured", "Shake Camera If Injured");
 	listItem->value = feature_shake_injured;
@@ -2163,25 +2161,25 @@ bool process_player_prison_menu(){
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(PLAYER_PRISON_CAPTIONS, onchange_player_prison_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_PRISON_CAPTIONS, onchange_player_prison_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.PlayerImprisonedIf", "Player Imprisoned If");
 	listItem->value = current_player_prison;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_BILL_CAPTIONS, onchange_player_escapemoney_mode);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_BILL_CAPTIONS, onchange_player_escapemoney_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.EscapeFailurePayment", "Escape Failure Payment");
 	listItem->value = current_player_escapemoney;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_escapestars_mode);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_player_escapestars_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.NumberOfStarsAfterEscaping", "Number Of Stars After Escaping");
 	listItem->value = current_escape_stars;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PLAYER_DISCHARGE_CAPTIONS, onchange_player_discharge_mode);
+	listItem = new SelectFromListMenuItem(&PLAYER_DISCHARGE_CAPTIONS, onchange_player_discharge_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.TimeToDischarge", "Time To Discharge");
 	listItem->value = current_player_discharge;
@@ -2229,13 +2227,13 @@ bool process_player_forceshield_menu() {
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(VEH_MASS_CAPTIONS, onchange_player_forceshield_mode);
+	listItem = new SelectFromListMenuItem(&VEH_MASS_CAPTIONS, onchange_player_forceshield_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.PlayerForceShield", "Player Force Shield");
 	listItem->value = current_player_forceshieldN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_levitation_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_levitation_index);
 	listItem->wrap = false;
 	listItem->caption = tr("MainMenu.Levitation", "Levitation");
 	listItem->value = LevitationIndex;
@@ -2300,7 +2298,7 @@ void process_player_menu(){
 	StandardOrToggleMenuDef lines[lineCount] = {
 		{"Player Appearance", NULL, NULL, false},
 		{"Heal Player", NULL, NULL, true},
-		{"Invincible", &featurePlayerInvincible, &featurePlayerInvincibleUpdated, true},
+		{"Invincible", &featurePlayerInvincible.enabled, &featurePlayerInvincible.updated, true},
 		{"No Fall Damage", &featureNoFallDamage, NULL, true},
 		{"Fire Proof", &featureFireProof, NULL, true},
 		{"Add or Remove Cash", NULL, NULL, true, CASH},
@@ -2412,9 +2410,7 @@ bool onconfirm_main_menu(MenuItem<int> choice){
 }
 
 void process_main_menu(){
-	std::ostringstream captionSS;
-	captionSS << "~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update ";
-	captionSS << VERSION_STRING;
+	std::string caption = "~HUD_COLOUR_MENU_YELLOW~Enhanced ~HUD_COLOUR_WHITE~Native Trainer ~HUD_COLOUR_GREY~Update " + VERSION_STRING;
 
 	std::vector<MenuItem<int>*> menuItems;
 
@@ -2481,7 +2477,7 @@ void process_main_menu(){
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	MenuParameters<int> params(menuItems, captionSS.str());
+	MenuParameters<int> params(menuItems, caption);
 	params.menuSelectionPtr = &activeLineIndexMain;
 	params.onConfirmation = onconfirm_main_menu;
 	params.sanitiseHeaderText = false;
@@ -2543,8 +2539,8 @@ void reset_globals(){
 	current_player_discharge = 3;
 	current_escape_stars = 4;
 
-	featurePlayerDrunk =
-		featurePlayerInvincible =
+	featurePlayerDrunk.enabled =
+		featurePlayerInvincible.enabled =
 		featureNoFallDamage =
 		featureFireProof =
 		featurePlayerIgnoredByPolice =
@@ -2558,15 +2554,15 @@ void reset_globals(){
 		featurePlayerInvisibleInVehicle =
 		featureNightVision =
 		featureThermalVision =
-		featurePlayerLife =
+		featurePlayerLife.enabled =
 		featurePrison_Hardcore =
 		featureRagdollIfInjured =
 		//featureLevitation =
-		featureWantedLevelNoPHeli =
-		featureWantedNoPRoadB =
-		featureWantedLevelNoPBoats =
+		featureWantedLevelNoPHeli.enabled =
+		featureWantedNoPRoadB.enabled =
+		featureWantedLevelNoPBoats.enabled =
 		featureWantedLevelNoPRam =
-		featureWantedLevelNoSWATVehicles =
+		featureWantedLevelNoSWATVehicles.enabled =
 		NoTaxiWhistling =
 		featurePlayerCanBeHeadshot =
 		featureRespawnsWhereDied =
@@ -2576,11 +2572,11 @@ void reset_globals(){
 		featurePedPrison_Robe =
 		featureWantedLevelFrozen = false;
 
-		featurePlayerInvincibleUpdated =
-		featurePlayerDrunkUpdated =
+		featurePlayerInvincible.updated =
+		featurePlayerDrunk.updated =
 		featureNightVisionUpdated =
 		featureThermalVisionUpdated =
-		featurePlayerLifeUpdated =
+		featurePlayerLife.updated =
 		featurePrison_Yard = 
 		featurePlayerStatsUpdated =
 		featurePlayerNoSwitch =
@@ -2823,16 +2819,16 @@ void ScriptTidyUp(){
 }
 
 void add_player_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
-	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerInvincible", &featurePlayerInvincible, &featurePlayerInvincibleUpdated});
+	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerInvincible", &featurePlayerInvincible.enabled, &featurePlayerInvincible.updated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoFallDamage", &featureNoFallDamage});
 	results->push_back(FeatureEnabledLocalDefinition{"featureFireProof", &featureFireProof});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelFrozen", &featureWantedLevelFrozen/*, &featureWantedLevelFrozenUpdated*/});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerIgnoredByPolice", &featurePlayerIgnoredByPolice}); 
-	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPHeli", &featureWantedLevelNoPHeli});
-	results->push_back(FeatureEnabledLocalDefinition{"featureWantedNoPRoadB", &featureWantedNoPRoadB});
-	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPBoats", &featureWantedLevelNoPBoats});
+	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPHeli", &featureWantedLevelNoPHeli.enabled});
+	results->push_back(FeatureEnabledLocalDefinition{"featureWantedNoPRoadB", &featureWantedNoPRoadB.enabled});
+	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPBoats", &featureWantedLevelNoPBoats.enabled});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoPRam", &featureWantedLevelNoPRam});
-	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoSWATVehicles", &featureWantedLevelNoSWATVehicles});
+	results->push_back(FeatureEnabledLocalDefinition{"featureWantedLevelNoSWATVehicles", &featureWantedLevelNoSWATVehicles.enabled});
 	results->push_back(FeatureEnabledLocalDefinition{"NoTaxiWhistling", &NoTaxiWhistling});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoScubaGearMask", &featureNoScubaGearMask});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoScubaSound", &featureNoScubaSound});
@@ -2848,10 +2844,10 @@ void add_player_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* 
 	results->push_back(FeatureEnabledLocalDefinition{"featureRagdollIfInjured", &featureRagdollIfInjured}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerInvisible", &featurePlayerInvisible}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerInvisibleInVehicle", &featurePlayerInvisibleInVehicle}); 
-	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerDrunk", &featurePlayerDrunk, &featurePlayerDrunkUpdated});
+	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerDrunk", &featurePlayerDrunk.enabled, &featurePlayerDrunk.updated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNightVision", &featureNightVision, &featureNightVisionUpdated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureThermalVision", &featureThermalVision, &featureThermalVisionUpdated});
-	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerLife", &featurePlayerLife, &featurePlayerLifeUpdated});
+	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerLife", &featurePlayerLife.enabled, &featurePlayerLife.updated});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePrison_Hardcore", &featurePrison_Hardcore});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePrison_Robe", &featurePrison_Robe});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePedPrison_Robe", &featurePedPrison_Robe});

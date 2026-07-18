@@ -264,7 +264,6 @@ std::string show_keyboard(char* title_id, char* prepopulated_text){
 		WAIT(0);
 	}
 
-	std::stringstream ss;
 	if(!GAMEPLAY::GET_ONSCREEN_KEYBOARD_RESULT()){
 		return std::string("");
 	}
@@ -416,7 +415,7 @@ void SelectFromListMenuItem::handleLeftPress(){
 			this->value = 0;
 			return;
 		}
-		this->value = this->itemCaptions.size() - 1;
+		this->value = this->captions().size() - 1;
 	}
 	if(onValueChangeCallback != NULL){
 		this->onValueChangeCallback(value, this);
@@ -425,9 +424,9 @@ void SelectFromListMenuItem::handleLeftPress(){
 
 void SelectFromListMenuItem::handleRightPress(){
 	this->value++;
-	if(this->value >= this->itemCaptions.size()){
+	if(this->value >= this->captions().size()){
 		if(!wrap){
-			this->value = this->itemCaptions.size() - 1;
+			this->value = this->captions().size() - 1;
 			return;
 		}
 		this->value = 0;
@@ -438,7 +437,7 @@ void SelectFromListMenuItem::handleRightPress(){
 }
 
 std::string SelectFromListMenuItem::getCurrentCaption(){
-	return this->itemCaptions.at(this->value);
+	return this->captions().at(this->value);
 }
 
 void draw_ingame_sprite(MenuItemImage *image, float x, float y, int w, int h){

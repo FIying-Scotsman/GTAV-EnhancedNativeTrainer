@@ -171,13 +171,8 @@ void apply_dash_colors(int colorIndex){
 }
 
 void onhighlight_dash_colour_selection(MenuItem<int> choice){
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!ENTITY::DOES_ENTITY_EXIST(playerPed)){
-		return;
-	}
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
 		set_status_text(tr("InteriorColsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
@@ -217,13 +212,8 @@ void apply_trim_colors(int colorIndex){
 }
 
 void onhighlight_trim_colour_selection(MenuItem<int> choice){
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!ENTITY::DOES_ENTITY_EXIST(playerPed)){
-		return;
-	}
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
 		set_status_text(tr("InteriorColsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
@@ -271,20 +261,13 @@ bool onconfirm_trim_colour_menu(MenuItem<int> choice){
 }
 
 bool process_interior_colour_menu(){
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
-		return false;
-	}
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
 		set_status_text(tr("InteriorColsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
 
-	if(!is_this_a_car(PED::GET_VEHICLE_PED_IS_USING(playerPed))){
+	if(!is_this_a_car(veh)){
 		set_status_text(tr("InteriorColsMenu.ThisVehicleIsNotSupported", "This vehicle is not supported"));
 		return false;
 	}

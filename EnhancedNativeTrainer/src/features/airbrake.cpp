@@ -194,9 +194,8 @@ void update_airbrake_text()
 void create_airbrake_help_text()
 {
 	//Debug
-	std::stringstream ss;
-		
-	/*ss << "Heading: " << curHeading << " Rotation: " << curRotation.z
+	/*std::stringstream ss;
+	ss << "Heading: " << curHeading << " Rotation: " << curRotation.z
 	<< "\n xVect: " << xVect << "yVect: " << yVect;*/
 
 	std::string travelSpeedStr;
@@ -213,8 +212,8 @@ void create_airbrake_help_text()
 		break;
 	}
 
-	ss << "Current Travel Speed: ~HUD_COLOUR_WHITE~" << travelSpeedStr;
-	
+	std::string travelSpeedLine = "Current Travel Speed: ~HUD_COLOUR_WHITE~" + travelSpeedStr;
+
 	int index = 0;
 	airbrakeStatusLines[index++] = "Default Airbrake Keys (change in XML):";
 	airbrakeStatusLines[index++] = "Q/Z - Move Up/Down";
@@ -235,7 +234,7 @@ void create_airbrake_help_text()
 	airbrakeStatusLines[index++] = "M - Toggle Mouse Control ON/OFF";
 	airbrakeStatusLines[index++] = " "; // Hold Space To Enable 'Move By Camera' Mode
 	airbrakeStatusLines[index++] = " ";
-	airbrakeStatusLines[index++] = ss.str();
+	airbrakeStatusLines[index++] = travelSpeedLine;
 
 	airbrakeStatusTextDrawTicksMax = GetTickCount() + 2500;
 	airbrakeStatusTextGxtEntry = false;

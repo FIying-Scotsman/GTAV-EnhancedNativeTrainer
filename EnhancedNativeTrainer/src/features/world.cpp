@@ -262,13 +262,13 @@ void process_world_weathersettings_menu() {
 	toggleItem->toggleValue = &featureWeatherFreeze;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(MISC_WEATHER_CHANGE_CAPTIONS, onchange_weather_change_index);
+	listItem = new SelectFromListMenuItem(&MISC_WEATHER_CHANGE_CAPTIONS, onchange_weather_change_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.ChangeWeather", "Change Weather");
 	listItem->value = WeatherChangeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(MISC_WEATHER_METHOD_CAPTIONS, onchange_weather_method_index);
+	listItem = new SelectFromListMenuItem(&MISC_WEATHER_METHOD_CAPTIONS, onchange_weather_method_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.Method", "Method");
 	listItem->value = WeatherMethodIndexN;
@@ -280,31 +280,31 @@ void process_world_weathersettings_menu() {
 	toggleItem->toggleValueUpdated = &featureSnowUpdated;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_snowing_c_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_snowing_c_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.ReducedGripIfSnowing", "Reduced Grip If Snowing");
 	listItem->value = RadarReducedGripSnowingCustomIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_raining_c_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_raining_c_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.SlipperyWhenWet", "Slippery When Wet");
 	listItem->value = RadarReducedGripRainingCustomIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_LIGHTNING_INTENSITY_CAPTIONS, onchange_lightning_intensity_index);
+	listItem = new SelectFromListMenuItem(&WORLD_LIGHTNING_INTENSITY_CAPTIONS, onchange_lightning_intensity_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.LightningIntensity", "Lightning Intensity");
 	listItem->value = featureLightIntensityIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_WIND_STRENGTH_CAPTIONS, onchange_world_wind_strength_index);
+	listItem = new SelectFromListMenuItem(&WORLD_WIND_STRENGTH_CAPTIONS, onchange_world_wind_strength_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.WindStrength", "Wind Strength");
 	listItem->value = WindStrengthIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_WAVES_CAPTIONS, onchange_world_waves_index);
+	listItem = new SelectFromListMenuItem(&WORLD_WAVES_CAPTIONS, onchange_world_waves_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.WavesIntensity", "Waves Intensity");
 	listItem->value = WorldWavesIndex;
@@ -327,7 +327,6 @@ void process_world_weathersettings_menu() {
 
 bool onconfirm_weather_menu(MenuItem<std::string> choice)
 {
-	std::stringstream ss; ss << "Weather Frozen at: " << lastWeatherName;
 	switch (choice.currentMenuIndex)
 	{
 	case 0: 
@@ -359,9 +358,7 @@ bool onconfirm_weather_menu(MenuItem<std::string> choice)
 			if (screenfltr == "DEFAULT" || screenfltr == "") GRAPHICS::CLEAR_TIMECYCLE_MODIFIER();
 		}
 
-		std::ostringstream ss2;
-		ss2 << "Weather: " << choice.caption;
-		set_status_text(ss2.str());
+		set_status_text(tr("WorldMenu.WeatherPrefix", "Weather: ") + choice.caption);
 	}
 
 	return false;
@@ -407,8 +404,7 @@ bool onconfirm_clouds_menu(MenuItem<std::string> choice)
 		// Set Weather
 		if (featureCloudsFreeze && !lastClouds.empty())
 		{
-			std::stringstream ss; ss << "Clouds frozen at: " << lastCloudsName;
-			set_status_text(ss.str());
+			set_status_text(tr("WorldMenu.CloudsFrozenAtPrefix", "Clouds frozen at: ") + lastCloudsName);
 		}
 		if (featureCloudsFreeze && lastClouds.empty())
 		{
@@ -436,9 +432,7 @@ bool onconfirm_clouds_menu(MenuItem<std::string> choice)
 		WAIT(10);
 		GRAPHICS::_SET_CLOUD_HAT_TRANSITION((char *)lastClouds.c_str(), 0.3);
 				
-		std::ostringstream ss2;
-		ss2 << "Clouds: " << choice.caption;
-		set_status_text(ss2.str());
+		set_status_text(tr("WorldMenu.CloudsPrefix", "Clouds: ") + choice.caption);
 	}
 
 	return false;
@@ -605,7 +599,7 @@ void process_world_menu()
 	item->value = -5;
 	menuItems.push_back(item);
 	
-	listItem = new SelectFromListMenuItem(WORLD_GRAVITY_LEVEL_CAPTIONS, onchange_gravity_level_index);
+	listItem = new SelectFromListMenuItem(&WORLD_GRAVITY_LEVEL_CAPTIONS, onchange_gravity_level_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.GravityLevel", "Gravity Level");
 	listItem->value = featureGravityLevelIndex;
@@ -654,7 +648,7 @@ void process_world_menu()
 	togItem->toggleValue = &featureNoPoliceBlips;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_cop_blips_perm_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_cop_blips_perm_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.ShowPoliceBlipsPermanently", "Show Police Blips Permanently");
 	listItem->value = CopBlipPermIndex;
@@ -674,7 +668,7 @@ void process_world_menu()
 	togItem->toggleValueUpdated = &featureWorldRandomTrainsUpdated;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_TRAIN_SPEED_CAPTIONS, onchange_world_train_speed_index);
+	listItem = new SelectFromListMenuItem(&WORLD_TRAIN_SPEED_CAPTIONS, onchange_world_train_speed_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.TrainSpeed", "Train Speed");
 	listItem->value = TrainSpeedIndex;
@@ -740,7 +734,7 @@ void process_world_menu()
 	togItem->toggleValueUpdated = &featureCayoPericoMapUpdated;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_RADAR_MAP_CAPTIONS, onchange_world_radar_map_index);
+	listItem = new SelectFromListMenuItem(&WORLD_RADAR_MAP_CAPTIONS, onchange_world_radar_map_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.RadarMapSize", "Radar Map Size");
 	listItem->value = RadarMapIndexN;
@@ -759,7 +753,7 @@ void process_world_menu()
 	togItem->toggleValue = &featureNoWaypoint;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_FREEROAM_ACTIVITIES_CAPTIONS, onchange_freeroam_activities_index);
+	listItem = new SelectFromListMenuItem(&WORLD_FREEROAM_ACTIVITIES_CAPTIONS, onchange_freeroam_activities_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.NoFreeroamActivities", "No Freeroam Activities");
 	listItem->value = featureFreeroamActivitiesIndex;

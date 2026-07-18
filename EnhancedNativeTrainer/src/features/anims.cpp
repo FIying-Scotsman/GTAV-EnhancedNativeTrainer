@@ -3859,9 +3859,7 @@ bool process_anims_menu()
 	//	break;
 	}
 
-	std::stringstream caption_ss;
-	caption_ss << caption << " Level " << (currentAnimMenuDepth + 1);
-	auto caption_str = caption_ss.str();
+	std::string caption_str = std::string(caption) + tr("AnimsMenu.LevelPrefix", " Level ") + std::to_string(currentAnimMenuDepth + 1);
 
 	bool result = draw_generic_menu<int>(menuItems, 0, caption_str, onconfirm_anim_menu, NULL, NULL, NULL);
 
@@ -4146,9 +4144,7 @@ bool onconfirm_clipset_menu(MenuItem<int> choice)
 	}
 	if (!STREAMING::HAS_ANIM_SET_LOADED((char*)value.c_str()))
 	{
-		std::stringstream ss;
-		ss << "Loading clipset " << (char*)value.c_str() << " failed";
-		set_status_text(ss.str());
+		set_status_text(tr("AnimsMenu.LoadingClipsetPrefix", "Loading clipset ") + value + tr("AnimsMenu.FailedSuffix", " failed"));
 		return false;
 	}
 

@@ -588,9 +588,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 	WEAPON::SET_CURRENT_PED_WEAPON(playerPed, thisWeaponHash, true);
 
 	FunctionDrivenToggleMenuItem<int> *equipItem = new FunctionDrivenToggleMenuItem<int>();
-	std::stringstream ss;
-	ss << "Equip " << label_caption << "?";
-	equipItem->caption = ss.str();
+	equipItem->caption = tr("WeaponMenu.EquipPrefix", "Equip ") + label_caption + tr("WeaponMenu.QuestionSuffix", "?");
 	equipItem->value = 1;
 	equipItem->getter_call = is_weapon_equipped;
 	equipItem->setter_call = set_weapon_equipped;
@@ -647,7 +645,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		}
 
 		if(strcmp(weaponChar, "WEAPON_KNUCKLE") == 0){
-			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(CAPTIONS_ATTACH_KNUCKLES, onchange_knuckle_appearance);
+			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(&CAPTIONS_ATTACH_KNUCKLES, onchange_knuckle_appearance);
 			listItem->wrap = false;
 			listItem->caption = tr("WeaponMenu.SkinChoice", "Skin Choice");
 			listItem->value = get_current_knuckle_appearance();
@@ -655,7 +653,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		}
 
 		if(strcmp(weaponChar, "WEAPON_SWITCHBLADE") == 0){
-			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(CAPTIONS_ATTACH_SWITCHBLADE, onchange_switchblade_appearance);
+			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(&CAPTIONS_ATTACH_SWITCHBLADE, onchange_switchblade_appearance);
 			listItem->wrap = false;
 			listItem->caption = tr("WeaponMenu.SkinChoice", "Skin Choice");
 			listItem->value = get_current_switchblade_appearance();
@@ -663,7 +661,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		}
 
 		if(strcmp(weaponChar, "WEAPON_REVOLVER") == 0){
-			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(CAPTIONS_ATTACH_REVOLVER, onchange_revolver_appearance);
+			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(&CAPTIONS_ATTACH_REVOLVER, onchange_revolver_appearance);
 			listItem->wrap = false;
 			listItem->caption = tr("WeaponMenu.SkinChoice", "Skin Choice");
 			listItem->value = get_current_revolver_appearance();
@@ -818,7 +816,7 @@ void process_copweapon_menu(){
 	toggleItem->toggleValue = &featureSwitchWeaponIfDanger;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_COPARMED_CAPTIONS, onchange_cop_armed_index);
+	listItem = new SelectFromListMenuItem(&WEAPONS_COPARMED_CAPTIONS, onchange_cop_armed_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.ArmedWith", "Armed With");
 	listItem->value = CopCurrArmedIndex;
@@ -830,7 +828,7 @@ void process_copweapon_menu(){
 	toggleItem->toggleValue = &featureArmyMelee;
 	menuItems.push_back(toggleItem);
 	
-	listItem = new SelectFromListMenuItem(WEAPONS_COPALARM_CAPTIONS, onchange_cop_alarm_index);
+	listItem = new SelectFromListMenuItem(&WEAPONS_COPALARM_CAPTIONS, onchange_cop_alarm_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.When", "When");
 	listItem->value = CopAlarmIndex;
@@ -975,13 +973,13 @@ void process_pedagainstweapons_menu(){
 	toggleItem->toggleValue = &featurePoliceAgainst;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_CHANCEPOLICECALLING_CAPTIONS, onchange_chance_police_calling_index);
+	listItem = new SelectFromListMenuItem(&WEAPONS_CHANCEPOLICECALLING_CAPTIONS, onchange_chance_police_calling_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.ChanceOfCallingPolice", "Chance Of Calling Police");
 	listItem->value = ChancePoliceCallingIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_CHANCEPOLICECALLING_CAPTIONS, onchange_chance_attacking_you_index);
+	listItem = new SelectFromListMenuItem(&WEAPONS_CHANCEPOLICECALLING_CAPTIONS, onchange_chance_attacking_you_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.ChanceOfAttackingYou", "Chance Of Attacking You");
 	listItem->value = ChanceAttackingYouIndex;
@@ -1054,19 +1052,10 @@ void save_current_weapon(int slot)
 
 	if (bPlayerExists)
 	{
-		std::ostringstream ss;
-		if (slot != -1)
-		{
-			ss << activeSavedWeaponSlotName;
-		}
-		else
-		{
-			ss << "Saved Weapon " << (lastKnownSavedWeaponCount + 1);
-		}
+		std::string existingText = (slot != -1) ? activeSavedWeaponSlotName : (tr("WeaponMenu.SavedWeaponPrefix", "Saved Weapon ") + std::to_string(lastKnownSavedWeaponCount + 1));
 
 		keyboard_on_screen_already = true;
 		set_curr_message(tr("WeaponMenu.EnterASaveName", "Enter a save name:")); // save current weapon
-		auto existingText = ss.str();
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
 		{
@@ -1346,15 +1335,15 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 				result = trim(result);
 				lastCustomWeapon = result;
 				Hash weaponHash = GAMEPLAY::GET_HASH_KEY((char *) result.c_str());
-				std::ostringstream ss;
+				std::string message;
 				if(WEAPON::IS_WEAPON_VALID(weaponHash)){
 					WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 250, false, false);
-					ss << result << " added";
+					message = result + tr("WeaponMenu.AddedSuffix", " added");
 				}
 				else{
-					ss << "~r~Error: Couldn't find weapon \"" << result << "\"";
+					message = tr("WeaponMenu.CouldntFindWeaponPrefix", "~r~Error: Couldn't find weapon \"") + result + tr("WeaponMenu.CouldntFindWeaponSuffix", "\"");
 				}
-				set_status_text(ss.str());
+				set_status_text(message);
 			}
 			break;
 		}
@@ -1436,7 +1425,7 @@ bool process_weapon_menu(){
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_SAVED_LOAD_CAPTIONS, onchange_weapon_load_saved_modifier);
+	listItem = new SelectFromListMenuItem(&WEAPONS_SAVED_LOAD_CAPTIONS, onchange_weapon_load_saved_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.EquipSavedWeapons", "Equip Saved Weapons");
 	listItem->value = WeaponsSavedLoad;
@@ -1466,7 +1455,7 @@ bool process_weapon_menu(){
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(WEAP_DMG_CAPTIONS, onchange_weap_dmg_modifier);
+	listItem = new SelectFromListMenuItem(&WEAP_DMG_CAPTIONS, onchange_weap_dmg_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.WeaponDamageModifier", "Weapon Damage Modifier");
 	listItem->value = weapDmgModIndex;
@@ -1486,7 +1475,7 @@ bool process_weapon_menu(){
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_NORETICLE_CAPTIONS, onchange_weapon_no_reticle_modifier);
+	listItem = new SelectFromListMenuItem(&WEAPONS_NORETICLE_CAPTIONS, onchange_weapon_no_reticle_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.NoReticle", "No Reticle");
 	listItem->value = WeaponsNoReticle;
@@ -1560,7 +1549,7 @@ bool process_weapon_menu(){
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_VEHICLE_CAPTIONS, onchange_vehicle_weapon_modifier);
+	listItem = new SelectFromListMenuItem(&WEAPONS_VEHICLE_CAPTIONS, onchange_vehicle_weapon_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.VehicleWeapon", "Vehicle Weapon");
 	listItem->value = VehCurrWeaponIndex;
@@ -1585,7 +1574,7 @@ bool process_weapon_menu(){
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_SNIPERVISION_CAPTIONS, onchange_sniper_vision_modifier);
+	listItem = new SelectFromListMenuItem(&WEAPONS_SNIPERVISION_CAPTIONS, onchange_sniper_vision_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.ToggleVisionForSniperRifles", "Toggle Vision For Sniper Rifles");
 	listItem->value = SniperVisionIndex;
@@ -1621,13 +1610,13 @@ bool process_weapon_menu(){
 	toggleItem->toggleValue = &featureRapidFire;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_RAPIDFIRE_CAPTIONS, onchange_weapons_rapidfire_modifier);
+	listItem = new SelectFromListMenuItem(&WEAPONS_RAPIDFIRE_CAPTIONS, onchange_weapons_rapidfire_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.RapidFireSpeed", "Rapid Fire Speed");
 	listItem->value = RapidFireIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WEAPONS_FIREMODE_CAPTIONS, onchange_weapons_firemode_modifier);
+	listItem = new SelectFromListMenuItem(&WEAPONS_FIREMODE_CAPTIONS, onchange_weapons_firemode_modifier);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.FireMode", "Fire Mode");
 	listItem->value = WeaponsFireModeIndex;
@@ -1639,13 +1628,13 @@ bool process_weapon_menu(){
 	toggleItem->toggleValue = &featureDropWeaponOutAmmo;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_weap_strobe_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_weap_strobe_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.FlashlightStrobe", "Flashlight Strobe");
 	listItem->value = WeapStrobeIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WEAP_DMG_CAPTIONS, onchange_weap_flashdist_index);
+	listItem = new SelectFromListMenuItem(&WEAP_DMG_CAPTIONS, onchange_weap_flashdist_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WeaponMenu.FlashlightIntensity", "Flashlight Intensity");
 	listItem->value = WeapFlashDistIndex;

@@ -111,9 +111,7 @@ void do_spawn_model_by_player(Hash propHash, char* model, std::string title, boo
 
 	if (!STREAMING::HAS_MODEL_LOADED(propHash))
 	{
-		std::ostringstream ss2;
-		ss2 << "TIMEOUT: " << model << " w hash " << propHash;
-		write_text_to_log_file(ss2.str());
+		write_text_to_log_file("TIMEOUT: " + std::string(model) + " w hash " + std::to_string(propHash));
 		return;
 	}
 
@@ -161,9 +159,7 @@ void do_spawn_model(Hash propHash, char* model, std::string title, SimpleVector3
 {
 	if (propsWeCreated.size() >= PROP_LIMIT)
 	{
-		std::ostringstream ss;
-		ss << "Object limit (" << PROP_LIMIT << ") reached - please remove some first";
-		set_status_text(ss.str());
+		set_status_text(tr("PropsMenu.ObjectLimitReachedPrefix", "Object limit (") + std::to_string(PROP_LIMIT) + tr("PropsMenu.ObjectLimitReachedSuffix", ") reached - please remove some first"));
 	}
 
 	STREAMING::REQUEST_MODEL(propHash);
@@ -178,9 +174,7 @@ void do_spawn_model(Hash propHash, char* model, std::string title, SimpleVector3
 
 	if (!STREAMING::HAS_MODEL_LOADED(propHash))
 	{
-		std::ostringstream ss2;
-		ss2 << "TIMEOUT: " << model;
-		write_text_to_log_file(ss2.str());
+		write_text_to_log_file("TIMEOUT: " + std::string(model));
 		return;
 	}
 
@@ -230,22 +224,16 @@ void do_spawn_model(Hash propHash, char* model, std::string title, SimpleVector3
 	{
 		if (!silent)
 		{
-			std::ostringstream ss;
-			ss << "Failed to create " << title;
-			set_status_text(ss.str());
+			set_status_text(tr("PropsMenu.FailedToCreatePrefix", "Failed to create ") + title);
 		}
 
-		std::ostringstream ss2;
-		ss2 << "INVALID-PROP: " << model;
-		write_text_to_log_file(ss2.str());
+		write_text_to_log_file("INVALID-PROP: " + std::string(model));
 		return;
 	}
 
 	if (!silent)
 	{
-		std::ostringstream ss;
-		ss << "Spawned " << title;
-		set_status_text(ss.str());
+		set_status_text(tr("PropsMenu.SpawnedPrefix", "Spawned ") + title);
 	}
 
 	STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(propHash);
@@ -260,14 +248,10 @@ void do_spawn_model_by_player(PropInfo prop, bool silent)
 	{
 		if (!silent)
 		{
-			std::ostringstream ss;
-			ss << "Model " << prop.model << " is not valid";
-			set_status_text(ss.str());
+			set_status_text(tr("PropsMenu.ModelPrefix", "Model ") + std::string(prop.model) + tr("PropsMenu.ModelIsNotValidSuffix", " is not valid"));
 		}
 
-		std::ostringstream ss2;
-		ss2 << "INVALID-MODEL: " << prop.model;
-		write_text_to_log_file(ss2.str());
+		write_text_to_log_file("INVALID-MODEL: " + std::string(prop.model));
 		return;
 	}
 
@@ -292,9 +276,7 @@ bool onconfirm_prop_selection(MenuItem<int> choice)
 		int i = 0;
 		for each (PropInfo prop  in filtered)
 		{
-			std::ostringstream ss;
-			ss << "Done " << i++ << " of " << filtered.size();
-			set_status_text_centre_screen(ss.str());
+			set_status_text_centre_screen(tr("PropsMenu.DonePrefix", "Done ") + std::to_string(i++) + tr("PropsMenu.DoneMiddle", " of ") + std::to_string(filtered.size()));
 			WAIT(0);
 
 			do_spawn_model_by_player(prop, true);
@@ -374,9 +356,7 @@ bool onconfirm_prop_category(MenuItem<int> choice)
 			Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
 			if (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash))
 			{
-				std::ostringstream ss;
-				ss << "Couldn't find model '" << result << "'";
-				set_status_text(ss.str());
+				set_status_text(tr("PropsMenu.CouldntFindModelPrefix", "Couldn't find model '") + result + tr("PropsMenu.CouldntFindModelSuffix", "'"));
 				return false;
 			}
 			else
@@ -530,7 +510,7 @@ bool prop_spawn_options_menu()
 	i++;
 	*/
 
-	SelectFromListMenuItem* alphaItem = new SelectFromListMenuItem(ALPHA_LABELS, onchange_spawn_alpha);
+	SelectFromListMenuItem* alphaItem = new SelectFromListMenuItem(&ALPHA_LABELS, onchange_spawn_alpha);
 	alphaItem->value = propCreationAlphaIndex;
 	alphaItem->caption = tr("PropsMenu.AlphaOpacity", "Alpha (Opacity)");
 	alphaItem->wrap = false;
@@ -560,9 +540,7 @@ bool onconfirm_prop_menu(MenuItem<int> choice)
 			}
 		}
 		manage_prop_set();
-		std::ostringstream ss;
-		ss << count << " object" << (count != 1 ? "s" : "") << " removed";
-		set_status_text(ss.str());
+		set_status_text(std::to_string(count) + tr("PropsMenu.ObjectSuffix", " object") + (count != 1 ? "s" : "") + tr("PropsMenu.RemovedSuffix", " removed"));
 		return false;
 	}
 	else if (choice.value == 2)
@@ -589,10 +567,8 @@ bool onconfirm_prop_menu(MenuItem<int> choice)
 	else if (choice.value == 5)
 	{
 		manage_prop_set();
-		std::ostringstream ss;
 		int size = propsWeCreated.size();
-		ss << size << " out of a possible " << PROP_LIMIT << " objects created";
-		set_status_text(ss.str());
+		set_status_text(std::to_string(size) + tr("PropsMenu.OutOfAPossiblePrefix", " out of a possible ") + std::to_string(PROP_LIMIT) + tr("PropsMenu.ObjectsCreatedSuffix", " objects created"));
 	}
 	return false;
 }
@@ -728,9 +704,7 @@ bool prop_spawned_instances_menu()
 		{
 			MenuItem<int>* item = new MenuItem<int>();
 			item->value = i;
-			std::ostringstream ss;
-			ss << prop.title << "~HUD_COLOUR_MENU_YELLOW~ #" << prop.counter;
-			item->caption = ss.str();
+			item->caption = prop.title + "~HUD_COLOUR_MENU_YELLOW~ #" + std::to_string(prop.counter);
 			item->isLeaf = false;
 			menuItems.push_back(item);
 			i++;
@@ -975,12 +949,7 @@ std::string get_explosion_name(int id)
 	case EXPLOSION_FIREBALL_LARGE_4:
 		return "Large Fireball #4";
 	default:
-		{
-		std::ostringstream ss;
-		ss << "Unknown Explosion ID " << id;
-		auto result = ss.str();
-		return result;
-		}
+		return "Unknown Explosion ID " + std::to_string(id);
 	}
 }
 
@@ -1134,7 +1103,7 @@ bool prop_spawned_single_instance_menu(int index)
 	togItem->caption = tr("PropsMenu.OnFire", "On Fire?");
 	menuItems.push_back(togItem);
 
-	SelectFromListMenuItem* alphaItem = new SelectFromListMenuItem(ALPHA_LABELS, onchange_spawn_alpha);
+	SelectFromListMenuItem* alphaItem = new SelectFromListMenuItem(&ALPHA_LABELS, onchange_spawn_alpha);
 	alphaItem->value = propCreationAlphaIndex;
 	alphaItem->caption = tr("PropsMenu.AlphaOpacity", "Alpha (Opacity)");
 	alphaItem->wrap = false;
@@ -1200,9 +1169,7 @@ void spawn_individual_object(SavedPropDBRow* row)
 
 bool spawn_saved_props(int slot, std::string caption)
 {
-	std::ostringstream ss;
-	ss << "Trying to spawn all objects in set...";
-	set_status_text(ss.str());
+	set_status_text(tr("PropsMenu.TryingToSpawnAllObjectsInSet", "Trying to spawn all objects in set..."));
 
 	ENTDatabase* database = get_database();
 
@@ -1226,9 +1193,7 @@ bool spawn_saved_props(int slot, std::string caption)
 
 	delete savedSet;
 
-	std::ostringstream ss2;
-	ss2 << "Spawn of object set completed";
-	set_status_text(ss2.str());
+	set_status_text(tr("PropsMenu.SpawnOfObjectSetCompleted", "Spawn of object set completed"));
 
 	return false;
 }
@@ -1239,19 +1204,10 @@ void save_current_props(int slot)
 	
 	if (bPlayerExists)
 	{
-		std::ostringstream ss;
-		if (slot != -1)
-		{
-			ss << activeSavedPropSlotName;
-		}
-		else
-		{
-			ss << "Saved Object Set " << (lastKnownSavedPropSetCount + 1);
-		}
+		std::string existingText = (slot != -1) ? activeSavedPropSlotName : (tr("PropsMenu.SavedObjectSetPrefix", "Saved Object Set ") + std::to_string(lastKnownSavedPropSetCount + 1));
 
 		keyboard_on_screen_already = true;
 		set_curr_message(tr("PropsMenu.EnterASaveName", "Enter a save name:")); // save a prop
-		auto existingText = ss.str();
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
 		{
@@ -1259,9 +1215,7 @@ void save_current_props(int slot)
 
 			manage_prop_set();
 
-			std::ostringstream ss;
-			ss << "Saving " << propsWeCreated.size() << " object" << ((propsWeCreated.size() == 1) ? "" : "s") << "...";
-			set_status_text(ss.str());
+			set_status_text(tr("PropsMenu.SavingPrefix", "Saving ") + std::to_string(propsWeCreated.size()) + tr("PropsMenu.ObjectSuffix", " object") + ((propsWeCreated.size() == 1) ? "" : "s") + tr("PropsMenu.EllipsisSuffix", "..."));
 
 			for each (SpawnedPropInstance prop in propsWeCreated)
 			{
@@ -1356,9 +1310,7 @@ bool onconfirm_savedprops_slot_menu(MenuItem<int> choice)
 	}
 	case 5:
 	{
-		std::ostringstream ss;
-		ss << "Save Object Set \"" << activeSavedPropSlotName << "\"";
-		auto title = ss.str();
+		std::string title = tr("PropsMenu.SaveObjectSetPrefix", "Save Object Set \"") + activeSavedPropSlotName + tr("PropsMenu.SaveObjectSetSuffix", "\"");
 
 		SaveFileDialogCallback* cb = new SaveFileDialogCallback();
 		activeSaveFileCallbacks.insert(cb);
@@ -1441,9 +1393,7 @@ bool onconfirm_savedprops_menu(MenuItem<int> choice)
 	}
 	else if (choice.value == -2)
 	{
-		std::ostringstream ss;
-		ss << "Load Object Set From XML";
-		auto title = ss.str();
+		std::string title = tr("PropsMenu.LoadObjectSetFromXML", "Load Object Set From XML");
 
 		LoadFileDialogCallback* cb = new LoadFileDialogCallback();
 		activeLoadFileCallbacks.insert(cb);
@@ -1490,12 +1440,10 @@ bool process_savedprops_menu()
 
 		for each (SavedPropSet *sv in savedSets)
 		{
-			std::ostringstream ss;
-			ss << sv->saveName << " (" << sv->dbSize << ")";
 			MenuItem<int> *item = new MenuItem<int>();
 			item->isLeaf = false;
 			item->value = sv->rowID;
-			item->caption = ss.str();
+			item->caption = sv->saveName + " (" + std::to_string(sv->dbSize) + ")";
 			menuItems.push_back(item);
 		}
 
@@ -1579,12 +1527,9 @@ void update_props_pending_dialogs()
 				bool success = parse_xml_for_propset(loadCB->filePath, set);
 				if (success)
 				{
-					std::ostringstream ss;
-					ss << set->saveName;
 					keyboard_on_screen_already = true;
 					set_curr_message(tr("PropsMenu.EnterAName", "Enter a name:")); // import objects
-					auto existingText = ss.str();
-					std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
+					std::string result = show_keyboard("Enter Name Manually", (char*)set->saveName.c_str());
 					if (!result.empty())
 					{
 						ENTDatabase* database = get_database();

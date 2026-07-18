@@ -374,10 +374,8 @@ bool process_skinchanger_texture_menu(std::string caption)
 		int textures = PED::GET_NUMBER_OF_PED_TEXTURE_VARIATIONS(PLAYER::PLAYER_PED_ID(), skinDetailMenuValue, currentDrawable);
 		for (int i = 0; i < textures; i++)
 		{
-			std::ostringstream ss;
-			ss << "Texture #" << i;
 			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = ss.str();
+			item->caption = "Texture #" + std::to_string(i);
 			item->value = i;
 			menuItems.push_back(item);
 		}
@@ -385,11 +383,8 @@ bool process_skinchanger_texture_menu(std::string caption)
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 	}
 
-	std::ostringstream ss;
-	ss << "Available Textures";
-
 	int currentTexture = PED::GET_PED_TEXTURE_VARIATION(PLAYER::PLAYER_PED_ID(), skinDetailMenuValue);
-	draw_generic_menu<int>(menuItems, &currentTexture, ss.str(), onconfirm_skinchanger_texture_menu, onhighlight_skinchanger_texture_menu, onexit_skinchanger_texture_menu);
+	draw_generic_menu<int>(menuItems, &currentTexture, "Available Textures", onconfirm_skinchanger_texture_menu, onhighlight_skinchanger_texture_menu, onexit_skinchanger_texture_menu);
 	return false;
 }
 
@@ -444,11 +439,9 @@ bool process_skinchanger_drawable_menu(std::string caption, int component)
 		for (int i = 0; i < drawables; i++)
 		{
 			int textures = PED::GET_NUMBER_OF_PED_TEXTURE_VARIATIONS(PLAYER::PLAYER_PED_ID(), component, i);
-			std::ostringstream ss;
-			ss << "Drawable #" << i << " ~HUD_COLOUR_GREYLIGHT~(" << textures << ")";
 
 			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = ss.str();
+			item->caption = "Drawable #" + std::to_string(i) + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(textures) + ")";
 			item->value = i;
 			item->isLeaf = (textures <= 1);
 			menuItems.push_back(item);
@@ -457,11 +450,8 @@ bool process_skinchanger_drawable_menu(std::string caption, int component)
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 	}
 
-	std::ostringstream ss;
-	ss << "Available Drawables";
-
 	int currentDrawable = PED::GET_PED_DRAWABLE_VARIATION(PLAYER::PLAYER_PED_ID(), component);
-	draw_generic_menu<int>(menuItems, &currentDrawable, ss.str(), onconfirm_skinchanger_drawable_menu, onhighlight_skinchanger_drawable_menu, onexit_skinchanger_drawable_menu);
+	draw_generic_menu<int>(menuItems, &currentDrawable, "Available Drawables", onconfirm_skinchanger_drawable_menu, onhighlight_skinchanger_drawable_menu, onexit_skinchanger_drawable_menu);
 	return false;
 }
 
@@ -523,12 +513,10 @@ bool process_skinchanger_detail_menu()
 			}
 			if (drawables > 1 || textures != 0)
 			{
-				std::ostringstream ss;
 				std::string itemText = getSkinDetailAttribDescription(compIndex);
-				ss << "Slot " << (compIndex + 1) << ": " << itemText << " ~HUD_COLOUR_GREYLIGHT~(" << drawables << ")";
 
 				MenuItem<int> *item = new MenuItem<int>();
-				item->caption = ss.str();
+				item->caption = "Slot " + std::to_string(compIndex + 1) + ": " + itemText + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(drawables) + ")";
 				item->value = compIndex;
 				item->isLeaf = false;
 				menuItems.push_back(item);
@@ -728,9 +716,7 @@ bool onconfirm_skinchanger_category_menu(MenuItem<int> choice)
 				Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
 				if (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash))
 				{
-					std::ostringstream ss;
-					ss << "Couldn't find model '" << result << "'";
-					set_status_text(ss.str());
+					set_status_text(tr("SkinsMenu.CouldntFindModelPrefix", "Couldn't find model '") + result + tr("SkinsMenu.CouldntFindModelSuffix", "'"));
 					return false;
 				}
 				else
@@ -747,8 +733,6 @@ bool onconfirm_skinchanger_category_menu(MenuItem<int> choice)
 bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	std::ostringstream ss;
-	int index = PED::GET_PED_PROP_INDEX(playerPed, 0);
 
 	switch (activeLineIndexSkinChanger) { // choice.value
 		case 0:
@@ -908,7 +892,7 @@ bool process_skinchanger_menu()
 	toggleItem->toggleValue = &featurepersprops;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(SKINS_RESET_SKIN_ONDEATH_CAPTIONS, onchange_skins_reset_skin_ondeath_index);
+	listItem = new SelectFromListMenuItem(&SKINS_RESET_SKIN_ONDEATH_CAPTIONS, onchange_skins_reset_skin_ondeath_index);
 	listItem->wrap = false;
 	listItem->caption = tr("SkinsMenu.PlayerModel", "Player Model");
 	listItem->value = ResetSkinOnDeathIdx;
@@ -920,7 +904,7 @@ bool process_skinchanger_menu()
 	toggleItem->toggleValue = &featurenoblood;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(SKINS_AUTO_SKIN_SAVED_CAPTIONS, onchange_auto_apply_skin_saved_index);
+	listItem = new SelectFromListMenuItem(&SKINS_AUTO_SKIN_SAVED_CAPTIONS, onchange_auto_apply_skin_saved_index);
 	listItem->wrap = false;
 	listItem->caption = tr("SkinsMenu.AutoApplyLastSavedSkin", "Auto Apply Last Saved Skin");
 	listItem->value = AutoApplySkinSavedIndex;
@@ -960,11 +944,7 @@ bool process_prop_texture_menu()
 		int compIndex = i;
 
 		MenuItem<int> *item = new MenuItem<int>();
-
-		std::ostringstream ss;
-		ss << "Texture #" << (i + 1);
-		item->caption = ss.str();
-
+		item->caption = "Texture #" + std::to_string(i + 1);
 		item->value = i;
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -1036,9 +1016,7 @@ bool process_prop_drawable_menu()
 			}
 			else
 			{
-				std::ostringstream ss;
-				ss << "Prop Item #" << (i + 1);
-				item->caption = ss.str();
+				item->caption = "Prop Item #" + std::to_string(i + 1);
 				int textures = PED::GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS(PLAYER::PLAYER_PED_ID(), skinPropsCategoryValue, i);
 				item->isLeaf = (textures <= 1);
 			}
@@ -1080,11 +1058,8 @@ bool process_prop_menu()
 		{
 			MenuItem<int> *item = new MenuItem<int>();
 
-			std::ostringstream ss;
-			
-				std::string itemText = getPropDetailAttribDescription(compIndex);
-				ss << "Slot " << (compIndex + 1) << ": " << itemText << " ~HUD_COLOUR_GREYLIGHT~(" << drawables << ")";
-				item->caption = ss.str();
+			std::string itemText = getPropDetailAttribDescription(compIndex);
+			item->caption = "Slot " + std::to_string(compIndex + 1) + ": " + itemText + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(drawables) + ")";
 
 			item->value = compIndex;
 			item->isLeaf = false;
@@ -1304,19 +1279,10 @@ void save_current_skin(int slot)
 
 	if (bPlayerExists)
 	{
-		std::ostringstream ss;
-		if (slot != -1)
-		{
-			ss << activeSavedSkinSlotName;
-		}
-		else
-		{
-			ss << "Saved Skin " << (lastKnownSavedSkinCount + 1);
-		}
+		std::string existingText = (slot != -1) ? activeSavedSkinSlotName : (tr("SkinsMenu.SavedSkinPrefix", "Saved Skin ") + std::to_string(lastKnownSavedSkinCount + 1));
 
 		keyboard_on_screen_already = true;
 		set_curr_message(tr("SkinsMenu.EnterASaveName", "Enter a save name:")); // save a skin
-		auto existingText = ss.str();
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
 		{

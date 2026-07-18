@@ -158,8 +158,20 @@ class WantedSymbolItem: public MenuItem <int>{
 class SelectFromListMenuItem: public MenuItem <int>{
 	public:
 
+	// Dynamic captions: copies the list into this item. Use this overload when the
+	// caption list is built at runtime (e.g. from live game state) and its storage
+	// won't otherwise outlive this menu item.
 	inline SelectFromListMenuItem(std::vector<std::string> captions, void(*onValueChangeCallback)(int, SelectFromListMenuItem*)){
-		this->itemCaptions = captions;
+		this->ownedCaptions = std::move(captions);
+		this->itemCaptions = &this->ownedCaptions;
+		this->onValueChangeCallback = onValueChangeCallback;
+	}
+
+	// Static captions: points at a table whose storage is guaranteed to outlive this
+	// item (e.g. a file-scope "const std::vector<std::string>" produced by captionsOf()).
+	// Avoids re-copying the caption list every time the menu item is constructed.
+	inline SelectFromListMenuItem(const std::vector<std::string>* staticCaptions, void(*onValueChangeCallback)(int, SelectFromListMenuItem*)){
+		this->itemCaptions = staticCaptions;
 		this->onValueChangeCallback = onValueChangeCallback;
 	}
 
@@ -176,7 +188,7 @@ class SelectFromListMenuItem: public MenuItem <int>{
 
 	virtual std::string getCurrentCaption();
 
-	std::vector<std::string> itemCaptions;
+	inline const std::vector<std::string>& captions() const { return *itemCaptions; }
 
 	void(*onValueChangeCallback)(int index, SelectFromListMenuItem* source);
 
@@ -185,6 +197,11 @@ class SelectFromListMenuItem: public MenuItem <int>{
 	bool locked = false;
 
 	std::vector<int> extras;
+
+	private:
+
+	std::vector<std::string> ownedCaptions;
+	const std::vector<std::string>* itemCaptions = nullptr;
 };
 
 template<class T>
@@ -630,8 +647,7 @@ inline void draw_menu_header_line(std::string caption, float lineWidth, float li
 
 	// draw page count in different colour
 	if(pageCount > 1){
-		std::ostringstream ss;
-		ss << " ~HUD_COLOUR_MENU_YELLOW~" << curPage << "~HUD_COLOUR_GREYLIGHT~ of ~HUD_COLOUR_MENU_YELLOW~" << pageCount;
+		std::string pageIndicator = " ~HUD_COLOUR_MENU_YELLOW~" + std::to_string(curPage) + tr("Common.PageOfPage", "~HUD_COLOUR_GREYLIGHT~ of ~HUD_COLOUR_MENU_YELLOW~") + std::to_string(pageCount);
 
 		UI::SET_TEXT_FONT(fontHeader);
 		UI::SET_TEXT_SCALE(0.0, text_scale);
@@ -651,8 +667,7 @@ inline void draw_menu_header_line(std::string caption, float lineWidth, float li
 		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
 		UI::_SET_TEXT_ENTRY("STRING");
 
-		auto ssStr = ss.str();
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
+		UI::_ADD_TEXT_COMPONENT_STRING((char *) pageIndicator.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}
 }
@@ -798,13 +813,7 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 			insertPosition -= 3;
 		}
 
-		std::stringstream ss;
-		ss << "<< ";
-		if(cashItem->GetCash() < 0){
-			ss << "-";
-		}
-		ss << "$" << commaCash << " >>";
-		auto ssStr = ss.str();
+		std::string ssStr = "<< " + std::string(cashItem->GetCash() < 0 ? "-" : "") + "$" + commaCash + " >>";
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}
@@ -831,9 +840,7 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
 		UI::_SET_TEXT_ENTRY("STRING");
 
-		std::stringstream ss;
-		ss << "<< " << std::to_string(colorItem->GetColor()) << " >>";
-		auto ssStr = ss.str();
+		std::string ssStr = "<< " + std::to_string(colorItem->GetColor()) + " >>";
 		UI::_ADD_TEXT_COMPONENT_STRING((char *)ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}
@@ -860,9 +867,7 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
 		UI::_SET_TEXT_ENTRY("STRING");
 
-		std::stringstream ss;
-		ss << "<< " << std::to_string(indexItem->GetIndex()) << " >>";
-		auto ssStr = ss.str();
+		std::string ssStr = "<< " + std::to_string(indexItem->GetIndex()) + " >>";
 		UI::_ADD_TEXT_COMPONENT_STRING((char *)ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}
@@ -898,24 +903,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 
 		std::string caption = selectFromListItem->getCurrentCaption();
 
-		std::stringstream ss;
+		bool showLeftArrow = selectFromListItem->wrap || selectFromListItem->value > 0;
+		bool showRightArrow = selectFromListItem->wrap || selectFromListItem->value < selectFromListItem->captions().size() - 1;
 
-		if(selectFromListItem->wrap || selectFromListItem->value > 0){
-			ss << "<< ";
-		}
-		else{
-			ss << "";
-		}
-
-		ss << caption;
-
-		if(selectFromListItem->wrap || selectFromListItem->value < selectFromListItem->itemCaptions.size() - 1){
-			ss << " >>";
-		}
-		else{
-			ss << "";
-		}
-		auto ssStr = ss.str();
+		std::string ssStr = (showLeftArrow ? "<< " : "") + caption + (showRightArrow ? " >>" : "");
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 
@@ -941,17 +932,13 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		float starWidth = 19.5f / (float) screen_w;
 		textY = lineTopScaled + (0.5f * (lineHeightScaled - (TEXT_HEIGHT_WSTARS / (float) screen_h)));
 
-		std::ostringstream wantedStars;
 		int wantedLevel = wantedItem->get_wanted_value();
-		int i = 0;
-		for(; i < wantedLevel; i++){
-			wantedStars << "*"; //Draws whatever char in here
-		}
+		int i = wantedLevel;
+		std::string wantedStarsStr(wantedLevel, '*'); //Draws whatever char in here
 
 		UI::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - rightMarginScaled - (starWidth*(5 - i)));
 		UI::_SET_TEXT_ENTRY("STRING");
 
-		auto wantedStarsStr = wantedStars.str();
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) wantedStarsStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 
@@ -966,15 +953,11 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 
 		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
 
-		std::ostringstream unwantedStars;
-		for(; i < 5; i++){
-			unwantedStars << "*";
-		}
+		std::string unwantedStarsStr(i < 5 ? 5 - i : 0, '*');
 
 		UI::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - rightMarginScaled);
 		UI::_SET_TEXT_ENTRY("STRING");
 
-		auto unwantedStarsStr = unwantedStars.str();
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) unwantedStarsStr.c_str());
 
 		UI::_DRAW_TEXT(0, textY);
@@ -1002,9 +985,7 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
 		UI::_SET_TEXT_ENTRY("STRING");
 
-		std::stringstream ss;
-		ss << "<< " << colorItem->colorval << " >>";
-		auto ssStr = ss.str();
+		std::string ssStr = "<< " + std::to_string(colorItem->colorval) + " >>";
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}
@@ -1038,9 +1019,7 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 			insertPosition -= 3;
 		}
 
-		std::stringstream ss;
-		ss << "<< " << commaLife << " >>";
-		auto ssStr = ss.str();
+		std::string ssStr = "<< " + commaLife + " >>";
 		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
 		UI::_DRAW_TEXT(0, textY);
 	}

@@ -768,19 +768,30 @@ std::vector<Hash> get_vehicles_from_category(int category)
 
 std::string get_vehicle_make_and_model(int modelHash)
 {
-	std::stringstream ss;
 	std::string make = std::string(UI::_GET_LABEL_TEXT(GetVehicleMakeName(modelHash)));
 	std::string model = std::string(UI::_GET_LABEL_TEXT(GetVehicleModelName(modelHash)));
 	//write_text_to_log_file("[DEBUG] Combined name: " + make + " " + model);
 
 	if (make == "NULL")
 		return model;
-	else
-	{
-		ss << make << " " << model;
-		return ss.str();
-	}
-	return model;
+
+	return make + " " + model;
+}
+
+// Resolves the local player's current vehicle. Returns false (leaving *outVeh
+// untouched) if the player ped doesn't exist or isn't currently in a vehicle.
+bool try_get_players_vehicle(Vehicle* outVeh)
+{
+	if (!ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()))
+		return false;
+
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0))
+		return false;
+
+	*outVeh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+	return true;
 }
 
 void process_window_roll() {
@@ -1511,13 +1522,13 @@ void process_speed_menu(){
 	toggleItem->toggleValue = &featureSpeedInAir;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPSIZE_CAPTIONS, onchange_speed_size_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPSIZE_CAPTIONS, onchange_speed_size_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.Size", "Size:");
 	listItem->value = SpeedSizeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(SPEED_POSITION_CAPTIONS, onchange_speed_position_index);
+	listItem = new SelectFromListMenuItem(&SPEED_POSITION_CAPTIONS, onchange_speed_position_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.Position", "Position:");
 	listItem->value = SpeedPositionIndexN;
@@ -1540,19 +1551,19 @@ void process_visualize_menu() {
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_CAPTIONS, onchange_veh_turn_signals_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_CAPTIONS, onchange_veh_turn_signals_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.EnableIndicators", "Enable Indicators");
 	listItem->value = turnSignalsIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_veh_turn_signals_angle_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_veh_turn_signals_angle_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.TurnIndicatorsOnIfTurnAngleIs", "Turn Indicators On If Turn Angle Is");
 	listItem->value = turnSignalsAngleIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_veh_turn_signals_acceleration_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_veh_turn_signals_acceleration_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.TurnIndicatorsOffIfAcceleratedForSec", "Turn Indicators Off If Accelerated For (sec)");
 	listItem->value = turnSignalsAccelerationIndex;
@@ -1564,13 +1575,13 @@ void process_visualize_menu() {
 	toggleItem->toggleValue = &featureHazards;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_VISLIGHT_CAPTIONS, onchange_veh_vislight_index);
+	listItem = new SelectFromListMenuItem(&VEH_VISLIGHT_CAPTIONS, onchange_veh_vislight_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.N2DSprite", "2D Sprite");
 	listItem->value = VisLightIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_VISLIGHT_CAPTIONS, onchange_veh_vislight3d_index);
+	listItem = new SelectFromListMenuItem(&VEH_VISLIGHT_CAPTIONS, onchange_veh_vislight3d_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.N3DVector", "3D Vector");
 	listItem->value = VisLight3dIndex;
@@ -1603,19 +1614,19 @@ void process_speedlimit_menu() {
 	SelectFromListMenuItem *listItem;
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(VEH_SPEEDLIMITER_CAPTIONS, onchange_veh_speedlimiter_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDLIMITER_CAPTIONS, onchange_veh_speedlimiter_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CommonSpeedLimit", "Common Speed Limit");
 	listItem->value = speedLimiterIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SPEEDLIMITER_CAPTIONS, onchange_veh_cityspeedlimiter_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDLIMITER_CAPTIONS, onchange_veh_cityspeedlimiter_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CityAutoSpeedLimit", "City Auto Speed Limit");
 	listItem->value = speedCityLimiterIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SPEEDLIMITER_CAPTIONS, onchange_veh_countryspeedlimiter_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDLIMITER_CAPTIONS, onchange_veh_countryspeedlimiter_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CountryAutoSpeedLimit", "Country Auto Speed Limit");
 	listItem->value = speedCountryLimiterIndex;
@@ -1637,19 +1648,19 @@ bool process_fuel_colour_menu(){
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_fuel_colours_r_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_fuel_colours_r_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.R", "R:");
 	listItem->value = FuelColours_R_IndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_fuel_colours_g_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_fuel_colours_g_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.G", "G:");
 	listItem->value = FuelColours_G_IndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_fuel_colours_b_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_fuel_colours_b_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.B", "B:");
 	listItem->value = FuelColours_B_IndexN;
@@ -1690,67 +1701,67 @@ void process_engine_degrade_menu() {
 	toggleItem->toggleValue = &featureLimpMode;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEHEALTH_CAPTIONS, onchange_car_enginehealth_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEHEALTH_CAPTIONS, onchange_car_enginehealth_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CarEngineHealthMin", "Car Engine Health (Min %)");
 	listItem->value = CarEngineHealthIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEHEALTH_CAPTIONS, onchange_bike_enginehealth_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEHEALTH_CAPTIONS, onchange_bike_enginehealth_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BikeEngineHealthMin", "Bike Engine Health (Min %)");
 	listItem->value = BikeEngineHealthIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEHEALTH_CAPTIONS, onchange_boat_enginehealth_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEHEALTH_CAPTIONS, onchange_boat_enginehealth_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BoatEngineHealthMin", "Boat Engine Health (Min %)");
 	listItem->value = BoatEngineHealthIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEHEALTH_CAPTIONS, onchange_plane_enginehealth_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEHEALTH_CAPTIONS, onchange_plane_enginehealth_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PlaneEngineHealthMin", "Plane Engine Health (Min %)");
 	listItem->value = PlaneEngineHealthIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEHEALTH_CAPTIONS, onchange_heli_enginehealth_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEHEALTH_CAPTIONS, onchange_heli_enginehealth_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.HeliEngineHealthMin", "Heli Engine Health (Min %)");
 	listItem->value = HeliEngineHealthIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEDEGRADE_CAPTIONS, onchange_car_enginedegrade_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEDEGRADE_CAPTIONS, onchange_car_enginedegrade_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CarEngineDamageSpeedPerMile", "Car Engine Damage Speed (% Per Mile)");
 	listItem->value = CarEngineDegradeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEDEGRADE_CAPTIONS, onchange_bike_enginedegrade_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEDEGRADE_CAPTIONS, onchange_bike_enginedegrade_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BikeEngineDamageSpeedPerMile", "Bike Engine Damage Speed (% Per Mile)");
 	listItem->value = BikeEngineDegradeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEDEGRADE_CAPTIONS, onchange_boat_enginedegrade_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEDEGRADE_CAPTIONS, onchange_boat_enginedegrade_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BoatEngineDamageSpeedPerMile", "Boat Engine Damage Speed (% Per Mile)");
 	listItem->value = BoatEngineDegradeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEDEGRADE_CAPTIONS, onchange_plane_enginedegrade_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEDEGRADE_CAPTIONS, onchange_plane_enginedegrade_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PlaneEngineDamageSpeedPerMile", "Plane Engine Damage Speed (% Per Mile)");
 	listItem->value = PlaneEngineDegradeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEDEGRADE_CAPTIONS, onchange_heli_enginedegrade_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEDEGRADE_CAPTIONS, onchange_heli_enginedegrade_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.HeliEngineDamageSpeedPerMile", "Heli Engine Damage Speed (% Per Mile)");
 	listItem->value = HeliEngineDegradeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINEHEALTH_CAPTIONS, onchange_restoration_speed_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINEHEALTH_CAPTIONS, onchange_restoration_speed_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.EngineRecoverySpeedPerMinute", "Engine Recovery Speed (% Per Minute)");
 	listItem->value = RestorationSpeedIndexN;
@@ -1779,37 +1790,37 @@ void process_routine_of_ringer_menu() {
 	toggleItem->toggleValue = &featureRoutineOfRinger;
 	menuItems.push_back(toggleItem);
 	
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SKILL_CAPTIONS, onchange_skill_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SKILL_CAPTIONS, onchange_skill_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.ThiefSkills", "Thief Skills");
 	listItem->value = RingerSkillIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BreakInTimerMaxSec", "Break In Timer Max (sec)");
 	listItem->value = RingerBreakSecMaxIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_min_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_breaking_into_min_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BreakInTimerMinSec", "Break In Timer Min (sec)");
 	listItem->value = RingerBreakSecMinIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.HotwireDurationMaxSec", "Hotwire Duration Max (sec)");
 	listItem->value = RingerHotwireSecMaxIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_min_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_hotwire_min_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.HotwireDurationMinSec", "Hotwire Duration Min (sec)");
 	listItem->value = RingerHotwireSecMinIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_ped_alertness_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_ped_alertness_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PedSuspicionDistanceM", "Ped Suspicion Distance (m)");
 	listItem->value = RingerPedAlertnessIndex;
@@ -1821,19 +1832,19 @@ void process_routine_of_ringer_menu() {
 	toggleItem->toggleValue = &featureShowPedCons;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_call_cop_index);
+	listItem = new SelectFromListMenuItem(&VEH_RINGER_SECONDS_BREAK_CAPTIONS, onchange_call_cop_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CrimeReportingDelaySec", "Crime Reporting Delay (sec)");
 	listItem->value = RingerCallCopSecIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_breaking_attempt_index);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_breaking_attempt_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PoliceResponseToBreakIn", "Police Response To Break In");
 	listItem->value = RingerBreakAttemptIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_drag_out_index);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_drag_out_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PoliceResponseForGTA", "Police Response For GTA");
 	listItem->value = RingerDragOutIndex;
@@ -1899,85 +1910,85 @@ void process_fuel_menu(){
 	toggleItem->toggleValue = &featureFuel;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_FUELBLIPS_CAPTIONS, onchange_fuel_blips_index);
+	listItem = new SelectFromListMenuItem(&VEH_FUELBLIPS_CAPTIONS, onchange_fuel_blips_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.Blips", "Blips");
 	listItem->value = FuelBlipsIndex;
 	menuItems.push_back(listItem);
 	
-	listItem = new SelectFromListMenuItem(VEH_CARFUEL_CAPTIONS, onchange_idle_consumption_index);
+	listItem = new SelectFromListMenuItem(&VEH_CARFUEL_CAPTIONS, onchange_idle_consumption_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.IdleConsumption", "Idle Consumption");
 	listItem->value = IdleConsumptionIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_CARFUEL_CAPTIONS, onchange_car_consumption_index);
+	listItem = new SelectFromListMenuItem(&VEH_CARFUEL_CAPTIONS, onchange_car_consumption_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.CarFuelConsumption", "Car Fuel Consumption");
 	listItem->value = CarConsumptionIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_CARFUEL_CAPTIONS, onchange_bike_consumption_index);
+	listItem = new SelectFromListMenuItem(&VEH_CARFUEL_CAPTIONS, onchange_bike_consumption_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BikeFuelConsumption", "Bike Fuel Consumption");
 	listItem->value = BikeConsumptionIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_CARFUEL_CAPTIONS, onchange_boat_consumption_index);
+	listItem = new SelectFromListMenuItem(&VEH_CARFUEL_CAPTIONS, onchange_boat_consumption_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BoatFuelConsumption", "Boat Fuel Consumption");
 	listItem->value = BoatConsumptionIndex;
 	menuItems.push_back(listItem);
 	
-	listItem = new SelectFromListMenuItem(VEH_CARFUEL_CAPTIONS, onchange_plane_consumption_index);
+	listItem = new SelectFromListMenuItem(&VEH_CARFUEL_CAPTIONS, onchange_plane_consumption_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PlaneFuelConsumption", "Plane Fuel Consumption");
 	listItem->value = PlaneConsumptionIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_CARFUEL_CAPTIONS, onchange_heli_consumption_index);
+	listItem = new SelectFromListMenuItem(&VEH_CARFUEL_CAPTIONS, onchange_heli_consumption_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.HeliFuelConsumption", "Heli Fuel Consumption");
 	listItem->value = HeliConsumptionIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_REFUELSPEED_CAPTIONS, onchange_refuelspeed_index);
+	listItem = new SelectFromListMenuItem(&VEH_REFUELSPEED_CAPTIONS, onchange_refuelspeed_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.RefuelingSpeed", "Refueling Speed");
 	listItem->value = RefuelingSpeedIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_FUELPRICE_CAPTIONS, onchange_fuelprice_index);
+	listItem = new SelectFromListMenuItem(&VEH_FUELPRICE_CAPTIONS, onchange_fuelprice_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.GasStationFuelPrice", "Gas Station Fuel Price");
 	listItem->value = FuelPriceIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_FUELPRICE_CAPTIONS, onchange_canprice_index);
+	listItem = new SelectFromListMenuItem(&VEH_FUELPRICE_CAPTIONS, onchange_canprice_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.JerryCanFuelPrice", "Jerry Can Fuel Price");
 	listItem->value = JerrycanPriceIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_random1_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_random1_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.RandomVehicleFuelMin", "Random Vehicle Fuel Min (%)");
 	listItem->value = Random1Index;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_random2_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_random2_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.RandomVehicleFuelMax", "Random Vehicle Fuel Max (%)");
 	listItem->value = Random2Index;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_FUELBARPOSITION_CAPTIONS, onchange_barposition_index);
+	listItem = new SelectFromListMenuItem(&VEH_FUELBARPOSITION_CAPTIONS, onchange_barposition_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.FuelBarPosition", "Fuel Bar Position");
 	listItem->value = BarPositionIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_fuel_background_opacity_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_fuel_background_opacity_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.FuelBarBackgroundOpacity", "Fuel Bar Background Opacity");
 	listItem->value = FuelBackground_Opacity_IndexN;
@@ -2083,7 +2094,7 @@ void process_remember_vehicles_menu() {
 	toggleItem->toggleValue = &featureRememberVehicles;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_VEHREMEMBER_CAPTIONS, onchange_veh_remember_index);
+	listItem = new SelectFromListMenuItem(&VEH_VEHREMEMBER_CAPTIONS, onchange_veh_remember_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.NumberOfVehiclesToTrack", "Number Of Vehicles To Track");
 	listItem->value = VehRememberIndex;
@@ -2095,25 +2106,25 @@ void process_remember_vehicles_menu() {
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPSIZE_CAPTIONS, onchange_veh_blipsize_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPSIZE_CAPTIONS, onchange_veh_blipsize_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BlipSize", "Blip Size");
 	listItem->value = VehBlipSizeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPCOLOUR_CAPTIONS, onchange_veh_blipcolour_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPCOLOUR_CAPTIONS, onchange_veh_blipcolour_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BlipColour", "Blip Colour");
 	listItem->value = VehBlipColourIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPSYMBOL_CAPTIONS, onchange_veh_blipsymbol_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPSYMBOL_CAPTIONS, onchange_veh_blipsymbol_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BlipSymbol", "Blip Symbol");
 	listItem->value = VehBlipSymbolIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_veh_blipflash_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_veh_blipflash_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.BlipFlashing", "Blip Flashing");
 	listItem->value = VehBlipFlashIndex;
@@ -2143,7 +2154,7 @@ void process_remember_vehicles_menu() {
 	toggleItem->toggleValue = &featureRestoreTracked;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_FREESECONDS_CAPTIONS, onchange_veh_trackedautosave_index);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_FREESECONDS_CAPTIONS, onchange_veh_trackedautosave_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.AutosaveTrackedVehiclesMin", "Autosave Tracked Vehicles (min)");
 	listItem->value = VehTrackedAutoSaveIndex;
@@ -2178,25 +2189,25 @@ void process_road_laws_menu(){
 	toggleItem->toggleValue = &featureRoadLaws;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_DETECTIONRANGE_CAPTIONS, onchange_detection_range_index);
+	listItem = new SelectFromListMenuItem(&VEH_DETECTIONRANGE_CAPTIONS, onchange_detection_range_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.DetectionRange", "Detection Range");
 	listItem->value = DetectionRangeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_PIRSUITRANGE_CAPTIONS, onchange_pirsuit_range_index);
+	listItem = new SelectFromListMenuItem(&VEH_PIRSUITRANGE_CAPTIONS, onchange_pirsuit_range_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.PursuitRange", "Pursuit Range");
 	listItem->value = PirsuitRangeIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_stars_punish_index);
+	listItem = new SelectFromListMenuItem(&VEH_STARSPUNISH_CAPTIONS, onchange_stars_punish_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.WantedLevelForEvadingArrest", "Wanted Level For Evading Arrest");
 	listItem->value = StarsPunishIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(MISC_PHONE_BILL_CAPTIONS, onchange_fine_size_index);
+	listItem = new SelectFromListMenuItem(&MISC_PHONE_BILL_CAPTIONS, onchange_fine_size_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.FineAmount", "Fine Amount");
 	listItem->value = FineSizeIndex;
@@ -2226,13 +2237,13 @@ void process_road_laws_menu(){
 	toggleItem->toggleValue = &featureCopsUseRadio;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SPEEDINGCITY_CAPTIONS, onchange_speeding_city_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDINGCITY_CAPTIONS, onchange_speeding_city_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.SpeedingInCity", "Speeding In City");
 	listItem->value = SpeedingCityIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SPEEDINGCITY_CAPTIONS, onchange_speeding_speedway_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDINGCITY_CAPTIONS, onchange_speeding_speedway_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.SpeedingOnFreeway", "Speeding On Freeway");
 	listItem->value = SpeedingSpeedwayIndex;
@@ -2408,7 +2419,7 @@ void process_veh_menu(){
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(VEH_INVINC_MODE_CAPTIONS, onchange_veh_invincibility_mode);
+	listItem = new SelectFromListMenuItem(&VEH_INVINC_MODE_CAPTIONS, onchange_veh_invincibility_mode);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleInvincibility", "Vehicle Invincibility");
 	listItem->value = VehInvincibilityIndex;
@@ -2420,7 +2431,7 @@ void process_veh_menu(){
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_veh_never_dirty);
+	listItem = new SelectFromListMenuItem(&WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_veh_never_dirty);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleNeverGetsDirty", "Vehicle Never Gets Dirty");
 	listItem->value = featureNeverDirty;
@@ -2475,37 +2486,37 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureDespawnScriptDisabled;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_MASS_CAPTIONS, onchange_veh_mass_index);
+	listItem = new SelectFromListMenuItem(&VEH_MASS_CAPTIONS, onchange_veh_mass_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleForceShield", "Vehicle Force Shield");
 	listItem->value = VehMassMultIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SPEED_BOOST_CAPTIONS, onchange_veh_speed_boost_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEED_BOOST_CAPTIONS, onchange_veh_speed_boost_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.SpeedBoost", "Speed Boost");
 	listItem->value = speedBoostIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_ENG_POW_CAPTIONS, onchange_veh_eng_pow_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENG_POW_CAPTIONS, onchange_veh_eng_pow_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.EnginePowerMultiplier", "Engine Power Multiplier");
 	listItem->value = engPowMultIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_INFINITEBOOST_CAPTIONS, onchange_veh_infiniteboost_index);
+	listItem = new SelectFromListMenuItem(&VEH_INFINITEBOOST_CAPTIONS, onchange_veh_infiniteboost_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.InfiniteRocketBoost", "Infinite Rocket Boost");
 	listItem->value = InfiniteBoostIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_veh_nitrous_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_veh_nitrous_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.Nitrous", "Nitrous");
 	listItem->value = NitrousIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_veh_nitrous_power_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_veh_nitrous_power_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.NitrousPower", "Nitrous Power");
 	listItem->value = NitrousPowerIndex;
@@ -2541,13 +2552,13 @@ void process_veh_menu(){
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(VEH_ENGINERUNNING_CAPTIONS, onchange_veh_enginerunning_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENGINERUNNING_CAPTIONS, onchange_veh_enginerunning_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.KeepEngineRunning", "Keep Engine Running");
 	listItem->value = EngineRunningIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_AUTO_SHUT_ENGINE_CAPTIONS, onchange_veh_autoshutengine_index);
+	listItem = new SelectFromListMenuItem(&VEH_AUTO_SHUT_ENGINE_CAPTIONS, onchange_veh_autoshutengine_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.ShutEngineAfterS", "Shut Engine After (s)");
 	listItem->value = AutoShutEngineIndex;
@@ -2583,7 +2594,7 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureNoVehFlip;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_LIGHTSOFF_CAPTIONS, onchange_veh_lightsOff_index);
+	listItem = new SelectFromListMenuItem(&VEH_LIGHTSOFF_CAPTIONS, onchange_veh_lightsOff_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleLightsOffByDefault", "Vehicle Lights Off By Default");
 	listItem->value = lightsOffIndex;
@@ -2632,13 +2643,13 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureTractionControl;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_veh_jumpy_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_veh_jumpy_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleJump", "Vehicle Jump");
 	listItem->value = JumpyVehIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_HYDRAULICS_CAPTIONS, onchange_veh_hydraulics_index);
+	listItem = new SelectFromListMenuItem(&VEH_HYDRAULICS_CAPTIONS, onchange_veh_hydraulics_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.SuspensionHeight", "Suspension Height");
 	listItem->value = HydraulicsIndex;
@@ -2650,13 +2661,13 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureSticktoground;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_heavy_veh_index);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_heavy_veh_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.HeavyVehicle", "Heavy Vehicle");
 	listItem->value = HeavyVehIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_SPEEDLIMITER_CAPTIONS, onchange_door_autolock_index);
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDLIMITER_CAPTIONS, onchange_door_autolock_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.AutolockDriverDoorAt", "Autolock Driver Door At");
 	listItem->value = DoorAutolockIndex;
@@ -2686,7 +2697,7 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureReverseWhenBraking;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_veh_invisibility_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_veh_invisibility_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleInvisibility", "Vehicle Invisibility");
 	listItem->value = VehInvisIndexN;
@@ -2992,9 +3003,7 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 					speed = speed * 1.02f + 4.0f;
 					break;
 				default:
-					std::ostringstream ss;
-					ss << "speed boost index: " << speedBoostIndex;
-					set_status_text_centre_screen(ss.str(), 1000UL);
+					set_status_text_centre_screen(tr("VehicleMenu.SpeedBoostIndexPrefix", "speed boost index: ") + std::to_string(speedBoostIndex), 1000UL);
 					break;
 				}
 				VEHICLE::SET_VEHICLE_FORWARD_SPEED(veh, speed);
@@ -4475,10 +4484,8 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 		if (!(GetKeyState('1') & 0x8000) && !(GetKeyState('2') & 0x8000) && !(GetKeyState('3') & 0x8000) && !(GetKeyState('4') & 0x8000) && !(GetKeyState('5') & 0x8000) && !(GetKeyState('6') & 0x8000) && !(GetKeyState('7') & 0x8000) && 
 			!(GetKeyState('8') & 0x8000) && !(GetKeyState('9') & 0x8000) && !(GetKeyState('0') & 0x8000)) entered_sp_v = false;
 
-		std::stringstream ss55;
-		ss55 << "\n N: " << veh_to_spawn;
 		callsPerFrame = 0;
-		set_status_text_centre_screen(ss55.str());
+		set_status_text_centre_screen("\n N: " + veh_to_spawn);
 	}
 	if (!is_hotkey_held_saved_veh_spawn() && veh_to_spawn != "") {
 		std::string::size_type sz;
@@ -5048,9 +5055,7 @@ void spawn_veh_manually() {
 		lastCustomVehicleSpawn = result;
 		Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
 		if (lastCustomVehicleSpawn != "random" && lastCustomVehicleSpawn != "Random" && lastCustomVehicleSpawn != "RANDOM" && (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_A_VEHICLE(hash))) {
-			std::ostringstream ss;
-			ss << tr("VehicleMenu.ErrorCouldnTFindModel", "~r~Error: Couldn't find model ") << result;
-			set_status_text(ss.str());
+			set_status_text(tr("VehicleMenu.ErrorCouldnTFindModel", "~r~Error: Couldn't find model ") + result);
 		}
 		if (lastCustomVehicleSpawn == "random" || lastCustomVehicleSpawn == "Random" || lastCustomVehicleSpawn == "RANDOM" || (STREAMING::IS_MODEL_IN_CDIMAGE(hash) && STREAMING::IS_MODEL_A_VEHICLE(hash))) {
 			// random vehicle
@@ -5112,8 +5117,7 @@ bool onconfirm_spawn_menu_cars(MenuItem<int> choice){
 bool do_spawn_vehicle_hash(int modelName, std::string modelTitle) {
 	DWORD model = modelName;
 
-	std::stringstream ss;  ss << "Attempting to spawn " << modelTitle << " with hash: " << modelName;
-	write_text_to_log_file(ss.str());
+	write_text_to_log_file("Attempting to spawn " + modelTitle + " with hash: " + std::to_string(modelName));
 
 	Vehicle veh = do_spawn_vehicle(model, modelTitle, true);
 	return false;
@@ -5672,23 +5676,20 @@ void save_current_vehicle(int slot){
 		if(PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
 			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 
-			std::ostringstream ss;
-			
+			std::string existingText;
+
 			Hash currVehModelS = ENTITY::GET_ENTITY_MODEL(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()));
 			if (slot == -1 && STREAMING::IS_MODEL_IN_CDIMAGE(currVehModelS) && STREAMING::IS_MODEL_A_VEHICLE(currVehModelS) && STREAMING::IS_MODEL_VALID(currVehModelS)) {
-				
 				char *name = VEHICLE::GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(currVehModelS);
-				std::string displayName = UI::_GET_LABEL_TEXT(name);
-				ss << displayName;
+				existingText = UI::_GET_LABEL_TEXT(name);
 			}
 			if (slot == -1 && !STREAMING::IS_MODEL_IN_CDIMAGE(currVehModelS)) { // && !STREAMING::IS_MODEL_A_VEHICLE(currVehModelS) && !STREAMING::IS_MODEL_VALID(currVehModelS)
-				ss << "Saved Vehicle " << (lastKnownSavedVehicleCount + 1);
+				existingText = tr("VehicleMenu.SavedVehiclePrefix", "Saved Vehicle ") + std::to_string(lastKnownSavedVehicleCount + 1);
 			}
 			if(slot != -1){
-				ss << activeSavedVehicleSlotName;
+				existingText = activeSavedVehicleSlotName;
 			}
-						
-			auto existingText = ss.str();
+
 			keyboard_on_screen_already = true;
 			set_curr_message(tr("VehicleMenu.EnterASaveName", "Enter a save name:")); // save a vehicle
 			std::string result = show_keyboard("Enter Name Manually", (char*) existingText.c_str());
@@ -6602,9 +6603,7 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 		}
 	}
 
-	std::ostringstream ss;
-	ss << "Couldn't find preview for " << choice.value;
-	write_text_to_log_file(ss.str());
+	write_text_to_log_file("Couldn't find preview for " + std::to_string(choice.value));
 	return NULL;
 }
 void init_vehicle_feature(){

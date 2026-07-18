@@ -276,10 +276,8 @@ bool process_bod_skinchanger_texture_menu(std::string caption)
 
 		for (int i = 0; i < textures; i++)
 		{
-			std::ostringstream ss;
-			ss << "Texture #" << i;
 			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = ss.str();
+			item->caption = "Texture #" + std::to_string(i);
 			item->value = i;
 			menuItems.push_back(item);
 		}
@@ -287,11 +285,8 @@ bool process_bod_skinchanger_texture_menu(std::string caption)
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 	}
 
-	std::ostringstream ss;
-	ss << "Available Textures";
-
 	int currentTexture = PED::GET_PED_TEXTURE_VARIATION(spawnedENTBodyguards[b_curr_num], skinBodDetailMenuValue);
-	draw_generic_menu<int>(menuItems, &currentTexture, ss.str(), onconfirm_bod_skinchanger_texture_menu, onhighlight_bod_skinchanger_texture_menu, onexit_bod_skinchanger_texture_menu);
+	draw_generic_menu<int>(menuItems, &currentTexture, "Available Textures", onconfirm_bod_skinchanger_texture_menu, onhighlight_bod_skinchanger_texture_menu, onexit_bod_skinchanger_texture_menu);
 	return false;
 }
 
@@ -339,11 +334,9 @@ bool process_bod_skinchanger_drawable_menu(std::string caption, int component)
 		for (int i = 0; i < drawables; i++)
 		{
 			int textures = PED::GET_NUMBER_OF_PED_TEXTURE_VARIATIONS(spawnedENTBodyguards[b_curr_num], component, i);
-			std::ostringstream ss;
-			ss << "Drawable #" << i << " ~HUD_COLOUR_GREYLIGHT~(" << textures << ")";
 
 			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = ss.str();
+			item->caption = "Drawable #" + std::to_string(i) + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(textures) + ")";
 			item->value = i;
 			item->isLeaf = (textures <= 1);
 			menuItems.push_back(item);
@@ -352,11 +345,8 @@ bool process_bod_skinchanger_drawable_menu(std::string caption, int component)
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 	}
 
-	std::ostringstream ss;
-	ss << "Available Drawables";
-
 	int currentDrawable = PED::GET_PED_DRAWABLE_VARIATION(spawnedENTBodyguards[b_curr_num], component);
-	draw_generic_menu<int>(menuItems, &currentDrawable, ss.str(), onconfirm_bod_skinchanger_drawable_menu, onhighlight_bod_skinchanger_drawable_menu, onexit_bod_skinchanger_drawable_menu, b_skin_menu_interrupt);
+	draw_generic_menu<int>(menuItems, &currentDrawable, "Available Drawables", onconfirm_bod_skinchanger_drawable_menu, onhighlight_bod_skinchanger_drawable_menu, onexit_bod_skinchanger_drawable_menu, b_skin_menu_interrupt);
 	return false;
 }
 
@@ -416,12 +406,10 @@ bool process_bod_skinchanger_detail_menu()
 			}
 			if (drawables > 1 || textures != 0)
 			{
-				std::ostringstream ss;
 				std::string itemText = getBodSkinDetailAttribDescription(compIndex);
-				ss << "Slot " << (compIndex + 1) << ": " << itemText << " ~HUD_COLOUR_GREYLIGHT~(" << drawables << ")";
 
 				MenuItem<int> *item = new MenuItem<int>();
-				item->caption = ss.str();
+				item->caption = "Slot " + std::to_string(compIndex + 1) + ": " + itemText + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(drawables) + ")";
 				item->value = compIndex;
 				item->isLeaf = false;
 				menuItems.push_back(item);
@@ -459,11 +447,7 @@ bool process_bod_prop_texture_menu()
 		int compIndex = i;
 
 		MenuItem<int>* item = new MenuItem<int>();
-
-		std::ostringstream ss;
-		ss << "Texture #" << (i + 1);
-		item->caption = ss.str();
-
+		item->caption = "Texture #" + std::to_string(i + 1);
 		item->value = i;
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -533,9 +517,7 @@ bool process_bod_prop_drawable_menu()
 			}
 			else
 			{
-				std::ostringstream ss;
-				ss << "Prop Item #" << (i + 1);
-				item->caption = ss.str();
+				item->caption = "Prop Item #" + std::to_string(i + 1);
 				int textures = PED::GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS(spawnedENTBodyguards[b_curr_num], skinBodPropsCategoryValue, i);
 				item->isLeaf = (textures <= 1);
 			}
@@ -577,11 +559,8 @@ bool process_bod_prop_menu()
 		{
 			MenuItem<int>* item = new MenuItem<int>();
 
-			std::ostringstream ss;
-
 			std::string itemText = getBodPropDetailAttribDescription(compIndex);
-			ss << "Slot " << (compIndex + 1) << ": " << itemText << " ~HUD_COLOUR_GREYLIGHT~(" << drawables << ")";
-			item->caption = ss.str();
+			item->caption = "Slot " + std::to_string(compIndex + 1) + ": " + itemText + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(drawables) + ")";
 
 			item->value = compIndex;
 			item->isLeaf = false;
@@ -792,19 +771,10 @@ void save_current_bod_skin(int slot)
 		}
 		if (!spawnedENTBodyguards.empty() && b_curr_num > -1 && b_curr_num < spawnedENTBodyguards.size()) {
 			
-			std::ostringstream ss;
-			if (slot != -1)
-			{
-				ss << activeSavedBodSkinSlotName;
-			}
-			else
-			{
-				ss << "Saved Bodyguard " << (lastKnownSavedBodSkinCount + 1);
-			}
+			std::string existingText = (slot != -1) ? activeSavedBodSkinSlotName : ("Saved Bodyguard " + std::to_string(lastKnownSavedBodSkinCount + 1));
 
 			keyboard_on_screen_already = true;
 			set_curr_message(tr("BodyguardMenu.EnterASaveName", "Enter a save name:")); // enter a savename for the selected bodyguard
-			auto existingText = ss.str();
 			std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 			if (!result.empty())
 			{
@@ -823,14 +793,10 @@ void save_current_bod_skin(int slot)
 		}
 		else {
 			if (spawnedENTBodyguards.empty()) {
-				std::ostringstream ss;
-				ss << "No bodyguards found";
-				set_status_text(ss.str());
+				set_status_text(tr("BodyguardMenu.NoBodyguardsFound", "No bodyguards found"));
 			}
 			if (b_curr_num < 0 || b_curr_num >= spawnedENTBodyguards.size()) {
-				std::ostringstream ss;
-				ss << "Wrong number";
-				set_status_text(ss.str());
+				set_status_text(tr("BodyguardMenu.WrongNumber", "Wrong number"));
 			}
 		}
 	}
@@ -1079,9 +1045,7 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 					lastCustomBodyguardSpawn != "random_story" && lastCustomBodyguardSpawn != "Random_story" && lastCustomBodyguardSpawn != "Random_Story" &&
 					(!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash)))
 				{
-					std::ostringstream ss;
-					ss << "Couldn't find model '" << result << "'";
-					set_status_text(ss.str());
+					set_status_text(tr("BodyguardMenu.CouldntFindModelPrefix", "Couldn't find model '") + result + tr("BodyguardMenu.CouldntFindModelSuffix", "'"));
 					lastCustomBodyguardSpawn = "";
 					return false;
 				}
@@ -1120,15 +1084,11 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 				if (!spawnedENTBodyguards.empty() && b_curr_num > -1 && b_curr_num < spawnedENTBodyguards.size()) return process_bod_skinchanger_detail_menu();
 				else {
 					if (spawnedENTBodyguards.empty()) {
-						std::ostringstream ss;
-						ss << "No bodyguards found";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.NoBodyguardsFound", "No bodyguards found"));
 						return false;
 					}
 					if (b_curr_num < 0 || b_curr_num >= spawnedENTBodyguards.size()) {
-						std::ostringstream ss;
-						ss << "Wrong number";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.WrongNumber", "Wrong number"));
 						return false;
 					}
 				}
@@ -1160,15 +1120,11 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 				if (!spawnedENTBodyguards.empty() && b_curr_num > -1 && b_curr_num < spawnedENTBodyguards.size()) return process_bod_prop_menu();
 				else {
 					if (spawnedENTBodyguards.empty()) {
-						std::ostringstream ss;
-						ss << "No bodyguards found";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.NoBodyguardsFound", "No bodyguards found"));
 						return false;
 					}
 					if (b_curr_num < 0 || b_curr_num >= spawnedENTBodyguards.size()) {
-						std::ostringstream ss;
-						ss << "Wrong number";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.WrongNumber", "Wrong number"));
 						return false;
 					}
 				}
@@ -1205,15 +1161,11 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 				}
 				else {
 					if (spawnedENTBodyguards.empty()) {
-						std::ostringstream ss;
-						ss << "No bodyguards found";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.NoBodyguardsFound", "No bodyguards found"));
 						return false;
 					}
 					if (b_curr_num < 0 || b_curr_num >= spawnedENTBodyguards.size()) {
-						std::ostringstream ss;
-						ss << "Wrong number";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.WrongNumber", "Wrong number"));
 						return false;
 					}
 				}
@@ -1488,25 +1440,25 @@ void process_bodyguard_blips_menu(){
 	toggleItem->toggleValue = &featureBodyguardOnMap;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPSIZE_CAPTIONS, onchange_body_blipsize_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPSIZE_CAPTIONS, onchange_body_blipsize_index);
 	listItem->wrap = false;
 	listItem->caption = tr("BodyguardMenu.BlipSize", "Blip Size");
 	listItem->value = BodyBlipSizeIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPCOLOUR_CAPTIONS, onchange_body_blipcolour_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPCOLOUR_CAPTIONS, onchange_body_blipcolour_index);
 	listItem->wrap = false;
 	listItem->caption = tr("BodyguardMenu.BlipColour", "Blip Colour");
 	listItem->value = BodyBlipColourIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(VEH_BLIPSYMBOL_CAPTIONS, onchange_body_blipsymbol_index);
+	listItem = new SelectFromListMenuItem(&VEH_BLIPSYMBOL_CAPTIONS, onchange_body_blipsymbol_index);
 	listItem->wrap = false;
 	listItem->caption = tr("BodyguardMenu.BlipSymbol", "Blip Symbol");
 	listItem->value = BodyBlipSymbolIndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_body_blipflash_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_body_blipflash_index);
 	listItem->wrap = false;
 	listItem->caption = tr("BodyguardMenu.BlipFlashing", "Blip Flashing");
 	listItem->value = BodyBlipFlashIndex;
@@ -2374,9 +2326,7 @@ bool process_bodyguard_menu(){
 		int i = 0;
 
 		item = new MenuItem<int>();
-		std::ostringstream ss0;
-		ss0 << "Spawn Bodyguard: " << get_current_model_name(); 
-		item->caption = ss0.str();
+		item->caption = tr("BodyguardMenu.SpawnBodyguardPrefix", "Spawn Bodyguard: ") + get_current_model_name();
 		item->value = 0;
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -2406,9 +2356,7 @@ bool process_bodyguard_menu(){
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		std::ostringstream ss3;
-		ss3 << "Spawn Ped: " << get_current_model_name();
-		item->caption = ss3.str();
+		item->caption = tr("BodyguardMenu.SpawnPedPrefix", "Spawn Ped: ") + get_current_model_name();
 		item->value = 5;
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -2438,7 +2386,7 @@ bool process_bodyguard_menu(){
 		toggleItem->toggleValueUpdated = NULL;
 		menuItems.push_back(toggleItem);
 
-		listItem = new SelectFromListMenuItem(PED_WEAPON_TITLES, onchange_bodyguards_body_weapons);
+		listItem = new SelectFromListMenuItem(&PED_WEAPON_TITLES, onchange_bodyguards_body_weapons);
 		listItem->wrap = false;
 		listItem->caption = tr("BodyguardMenu.ArmedWith", "Armed With...");
 		listItem->value = BodyWeaponSetIndex;
@@ -2477,13 +2425,13 @@ bool process_bodyguard_menu(){
 		toggleItem->toggleValueUpdated = NULL;
 		menuItems.push_back(toggleItem);
 
-		listItem = new SelectFromListMenuItem(VEH_BLIPSIZE_CAPTIONS, onchange_body_distance_index);
+		listItem = new SelectFromListMenuItem(&VEH_BLIPSIZE_CAPTIONS, onchange_body_distance_index);
 		listItem->wrap = false;
 		listItem->caption = tr("BodyguardMenu.SpawnDistance", "Spawn Distance");
 		listItem->value = BodyDistanceIndex;
 		menuItems.push_back(listItem);
 
-		listItem = new SelectFromListMenuItem(BODY_GROUPFORMATION_CAPTIONS, onchange_body_groupformation_index);
+		listItem = new SelectFromListMenuItem(&BODY_GROUPFORMATION_CAPTIONS, onchange_body_groupformation_index);
 		listItem->wrap = false;
 		listItem->caption = tr("BodyguardMenu.GroupFormation", "Group Formation");
 		listItem->value = BodyGroupFormationIndex;
@@ -2496,13 +2444,13 @@ bool process_bodyguard_menu(){
 		toggleItem->toggleValueUpdated = NULL;
 		menuItems.push_back(toggleItem);
 
-		listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_follow_invehicle_index);
+		listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_follow_invehicle_index);
 		listItem->wrap = false;
 		listItem->caption = tr("BodyguardMenu.FollowInVehicle", "Follow In Vehicle");
 		listItem->value = FollowInVehicleIndex;
 		menuItems.push_back(listItem);
 
-		listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_body_health_index);
+		listItem = new SelectFromListMenuItem(&PLAYER_HEALTH_CAPTIONS, onchange_body_health_index);
 		listItem->wrap = false;
 		listItem->caption = tr("BodyguardMenu.BodyguardHealth", "Bodyguard Health");
 		listItem->value = BodyHealthIndex;
@@ -2550,7 +2498,7 @@ bool process_bodyguard_menu(){
 		toggleItem->toggleValue = &featureBCannotBeHeadshot;
 		menuItems.push_back(toggleItem);
 
-		listItem = new SelectFromListMenuItem(BODY_SHOWNUMBERS_CAPTIONS, onchange_body_shownumber_index);
+		listItem = new SelectFromListMenuItem(&BODY_SHOWNUMBERS_CAPTIONS, onchange_body_shownumber_index);
 		listItem->wrap = false;
 		listItem->caption = tr("BodyguardMenu.ShowBodyguardNumber", "Show Bodyguard Number");
 		listItem->value = BodyShowNumbersIndex;
@@ -2697,15 +2645,11 @@ bool onconfirm_bodyguard_menu(MenuItem<int> choice){
 				}
 				else {
 					if (spawnedENTBodyguards.empty()) {
-						std::ostringstream ss;
-						ss << "No bodyguards found";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.NoBodyguardsFound", "No bodyguards found"));
 						return false;
 					}
 					if (b_curr_num < 0 || b_curr_num >= spawnedENTBodyguards.size()) {
-						std::ostringstream ss;
-						ss << "Wrong number";
-						set_status_text(ss.str());
+						set_status_text(tr("BodyguardMenu.WrongNumber", "Wrong number"));
 						return false;
 					}
 				}

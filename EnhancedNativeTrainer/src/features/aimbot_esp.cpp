@@ -266,25 +266,25 @@ bool process_aimbot_esp_menu()
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(AIMBOT_TARGETS, onchange_aimbot);
+	listItem = new SelectFromListMenuItem(&AIMBOT_TARGETS, onchange_aimbot);
 	listItem->wrap = false;
 	listItem->caption = tr("AimbotMenu.Aimbot", "Aimbot");
 	listItem->value = aimbotIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_BONE_CAPTION, onchange_aimbot_bone);
+	listItem = new SelectFromListMenuItem(&AIMBOT_BONE_CAPTION, onchange_aimbot_bone);
 	listItem->wrap = false;
 	listItem->caption = tr("AimbotMenu.AimBone", "Aim Bone");
 	listItem->value = aimbotBoneIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_TARGET_METHOD, onchange_target_method);
+	listItem = new SelectFromListMenuItem(&AIMBOT_TARGET_METHOD, onchange_target_method);
 	listItem->wrap = false;
 	listItem->caption = tr("AimbotMenu.TargetMethod", "Target Method");
 	listItem->value = targetMethod;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_TOLERANCE_CAPTIONS, onchange_aimbot_tolerance);
+	listItem = new SelectFromListMenuItem(&AIMBOT_TOLERANCE_CAPTIONS, onchange_aimbot_tolerance);
 	listItem->wrap = false;
 	listItem->caption = tr("AimbotMenu.TargetLockRadius", "Target Lock Radius");
 	listItem->value = aimbotToleranceIndex;
@@ -297,7 +297,7 @@ bool process_aimbot_esp_menu()
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_VEH_OFFSET_CAPTIONS, onchange_aimbot_veh_offset);
+	listItem = new SelectFromListMenuItem(&AIMBOT_VEH_OFFSET_CAPTIONS, onchange_aimbot_veh_offset);
 	listItem->wrap = false;
 	listItem->caption = tr("AimbotMenu.VehicleAimbotOffset", "Vehicle Aimbot Offset");
 	listItem->value = aimbotVehOffsetIndex;
