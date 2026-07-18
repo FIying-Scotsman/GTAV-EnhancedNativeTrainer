@@ -2678,6 +2678,10 @@ void ScriptMain(){
 			return;
 		}
 
+		// If the reset file exists do this before any settings are loaded/applied - a bad or conflicting stored
+		// setting can crash the game once it's read so reset as soon as possible to prevent a crash.
+		check_and_apply_reset_marker();
+
 		build_anim_tree();
 
 		write_text_to_log_file("ScriptMain called - handler set");
@@ -3059,6 +3063,43 @@ void init_storage(){
 		write_text_to_log_file("Couldn't create temp dir");
 	}
 	delete folder2;
+}
+
+// If a file called ENT-RESET (no file extension) is in the same folder as the .asi, put all
+// settings back to defaults (same as the in-menu "Reset All Settings" option) and
+// save those changes then rename the marker so it isn't actioned again.
+// Saved vehicles/skins/props etc are untouched - only the feature/setting values are
+// reset. This is done to help prevent ENT crashing the scripthook on a bad setting.
+void check_and_apply_reset_marker(){
+	std::string markerPath = GetCurrentModulePath() + "ENT-RESET";
+
+	if (!does_file_exist(markerPath.c_str())){
+		return;
+	}
+
+	write_text_to_log_file("ENT-RESET file found - resetting settings to defaults");
+
+	bool success = (database != NULL);
+
+	if (success){
+		everInitialised = true; // allow the save below to actually persist
+		reset_globals();
+		save_settings(); // save synchronously so the result is known before renaming the marker
+	}
+	else{
+		write_text_to_log_file("ENT-RESET: database not available, could not reset settings");
+	}
+
+	std::string resultPath = GetCurrentModulePath() + (success ? "ENT-RESET-OK" : "ENT-RESET-ERROR");
+
+	// clear out any stale result file from a previous reset before renaming onto it
+	DeleteFileA(resultPath.c_str());
+
+	if (!MoveFileA(markerPath.c_str(), resultPath.c_str())){
+		write_text_to_log_file("ENT-RESET: failed to rename marker file");
+	}
+
+	write_text_to_log_file(success ? "ENT-RESET: settings reset complete" : "ENT-RESET: settings reset failed");
 }
 
 WCHAR* get_temp_dir_path(){

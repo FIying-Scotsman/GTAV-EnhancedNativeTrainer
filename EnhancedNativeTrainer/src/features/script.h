@@ -198,6 +198,8 @@ DWORD WINAPI save_settings_thread(LPVOID lpParameter);
 
 void init_storage();
 
+void check_and_apply_reset_marker();
+
 int get_frame_number();
 
 WCHAR* get_storage_dir_path();
