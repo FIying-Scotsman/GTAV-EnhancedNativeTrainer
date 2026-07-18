@@ -150,7 +150,6 @@ bool BodyShowNumbersChanged = true;
 
 //Blip Flashing
 int BodyBlipFlashIndex = 0;
-bool BodyBlipFlash_Changed = true;
 int FollowInVehicleIndex = 0;
 bool FollowInVehicleChanged = true;
 
@@ -2928,5 +2927,4 @@ void onchange_body_blipsymbol_index(int value, SelectFromListMenuItem* source){
 
 void onchange_body_blipflash_index(int value, SelectFromListMenuItem* source){
 	BodyBlipFlashIndex = value;
-	BodyBlipFlash_Changed = true;
 }

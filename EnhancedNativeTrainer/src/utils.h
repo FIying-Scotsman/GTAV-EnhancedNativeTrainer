@@ -25,8 +25,6 @@ bool StringEndsWith(const std::string& a, const std::string& b);
 
 bool StringStartsWith(const std::string& a, const std::string& b);
 
-std::wstring ConvertFromUtf8ToUtf16(const std::string& str);
-
 float degToRad(float degs);
 
 float radToDeg(float rads);

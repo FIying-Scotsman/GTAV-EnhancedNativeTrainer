@@ -1,11 +1,10 @@
-/*
 #include "aimbot_esp.h"
 
 int aimbotESPLineIndex = 0;
 
 bool pedESP = false;
 
-Entity aimedAt = NULL;
+Entity aimbotAimedAt = NULL;
 bool isTargetLocked = false;
 
 bool aimAtVehicles = false;
@@ -245,7 +244,7 @@ void reset_aimbot_globals() {
 
 	pedESP = 0;
 
-	aimedAt = NULL;
+	aimbotAimedAt = NULL;
 	isTargetLocked = false;
 
 	aimAtVehicles = false;
@@ -260,7 +259,7 @@ void reset_aimbot_globals() {
 
 bool process_aimbot_esp_menu()
 {
-	std::string caption = "Aimbot ESP Options";
+	std::string caption = tr("AimbotMenu.AimbotESPOptions", "Aimbot ESP Options");
 	std::vector<MenuItem<int>*> menuItems;
 	ToggleMenuItem<int>* toggleItem;
 	SelectFromListMenuItem *listItem;
@@ -269,30 +268,30 @@ bool process_aimbot_esp_menu()
 
 	listItem = new SelectFromListMenuItem(AIMBOT_TARGETS, onchange_aimbot);
 	listItem->wrap = false;
-	listItem->caption = "Aimbot";
+	listItem->caption = tr("AimbotMenu.Aimbot", "Aimbot");
 	listItem->value = aimbotIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(AIMBOT_BONE_CAPTION, onchange_aimbot_bone);
 	listItem->wrap = false;
-	listItem->caption = "Aim Bone";
+	listItem->caption = tr("AimbotMenu.AimBone", "Aim Bone");
 	listItem->value = aimbotBoneIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(AIMBOT_TARGET_METHOD, onchange_target_method);
 	listItem->wrap = false;
-	listItem->caption = "Target Method";
+	listItem->caption = tr("AimbotMenu.TargetMethod", "Target Method");
 	listItem->value = targetMethod;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(AIMBOT_TOLERANCE_CAPTIONS, onchange_aimbot_tolerance);
 	listItem->wrap = false;
-	listItem->caption = "Target Lock Radius";
+	listItem->caption = tr("AimbotMenu.TargetLockRadius", "Target Lock Radius");
 	listItem->value = aimbotToleranceIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Target Peds in Vehicles";
+	toggleItem->caption = tr("AimbotMenu.TargetPedsInVehicles", "Target Peds in Vehicles");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &aimAtVehicles;
 	toggleItem->toggleValueUpdated = NULL;
@@ -300,19 +299,19 @@ bool process_aimbot_esp_menu()
 
 	listItem = new SelectFromListMenuItem(AIMBOT_VEH_OFFSET_CAPTIONS, onchange_aimbot_veh_offset);
 	listItem->wrap = false;
-	listItem->caption = "Vehicle Aimbot Offset";
+	listItem->caption = tr("AimbotMenu.VehicleAimbotOffset", "Vehicle Aimbot Offset");
 	listItem->value = aimbotVehOffsetIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Aim Through Walls";
+	toggleItem->caption = tr("AimbotMenu.AimThroughWalls", "Aim Through Walls");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &aimThroughWalls;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Ped ESP";
+	toggleItem->caption = tr("AimbotMenu.PedESP", "Ped ESP");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &pedESP;
 	toggleItem->toggleValueUpdated = NULL;
@@ -433,14 +432,14 @@ void update_aimbot_esp_features() {
 					if (aimbotIndex == 1) { // Target NPCs
 						if (targetMethod == 0) {
 							// target whatever GTA thinks the player is free aiming at
-							aimedAt = get_ped_in_freeaim();
+							aimbotAimedAt = get_ped_in_freeaim();
 						}
 						else if (targetMethod == 1) {
 							// get the ped nearest to the crosshair
-							aimedAt = get_ped_nearest_to_crosshair();
+							aimbotAimedAt = get_ped_nearest_to_crosshair();
 						}
 
-						if (!ENTITY::IS_ENTITY_DEAD(aimedAt) && !PED::IS_PED_A_PLAYER(aimedAt) && (!ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimedAt) || (ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimedAt) && aimAtVehicles))) {
+						if (!ENTITY::IS_ENTITY_DEAD(aimbotAimedAt) && !PED::IS_PED_A_PLAYER(aimbotAimedAt) && (!ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimbotAimedAt) || (ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimbotAimedAt) && aimAtVehicles))) {
 							isTargetLocked = true;
 						}
 						else {
@@ -450,15 +449,15 @@ void update_aimbot_esp_features() {
 					// Removed a bunch of code for aiming only at vehicles, objects, etc...
 				}
 				else { // Target is locked
-					if (!ENTITY::DOES_ENTITY_EXIST(aimedAt) || ENTITY::IS_ENTITY_DEAD(aimedAt)) { // Do a sanity check to make sure we're not constantly locking onto something that we shouldn't be 
+					if (!ENTITY::DOES_ENTITY_EXIST(aimbotAimedAt) || ENTITY::IS_ENTITY_DEAD(aimbotAimedAt)) { // Do a sanity check to make sure we're not constantly locking onto something that we shouldn't be
 						isTargetLocked = false;
 					}
 
-					if (!ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(playerPed, aimedAt, 17) && !aimThroughWalls) { // Drop target if wallhack is off and we lose vision of him
+					if (!ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(playerPed, aimbotAimedAt, 17) && !aimThroughWalls) { // Drop target if wallhack is off and we lose vision of him
 						isTargetLocked = false;
 					}
 					else {
-						doAimbot(aimedAt);
+						doAimbot(aimbotAimedAt);
 					}
 				}
 			}
@@ -467,5 +466,4 @@ void update_aimbot_esp_features() {
 			}
 		} // end of if (bPlayerExists && aimbotIndex)
 	}
-} 
-*/
+}

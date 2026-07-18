@@ -1375,9 +1375,9 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 		case 28:
 			process_pedagainstweapons_menu();
 			break;
-		//case 36:
-		//	if (AIMBOT_INCLUDED) process_aimbot_esp_menu();
-		//	break;
+		case 41: // menu item position, not a sequential .value - see "Aimbot ESP" in process_weapon_menu()
+			if (AIMBOT_INCLUDED) process_aimbot_esp_menu();
+			break;
 	default:
 		break;
 	}
@@ -1651,13 +1651,13 @@ bool process_weapon_menu(){
 	listItem->value = WeapFlashDistIndex;
 	menuItems.push_back(listItem);
 
-	//if (AIMBOT_INCLUDED) {
-	//	item = new MenuItem<int>();
-	//	item->caption = "Aimbot ESP";
-	//	item->value = i++;
-	//	item->isLeaf = false;
-	//	menuItems.push_back(item);
-	//}
+	if (AIMBOT_INCLUDED) {
+		item = new MenuItem<int>();
+		item->caption = tr("WeaponMenu.AimbotESP", "Aimbot ESP");
+		item->value = i++;
+		item->isLeaf = false;
+		menuItems.push_back(item);
+	}
 
 	return draw_generic_menu<int>(menuItems, &activeLineIndexWeapon, caption, onconfirm_weapon_menu, NULL, NULL);
 }
@@ -2845,25 +2845,7 @@ void onconfirm_open_tint_menu(MenuItem<int> choice) {
 		menuItems.push_back(item);
 	}
 
-	/*
-	for (int i = 0; i < WEAPONTYPES_TINT.size(); i++) {
-		if (WEAPON::GET_PED_WEAPON_TINT_INDEX(playerPed, weapHash) == VALUES_TINT_MK2[i]) {
-			tintSelection = i;
-			break;
-		}
-	}
-	else
-	{
-		for (int i = 0; i < VALUES_TINT.size(); i++) {
-			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = CAPTIONS_TINT[i];
-			item->value = VALUES_TINT[i];
-			menuItems.push_back(item);
-			}
-		}
-		*/
-
-	draw_generic_menu<int>(menuItems, &tintSelection, "Select Weapon Tint", onconfirm_weapon_mod_menu_tint, onhighlight_weapon_mod_menu_tint, NULL);
+	draw_generic_menu<int>(menuItems, &tintSelection, tr("WeaponMenu.SelectWeaponTint", "Select Weapon Tint"), onconfirm_weapon_mod_menu_tint, onhighlight_weapon_mod_menu_tint, NULL);
 }
 
 void onhighlight_weapon_mod_menu_tint_colour(MenuItem<int> choice) {

@@ -100,7 +100,7 @@ extern bool featureWantedLevelFrozen;
 extern bool in_prison;
 extern bool super_jump_no_parachute;
 extern int myENTGroup;
-//extern bool AIMBOT_INCLUDED;
+extern bool AIMBOT_INCLUDED;
 
 extern std::string C_WEATHER_C;
 
