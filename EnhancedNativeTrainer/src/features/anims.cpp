@@ -3743,7 +3743,7 @@ bool onconfirm_anim_menu(MenuItem<int> choice)
 			}
 			else
 			{
-				set_status_text("Can't find this animation");
+				set_status_text(tr("AnimsMenu.CanTFindThisAnimation", "Can't find this animation"));
 				return false;
 			}
 		}
@@ -3762,7 +3762,7 @@ bool onconfirm_anim_menu(MenuItem<int> choice)
 		
 		do_play_anim(playerPed, dict, anim, currentAnimMenuMode);
 
-		set_status_text("Animation applied");
+		set_status_text(tr("AnimsMenu.AnimationApplied", "Animation applied"));
 
 		return false;
 	}
@@ -3782,7 +3782,7 @@ bool process_anims_menu()
 {
 	if (!loaded)
 	{
-		set_status_text("Anims not loaded yet, try again later");
+		set_status_text(tr("AnimsMenu.AnimsNotLoadedYetTryAgainLater", "Anims not loaded yet, try again later"));
 		return false;
 	}
 
@@ -3820,7 +3820,7 @@ bool process_anims_menu()
 	{
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
-		item->caption = "Clear/Reset To Default";
+		item->caption = tr("AnimsMenu.ClearResetToDefault", "Clear/Reset To Default");
 		item->value = -1;
 		menuItems.push_back(item);
 	}
@@ -3895,25 +3895,25 @@ bool process_anims_menu_top()
 
 	MenuItem<int> *item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Scenarios";
+	item->caption = tr("AnimsMenu.Scenarios", "Scenarios");
 	item->value = CATEGORY_SCENARIOS;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Movement Clipsets";
+	item->caption = tr("AnimsMenu.MovementClipsets", "Movement Clipsets");
 	item->value = CATEGORY_MOVE_CLIPSET;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Facial Anims: Immediate Play";
+	item->caption = tr("AnimsMenu.FacialAnimsImmediatePlay", "Facial Anims: Immediate Play");
 	item->value = CATEGORY_FACIAL_NOW;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "All Anims: Immediate Play";
+	item->caption = tr("AnimsMenu.AllAnimsImmediatePlay", "All Anims: Immediate Play");
 	item->value = CATEGORY_GENERAL_NOW;
 	menuItems.push_back(item);
 
@@ -3936,7 +3936,7 @@ bool process_anims_menu_top()
 
 void replay_last_anim()
 {
-	if (lastImmediatePlayAnim.empty() || lastImmediatePlayDict.empty()) set_status_text("No animation to play");
+	if (lastImmediatePlayAnim.empty() || lastImmediatePlayDict.empty()) set_status_text(tr("AnimsMenu.NoAnimationToPlay", "No animation to play"));
 	
 	if (!lastImmediatePlayAnim.empty() && !lastImmediatePlayDict.empty())
 	{
@@ -4050,7 +4050,7 @@ bool onconfirm_scenarios_menu_l2(MenuItem<int> choice)
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	AI::CLEAR_PED_TASKS(playerPed);
-	set_status_text("Press Menu Back to stop this scenario");
+	set_status_text(tr("AnimsMenu.PressMenuBackToStopThisScenario", "Press Menu Back to stop this scenario"));
 	if (sitting_scenario == false) AI::TASK_START_SCENARIO_IN_PLACE(playerPed, (char*)value.c_str(), 0, true);
 	else AI::TASK_START_SCENARIO_AT_POSITION(playerPed, (char*)value.c_str(), ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
 
@@ -4114,12 +4114,12 @@ bool process_scenarios_menu_l1()
 	int i = 0;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Human Scenarios";
+	item->caption = tr("AnimsMenu.HumanScenarios", "Human Scenarios");
 	item->value = 0;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Animal Scenarios";
+	item->caption = tr("AnimsMenu.AnimalScenarios", "Animal Scenarios");
 	item->value = 1;
 	menuItems.push_back(item);
 

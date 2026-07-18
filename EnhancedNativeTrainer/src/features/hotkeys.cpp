@@ -314,8 +314,8 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		break;
 	case HKEY_BODYGUARD_DIS_ARMED:
 		c_armed = !c_armed;
-		if (c_armed) set_status_text("Armed");
-		else set_status_text("Disarmed");
+		if (c_armed) set_status_text(tr("HotkeysMenu.Armed", "Armed"));
+		else set_status_text(tr("HotkeysMenu.Disarmed", "Disarmed"));
 		break;
 	case HKEY_SPAWN_SAVED_CAR:
 		hotkey_held_saved_veh_spawn = false;

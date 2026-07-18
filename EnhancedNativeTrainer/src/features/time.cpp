@@ -183,7 +183,7 @@ void onchange_hotkey_freeze_unfreeze_time() {
 		frozentimestate = timeFlowRateIndex;
 		timeFlowRateIndex = 0;
 		timeFlowRateChanged = true;
-		set_status_text("Time is frozen");
+		set_status_text(tr("TimeMenu.TimeIsFrozen", "Time is frozen"));
 		requireRefreshOfTime = true;
 	}
 	else
@@ -196,7 +196,7 @@ void onchange_hotkey_freeze_unfreeze_time() {
 			timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
 			timeFlowRateChanged = true;
 		}
-		set_status_text("Time is unfrozen");
+		set_status_text(tr("TimeMenu.TimeIsUnfrozen", "Time is unfrozen"));
 		requireRefreshOfTime = true;
 	}
 }
@@ -204,7 +204,7 @@ void onchange_hotkey_freeze_unfreeze_time() {
 bool onconfirm_time_flowrate_menu(MenuItem<int> choice) {
 	if (choice.value == 0) {
 		if (featureTimeSynced) {
-			set_status_text("Time synced with system");
+			set_status_text(tr("TimeMenu.TimeSyncedWithSystem", "Time synced with system"));
 		}
 	}
 	else if (choice.value == 666) {
@@ -228,7 +228,7 @@ void all_time_flow_rate() {
 		int index = 0;
 
 		ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Sync With System";
+		togItem->caption = tr("TimeMenu.SyncWithSystem", "Sync With System");
 		togItem->value = 0;
 		togItem->toggleValue = &featureTimeSynced;
 		togItem->toggleValueUpdated = NULL;
@@ -236,45 +236,45 @@ void all_time_flow_rate() {
 
 		SelectFromListMenuItem *listItem = new SelectFromListMenuItem(TIME_SPEED_CAPTIONS, onchange_hotkey_flow_rate_callback);
 		listItem->wrap = false;
-		listItem->caption = "Global Game Speed";
+		listItem->caption = tr("TimeMenu.GlobalGameSpeed", "Global Game Speed");
 		listItem->value = HotkeyFlowRateIndex;
 		menuItems.push_back(listItem);
 
 		listItem = new SelectFromListMenuItem(TIME_SPEED_CAPTIONS, onchange_aiming_speed_callback);
 		listItem->wrap = false;
-		listItem->caption = "Game Speed While Aiming";
+		listItem->caption = tr("TimeMenu.GameSpeedWhileAiming", "Game Speed While Aiming");
 		listItem->value = timeSpeedIndexWhileAiming;
 		menuItems.push_back(listItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Game Speed While Aiming In Vehicle Only";
+		togItem->caption = tr("TimeMenu.GameSpeedWhileAimingInVehicleOnly", "Game Speed While Aiming In Vehicle Only");
 		togItem->value = 0;
 		togItem->toggleValue = &featureSpeedAimInVeh;
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
 		listItem = new SelectFromListMenuItem(TIME_FLOW_RATE_CAPTIONS, onchange_time_flow_rate_callback);
-		listItem->caption = "Time Flow Rate";
+		listItem->caption = tr("TimeMenu.TimeFlowRate", "Time Flow Rate");
 		listItem->value = timeFlowRateIndex;
 		listItem->wrap = false;
 		listItem->onConfirmFunction = onconfirm_time_flow_rate;
 		menuItems.push_back(listItem);
 
 		item = new MenuItem<int>();
-		item->caption = "Toggle Frozen Time On/Off";
+		item->caption = tr("TimeMenu.ToggleFrozenTimeOnOff", "Toggle Frozen Time On/Off");
 		item->value = 666;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Show Current In-Game Time";
+		togItem->caption = tr("TimeMenu.ShowCurrentInGameTime", "Show Current In-Game Time");
 		togItem->value = 0;
 		togItem->toggleValue = &featureShowtime;
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Fast Time Switching [rAlt + 1-8, rAlt + Npad-/+]";
+		togItem->caption = tr("TimeMenu.FastTimeSwitchingRAlt18RAltNpad", "Fast Time Switching [rAlt + 1-8, rAlt + Npad-/+]");
 		togItem->value = 0;
 		togItem->toggleValue = &featurehotkeytime;
 		togItem->toggleValueUpdated = NULL;
@@ -290,49 +290,49 @@ void process_time_set_menu(){
 	int index = 0;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Midnight";
+	item->caption = tr("TimeMenu.Midnight", "Midnight");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Pre-Dawn";
+	item->caption = tr("TimeMenu.PreDawn", "Pre-Dawn");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Dawn";
+	item->caption = tr("TimeMenu.Dawn", "Dawn");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Morning";
+	item->caption = tr("TimeMenu.Morning", "Morning");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Midday";
+	item->caption = tr("TimeMenu.Midday", "Midday");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Afternoon";
+	item->caption = tr("TimeMenu.Afternoon", "Afternoon");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Sunset";
+	item->caption = tr("TimeMenu.Sunset", "Sunset");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Dusk";
+	item->caption = tr("TimeMenu.Dusk", "Dusk");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -384,61 +384,61 @@ void process_time_menu(){
 	int index = 0;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Set Time to Preset";
+	item->caption = tr("TimeMenu.SetTimeToPreset", "Set Time to Preset");
 	item->value = -1;
 	item->isLeaf = false;
 	menuItems.insert(menuItems.begin(), item);
 
 	item = new MenuItem<int>();
-	item->caption = "1 Hour Forward";
+	item->caption = tr("TimeMenu.N1HourForward", "1 Hour Forward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "1 Hour Backward";
+	item->caption = tr("TimeMenu.N1HourBackward", "1 Hour Backward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "5 Mins Forward";
+	item->caption = tr("TimeMenu.N5MinsForward", "5 Mins Forward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "5 Mins Backward";
+	item->caption = tr("TimeMenu.N5MinsBackward", "5 Mins Backward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Day Forward";
+	item->caption = tr("TimeMenu.DayForward", "Day Forward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Day Backward";
+	item->caption = tr("TimeMenu.DayBackward", "Day Backward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Set Date (DD/MM/YYYY)";
+	item->caption = tr("TimeMenu.SetDateDDMMYYYY", "Set Date (DD/MM/YYYY)");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Set Time (HH:MM)";
+	item->caption = tr("TimeMenu.SetTimeHHMM", "Set Time (HH:MM)");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Time Settings";
+	item->caption = tr("TimeMenu.TimeSettings", "Time Settings");
 	item->value = index++;
 	item->isLeaf = false;
 	menuItems.insert(menuItems.end(), item);
@@ -582,7 +582,7 @@ void movetime_day_backward(){
 
 void set_date() {
 	keyboard_on_screen_already = true;
-	curr_message = "Enter new date (DD/MM/YYYY):"; // set date
+	set_curr_message(tr("TimeMenu.EnterNewDateDDMMYYYY", "Enter new date (DD/MM/YYYY):")); // set date
 	std::string lastDateSpawn;
 	std::string tmp_Day, tmp_Mon, tmp_Year;
 	std::string result = show_keyboard("Enter Name Manually", (char*)lastDateSpawn.c_str());
@@ -631,7 +631,7 @@ void set_date() {
 
 void set_time() {
 	keyboard_on_screen_already = true;
-	curr_message = "Enter new time (HH:MM):"; // set time
+	set_curr_message(tr("TimeMenu.EnterNewTimeHHMM", "Enter new time (HH:MM):")); // set time
 	std::string lastTimeSpawn;
 	std::string tmp_Hour, tmp_Min;
 	std::string result = show_keyboard("Enter Name Manually", (char*)lastTimeSpawn.c_str());
@@ -676,7 +676,7 @@ void movetime_hour_forward(){
 	}
 	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
@@ -690,7 +690,7 @@ void movetime_hour_backward(){
 	}
 	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
@@ -713,7 +713,7 @@ void movetime_fivemin_forward(){
 
 	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
@@ -736,14 +736,14 @@ void movetime_fivemin_backward(){
 
 	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_set(int hour, int minute){
 	TIME::SET_CLOCK_TIME(hour, minute, 0);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", TIME::GET_CLOCK_HOURS(), TIME::GET_CLOCK_MINUTES());
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), TIME::GET_CLOCK_HOURS(), TIME::GET_CLOCK_MINUTES());
 	set_status_text(text);
 }
 

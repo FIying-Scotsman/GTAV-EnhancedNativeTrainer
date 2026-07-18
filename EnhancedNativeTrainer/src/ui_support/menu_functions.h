@@ -21,6 +21,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\features\airbrake.h"
 #include "..\utils.h"
 #include "..\common\option_table.h"
+#include "..\io\translation.h"
 //#include "..\features\misc.h"
 //#include "..\features\script.h"
 

@@ -75,7 +75,7 @@ Vector3 get_blip_marker() {
 		return coords;
 	}
 
-	set_status_text("Map marker isn't set");
+	set_status_text(tr("TeleportMenu.MapMarkerIsnTSet", "Map marker isn't set"));
 	return zero;
 }
 

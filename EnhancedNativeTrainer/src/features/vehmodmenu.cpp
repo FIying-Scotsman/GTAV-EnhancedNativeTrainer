@@ -435,15 +435,15 @@ bool onconfirm_vehmod_wheel_selection(MenuItem<int> choice){
 	case 0:
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23));
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 24));
-		set_status_text("Changed all wheels");
+		set_status_text(tr("VehModMenu.ChangedAllWheels", "Changed all wheels"));
 		break;
 	case 1:
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23));
-		set_status_text("Changed front wheel");
+		set_status_text(tr("VehModMenu.ChangedFrontWheel", "Changed front wheel"));
 		break;
 	case 2:
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 24));
-		set_status_text("Changed rear wheel");
+		set_status_text(tr("VehModMenu.ChangedRearWheel", "Changed rear wheel"));
 		break;
 	}
 
@@ -581,7 +581,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		return false;
 	}
 
@@ -600,7 +600,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_WINDOW_TINT){
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 		VEHICLE::SET_VEHICLE_WINDOW_TINT(veh, choice.value);
-		set_status_text("Changed window tint");
+		set_status_text(tr("VehModMenu.ChangedWindowTint", "Changed window tint"));
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_LICENSE_PLATES){
 		if (choice.value == -2) {
@@ -614,7 +614,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 			VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh, choice.value);
 			DefaultPlateIndex = -1;
-			set_status_text("Changed license plate");
+			set_status_text(tr("VehModMenu.ChangedLicensePlate", "Changed license plate"));
 		}
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_ENGINE_SOUND && featureEngineSound) { // pick engine sound through the menu/list
@@ -624,7 +624,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 		AUDIO::_SET_VEHICLE_AUDIO(veh, currSound);
 		if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
-		set_status_text("Changed engine sound");
+		set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		delete currSound;
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_WHEEL_CATEGORY){
@@ -632,7 +632,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		VEHICLE::SET_VEHICLE_WHEEL_TYPE(veh, choice.value);
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, -1, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23));
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, -1, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 24));
-		set_status_text("Changed wheel category");
+		set_status_text(tr("VehModMenu.ChangedWheelCategory", "Changed wheel category"));
 	}
 
 	return false;
@@ -688,7 +688,7 @@ bool process_vehmod_category_special_menu(int category){
 	if (category == SPECIAL_ID_FOR_LICENSE_PLATES/* && i == (values.size() - 1)*/ && !isWeird && !isAircraft) {
 		MenuItem<int>* item = new MenuItem<int>();
 		item = new MenuItem<int>();
-		item->caption = "Customize License Plate";
+		item->caption = tr("VehModMenu.CustomizeLicensePlate", "Customize License Plate");
 		item->value = -2; // 667
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -697,7 +697,7 @@ bool process_vehmod_category_special_menu(int category){
 	if (category == SPECIAL_ID_FOR_LICENSE_PLATES/* && i == (values.size() - 1)*/) {
 		MenuItem<int>* item = new MenuItem<int>();
 		item = new MenuItem<int>();
-		item->caption = "Set Plate Type As Default";
+		item->caption = tr("VehModMenu.SetPlateTypeAsDefault", "Set Plate Type As Default");
 		item->value = -1; // 666
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -710,7 +710,7 @@ bool process_vehmod_category_special_menu(int category){
 			item->caption = specialName;
 		}
 		else if (i == 0 && values.at(i) == -1){
-			item->caption = "Default";
+			item->caption = tr("VehModMenu.Default", "Default");
 		}
 		else{
 			std::ostringstream ss;
@@ -753,7 +753,7 @@ bool process_vehmod_engine_sound() {
 			item->caption = specialName;
 		}
 		else if (i == 0 && values.at(i) == -1) {
-			item->caption = "Default";
+			item->caption = tr("VehModMenu.Default", "Default");
 		}
 		else {
 			std::ostringstream ss;
@@ -776,7 +776,7 @@ bool process_custom_engine_multiplier() {
 
 	listItem = new SelectFromListMenuItem(VEH_ENG_POW_CAPTIONS, onchange_custom_eng_pow_index);
 	listItem->wrap = false;
-	listItem->caption = "Custom Engine Power Multiplier";
+	listItem->caption = tr("VehModMenu.CustomEnginePowerMultiplier", "Custom Engine Power Multiplier");
 	listItem->value = engCustomPowMultIndex;
 	menuItems.push_back(listItem);
 
@@ -793,7 +793,7 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 
 		keyboard_on_screen_already = true;
-		curr_message = "Enter engine sound name (e.g. adder or random):"; // set an engine sound
+		set_curr_message(tr("VehModMenu.EnterEngineSoundNameEGAdderOrRandom", "Enter engine sound name (e.g. adder or random):")); // set an engine sound
 		std::string result = show_keyboard("Enter Name Manually", (char*)lastEngineSound.c_str());
 		lastEngineSound = result;
 		if (lastEngineSound == "random" || lastEngineSound == "Random" || lastEngineSound == "RANDOM") {
@@ -803,7 +803,7 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 			AUDIO::_SET_VEHICLE_AUDIO(veh, keyboardInput);
 			if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
-			set_status_text("Changed engine sound");
+			set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		}
 		if (lastEngineSound != "random" && lastEngineSound != "Random" && lastEngineSound != "RANDOM") {
 			current_picked_engine_sound = result;
@@ -811,7 +811,7 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 			AUDIO::_SET_VEHICLE_AUDIO(veh, keyboardInput);
 			if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
-			set_status_text("Changed engine sound");
+			set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		}
 	}
 }
@@ -842,7 +842,7 @@ bool process_vehmod_engine_sound_menu() {
 	std::ostringstream ss;
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("VehModMenu.Enable", "Enable");
 	toggleItem->value = -1;
 	toggleItem->toggleValue = &featureEngineSound;
 	menuItems.push_back(toggleItem);
@@ -855,7 +855,7 @@ bool process_vehmod_engine_sound_menu() {
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("VehModMenu.EnterNameManually", "Enter Name Manually");
 	item->value = 1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -888,7 +888,7 @@ bool process_vehmod_category_menu(int category){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		return false;
 	}
 
@@ -978,7 +978,7 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		return false;
 	}
 
@@ -987,21 +987,21 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	switch (choice.value){
 	case -1: //Upgrade Performance
 		fully_tune_vehicle(veh, false);
-		set_status_text("Added all performance upgrades");
+		set_status_text(tr("VehModMenu.AddedAllPerformanceUpgrades", "Added all performance upgrades"));
 		break;
 	case -2: //Upgrade Armor and Tires
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 		VEHICLE::SET_VEHICLE_MOD(veh, MOD_ARMOR, VEHICLE::GET_NUM_VEHICLE_MODS(veh, MOD_ARMOR) - 1, 1); //Armor
 		VEHICLE::SET_VEHICLE_TYRES_CAN_BURST(veh, 0); //Bulletproof Tires
-		set_status_text("Added all armor upgrades and bulletproof tires");
+		set_status_text(tr("VehModMenu.AddedAllArmorUpgradesAndBulletproofTires", "Added all armor upgrades and bulletproof tires"));
 		break;
 	case -3: //Add All Mods Pimp My Ride
 		fully_tune_vehicle(veh);
-		set_status_text("Added all available upgrades");
+		set_status_text(tr("VehModMenu.AddedAllAvailableUpgrades", "Added all available upgrades"));
 		break;
 	case -4: //Remove All Mods
 		reset_vehicle(veh);
-		set_status_text("Removed all upgrades");
+		set_status_text(tr("VehModMenu.RemovedAllUpgrades", "Removed all upgrades"));
 		break;
 	case -5: //Randomize Vehicle Upgrades
 		randomize_vehicle_upgrades(veh);
@@ -1021,8 +1021,8 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	case SPECIAL_ID_FOR_XENON_COLOUR:
 		if (VEHICLE::IS_TOGGLE_MOD_ON(veh, 22) && getGameVersion() > 45) process_xenon_colour_menu();
 		else {
-			if (!VEHICLE::IS_TOGGLE_MOD_ON(veh, 22)) set_status_text("~r~Xenon lights are not enabled");
-			if (getGameVersion() < 46) set_status_text("~r~Your game version does not support Xenon colours");
+			if (!VEHICLE::IS_TOGGLE_MOD_ON(veh, 22)) set_status_text(tr("VehModMenu.RXenonLightsAreNotEnabled", "~r~Xenon lights are not enabled"));
+			if (getGameVersion() < 46) set_status_text(tr("VehModMenu.RYourGameVersionDoesNotSupportXenonColou", "~r~Your game version does not support Xenon colours"));
 		}
 		break;
 	case SPECIAL_ID_FOR_CUSTOM_MULTIPLIER:
@@ -1038,7 +1038,7 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 
 bool process_vehmod_menu(){
 	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		mod_slots.clear();
 		return false;
 	}
@@ -1066,31 +1066,31 @@ bool process_vehmod_menu(){
 	
 	if (!isWeird) { //!isWeird && !isAircraft
 		MenuItem<int> *item1 = new MenuItem<int>();
-		item1->caption = "Add All Performance Upgrades";
+		item1->caption = tr("VehModMenu.AddAllPerformanceUpgrades", "Add All Performance Upgrades");
 		item1->value = -1;
 		item1->isLeaf = true;
 		menuItems.push_back(item1);
 
 		MenuItem<int> *item2 = new MenuItem<int>();
-		item2->caption = "Add All Armor Upgrades";
+		item2->caption = tr("VehModMenu.AddAllArmorUpgrades", "Add All Armor Upgrades");
 		item2->value = -2;
 		item2->isLeaf = true;
 		menuItems.push_back(item2);
 
 		MenuItem<int> *item3 = new MenuItem<int>();
-		item3->caption = "Add All Available Upgrades";
+		item3->caption = tr("VehModMenu.AddAllAvailableUpgrades", "Add All Available Upgrades");
 		item3->value = -3;
 		item3->isLeaf = true;
 		menuItems.push_back(item3);
 
 		MenuItem<int> *item4 = new MenuItem<int>();
-		item4->caption = "Remove All Upgrades";
+		item4->caption = tr("VehModMenu.RemoveAllUpgrades", "Remove All Upgrades");
 		item4->value = -4;
 		item4->isLeaf = true;
 		menuItems.push_back(item4);
 
 		MenuItem<int> *item5 = new MenuItem<int>();
-		item5->caption = "Randomize Upgrades";
+		item5->caption = tr("VehModMenu.RandomizeUpgrades", "Randomize Upgrades");
 		item5->value = -5;
 		item5->isLeaf = true;
 		menuItems.push_back(item5);
@@ -1190,20 +1190,20 @@ bool process_vehmod_menu(){
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Tire Smoke Menu";
+		item->caption = tr("VehModMenu.TireSmokeMenu", "Tire Smoke Menu");
 		item->value = SPECIAL_ID_FOR_TIRE_SMOKE;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 	}
 
 	MenuItem<int> * item = new MenuItem<int>();
-	item->caption = "Xenon Colour Menu";
+	item->caption = tr("VehModMenu.XenonColourMenu", "Xenon Colour Menu");
 	item->value = SPECIAL_ID_FOR_XENON_COLOUR;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Custom Engine Power Multiplier";
+	item->caption = tr("VehModMenu.CustomEnginePowerMultiplier", "Custom Engine Power Multiplier");
 	item->value = SPECIAL_ID_FOR_CUSTOM_MULTIPLIER;
 	item->isLeaf = false;
 	menuItems.push_back(item);
@@ -1241,7 +1241,7 @@ bool process_vehmod_menu(){
 			menuItems.push_back(toggleItem);
 
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = "Low Grip Tyres";
+			toggleItem->caption = tr("VehModMenu.LowGripTyres", "Low Grip Tyres");
 			toggleItem->getter_call = is_low_grip_tyres;
 			toggleItem->setter_call = set_low_grip_tyres;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
@@ -1266,7 +1266,7 @@ bool process_vehmod_menu(){
 	}
 	
 	if (menuItems.size() == 0){
-		set_status_text("No relevant mods for this vehicle");
+		set_status_text(tr("VehModMenu.NoRelevantModsForThisVehicle", "No relevant mods for this vehicle"));
 		return false;
 	}
 
@@ -1279,14 +1279,14 @@ void set_plate_text(){ // MenuItem<int> choice
 	VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 	keyboard_on_screen_already = true;
 	char* existingText = "";
-	curr_message = "Enter plate text (type 'random' for random text):"; // set plate text
+	set_curr_message(tr("VehModMenu.EnterPlateTextTypeRandomForRandomText", "Enter plate text (type 'random' for random text):")); // set plate text
 	if (result != "random" && result != "Random" && result != "RANDOM") existingText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
 	if (result == "random" || result == "Random" || result == "RANDOM") existingText = (char*)result.c_str();
 	result = show_keyboard("Enter Name Manually", existingText); // CMOD_MOD_18_D
 	if (!result.empty()){
 		//
 		if (result == "random" || result == "Random" || result == "RANDOM") {
-			set_status_text("Press jump to cancel");
+			set_status_text(tr("VehModMenu.PressJumpToCancel", "Press jump to cancel"));
 			std::string random_t = "AAAAAAAA";
 			while (CONTROLS::IS_CONTROL_RELEASED(2, 22)/* && !IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE) && !CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_CANCEL)*/) { // jump
 				for (int aa = 0; aa < 9; aa++) {

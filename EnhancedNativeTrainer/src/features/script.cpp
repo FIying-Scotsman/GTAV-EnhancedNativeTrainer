@@ -523,15 +523,15 @@ void check_player_model(){
 void invincibility_switching(){
 	featurePlayerInvincible = !featurePlayerInvincible;
 	featurePlayerInvincibleUpdated = true;
-	if (featurePlayerInvincible) set_status_text("Invincibility ON");
-	else set_status_text("Invincibility OFF");
+	if (featurePlayerInvincible) set_status_text(tr("MainMenu.InvincibilityON", "Invincibility ON"));
+	else set_status_text(tr("MainMenu.InvincibilityOFF", "Invincibility OFF"));
 	WAIT(100);
 }
 
 void wantedlevel_switching() {
 	featureWantedLevelFrozen = !featureWantedLevelFrozen;
-	if (featureWantedLevelFrozen) set_status_text("Wanted Level Frozen");
-	else set_status_text("Wanted Level Unfrozen");
+	if (featureWantedLevelFrozen) set_status_text(tr("MainMenu.WantedLevelFrozen", "Wanted Level Frozen"));
+	else set_status_text(tr("MainMenu.WantedLevelUnfrozen", "Wanted Level Unfrozen"));
 	WAIT(100);
 }
 
@@ -600,7 +600,7 @@ void engine_kill(){
 	VEHICLE::SET_VEHICLE_ENGINE_ON(veh_killed, false, true, true);
 	VEHICLE::SET_VEHICLE_ENGINE_HEALTH(veh_killed, -4000);
 
-	set_status_text("You have destroyed this vehicle's engine for some reason");
+	set_status_text(tr("MainMenu.YouHaveDestroyedThisVehicleSEngineForSom", "You have destroyed this vehicle's engine for some reason"));
 }
 
 void text_parameters(float s_x, float s_y, int c_r, int c_g, int c_b, int alpha) {
@@ -624,7 +624,7 @@ void update_features(){
 
 	if(NETWORK::NETWORK_IS_GAME_IN_PROGRESS()){
 		if(!onlineWarningShown){
-			set_status_text("~HUD_COLOUR_MENU_YELLOW~ENT ~HUD_COLOUR_WHITE~is not for use online");
+			set_status_text(tr("MainMenu.HUDCOLOURMENUYELLOWENTHUDCOLOURWHITEIsNo", "~HUD_COLOUR_MENU_YELLOW~ENT ~HUD_COLOUR_WHITE~is not for use online"));
 			onlineWarningShown = true;
 		}
 		WAIT(0);
@@ -1115,7 +1115,7 @@ void update_features(){
 	if (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] < 1) lev_message = false;
 	if (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] > 0/*featureLevitation*/) {
 		if (lev_message == false) {
-			set_status_text("Hold 'Jump' to use your force.");
+			set_status_text(tr("MainMenu.HoldJumpToUseYourForce", "Hold 'Jump' to use your force."));
 			lev_message = true;
 		}
 		Vector3 my_coords = ENTITY::GET_ENTITY_COORDS(playerPed, true);
@@ -1287,8 +1287,8 @@ void update_features(){
 		float curr_set_h = PLAYER_HEALTH_VALUES[current_player_health] - 100;
 		if (NPC_RAGDOLL_VALUES[current_limp_if_injured] > 0 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, true)) {
 			if (injured_m != current_limp_if_injured) {
-				if (current_limp_if_injured == 1) set_status_text("Walking Style 1");
-					if (current_limp_if_injured == 2) set_status_text("Walking Style 2");
+				if (current_limp_if_injured == 1) set_status_text(tr("MainMenu.WalkingStyle1", "Walking Style 1"));
+					if (current_limp_if_injured == 2) set_status_text(tr("MainMenu.WalkingStyle2", "Walking Style 2"));
 					injured_m = current_limp_if_injured;
 					enable_camera_injured = false;
 			}
@@ -1569,8 +1569,8 @@ void update_features(){
 
 	if (NPC_RAGDOLL_VALUES[current_no_ragdoll] > 0 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, true)) {
 		if (noragdoll_m != current_no_ragdoll) {
-			if (current_no_ragdoll == 1) set_status_text("Falling animation is enabled");
-			if (current_no_ragdoll == 2) set_status_text("Falling animation is disabled");
+			if (current_no_ragdoll == 1) set_status_text(tr("MainMenu.FallingAnimationIsEnabled", "Falling animation is enabled"));
+			if (current_no_ragdoll == 2) set_status_text(tr("MainMenu.FallingAnimationIsDisabled", "Falling animation is disabled"));
 			noragdoll_m = current_no_ragdoll;
 		}
 		if(bPlayerExists){
@@ -1806,7 +1806,7 @@ bool onconfirm_playerData_menu(MenuItem<int> choice){
 		featurePlayerLifeUpdated = true;
 		featurePlayerStatsUpdated = true;
 		apply_pressed = true;
-		set_status_text("Settings were applied");
+		set_status_text(tr("MainMenu.SettingsWereApplied", "Settings were applied"));
 	}
 	return false;
 }
@@ -1858,7 +1858,7 @@ bool onconfirm_powerpunch_menu(MenuItem<int> choice)
 			set_status_text(ss.str());
 		}
 		keyboard_on_screen_already = true;
-		curr_message = "Enter punch strength:"; // power punch strength
+		set_curr_message(tr("MainMenu.EnterPunchStrength", "Enter punch strength:")); // power punch strength
 		std::string result_p = show_keyboard("Enter Name Manually", (char *)lastPowerWeapon.c_str());
 		if (!result_p.empty()) {
 			if (strlen(result_p.c_str()) > 18) result_p = "9223372036854775807"; // result_p.resize(18);
@@ -1883,37 +1883,37 @@ void process_powerpunch_menu() {
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("MainMenu.Enable", "Enable");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePowerPunch;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Fists Only";
+	toggleItem->caption = tr("MainMenu.FistsOnly", "Fists Only");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePunchFists;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Melee Weapons";
+	toggleItem->caption = tr("MainMenu.MeleeWeapons", "Melee Weapons");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePunchMeleeWeapons;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Firearms";
+	toggleItem->caption = tr("MainMenu.Firearms", "Firearms");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePunchFireWeapons;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_POWERPUNCH_CAPTIONS, onchange_power_punch_index);
 	listItem->wrap = false;
-	listItem->caption = "Power Punch Strength";
+	listItem->caption = tr("MainMenu.PowerPunchStrength", "Power Punch Strength");
 	listItem->value = PowerPunchIndex;
 	menuItems.push_back(listItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Punch Strength";
+	item->caption = tr("MainMenu.EnterPunchStrength2", "Enter Punch Strength");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -1932,39 +1932,39 @@ bool process_player_life_menu(){
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Apply On Load/Respawn/Change";
+	toggleItem->caption = tr("MainMenu.ApplyOnLoadRespawnChange", "Apply On Load/Respawn/Change");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerLife;
 	toggleItem->toggleValueUpdated = &featurePlayerLifeUpdated;
 	menuItems.push_back(toggleItem);
 	
 	item = new MenuItem<int>();
-	item->caption = "Apply Now";
+	item->caption = tr("MainMenu.ApplyNow", "Apply Now");
 	item->value = -1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_player_health_mode);
 	listItem->wrap = false;
-	listItem->caption = "Set Player Health";
+	listItem->caption = tr("MainMenu.SetPlayerHealth", "Set Player Health");
 	listItem->value = current_player_health;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(PLAYER_ARMOR_CAPTIONS, onchange_player_armor_mode);
 	listItem->wrap = false;
-	listItem->caption = "Set Player Armor";
+	listItem->caption = tr("MainMenu.SetPlayerArmor", "Set Player Armor");
 	listItem->value = current_player_armor;
 	menuItems.push_back(listItem);
 	
 	listItem = new SelectFromListMenuItem(REGEN_CAPTIONS, onchange_regen_callback);
 	listItem->wrap = false;
-	listItem->caption = "Health Regeneration Rate";
+	listItem->caption = tr("MainMenu.HealthRegenerationRate", "Health Regeneration Rate");
 	listItem->value = current_regen_speed;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(PLAYER_ARMOR_CAPTIONS, onchange_player_stats_mode);
 	listItem->wrap = false;
-	listItem->caption = "Character Ability Stats";
+	listItem->caption = tr("MainMenu.CharacterAbilityStats", "Character Ability Stats");
 	listItem->value = current_player_stats;
 	menuItems.push_back(listItem);
 
@@ -1981,49 +1981,49 @@ bool maxwantedlevel_menu() {
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Freeze Wanted Level";
+	toggleItem->caption = tr("MainMenu.FreezeWantedLevel", "Freeze Wanted Level");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedLevelFrozen;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_wanted_maxpossible_level_mode);
 	listItem->wrap = false;
-	listItem->caption = "Max Wanted Level";
+	listItem->caption = tr("MainMenu.MaxWantedLevel", "Max Wanted Level");
 	listItem->value = wanted_maxpossible_level;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Police Ignore You";
+	toggleItem->caption = tr("MainMenu.PoliceIgnoreYou", "Police Ignore You");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerIgnoredByPolice;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Police Helicopters";
+	toggleItem->caption = tr("MainMenu.NoPoliceHelicopters", "No Police Helicopters");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedLevelNoPHeli;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Police Boats";
+	toggleItem->caption = tr("MainMenu.NoPoliceBoats", "No Police Boats");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedLevelNoPBoats;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Road Blocks";
+	toggleItem->caption = tr("MainMenu.NoRoadBlocks", "No Road Blocks");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedNoPRoadB;
 	menuItems.push_back(toggleItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No SWAT Vehicles";
+	toggleItem->caption = tr("MainMenu.NoSWATVehicles", "No SWAT Vehicles");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedLevelNoSWATVehicles;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Less Aggressive Police Pursuit";
+	toggleItem->caption = tr("MainMenu.LessAggressivePolicePursuit", "Less Aggressive Police Pursuit");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWantedLevelNoPRam;
 	menuItems.push_back(toggleItem);
@@ -2041,25 +2041,25 @@ bool mostwanted_menu() {
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("MainMenu.Enable", "Enable");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerMostWanted;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_mostwanted_level_mode);
 	listItem->wrap = false;
-	listItem->caption = "Wanted Status At";
+	listItem->caption = tr("MainMenu.WantedStatusAt", "Wanted Status At");
 	listItem->value = mostwanted_level_enable;
 	menuItems.push_back(listItem);
 	
 	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_mostwanted_mode);
 	listItem->wrap = false;
-	listItem->caption = "Wanted Stars If Seen";
+	listItem->caption = tr("MainMenu.WantedStarsIfSeen", "Wanted Stars If Seen");
 	listItem->value = current_player_mostwanted;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Disable Player Switching While Fugitive";
+	toggleItem->caption = tr("MainMenu.DisablePlayerSwitchingWhileFugitive", "Disable Player Switching While Fugitive");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerNoSwitch;
 	menuItems.push_back(toggleItem);
@@ -2077,37 +2077,37 @@ bool player_movement_speed() {
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Fast Swim";
+	toggleItem->caption = tr("MainMenu.FastSwim", "Fast Swim");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerFastSwim;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Fast Run";
+	toggleItem->caption = tr("MainMenu.FastRun", "Fast Run");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerFastRun;
 	menuItems.push_back(toggleItem);
 	
 	listItem = new SelectFromListMenuItem(PLAYER_MOVEMENT_CAPTIONS, onchange_player_superjump_mode);
 	listItem->wrap = false;
-	listItem->caption = "Super Jump";
+	listItem->caption = tr("MainMenu.SuperJump", "Super Jump");
 	listItem->value = current_player_superjump;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(PLAYER_MOVEMENT_CAPTIONS, onchange_player_jumpfly_mode);
 	listItem->wrap = false;
-	listItem->caption = "Hancock Mode";
+	listItem->caption = tr("MainMenu.HancockMode", "Hancock Mode");
 	listItem->value = current_player_jumpfly;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(PLAYER_MOVEMENT_CAPTIONS, onchange_player_movement_mode);
 	listItem->wrap = false;
-	listItem->caption = "Running Speed:";
+	listItem->caption = tr("MainMenu.RunningSpeed", "Running Speed:");
 	listItem->value = current_player_movement; 
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Drunk";
+	toggleItem->caption = tr("MainMenu.Drunk", "Drunk");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerDrunk;
 	toggleItem->toggleValueUpdated = &featurePlayerDrunkUpdated;
@@ -2127,37 +2127,37 @@ bool process_ragdoll_menu() {
 
 	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_no_ragdoll_mode);
 	listItem->wrap = false;
-	listItem->caption = "No Ragdoll";
+	listItem->caption = tr("MainMenu.NoRagdoll", "No Ragdoll");
 	listItem->value = current_no_ragdoll;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Ragdoll If Shot";
+	toggleItem->caption = tr("MainMenu.RagdollIfShot", "Ragdoll If Shot");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureRagdollIfInjured;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_shake_ragdoll_mode);
 	listItem->wrap = false;
-	listItem->caption = "Shake Camera If Shot";
+	listItem->caption = tr("MainMenu.ShakeCameraIfShot", "Shake Camera If Shot");
 	listItem->value = feature_shake_ragdoll;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(NPC_RAGDOLL_CAPTIONS, onchange_NPC_ragdoll_mode);
 	listItem->wrap = false;
-	listItem->caption = "NPC Ragdoll If Shot";
+	listItem->caption = tr("MainMenu.NPCRagdollIfShot", "NPC Ragdoll If Shot");
 	listItem->value = current_npc_ragdoll;
 	menuItems.push_back(listItem);
 	
 	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_limp_if_injured_mode);
 	listItem->wrap = false;
-	listItem->caption = "Limp If Injured";
+	listItem->caption = tr("MainMenu.LimpIfInjured", "Limp If Injured");
 	listItem->value = current_limp_if_injured;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_shake_injured_mode);
 	listItem->wrap = false;
-	listItem->caption = "Shake Camera If Injured";
+	listItem->caption = tr("MainMenu.ShakeCameraIfInjured", "Shake Camera If Injured");
 	listItem->value = feature_shake_injured;
 	menuItems.push_back(listItem);
 
@@ -2175,48 +2175,48 @@ bool process_player_prison_menu(){
 
 	listItem = new SelectFromListMenuItem(PLAYER_PRISON_CAPTIONS, onchange_player_prison_mode);
 	listItem->wrap = false;
-	listItem->caption = "Player Imprisoned If";
+	listItem->caption = tr("MainMenu.PlayerImprisonedIf", "Player Imprisoned If");
 	listItem->value = current_player_prison;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(MISC_PHONE_BILL_CAPTIONS, onchange_player_escapemoney_mode);
 	listItem->wrap = false;
-	listItem->caption = "Escape Failure Payment";
+	listItem->caption = tr("MainMenu.EscapeFailurePayment", "Escape Failure Payment");
 	listItem->value = current_player_escapemoney;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_STARSPUNISH_CAPTIONS, onchange_player_escapestars_mode);
 	listItem->wrap = false;
-	listItem->caption = "Number Of Stars After Escaping";
+	listItem->caption = tr("MainMenu.NumberOfStarsAfterEscaping", "Number Of Stars After Escaping");
 	listItem->value = current_escape_stars;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(PLAYER_DISCHARGE_CAPTIONS, onchange_player_discharge_mode);
 	listItem->wrap = false;
-	listItem->caption = "Time To Discharge";
+	listItem->caption = tr("MainMenu.TimeToDischarge", "Time To Discharge");
 	listItem->value = current_player_discharge;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Hardcore Mode";
+	toggleItem->caption = tr("MainMenu.HardcoreMode", "Hardcore Mode");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePrison_Hardcore;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Cops React To Prison Clothes";
+	toggleItem->caption = tr("MainMenu.CopsReactToPrisonClothes", "Cops React To Prison Clothes");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePrison_Robe;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Peds React To Prison Clothes";
+	toggleItem->caption = tr("MainMenu.PedsReactToPrisonClothes", "Peds React To Prison Clothes");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePedPrison_Robe;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "More Prisoners At Yard";
+	toggleItem->caption = tr("MainMenu.MorePrisonersAtYard", "More Prisoners At Yard");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePrison_Yard;
 	menuItems.push_back(toggleItem);
@@ -2234,20 +2234,20 @@ bool process_player_forceshield_menu() {
 	int i = 0;
 
 	item = new MenuItem<int>();
-	item->caption = "Power Punch";
+	item->caption = tr("MainMenu.PowerPunch", "Power Punch");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(VEH_MASS_CAPTIONS, onchange_player_forceshield_mode);
 	listItem->wrap = false;
-	listItem->caption = "Player Force Shield";
+	listItem->caption = tr("MainMenu.PlayerForceShield", "Player Force Shield");
 	listItem->value = current_player_forceshieldN;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ANGLE_CAPTIONS, onchange_levitation_index);
 	listItem->wrap = false;
-	listItem->caption = "Levitation";
+	listItem->caption = tr("MainMenu.Levitation", "Levitation");
 	listItem->value = LevitationIndex;
 	menuItems.push_back(listItem);
 
@@ -2369,11 +2369,11 @@ bool onconfirm_reset_menu(MenuItem<int> choice){
 void process_reset_menu(){
 	const int lineCount = 2;
 	
-	const std::string caption = "Reset All Settings";
-	
+	const std::string caption = tr("MainMenu.ResetAllSettings", "Reset All Settings");
+
 	StandardOrToggleMenuDef lines[lineCount] = {
-		{ "NO", NULL, NULL, true},
-		{ "YES", NULL, NULL, true},
+		{ tr("Common.No", "NO"), NULL, NULL, true},
+		{ tr("Common.Yes", "YES"), NULL, NULL, true},
 	};
 	
 	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexReset, caption, onconfirm_reset_menu);
@@ -2432,61 +2432,61 @@ void process_main_menu(){
 	MenuItem<int> *item;
 
 	item = new MenuItem<int>();
-	item->caption = "Player";
+	item->caption = tr("MainMenu.Player", "Player");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Locations";
+	item->caption = tr("MainMenu.Locations", "Locations");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Weapons";
+	item->caption = tr("MainMenu.Weapons", "Weapons");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Bodyguards";
+	item->caption = tr("MainMenu.Bodyguards", "Bodyguards");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Vehicles";
+	item->caption = tr("MainMenu.Vehicles", "Vehicles");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "World";
+	item->caption = tr("MainMenu.World", "World");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Time";
+	item->caption = tr("MainMenu.Time", "Time");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Objects";
+	item->caption = tr("MainMenu.Objects", "Objects");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Miscellaneous";
+	item->caption = tr("MainMenu.Miscellaneous", "Miscellaneous");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Reset All Settings";
+	item->caption = tr("MainMenu.ResetAllSettings", "Reset All Settings");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -2596,7 +2596,7 @@ void reset_globals(){
 		featurePlayerNoSwitch =
 		featureWantedLevelFrozenUpdated = true;
 
-	set_status_text("All settings reset to defaults");
+	set_status_text(tr("MainMenu.AllSettingsResetToDefaults", "All settings reset to defaults"));
 
 	DWORD myThreadID;
 	HANDLE myHandle = CreateThread(0, 0, save_settings_thread, 0, 0, &myThreadID);
@@ -2699,7 +2699,7 @@ LONG CALLBACK unhandled_handler(EXCEPTION_POINTERS* e){
 }
 
 int filterException(int code, PEXCEPTION_POINTERS ex){
-	set_status_text("Whoops, ENT crashed!");
+	set_status_text(tr("MainMenu.WhoopsENTCrashed", "Whoops, ENT crashed!"));
 
 	write_text_to_log_file("ScriptMain exception");
 	make_minidump(ex);
@@ -2713,7 +2713,7 @@ void ScriptMain(){
 	__try{
 		#endif
 		
-		set_status_text("~HUD_COLOUR_MENU_YELLOW~ENT~HUD_COLOUR_WHITE~ is initializing...");
+		set_status_text(tr("MainMenu.HUDCOLOURMENUYELLOWENTHUDCOLOURWHITEIsIn", "~HUD_COLOUR_MENU_YELLOW~ENT~HUD_COLOUR_WHITE~ is initializing..."));
 
 		//If the folder does not exist - this will attempt to make it. This should not fail hence no else.
 		std::string folder_path = GetCurrentModulePath() + "Enhanced Native Trainer";
@@ -2729,7 +2729,7 @@ void ScriptMain(){
 		database = new ENTDatabase();
 		if(!database->open()){
 			write_text_to_log_file("Failed to open database");
-			set_status_text("ENT couldn't open the database - exiting");
+			set_status_text(tr("MainMenu.ENTCouldnTOpenTheDatabaseExiting", "ENT couldn't open the database - exiting"));
 			database = NULL;
 			return;
 		}
@@ -2749,6 +2749,10 @@ void ScriptMain(){
 		write_text_to_log_file("Reading INI config....");
 		read_config_ini_file();
 		write_text_to_log_file("INI config read complete");
+
+		write_text_to_log_file("Loading translations....");
+		load_translations();
+		write_text_to_log_file("Translations loaded");
 
 		//UnlockAllObjects();
 
@@ -3245,22 +3249,22 @@ void heal_player(){
 		}
 	}
 
-	set_status_text("Player healed");
+	set_status_text(tr("MainMenu.PlayerHealed", "Player healed"));
 }
 
 void toggle_invisibility(){
 	featurePlayerInvisible = !featurePlayerInvisible;
 	if(featurePlayerInvisible){
-		set_status_text("Player invisible");
+		set_status_text(tr("MainMenu.PlayerInvisible", "Player invisible"));
 	}
 	else{
-		set_status_text("Player no longer invisible");
+		set_status_text(tr("MainMenu.PlayerNoLongerInvisible", "Player no longer invisible"));
 	}
 }
 
 void reset_wanted_level(){
 	PLAYER::CLEAR_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID());
-	set_status_text("Wanted level cleared");
+	set_status_text(tr("MainMenu.WantedLevelCleared", "Wanted level cleared"));
 }
 
 int get_frame_number(){

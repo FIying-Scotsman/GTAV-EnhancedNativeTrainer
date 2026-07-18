@@ -719,7 +719,7 @@ bool onconfirm_skinchanger_category_menu(MenuItem<int> choice)
 		case 4: //Custom entry
 		{
 			keyboard_on_screen_already = true;
-			curr_message = "Enter model skin name (e.g. csb_agent):"; // change your skin
+			set_curr_message(tr("SkinsMenu.EnterModelSkinNameEGCsbAgent", "Enter model skin name (e.g. csb_agent):")); // change your skin
 			std::string result = show_keyboard("Enter Name Manually", (char*)lastCustomSkinSpawn.c_str());
 			if (!result.empty())
 			{
@@ -765,7 +765,7 @@ bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 			break;
 		case 4: //Reset
 			PED::SET_PED_DEFAULT_COMPONENT_VARIATION(playerPed);
-			set_status_text("Using default model skin");
+			set_status_text(tr("SkinsMenu.UsingDefaultModelSkin", "Using default model skin"));
 			break;
 		case 5:
 			PED::CLEAR_ALL_PED_PROPS(playerPed);
@@ -807,31 +807,31 @@ bool process_skinchanger_category_menu()
 	int i = 0;
 
 	item = new MenuItem<int>();
-	item->caption = "Players";
+	item->caption = tr("SkinsMenu.Players", "Players");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Animals";
+	item->caption = tr("SkinsMenu.Animals", "Animals");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "NPCs";
+	item->caption = tr("SkinsMenu.NPCs", "NPCs");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Online NPCs";
+	item->caption = tr("SkinsMenu.OnlineNPCs", "Online NPCs");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("SkinsMenu.EnterNameManually", "Enter Name Manually");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -849,80 +849,80 @@ bool process_skinchanger_menu()
 	int i = 0;
 
 	item = new MenuItem<int>();
-	item->caption = "Saved Appearances";
+	item->caption = tr("SkinsMenu.SavedAppearances", "Saved Appearances");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Change Skin";
+	item->caption = tr("SkinsMenu.ChangeSkin", "Change Skin");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Modify Current Skin";
+	item->caption = tr("SkinsMenu.ModifyCurrentSkin", "Modify Current Skin");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Modify Props";
+	item->caption = tr("SkinsMenu.ModifyProps", "Modify Props");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Reset Current Skin";
+	item->caption = tr("SkinsMenu.ResetCurrentSkin", "Reset Current Skin");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Clear Props";
+	item->caption = tr("SkinsMenu.ClearProps", "Clear Props");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Randomize Appearance";
+	item->caption = tr("SkinsMenu.RandomizeAppearance", "Randomize Appearance");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Randomize Head Accessories";
+	item->caption = tr("SkinsMenu.RandomizeHeadAccessories", "Randomize Head Accessories");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Give Helmet";
+	item->caption = tr("SkinsMenu.GiveHelmet", "Give Helmet");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Persistent Props";
+	toggleItem->caption = tr("SkinsMenu.PersistentProps", "Persistent Props");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurepersprops;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(SKINS_RESET_SKIN_ONDEATH_CAPTIONS, onchange_skins_reset_skin_ondeath_index);
 	listItem->wrap = false;
-	listItem->caption = "Player Model";
+	listItem->caption = tr("SkinsMenu.PlayerModel", "Player Model");
 	listItem->value = ResetSkinOnDeathIdx;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Blood And Bullet Holes";
+	toggleItem->caption = tr("SkinsMenu.NoBloodAndBulletHoles", "No Blood And Bullet Holes");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurenoblood;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(SKINS_AUTO_SKIN_SAVED_CAPTIONS, onchange_auto_apply_skin_saved_index);
 	listItem->wrap = false;
-	listItem->caption = "Auto Apply Last Saved Skin";
+	listItem->caption = tr("SkinsMenu.AutoApplyLastSavedSkin", "Auto Apply Last Saved Skin");
 	listItem->value = AutoApplySkinSavedIndex;
 	menuItems.push_back(listItem);
 
@@ -1031,7 +1031,7 @@ bool process_prop_drawable_menu()
 
 			if (i == -1)
 			{
-				item->caption = "Nothing";
+				item->caption = tr("SkinsMenu.Nothing", "Nothing");
 				item->isLeaf = true;
 			}
 			else
@@ -1095,7 +1095,7 @@ bool process_prop_menu()
 
 	if (count == 0)
 	{
-		set_status_text("Nothing available for this model");
+		set_status_text(tr("SkinsMenu.NothingAvailableForThisModel", "Nothing available for this model"));
 		return false;
 	}
 
@@ -1156,7 +1156,7 @@ bool onconfirm_savedskin_slot_menu(MenuItem<int> choice)
 	case 3: //rename
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a new name:"; // rename a saved skin
+		set_curr_message(tr("SkinsMenu.EnterANewName", "Enter a new name:")); // rename a saved skin
 		std::string result = show_keyboard("Enter Name Manually", (char*)activeSavedSkinSlotName.c_str());
 		if (!result.empty())
 		{
@@ -1202,7 +1202,7 @@ bool process_savedskin_menu()
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
-		item->caption = "Create New Skin Save";
+		item->caption = tr("SkinsMenu.CreateNewSkinSave", "Create New Skin Save");
 		menuItems.push_back(item);
 
 		for each (SavedSkinDBRow *sv in savedSkins)
@@ -1238,25 +1238,25 @@ bool process_savedskin_slot_menu(int slot)
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 1;
-		item->caption = "Apply To Player";
+		item->caption = tr("SkinsMenu.ApplyToPlayer", "Apply To Player");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 2;
-		item->caption = "Overwrite With Current";
+		item->caption = tr("SkinsMenu.OverwriteWithCurrent", "Overwrite With Current");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 3;
-		item->caption = "Rename";
+		item->caption = tr("SkinsMenu.Rename", "Rename");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 4;
-		item->caption = "Delete";
+		item->caption = tr("SkinsMenu.Delete", "Delete");
 		menuItems.push_back(item);
 
 		draw_generic_menu<int>(menuItems, 0, activeSavedSkinSlotName, onconfirm_savedskin_slot_menu, NULL, NULL, skin_save_slot_menu_interrupt);
@@ -1315,7 +1315,7 @@ void save_current_skin(int slot)
 		}
 
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a save name:"; // save a skin
+		set_curr_message(tr("SkinsMenu.EnterASaveName", "Enter a save name:")); // save a skin
 		auto existingText = ss.str();
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
@@ -1325,11 +1325,11 @@ void save_current_skin(int slot)
 			if (database->save_skin(playerPed, result, slot))
 			{
 				activeSavedSkinSlotName = result;
-				set_status_text("Saved skin");
+				set_status_text(tr("SkinsMenu.SavedSkin", "Saved skin"));
 			}
 			else
 			{
-				set_status_text("Save error");
+				set_status_text(tr("SkinsMenu.SaveError", "Save error"));
 			}
 		}
 	}

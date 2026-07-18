@@ -293,10 +293,10 @@ void RequestControlEntity(Entity entity) //needed so we can pick up props/Peds. 
 void fire_mode_hotkey() {
 	WeaponsFireModeIndex = WeaponsFireModeIndex + 1;
 	if (WeaponsFireModeIndex > 3) WeaponsFireModeIndex = 0; // 1
-	if (WeaponsFireModeIndex == 0) set_status_text("Default");
-	if (WeaponsFireModeIndex == 1) set_status_text("Single Fire");
-	if (WeaponsFireModeIndex == 2) set_status_text("Burst Semi");
-	if (WeaponsFireModeIndex == 3) set_status_text("Burst Auto");
+	if (WeaponsFireModeIndex == 0) set_status_text(tr("WeaponMenu.Default", "Default"));
+	if (WeaponsFireModeIndex == 1) set_status_text(tr("WeaponMenu.SingleFire", "Single Fire"));
+	if (WeaponsFireModeIndex == 2) set_status_text(tr("WeaponMenu.BurstSemi", "Burst Semi"));
+	if (WeaponsFireModeIndex == 3) set_status_text(tr("WeaponMenu.BurstAuto", "Burst Auto"));
 }
 
 void onchange_knuckle_appearance(int value, SelectFromListMenuItem* source){
@@ -429,7 +429,7 @@ void give_all_weapons_hotkey() {
 	WEAPON::GIVE_WEAPON_TO_PED(playerPed, PARACHUTE_ID, 1, false, false);
 	PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(playerPed);
 
-	set_status_text("All weapons added");
+	set_status_text(tr("WeaponMenu.AllWeaponsAdded", "All weapons added"));
 }
 
 void add_all_weapons_attachments(Ped choice) {
@@ -494,7 +494,7 @@ void add_all_weapons_attachments(Ped choice) {
 		}
 	}
 
-	set_status_text("All weapon attachments added to existing weapons");
+	set_status_text(tr("WeaponMenu.AllWeaponAttachmentsAddedToExistingWeapo", "All weapon attachments added to existing weapons"));
 }
 
 void load_saved_weapons() {
@@ -531,7 +531,7 @@ void load_saved_weapons() {
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, sv->weapon, maxClipAmmo);
 		WEAPON::SET_PED_AMMO(playerPed, sv->weapon, maxAmmo);
 
-		set_status_text("Saved weapons equipped");
+		set_status_text(tr("WeaponMenu.SavedWeaponsEquipped", "Saved weapons equipped"));
 	}
 
 	for (std::vector<SavedWeaponDBRow*>::iterator it = savedWeapon.begin(); it != savedWeapon.end(); ++it)
@@ -608,14 +608,14 @@ bool process_individual_weapon_menu(int weaponIndex){
 
 		if(maxClipAmmo > 0){
 			MenuItem<int> *giveClipItem = new MenuItem<int>();
-			giveClipItem->caption = "Give Clip";
+			giveClipItem->caption = tr("WeaponMenu.GiveClip", "Give Clip");
 			giveClipItem->value = 2;
 			giveClipItem->isLeaf = true;
 			giveClipItem->onConfirmFunction = give_weapon_clip;
 			menuItems.push_back(giveClipItem);
 
 			MenuItem<int> *fillAmmoItem = new MenuItem<int>();
-			fillAmmoItem->caption = "Fill Ammo";
+			fillAmmoItem->caption = tr("WeaponMenu.FillAmmo", "Fill Ammo");
 			fillAmmoItem->value = 3;
 			fillAmmoItem->isLeaf = true;
 			fillAmmoItem->onConfirmFunction = fill_weapon_ammo;
@@ -649,7 +649,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		if(strcmp(weaponChar, "WEAPON_KNUCKLE") == 0){
 			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(CAPTIONS_ATTACH_KNUCKLES, onchange_knuckle_appearance);
 			listItem->wrap = false;
-			listItem->caption = "Skin Choice";
+			listItem->caption = tr("WeaponMenu.SkinChoice", "Skin Choice");
 			listItem->value = get_current_knuckle_appearance();
 			menuItems.push_back(listItem);
 		}
@@ -657,7 +657,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		if(strcmp(weaponChar, "WEAPON_SWITCHBLADE") == 0){
 			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(CAPTIONS_ATTACH_SWITCHBLADE, onchange_switchblade_appearance);
 			listItem->wrap = false;
-			listItem->caption = "Skin Choice";
+			listItem->caption = tr("WeaponMenu.SkinChoice", "Skin Choice");
 			listItem->value = get_current_switchblade_appearance();
 			menuItems.push_back(listItem);
 		}
@@ -665,7 +665,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		if(strcmp(weaponChar, "WEAPON_REVOLVER") == 0){
 			SelectFromListMenuItem *listItem = new SelectFromListMenuItem(CAPTIONS_ATTACH_REVOLVER, onchange_revolver_appearance);
 			listItem->wrap = false;
-			listItem->caption = "Skin Choice";
+			listItem->caption = tr("WeaponMenu.SkinChoice", "Skin Choice");
 			listItem->value = get_current_revolver_appearance();
 			menuItems.push_back(listItem);
 		}
@@ -680,7 +680,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 
 		if(tintableIndex != -1){
 			MenuItem<int> *tintItem = new MenuItem<int>();
-			tintItem->caption = "Weapon Tints";
+			tintItem->caption = tr("WeaponMenu.WeaponTints", "Weapon Tints");
 			tintItem->value = 4;
 			tintItem->isLeaf = false;
 			tintItem->onConfirmFunction = onconfirm_open_tint_menu;
@@ -689,7 +689,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 			/* Returns empty menu - needs work!
 
 			MenuItem<int> *LiveryTintItem = new MenuItem<int>();
-			LiveryTintItem->caption = "Weapon Livery Colours";
+			LiveryTintItem->caption = tr("WeaponMenu.WeaponLiveryColours", "Weapon Livery Colours");
 			LiveryTintItem->value = 5;
 			LiveryTintItem->isLeaf = false;
 			LiveryTintItem->onConfirmFunction = onconfirm_open_tint_menu_colour;
@@ -801,43 +801,43 @@ void process_copweapon_menu(){
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enabled";
+	toggleItem->caption = tr("WeaponMenu.Enabled", "Enabled");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureCopArmedWith;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "If Player Unarmed/Melee Only";
+	toggleItem->caption = tr("WeaponMenu.IfPlayerUnarmedMeleeOnly", "If Player Unarmed/Melee Only");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePlayerMelee;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Cops Use Firearms If Shot At";
+	toggleItem->caption = tr("WeaponMenu.CopsUseFirearmsIfShotAt", "Cops Use Firearms If Shot At");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureSwitchWeaponIfDanger;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_COPARMED_CAPTIONS, onchange_cop_armed_index);
 	listItem->wrap = false;
-	listItem->caption = "Armed With";
+	listItem->caption = tr("WeaponMenu.ArmedWith", "Armed With");
 	listItem->value = CopCurrArmedIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Including Army";
+	toggleItem->caption = tr("WeaponMenu.IncludingArmy", "Including Army");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureArmyMelee;
 	menuItems.push_back(toggleItem);
 	
 	listItem = new SelectFromListMenuItem(WEAPONS_COPALARM_CAPTIONS, onchange_cop_alarm_index);
 	listItem->wrap = false;
-	listItem->caption = "When";
+	listItem->caption = tr("WeaponMenu.When", "When");
 	listItem->value = CopAlarmIndex;
 	menuItems.push_back(listItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Detained If Do Not Move";
+	toggleItem->caption = tr("WeaponMenu.DetainedIfDoNotMove", "Detained If Do Not Move");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureDetainedIfNotMove;
 	menuItems.push_back(toggleItem);
@@ -946,44 +946,44 @@ void process_pedagainstweapons_menu(){
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("WeaponMenu.Enable", "Enable");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePedAgainstWeapons;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Including Melee Weapons";
+	toggleItem->caption = tr("WeaponMenu.IncludingMeleeWeapons", "Including Melee Weapons");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureAgainstMeleeWeapons;
 	menuItems.push_back(toggleItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Peds Against";
+	toggleItem->caption = tr("WeaponMenu.PedsAgainst", "Peds Against");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePedAgainst;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Drivers Against";
+	toggleItem->caption = tr("WeaponMenu.DriversAgainst", "Drivers Against");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureDriverAgainst;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Police Against";
+	toggleItem->caption = tr("WeaponMenu.PoliceAgainst", "Police Against");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePoliceAgainst;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_CHANCEPOLICECALLING_CAPTIONS, onchange_chance_police_calling_index);
 	listItem->wrap = false;
-	listItem->caption = "Chance Of Calling Police";
+	listItem->caption = tr("WeaponMenu.ChanceOfCallingPolice", "Chance Of Calling Police");
 	listItem->value = ChancePoliceCallingIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_CHANCEPOLICECALLING_CAPTIONS, onchange_chance_attacking_you_index);
 	listItem->wrap = false;
-	listItem->caption = "Chance Of Attacking You";
+	listItem->caption = tr("WeaponMenu.ChanceOfAttackingYou", "Chance Of Attacking You");
 	listItem->value = ChanceAttackingYouIndex;
 	menuItems.push_back(listItem);
 		
@@ -1065,7 +1065,7 @@ void save_current_weapon(int slot)
 		}
 
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a save name:"; // save current weapon
+		set_curr_message(tr("WeaponMenu.EnterASaveName", "Enter a save name:")); // save current weapon
 		auto existingText = ss.str();
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
@@ -1075,11 +1075,11 @@ void save_current_weapon(int slot)
 			if (database->save_weapon(playerPed, result, slot))
 			{
 				activeSavedWeaponSlotName = result;
-				set_status_text("Saved weapon");
+				set_status_text(tr("WeaponMenu.SavedWeapon", "Saved weapon"));
 			}
 			else
 			{
-				set_status_text("Save error");
+				set_status_text(tr("WeaponMenu.SaveError", "Save error"));
 			}
 		}
 	}
@@ -1124,7 +1124,7 @@ bool onconfirm_weapon_save_slot_menu(MenuItem<int> choice)
 	case 3: //rename
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a new name:"; // rename saved weapon
+		set_curr_message(tr("WeaponMenu.EnterANewName", "Enter a new name:")); // rename saved weapon
 		std::string result = show_keyboard("Enter Name Manually", (char*)activeSavedWeaponSlotName.c_str());
 		if (!result.empty())
 		{
@@ -1185,7 +1185,7 @@ bool process_saveweapon_menu()
 		MenuItem<int>* item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
-		item->caption = "Create New Weapon Save";
+		item->caption = tr("WeaponMenu.CreateNewWeaponSave", "Create New Weapon Save");
 		menuItems.push_back(item);
 
 		for each (SavedWeaponDBRow * sv in savedWeapon)
@@ -1221,25 +1221,25 @@ bool process_weapon_save_slot_menu(int slot)
 		MenuItem<int>* item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 1;
-		item->caption = "Equip";
+		item->caption = tr("WeaponMenu.Equip", "Equip");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 2;
-		item->caption = "Overwrite With Current";
+		item->caption = tr("WeaponMenu.OverwriteWithCurrent", "Overwrite With Current");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 3;
-		item->caption = "Rename";
+		item->caption = tr("WeaponMenu.Rename", "Rename");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 4;
-		item->caption = "Delete";
+		item->caption = tr("WeaponMenu.Delete", "Delete");
 		menuItems.push_back(item);
 
 		draw_generic_menu<int>(menuItems, 0, activeSavedWeaponSlotName, onconfirm_weapon_save_slot_menu, NULL, NULL, weapon_save_slot_menu_interrupt);
@@ -1259,7 +1259,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			break;
 		case 2:
 			WEAPON::REMOVE_ALL_PED_WEAPONS(playerPed, false);
-			set_status_text("All weapons removed");
+			set_status_text(tr("WeaponMenu.AllWeaponsRemoved", "All weapons removed"));
 			break;
 		case 3:
 			add_all_weapons_attachments(playerPed);
@@ -1299,7 +1299,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 				WEAPON::SET_PED_WEAPON_TINT_INDEX(playerPed, weaponHash, VALUES_TINT.at(0));
 			}
 
-			set_status_text("All weapon attachments and tints removed from existing weapons");
+			set_status_text(tr("WeaponMenu.AllWeaponAttachmentsAndTintsRemovedFromE", "All weapon attachments and tints removed from existing weapons"));
 			break;
 		case 6:
 			if (process_saveweapon_menu()) return false;
@@ -1319,7 +1319,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 				PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
 			}
 
-			set_status_text("All ammo filled");
+			set_status_text(tr("WeaponMenu.AllAmmoFilled", "All ammo filled"));
 			break;
 		case 9:
 			for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
@@ -1332,7 +1332,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			// parachute
 			WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
 
-			set_status_text("All ammo removed");
+			set_status_text(tr("WeaponMenu.AllAmmoRemoved", "All ammo removed"));
 			break;
 		case 10:
 			process_weaponlist_menu();
@@ -1340,7 +1340,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 		case 11:
 		{
 			keyboard_on_screen_already = true;
-			curr_message = "Enter weapon model name (e.g. weapon_microsmg):"; // equip a weapon
+			set_curr_message(tr("WeaponMenu.EnterWeaponModelNameEGWeaponMicrosmg", "Enter weapon model name (e.g. weapon_microsmg):")); // equip a weapon
 			std::string result = show_keyboard("Enter Name Manually", (char *) lastCustomWeapon.c_str());
 			if(!result.empty()){
 				result = trim(result);
@@ -1362,12 +1362,12 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			WEAPON::GIVE_WEAPON_TO_PED(playerPed, PARACHUTE_ID, 1, false, false);
 			PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
 
-			set_status_text("Parachute added");
+			set_status_text(tr("WeaponMenu.ParachuteAdded", "Parachute added"));
 			break;
 		case 18:
 			WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
 
-			set_status_text("Parachute removed");
+			set_status_text(tr("WeaponMenu.ParachuteRemoved", "Parachute removed"));
 			break;
 		case 27:
 			process_copweapon_menu();
@@ -1393,94 +1393,94 @@ bool process_weapon_menu(){
 	SelectFromListMenuItem* listItem;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Give All Weapons";
+	item->caption = tr("WeaponMenu.GiveAllWeapons", "Give All Weapons");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Give All Weapons Automatically";
+	toggleItem->caption = tr("WeaponMenu.GiveAllWeaponsAutomatically", "Give All Weapons Automatically");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureGiveAllWeapons;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Remove All Weapons";
+	item->caption = tr("WeaponMenu.RemoveAllWeapons", "Remove All Weapons");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Add All Weapon Attachments";
+	item->caption = tr("WeaponMenu.AddAllWeaponAttachments", "Add All Weapon Attachments");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Add All Weapon Attachments Automatically";
+	toggleItem->caption = tr("WeaponMenu.AddAllWeaponAttachmentsAutomatically", "Add All Weapon Attachments Automatically");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureAddAllWeaponsAttachments;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Remove All Weapon Attachments and Tints";
+	item->caption = tr("WeaponMenu.RemoveAllWeaponAttachmentsAndTints", "Remove All Weapon Attachments and Tints");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Saved Weapons";
+	item->caption = tr("WeaponMenu.SavedWeapons", "Saved Weapons");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_SAVED_LOAD_CAPTIONS, onchange_weapon_load_saved_modifier);
 	listItem->wrap = false;
-	listItem->caption = "Equip Saved Weapons";
+	listItem->caption = tr("WeaponMenu.EquipSavedWeapons", "Equip Saved Weapons");
 	listItem->value = WeaponsSavedLoad;
 	menuItems.push_back(listItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Fill All Ammo";
+	item->caption = tr("WeaponMenu.FillAllAmmo", "Fill All Ammo");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Remove All Ammo";
+	item->caption = tr("WeaponMenu.RemoveAllAmmo", "Remove All Ammo");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Individual Weapons";
+	item->caption = tr("WeaponMenu.IndividualWeapons", "Individual Weapons");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("WeaponMenu.EnterNameManually", "Enter Name Manually");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(WEAP_DMG_CAPTIONS, onchange_weap_dmg_modifier);
 	listItem->wrap = false;
-	listItem->caption = "Weapon Damage Modifier";
+	listItem->caption = tr("WeaponMenu.WeaponDamageModifier", "Weapon Damage Modifier");
 	listItem->value = weapDmgModIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Infinite Ammo";
+	toggleItem->caption = tr("WeaponMenu.InfiniteAmmo", "Infinite Ammo");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponInfiniteAmmo;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Reload";
+	toggleItem->caption = tr("WeaponMenu.NoReload", "No Reload");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponNoReload;
 	toggleItem->toggleValueUpdated = NULL;
@@ -1488,73 +1488,73 @@ bool process_weapon_menu(){
 
 	listItem = new SelectFromListMenuItem(WEAPONS_NORETICLE_CAPTIONS, onchange_weapon_no_reticle_modifier);
 	listItem->wrap = false;
-	listItem->caption = "No Reticle";
+	listItem->caption = tr("WeaponMenu.NoReticle", "No Reticle");
 	listItem->value = WeaponsNoReticle;
 	menuItems.push_back(listItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Lose Weapons On Arrest/Death";
+	toggleItem->caption = tr("WeaponMenu.LoseWeaponsOnArrestDeath", "Lose Weapons On Arrest/Death");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureCopTakeWeapon;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Add Parachute";
+	item->caption = tr("WeaponMenu.AddParachute", "Add Parachute");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Remove Parachute";
+	item->caption = tr("WeaponMenu.RemoveParachute", "Remove Parachute");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Infinite Parachutes";
+	toggleItem->caption = tr("WeaponMenu.InfiniteParachutes", "Infinite Parachutes");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponInfiniteParachutes;
 	toggleItem->toggleValueUpdated = &featureWeaponInfiniteParachutesUpdated;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Parachutes";
+	toggleItem->caption = tr("WeaponMenu.NoParachutes", "No Parachutes");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponNoParachutes;
 	toggleItem->toggleValueUpdated = &featureWeaponNoParachutesUpdated;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Fire Ammo";
+	toggleItem->caption = tr("WeaponMenu.FireAmmo", "Fire Ammo");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponFireAmmo;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Explosive Ammo";
+	toggleItem->caption = tr("WeaponMenu.ExplosiveAmmo", "Explosive Ammo");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponExplosiveAmmo;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Explosive Melee";
+	toggleItem->caption = tr("WeaponMenu.ExplosiveMelee", "Explosive Melee");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponExplosiveMelee;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Super Explosive Grenades";
+	toggleItem->caption = tr("WeaponMenu.SuperExplosiveGrenades", "Super Explosive Grenades");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponExplosiveGrenades;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Sucking Grenades";
+	toggleItem->caption = tr("WeaponMenu.SuckingGrenades", "Sucking Grenades");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureWeaponVacuumGrenades;
 	toggleItem->toggleValueUpdated = NULL;
@@ -1562,24 +1562,24 @@ bool process_weapon_menu(){
 
 	listItem = new SelectFromListMenuItem(WEAPONS_VEHICLE_CAPTIONS, onchange_vehicle_weapon_modifier);
 	listItem->wrap = false;
-	listItem->caption = "Vehicle Weapon";
+	listItem->caption = tr("WeaponMenu.VehicleWeapon", "Vehicle Weapon");
 	listItem->value = VehCurrWeaponIndex;
 	menuItems.push_back(listItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Cop Weapons";
+	item->caption = tr("WeaponMenu.CopWeapons", "Cop Weapons");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Peds Don't Like Weapons";
+	item->caption = tr("WeaponMenu.PedsDonTLikeWeapons", "Peds Don't Like Weapons");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Gravity Gun";
+	toggleItem->caption = tr("WeaponMenu.GravityGun", "Gravity Gun");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureGravityGun;
 	toggleItem->toggleValueUpdated = NULL;
@@ -1587,67 +1587,67 @@ bool process_weapon_menu(){
 
 	listItem = new SelectFromListMenuItem(WEAPONS_SNIPERVISION_CAPTIONS, onchange_sniper_vision_modifier);
 	listItem->wrap = false;
-	listItem->caption = "Toggle Vision For Sniper Rifles";
+	listItem->caption = tr("WeaponMenu.ToggleVisionForSniperRifles", "Toggle Vision For Sniper Rifles");
 	listItem->value = SniperVisionIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Friendly Fire";
+	toggleItem->caption = tr("WeaponMenu.FriendlyFire", "Friendly Fire");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureFriendlyFire;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Drop Weapon If Hand Shot";
+	toggleItem->caption = tr("WeaponMenu.DropWeaponIfHandShot", "Drop Weapon If Hand Shot");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureDropWeapon;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Shoot To Disarm NPCs";
+	toggleItem->caption = tr("WeaponMenu.ShootToDisarmNPCs", "Shoot To Disarm NPCs");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureCanDisarmNPC;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Cannot Pickup Dropped Weapons";
+	toggleItem->caption = tr("WeaponMenu.CannotPickupDroppedWeapons", "Cannot Pickup Dropped Weapons");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurePedNoWeaponDrop;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Rapid Fire";
+	toggleItem->caption = tr("WeaponMenu.RapidFire", "Rapid Fire");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureRapidFire;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_RAPIDFIRE_CAPTIONS, onchange_weapons_rapidfire_modifier);
 	listItem->wrap = false;
-	listItem->caption = "Rapid Fire Speed";
+	listItem->caption = tr("WeaponMenu.RapidFireSpeed", "Rapid Fire Speed");
 	listItem->value = RapidFireIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WEAPONS_FIREMODE_CAPTIONS, onchange_weapons_firemode_modifier);
 	listItem->wrap = false;
-	listItem->caption = "Fire Mode";
+	listItem->caption = tr("WeaponMenu.FireMode", "Fire Mode");
 	listItem->value = WeaponsFireModeIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Drop Weapon When Empty";
+	toggleItem->caption = tr("WeaponMenu.DropWeaponWhenEmpty", "Drop Weapon When Empty");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureDropWeaponOutAmmo;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(FUEL_COLOURS_R_CAPTIONS, onchange_weap_strobe_index);
 	listItem->wrap = false;
-	listItem->caption = "Flashlight Strobe";
+	listItem->caption = tr("WeaponMenu.FlashlightStrobe", "Flashlight Strobe");
 	listItem->value = WeapStrobeIndexN;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WEAP_DMG_CAPTIONS, onchange_weap_flashdist_index);
 	listItem->wrap = false;
-	listItem->caption = "Flashlight Intensity";
+	listItem->caption = tr("WeaponMenu.FlashlightIntensity", "Flashlight Intensity");
 	listItem->value = WeapFlashDistIndex;
 	menuItems.push_back(listItem);
 
@@ -1854,7 +1854,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 					}
 				}
 				if (!shown_vacuum_message) {// Removed weapon check
-					set_status_text("Equip the ~g~ Grenade Launcher");
+					set_status_text(tr("WeaponMenu.EquipTheGGrenadeLauncher", "Equip the ~g~ Grenade Launcher"));
 					shown_vacuum_message = true;// Limit the number of times displayed
 				}
 				Vector3 obj_cor = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
@@ -2522,7 +2522,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		Hash tempWeap;
 
 		if (!shown_gravitygun_message) {// Removed weapon check
-			set_status_text("Equip the ~g~ Stungun");
+			set_status_text(tr("WeaponMenu.EquipTheGStungun", "Equip the ~g~ Stungun"));
 			shown_gravitygun_message = true; // Limit the number of times displayed
 		}
 
@@ -2770,11 +2770,11 @@ void give_weapon_clip(MenuItem<int> choice){
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
 
 	if(curClipAmmo < maxClipAmmo){
-		set_status_text("Clip filled");
+		set_status_text(tr("WeaponMenu.ClipFilled", "Clip filled"));
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
 	}
 	else{
-		set_status_text("Extra clip added");
+		set_status_text(tr("WeaponMenu.ExtraClipAdded", "Extra clip added"));
 		WEAPON::SET_PED_AMMO(playerPed, weapHash, curAmmo + maxClipAmmo);
 	}
 }
@@ -2792,7 +2792,7 @@ void fill_weapon_ammo(MenuItem<int> choice){
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
 	WEAPON::SET_PED_AMMO(playerPed, weapHash, maxAmmo);
 
-	set_status_text("Ammo filled");
+	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }
 
 void fill_weapon_ammo_hotkey()
@@ -2809,7 +2809,7 @@ void fill_weapon_ammo_hotkey()
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, tempWep, maxClipAmmo);
 	WEAPON::SET_PED_AMMO(playerPed, tempWep, maxAmmo);
 
-	set_status_text("Ammo filled");
+	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }
 
 void onhighlight_weapon_mod_menu_tint(MenuItem<int> choice){
@@ -2913,7 +2913,7 @@ void onconfirm_open_tint_menu_colour(MenuItem<int> choice) {
 
 		}
 		else
-			set_status_text("Error applying Livery colour");
+			set_status_text(tr("WeaponMenu.ErrorApplyingLiveryColour", "Error applying Livery colour"));
 	}
 
 	draw_generic_menu<int>(menuItems, &tintColourSelection, "Select Weapon Livery Color", onconfirm_weapon_mod_menu_tint_colour, onhighlight_weapon_mod_menu_tint_colour, NULL);

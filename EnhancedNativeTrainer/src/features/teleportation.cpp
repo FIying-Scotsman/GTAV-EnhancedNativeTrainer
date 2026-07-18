@@ -788,7 +788,7 @@ bool Tel3dmarker_martype_Changed = true;
 void teleport_to_coords(Entity e, Vector3 coords){
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords.x, coords.y, coords.z, 0, 0, 1);
 	WAIT(0);
-	set_status_text("Teleported");
+	set_status_text(tr("TeleportMenu.Teleported", "Teleported"));
 }
 
 void teleport_to_marker(){
@@ -905,7 +905,7 @@ void teleport_to_last_vehicle(){
 		}
 	}
 	else{
-		set_status_text("No vehicle found");
+		set_status_text(tr("TeleportMenu.NoVehicleFound", "No vehicle found"));
 	}
 }
 
@@ -981,7 +981,7 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 {
 	if (choice.value == -6) {
 		keyboard_on_screen_already = true;
-		curr_message = "Enter X, Y, Z coordinates. Use space or comma as a separator. Type 'Random' for a random location.";
+		set_curr_message(tr("TeleportMenu.EnterXYZCoordinatesUseSpaceOrCommaAsASep", "Enter X, Y, Z coordinates. Use space or comma as a separator. Type 'Random' for a random location."));
 		std::string result = show_keyboard("Enter Name Manually", (char*)lastJumpSpawn.c_str());
 		if (!result.empty())
 		{
@@ -1046,7 +1046,7 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 			}
 
 			WAIT(0);
-			set_status_text("Teleported"); 
+			set_status_text(tr("TeleportMenu.Teleported", "Teleported"));
 		}
 		return false;
 	}
@@ -1069,20 +1069,20 @@ void set_3d_marker(){
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enabled";
+	toggleItem->caption = tr("TeleportMenu.Enabled", "Enabled");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &feature3dmarker;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(TEL_3DMARKER_MARTYPE_CAPTIONS, onchange_tel_3dmarker_martype_index);
 	listItem->wrap = false;
-	listItem->caption = "Marker Type";
+	listItem->caption = tr("TeleportMenu.MarkerType", "Marker Type");
 	listItem->value = Tel3dmarker_martype_Index;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(TEL_3DMARKER_CAPTIONS, onchange_tel_3dmarker_index);
 	listItem->wrap = false;
-	listItem->caption = "Marker Symbol";
+	listItem->caption = tr("TeleportMenu.MarkerSymbol", "Marker Symbol");
 	listItem->value = Tel3dmarkerIndexN;
 	menuItems.push_back(listItem);
 
@@ -1112,38 +1112,38 @@ void getTelChauffeurIndex(){
 	int i = 0;
  
 	item = new MenuItem<int>();
-	item->caption = "Drive To Marker";
+	item->caption = tr("TeleportMenu.DriveToMarker", "Drive To Marker");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Land At Destination";
+	toggleItem->caption = tr("TeleportMenu.LandAtDestination", "Land At Destination");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureLandAtDestination;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(TEL_CHAUFFEUR_SPEED_CAPTIONS, onchange_tel_chauffeur_speed_index);
 	listItem->wrap = false;
-	listItem->caption = "Max Speed (MPH):";
+	listItem->caption = tr("TeleportMenu.MaxSpeedMPH", "Max Speed (MPH):");
 	listItem->value = TelChauffeur_speed_IndexN;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(TEL_CHAUFFEUR_ALTITUDE_CAPTIONS, onchange_tel_chauffeur_altitude_index);
 	listItem->wrap = false;
-	listItem->caption = "Altitude:";
+	listItem->caption = tr("TeleportMenu.Altitude", "Altitude:");
 	listItem->value = TelChauffeur_altitude_Index;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS, onchange_tel_chauffeur_drivingstyles_index);
 	listItem->wrap = false;
-	listItem->caption = "Driving Style";
+	listItem->caption = tr("TeleportMenu.DrivingStyle", "Driving Style");
 	listItem->value = TelChauffeur_drivingstyles_Index;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(SKINS_GENERAL_VALUES, onchange_tel_chauffeur_index);
 	listItem->wrap = false;
-	listItem->caption = "Chauffeur Model";
+	listItem->caption = tr("TeleportMenu.ChauffeurModel", "Chauffeur Model");
 	listItem->value = TelChauffeurIndex;
 	menuItems.push_back(listItem);
 	
@@ -1231,7 +1231,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 			
 			if (loc->isLoaded && loc->scenery_required.size() > 0) {
 				if (!unloadedAnything) {
-					set_status_text("Unloading old scenery...");
+					set_status_text(tr("TeleportMenu.UnloadingOldScenery", "Unloading old scenery..."));
 					time = GetTickCount() + 3;
 					while (GetTickCount() < time) {
 						make_periodic_feature_call();
@@ -1261,7 +1261,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 	}
 
 	if ((value->scenery_required.size() > 0) && !value->isLoaded){
-		set_status_text("Loading new scenery...");
+		set_status_text(tr("TeleportMenu.LoadingNewScenery", "Loading new scenery..."));
 
 		if (ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()))
 		{
@@ -1315,7 +1315,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 			value->scenery_props.shrink_to_fit();
 		}
 		
-		set_status_text("New scenery loaded");
+		set_status_text(tr("TeleportMenu.NewSceneryLoaded", "New scenery loaded"));
 
 		time = GetTickCount() + 3;
 		while (GetTickCount() < time){
@@ -1338,80 +1338,80 @@ bool process_teleport_menu(int categoryIndex){
 		int i = 0;
 
 		MenuItem<int> *markerItem = new MenuItem<int>();
-		markerItem->caption = "Teleport To Marker";
+		markerItem->caption = tr("TeleportMenu.TeleportToMarker", "Teleport To Marker");
 		markerItem->value = -1;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Teleport To Marker Automatically";
+		toggleItem->caption = tr("TeleportMenu.TeleportToMarkerAutomatically", "Teleport To Marker Automatically");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureTeleportAutomatically;
 		menuItems.push_back(toggleItem);
 		
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Go To Mission Marker";
+		markerItem->caption = tr("TeleportMenu.GoToMissionMarker", "Go To Mission Marker");
 		markerItem->value = -2;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Chauffeur To Marker";
+		markerItem->caption = tr("TeleportMenu.ChauffeurToMarker", "Chauffeur To Marker");
 		markerItem->value = -3;
 		markerItem->isLeaf = false;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Go To Last Vehicle";
+		markerItem->caption = tr("TeleportMenu.GoToLastVehicle", "Go To Last Vehicle");
 		markerItem->value = -4;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Go To Nearest Vehicle As Passenger";
+		markerItem->caption = tr("TeleportMenu.GoToNearestVehicleAsPassenger", "Go To Nearest Vehicle As Passenger");
 		markerItem->value = -5;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Jump To Coordinates";
+		markerItem->caption = tr("TeleportMenu.JumpToCoordinates", "Jump To Coordinates");
 		markerItem->value = -6;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 			
 		ToggleMenuItem<int>* togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Show Coordinates";
+		togItem->caption = tr("TeleportMenu.ShowCoordinates", "Show Coordinates");
 		togItem->value = 1;
 		togItem->toggleValue = &featureShowCoords;
 		menuItems.push_back(togItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "3D Marker";
+		markerItem->caption = tr("TeleportMenu.N3DMarker", "3D Marker");
 		markerItem->value = -7;
 		markerItem->isLeaf = false;
 		menuItems.push_back(markerItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Online Map";
+		togItem->caption = tr("TeleportMenu.LoadOnlineMap", "Load Online Map");
 		togItem->value = 8;
 		togItem->toggleValue = &featureMPMap;
 		togItem->toggleValueUpdated = &featureMPMapUpdated;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Cayo Perico Island Automatically";
+		togItem->caption = tr("TeleportMenu.LoadCayoPericoIslandAutomatically", "Load Cayo Perico Island Automatically");
 		togItem->value = 8;
 		togItem->toggleValue = &featureCayoPerico;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Houses In The Hills Automatically";
+		togItem->caption = tr("TeleportMenu.LoadHousesInTheHillsAutomatically", "Load Houses In The Hills Automatically");
 		togItem->value = 8;
 		togItem->toggleValue = &featureHouseOnHill;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Extra Map Stuff Automatically";
+		togItem->caption = tr("TeleportMenu.LoadExtraMapStuffAutomatically", "Load Extra Map Stuff Automatically");
 		togItem->value = 8;
 		togItem->toggleValue = &featureChoshopCargoship;
 		menuItems.push_back(togItem);
@@ -1902,7 +1902,7 @@ void update_teleport_features(){
 		}
 		else
 		{
-			set_status_text("The game version is not supported");
+			set_status_text(tr("TeleportMenu.TheGameVersionIsNotSupported", "The game version is not supported"));
 			chopshop_init = true;
 		}
 	}

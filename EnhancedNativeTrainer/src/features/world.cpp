@@ -258,66 +258,66 @@ void process_world_weathersettings_menu() {
 	SelectFromListMenuItem *listItem;
 	
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Freeze Weather";
+	toggleItem->caption = tr("WorldMenu.FreezeWeather", "Freeze Weather");
 	toggleItem->toggleValue = &featureWeatherFreeze;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(MISC_WEATHER_CHANGE_CAPTIONS, onchange_weather_change_index);
 	listItem->wrap = false;
-	listItem->caption = "Change Weather";
+	listItem->caption = tr("WorldMenu.ChangeWeather", "Change Weather");
 	listItem->value = WeatherChangeIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(MISC_WEATHER_METHOD_CAPTIONS, onchange_weather_method_index);
 	listItem->wrap = false;
-	listItem->caption = "Method";
+	listItem->caption = tr("WorldMenu.Method", "Method");
 	listItem->value = WeatherMethodIndexN;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Heavy Snow";
+	toggleItem->caption = tr("WorldMenu.HeavySnow", "Heavy Snow");
 	toggleItem->toggleValue = &featureSnow;
 	toggleItem->toggleValueUpdated = &featureSnowUpdated;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_snowing_c_index);
 	listItem->wrap = false;
-	listItem->caption = "Reduced Grip If Snowing";
+	listItem->caption = tr("WorldMenu.ReducedGripIfSnowing", "Reduced Grip If Snowing");
 	listItem->value = RadarReducedGripSnowingCustomIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_raining_c_index);
 	listItem->wrap = false;
-	listItem->caption = "Slippery When Wet";
+	listItem->caption = tr("WorldMenu.SlipperyWhenWet", "Slippery When Wet");
 	listItem->value = RadarReducedGripRainingCustomIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_LIGHTNING_INTENSITY_CAPTIONS, onchange_lightning_intensity_index);
 	listItem->wrap = false;
-	listItem->caption = "Lightning Intensity";
+	listItem->caption = tr("WorldMenu.LightningIntensity", "Lightning Intensity");
 	listItem->value = featureLightIntensityIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_WIND_STRENGTH_CAPTIONS, onchange_world_wind_strength_index);
 	listItem->wrap = false;
-	listItem->caption = "Wind Strength";
+	listItem->caption = tr("WorldMenu.WindStrength", "Wind Strength");
 	listItem->value = WindStrengthIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_WAVES_CAPTIONS, onchange_world_waves_index);
 	listItem->wrap = false;
-	listItem->caption = "Waves Intensity";
+	listItem->caption = tr("WorldMenu.WavesIntensity", "Waves Intensity");
 	listItem->value = WorldWavesIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Deadly Water";
+	toggleItem->caption = tr("WorldMenu.DeadlyWater", "Deadly Water");
 	toggleItem->value = 1;
 	toggleItem->toggleValue = &featureAcidWater;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Deadly Rain";
+	toggleItem->caption = tr("WorldMenu.DeadlyRain", "Deadly Rain");
 	toggleItem->value = 1;
 	toggleItem->toggleValue = &featureAcidRain;
 	menuItems.push_back(toggleItem);
@@ -412,10 +412,10 @@ bool onconfirm_clouds_menu(MenuItem<std::string> choice)
 		}
 		if (featureCloudsFreeze && lastClouds.empty())
 		{
-			set_status_text("Set a clouds value first");
+			set_status_text(tr("WorldMenu.SetACloudsValueFirst", "Set a clouds value first"));
 			featureCloudsFreeze = false;
 		}
-		if (!featureCloudsFreeze) set_status_text("Clouds unfrozen");
+		if (!featureCloudsFreeze) set_status_text(tr("WorldMenu.CloudsUnfrozen", "Clouds unfrozen"));
 		break;
 	case 1:
 		// No Clouds
@@ -577,98 +577,98 @@ void process_world_menu()
 
 	MenuItem<int> *item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "People";
+	item->caption = tr("WorldMenu.People", "People");
 	item->value = -1;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Vehicles";
+	item->caption = tr("WorldMenu.Vehicles", "Vehicles");
 	item->value = -2;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Weather";
+	item->caption = tr("WorldMenu.Weather", "Weather");
 	item->value = -3;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Weather Settings";
+	item->caption = tr("WorldMenu.WeatherSettings", "Weather Settings");
 	item->value = -4;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Clouds";
+	item->caption = tr("WorldMenu.Clouds", "Clouds");
 	item->value = -5;
 	menuItems.push_back(item);
 	
 	listItem = new SelectFromListMenuItem(WORLD_GRAVITY_LEVEL_CAPTIONS, onchange_gravity_level_index);
 	listItem->wrap = false;
-	listItem->caption = "Gravity Level";
+	listItem->caption = tr("WorldMenu.GravityLevel", "Gravity Level");
 	listItem->value = featureGravityLevelIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Pedestrians";
+	togItem->caption = tr("WorldMenu.NoPedestrians", "No Pedestrians");
 	togItem->value = 1;
 	togItem->toggleValue = &featureWorldNoPeds;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Traffic";
+	togItem->caption = tr("WorldMenu.NoTraffic", "No Traffic");
 	togItem->value = 1;
 	togItem->toggleValue = &featureWorldNoTraffic;
 	togItem->toggleValueUpdated = &featureWorldNoTrafficUpdated;
 	menuItems.push_back(togItem);
 	
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Planes/Helicopters";
+	togItem->caption = tr("WorldMenu.NoPlanesHelicopters", "No Planes/Helicopters");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNoPlanesHelis;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Animals";
+	togItem->caption = tr("WorldMenu.NoAnimals", "No Animals");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNoAnimals;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Fire Department Dispatch";
+	togItem->caption = tr("WorldMenu.NoFireDepartmentDispatch", "No Fire Department Dispatch");
 	togItem->value = 1;
 	togItem->toggleValue = &featureWorldNoFireTruck;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Ambulance Department Dispatch";
+	togItem->caption = tr("WorldMenu.NoAmbulanceDepartmentDispatch", "No Ambulance Department Dispatch");
 	togItem->value = 1;
 	togItem->toggleValue = &featureWorldNoAmbulance;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Police Blips";
+	togItem->caption = tr("WorldMenu.NoPoliceBlips", "No Police Blips");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNoPoliceBlips;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_cop_blips_perm_index);
 	listItem->wrap = false;
-	listItem->caption = "Show Police Blips Permanently";
+	listItem->caption = tr("WorldMenu.ShowPoliceBlipsPermanently", "Show Police Blips Permanently");
 	listItem->value = CopBlipPermIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Random Cops";
+	togItem->caption = tr("WorldMenu.RandomCops", "Random Cops");
 	togItem->value = 2;
 	togItem->toggleValue = &featureWorldRandomCops;
 	togItem->toggleValueUpdated = &featureWorldRandomCopsUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Random Trains";
+	togItem->caption = tr("WorldMenu.RandomTrains", "Random Trains");
 	togItem->value = 3;
 	togItem->toggleValue = &featureWorldRandomTrains;
 	togItem->toggleValueUpdated = &featureWorldRandomTrainsUpdated;
@@ -676,65 +676,65 @@ void process_world_menu()
 
 	listItem = new SelectFromListMenuItem(WORLD_TRAIN_SPEED_CAPTIONS, onchange_world_train_speed_index);
 	listItem->wrap = false;
-	listItem->caption = "Train Speed";
+	listItem->caption = tr("WorldMenu.TrainSpeed", "Train Speed");
 	listItem->value = TrainSpeedIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Random Boats";
+	togItem->caption = tr("WorldMenu.RandomBoats", "Random Boats");
 	togItem->value = 4;
 	togItem->toggleValue = &featureWorldRandomBoats;
 	togItem->toggleValueUpdated = &featureWorldRandomBoatsUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Garbage Trucks";
+	togItem->caption = tr("WorldMenu.GarbageTrucks", "Garbage Trucks");
 	togItem->value = 5;
 	togItem->toggleValue = &featureWorldGarbageTrucks;
 	togItem->toggleValueUpdated = &featureWorldGarbageTrucksUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Restricted Zones";
+	togItem->caption = tr("WorldMenu.RestrictedZones", "Restricted Zones");
 	togItem->value = 6;
 	togItem->toggleValue = &featureRestrictedZones;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Blackout";
+	togItem->caption = tr("WorldMenu.Blackout", "Blackout");
 	togItem->value = 6;
 	togItem->toggleValue = &featureBlackout;
 	togItem->toggleValueUpdated = &featureBlackoutUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Headlights During Blackout";
+	togItem->caption = tr("WorldMenu.HeadlightsDuringBlackout", "Headlights During Blackout");
 	togItem->value = 6;
 	togItem->toggleValue = &featureHeadlightsBlackout;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Show Full Map";
+	togItem->caption = tr("WorldMenu.ShowFullMap", "Show Full Map");
 	togItem->value = 1;
 	togItem->toggleValue = &featureFullMap;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Show Fort Zancudo On Map";
+	togItem->caption = tr("WorldMenu.ShowFortZancudoOnMap", "Show Fort Zancudo On Map");
 	togItem->value = 1;
 	togItem->toggleValue = &featureZancudoMap;
 	togItem->toggleValueUpdated = &featureZancudoMapUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Show Bolingbroke Penitentiary On Map";
+	togItem->caption = tr("WorldMenu.ShowBolingbrokePenitentiaryOnMap", "Show Bolingbroke Penitentiary On Map");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePenitentiaryMap;
 	togItem->toggleValueUpdated = &featurePenitentiaryMapUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Show Cayo Perico Island On Map";
+	togItem->caption = tr("WorldMenu.ShowCayoPericoIslandOnMap", "Show Cayo Perico Island On Map");
 	togItem->value = 1;
 	togItem->toggleValue = &featureCayoPericoMap;
 	togItem->toggleValueUpdated = &featureCayoPericoMapUpdated;
@@ -742,31 +742,31 @@ void process_world_menu()
 
 	listItem = new SelectFromListMenuItem(WORLD_RADAR_MAP_CAPTIONS, onchange_world_radar_map_index);
 	listItem->wrap = false;
-	listItem->caption = "Radar Map Size";
+	listItem->caption = tr("WorldMenu.RadarMapSize", "Radar Map Size");
 	listItem->value = RadarMapIndexN;
 	menuItems.push_back(listItem); 
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Minimap Rotation";
+	togItem->caption = tr("WorldMenu.NoMinimapRotation", "No Minimap Rotation");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNoMinimapRot;
 	togItem->toggleValueUpdated = &featureNoMinimapRotUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "No Waypoint GPS Line";
+	togItem->caption = tr("WorldMenu.NoWaypointGPSLine", "No Waypoint GPS Line");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNoWaypoint;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_FREEROAM_ACTIVITIES_CAPTIONS, onchange_freeroam_activities_index);
 	listItem->wrap = false;
-	listItem->caption = "No Freeroam Activities";
+	listItem->caption = tr("WorldMenu.NoFreeroamActivities", "No Freeroam Activities");
 	listItem->value = featureFreeroamActivitiesIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Disable Freeroam Event Camera";
+	togItem->caption = tr("WorldMenu.DisableFreeroamEventCamera", "Disable Freeroam Event Camera");
 	togItem->value = 8;
 	togItem->toggleValue = &featureNoGameHintCameraLocking;
 	menuItems.push_back(togItem);
@@ -1692,8 +1692,8 @@ void update_world_features()
 	if (CopBlipPermIndex == 0 && cop_blip_perm != 0) cop_blip_perm = CopBlipPermIndex;
 
 	if (cop_blip_perm != CopBlipPermIndex) {
-		if (CopBlipPermIndex == 1) set_status_text("Short Range");
-		if (CopBlipPermIndex == 2) set_status_text("No Range Limit");
+		if (CopBlipPermIndex == 1) set_status_text(tr("WorldMenu.ShortRange", "Short Range"));
+		if (CopBlipPermIndex == 2) set_status_text(tr("WorldMenu.NoRangeLimit", "No Range Limit"));
 		cop_blip_perm = CopBlipPermIndex;
 	}
 
@@ -1951,7 +1951,7 @@ void update_world_features()
 			MPMapCounter = MPMapCounter + 1;
 			if (MPMapCounter > 200) {
 				DLC2::_LOAD_MP_DLC_MAPS();
-				set_status_text("MP Maps enabled");
+				set_status_text(tr("WorldMenu.MPMapsEnabled", "MP Maps enabled"));
 				featureMPMapUpdated = false;
 				MPMapCounter = 0;
 			}
@@ -2207,7 +2207,7 @@ void EnableSnow(bool featureSnow) {
 					static auto addr4 = FindPatternJACCO("\x80\x3D\x00\x00\x00\x00\x00\x74\x25\xB9\x40\x00\x00\x00", "xx????xxxxxxxx");
 					if (!addr4)
 					{
-						set_status_text("~r~ Error (1): Cannot enable Snow on this version of GTA V");
+						set_status_text(tr("WorldMenu.RError1CannotEnableSnowOnThisVersionOfGT", "~r~ Error (1): Cannot enable Snow on this version of GTA V"));
 						featureSnow = false;
 						return;
 					}
@@ -2228,7 +2228,7 @@ void EnableSnow(bool featureSnow) {
 				static auto addr5 = FindPatternJACCO("\x44\x38\x3D\x00\x00\x00\x00\x74\x1D\xB9\x40\x00\x00\x00", "xxx????xxxxxxx");
 				if (!addr5)
 				{
-					set_status_text("~r~ Error (2): Cannot enable Snow on this version of GTA V");
+					set_status_text(tr("WorldMenu.RError2CannotEnableSnowOnThisVersionOfGT", "~r~ Error (2): Cannot enable Snow on this version of GTA V"));
 					featureSnow = false;
 					return;
 				}
@@ -2270,7 +2270,7 @@ void EnableSnow(bool featureSnow) {
 				writeJmp((BYTE*)addr2, (BYTE*)addr2 + 0x1C);
 
 		}
-		set_status_text("Snow Enabled");
+		set_status_text(tr("WorldMenu.SnowEnabled", "Snow Enabled"));
 	}				
 	else
 	{
@@ -2289,6 +2289,6 @@ void EnableSnow(bool featureSnow) {
 		EnableTracks();
 		GAMEPLAY::CLEAR_WEATHER_TYPE_PERSIST();
 		GAMEPLAY::SET_WEATHER_TYPE_NOW("CLEAR");
-		set_status_text("Snow Disabled");
+		set_status_text(tr("WorldMenu.SnowDisabled", "Snow Disabled"));
 	}
 }

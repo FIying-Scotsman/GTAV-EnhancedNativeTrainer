@@ -93,8 +93,8 @@ void toggle_bomb_bay_doors()
 void start_bombing_run()	
 {
 	Hash currVehModel = ENTITY::GET_ENTITY_MODEL(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()));
-	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)) set_status_text("Player isn't in a vehicle");
-	if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && GAMEPLAY::GET_HASH_KEY("CUBAN800") == currVehModel && bombDoorOpen == false) set_status_text("Bomb-Door is closed");
+	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)) set_status_text(tr("VehicleWeaponsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
+	if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && GAMEPLAY::GET_HASH_KEY("CUBAN800") == currVehModel && bombDoorOpen == false) set_status_text(tr("VehicleWeaponsMenu.BombDoorIsClosed", "Bomb-Door is closed"));
 		
 	if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && GAMEPLAY::GET_HASH_KEY("CUBAN800") == currVehModel && bombDoorOpen == true) {
 		veh_b = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
@@ -161,13 +161,13 @@ bool onconfirm_veh_weapons_menu(MenuItem<int> choice){
 	}
 		
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
-		set_status_text("Player isn't in a vehicle");
+		set_status_text(tr("VehicleWeaponsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return true;
 	}
 
 	if (choice.value == -1) {
 		if (bombDoorOpen == true) start_bombing_run();
-		else set_status_text("Bomb door closed");
+		else set_status_text(tr("VehicleWeaponsMenu.BombDoorClosed", "Bomb door closed"));
 	}
 	else if (choice.value == -2) {
 		toggle_bomb_bay_doors();
@@ -182,24 +182,24 @@ bool process_veh_weapons_menu()
 	int i = 0;
 
 	item = new MenuItem<int>();
-	item->caption = "Drop Bomb";
+	item->caption = tr("VehicleWeaponsMenu.DropBomb", "Drop Bomb");
 	item->value = -1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Open/Close Bomb Bay";
+	item->caption = tr("VehicleWeaponsMenu.OpenCloseBombBay", "Open/Close Bomb Bay");
 	item->value = -2;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable Bomb-Door Camera";
+	toggleItem->caption = tr("VehicleWeaponsMenu.EnableBombDoorCamera", "Enable Bomb-Door Camera");
 	toggleItem->toggleValue = &featureBombDoorCamera;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Auto-Level In Air";
+	toggleItem->caption = tr("VehicleWeaponsMenu.AutoLevelInAir", "Auto-Level In Air");
 	toggleItem->toggleValue = &featureAutoalignInAir;
 	menuItems.push_back(toggleItem);
 

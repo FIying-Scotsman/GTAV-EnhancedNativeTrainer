@@ -22,7 +22,7 @@ bool onconfirm_xenon_selection(MenuItem<int> choice) {
 		return true;
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
-		set_status_text("Player isn't in a vehicle");
+		set_status_text(tr("XenonMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return true;
 	}
 

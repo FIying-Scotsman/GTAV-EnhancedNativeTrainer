@@ -178,7 +178,7 @@ void onhighlight_dash_colour_selection(MenuItem<int> choice){
 	}
 
 	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+		set_status_text(tr("InteriorColsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
 
@@ -224,7 +224,7 @@ void onhighlight_trim_colour_selection(MenuItem<int> choice){
 	}
 
 	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+		set_status_text(tr("InteriorColsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
 
@@ -280,25 +280,25 @@ bool process_interior_colour_menu(){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+		set_status_text(tr("InteriorColsMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
 
 	if(!is_this_a_car(PED::GET_VEHICLE_PED_IS_USING(playerPed))){
-		set_status_text("This vehicle is not supported");
+		set_status_text(tr("InteriorColsMenu.ThisVehicleIsNotSupported", "This vehicle is not supported"));
 		return false;
 	}
 
 	std::vector<MenuItem<int>*> menuItems;
 
 	MenuItem<int> *chooseDashColor = new MenuItem<int>();
-	chooseDashColor->caption = "Dash Color ~HUD_COLOUR_GREYLIGHT~(161)";
+	chooseDashColor->caption = tr("InteriorColsMenu.DashColorHUDCOLOURGREYLIGHT161", "Dash Color ~HUD_COLOUR_GREYLIGHT~(161)");
 	chooseDashColor->value = -1;
 	chooseDashColor->isLeaf = false;
 	menuItems.push_back(chooseDashColor);
 
 	MenuItem<int> *chooseTrimColor = new MenuItem<int>();
-	chooseTrimColor->caption = "Trim Color ~HUD_COLOUR_GREYLIGHT~(161)";
+	chooseTrimColor->caption = tr("InteriorColsMenu.TrimColorHUDCOLOURGREYLIGHT161", "Trim Color ~HUD_COLOUR_GREYLIGHT~(161)");
 	chooseTrimColor->value = -2;
 	chooseTrimColor->isLeaf = false;
 	menuItems.push_back(chooseTrimColor);

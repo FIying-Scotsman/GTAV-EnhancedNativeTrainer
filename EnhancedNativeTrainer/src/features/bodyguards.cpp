@@ -378,7 +378,7 @@ bool b_skin_menu_interrupt() {
 	if (!ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID())) return true;
 
 	if (spawnedENTBodyguards.size() == 0) {
-		set_status_text("~r~All bodyguards are dead");
+		set_status_text(tr("BodyguardMenu.RAllBodyguardsAreDead", "~r~All bodyguards are dead"));
 		return true;
 	}
 
@@ -529,7 +529,7 @@ bool process_bod_prop_drawable_menu()
 
 			if (i == -1)
 			{
-				item->caption = "Nothing";
+				item->caption = tr("BodyguardMenu.Nothing", "Nothing");
 				item->isLeaf = true;
 			}
 			else
@@ -593,7 +593,7 @@ bool process_bod_prop_menu()
 
 	if (count == 0)
 	{
-		set_status_text("Nothing available for this model");
+		set_status_text(tr("BodyguardMenu.NothingAvailableForThisModel", "Nothing available for this model"));
 		return false;
 	}
 
@@ -657,7 +657,7 @@ bool process_bod_individual_weapon_menu() {
 
 	if (tintableIndex != -1) {
 		MenuItem<int>* tintItem = new MenuItem<int>();
-		tintItem->caption = "Weapon Tints";
+		tintItem->caption = tr("BodyguardMenu.WeaponTints", "Weapon Tints");
 		tintItem->value = 4;
 		tintItem->isLeaf = false;
 		tintItem->onConfirmFunction = onconfirm_open_tint_menu;
@@ -704,7 +704,7 @@ bool applyChosenBodSkin(DWORD model)
 bool spawn_saved_bod_skin(int slot, std::string caption)
 {
 	if (!spawnedENTBodyguards.empty() && spawnedENTBodyguards.size() >= BODYGUARD_LIMIT) {
-		set_status_text("Cannot spawn any more bodyguards");
+		set_status_text(tr("BodyguardMenu.CannotSpawnAnyMoreBodyguards", "Cannot spawn any more bodyguards"));
 		return false;
 	}
 
@@ -775,7 +775,7 @@ void save_current_bod_skin(int slot)
 
 	if (spawnedENTBodyguards.size() > 1) {
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a number of the bodyguard (that is above his head) you want to save:"; // select a bodyguard you want to save
+		set_curr_message(tr("BodyguardMenu.EnterANumberOfTheBodyguardThatIsAboveHis", "Enter a number of the bodyguard (that is above his head) you want to save:")); // select a bodyguard you want to save
 		result_b_s = show_keyboard("Enter Name Manually", NULL);
 	}
 	if (spawnedENTBodyguards.size() == 1) result_b_s = "0";
@@ -804,7 +804,7 @@ void save_current_bod_skin(int slot)
 			}
 
 			keyboard_on_screen_already = true;
-			curr_message = "Enter a save name:"; // enter a savename for the selected bodyguard
+			set_curr_message(tr("BodyguardMenu.EnterASaveName", "Enter a save name:")); // enter a savename for the selected bodyguard
 			auto existingText = ss.str();
 			std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 			if (!result.empty())
@@ -814,11 +814,11 @@ void save_current_bod_skin(int slot)
 				if (database->save_bod_skin(spawnedENTBodyguards[b_curr_num], result, slot))
 				{
 					activeSavedBodSkinSlotName = result;
-					set_status_text("Saved bodyguard");
+					set_status_text(tr("BodyguardMenu.SavedBodyguard", "Saved bodyguard"));
 				}
 				else
 				{
-					set_status_text("Save error");
+					set_status_text(tr("BodyguardMenu.SaveError", "Save error"));
 				}
 			}
 		}
@@ -876,7 +876,7 @@ bool onconfirm_bod_savedskin_slot_menu(MenuItem<int> choice)
 	case 3: //rename
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a new name:"; // rename a saved bodyguard
+		set_curr_message(tr("BodyguardMenu.EnterANewName", "Enter a new name:")); // rename a saved bodyguard
 		std::string result = show_keyboard("Enter Name Manually", (char*)activeSavedBodSkinSlotName.c_str());
 		if (!result.empty())
 		{
@@ -937,7 +937,7 @@ bool process_bod_savedskin_menu()
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
-		item->caption = "Create New Bodyguard Save";
+		item->caption = tr("BodyguardMenu.CreateNewBodyguardSave", "Create New Bodyguard Save");
 		menuItems.push_back(item);
 
 		for each (SavedBodSkinDBRow *sv in savedBodSkins)
@@ -973,25 +973,25 @@ bool process_bod_savedskin_slot_menu(int slot)
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 1;
-		item->caption = "Spawn";
+		item->caption = tr("BodyguardMenu.Spawn", "Spawn");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 2;
-		item->caption = "Overwrite With Current";
+		item->caption = tr("BodyguardMenu.OverwriteWithCurrent", "Overwrite With Current");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 3;
-		item->caption = "Rename";
+		item->caption = tr("BodyguardMenu.Rename", "Rename");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 4;
-		item->caption = "Delete";
+		item->caption = tr("BodyguardMenu.Delete", "Delete");
 		menuItems.push_back(item);
 
 		draw_generic_menu<int>(menuItems, 0, activeSavedBodSkinSlotName, onconfirm_bod_savedskin_slot_menu, NULL, NULL, bod_skin_save_slot_menu_interrupt);
@@ -1005,49 +1005,49 @@ bool process_bodyguard_skins_menu(){
 	MenuItem<int> *item;
 
 	item = new MenuItem<int>();
-	item->caption = "Players";
+	item->caption = tr("BodyguardMenu.Players", "Players");
 	item->value = 0;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "NPCs";
+	item->caption = tr("BodyguardMenu.NPCs", "NPCs");
 	item->value = 1;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Online";
+	item->caption = tr("BodyguardMenu.Online", "Online");
 	item->value = 2;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Animals";
+	item->caption = tr("BodyguardMenu.Animals", "Animals");
 	item->value = 3;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("BodyguardMenu.EnterNameManually", "Enter Name Manually");
 	item->value = 4;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Modify Skin";
+	item->caption = tr("BodyguardMenu.ModifySkin", "Modify Skin");
 	item->value = 5;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Modify Props";
+	item->caption = tr("BodyguardMenu.ModifyProps", "Modify Props");
 	item->value = 6;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Modify Weapon";
+	item->caption = tr("BodyguardMenu.ModifyWeapon", "Modify Weapon");
 	item->value = 7;
 	item->isLeaf = false;
 	menuItems.push_back(item);
@@ -1068,7 +1068,7 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 		case 4:
 		{
 			keyboard_on_screen_already = true;
-			curr_message = "Enter bodyguard model name (e.g. random, saved_bodyguards, random_story):"; // spawn a bodyguard
+			set_curr_message(tr("BodyguardMenu.EnterBodyguardModelNameEGRandomSavedBody", "Enter bodyguard model name (e.g. random, saved_bodyguards, random_story):")); // spawn a bodyguard
 			std::string result = show_keyboard("Enter Name Manually", (char*)lastCustomBodyguardSpawn.c_str());
 			if (!result.empty())
 			{
@@ -1102,7 +1102,7 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 
 			if (spawnedENTBodyguards.size() > 1) {
 				keyboard_on_screen_already = true;
-				curr_message = "Enter a number of the bodyguard (that is above his head) you want to modify the skin of:"; // modify skin of a bodyguard
+				set_curr_message(tr("BodyguardMenu.EnterANumberOfTheBodyguardThatIsAboveHis2", "Enter a number of the bodyguard (that is above his head) you want to modify the skin of:")); // modify skin of a bodyguard
 				result_b = show_keyboard("Enter Name Manually", NULL);
 			}
 			if (spawnedENTBodyguards.size() == 1) result_b = "0";
@@ -1142,7 +1142,7 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 
 			if (spawnedENTBodyguards.size() > 1) {
 				keyboard_on_screen_already = true;
-				curr_message = "Enter a number of the bodyguard (that is above his head) you want to modify the skin of:"; // modify skin of a bodyguard
+				set_curr_message(tr("BodyguardMenu.EnterANumberOfTheBodyguardThatIsAboveHis2", "Enter a number of the bodyguard (that is above his head) you want to modify the skin of:")); // modify skin of a bodyguard
 				result_b = show_keyboard("Enter Name Manually", NULL);
 			}
 			if (spawnedENTBodyguards.size() == 1) result_b = "0";
@@ -1183,7 +1183,7 @@ bool onconfirm_bodyguard_skins_menu(MenuItem<int> choice){
 
 			if (spawnedENTBodyguards.size() > 1) {
 				keyboard_on_screen_already = true;
-				curr_message = "Enter a number of the bodyguard (that is above his head) you want to modify the weapon of:"; // modify weapon of a bodyguard
+				set_curr_message(tr("BodyguardMenu.EnterANumberOfTheBodyguardThatIsAboveHis3", "Enter a number of the bodyguard (that is above his head) you want to modify the weapon of:")); // modify weapon of a bodyguard
 				result_b = show_keyboard("Enter Name Manually", NULL);
 			}
 			if (spawnedENTBodyguards.size() == 1) result_b = "0";
@@ -1379,7 +1379,7 @@ bool onconfirm_bodyguard_weapons_category_menu(MenuItem<int> choice){
 			for(int a = 0; a < bodyguardWeaponsToggle[category].size(); a++){
 				*bodyguardWeaponsToggle[category].at(a) = !*bodyguardWeaponsToggle[category].at(a);
 			}
-			set_status_text(std::string("All bodyguard ") + MENU_WEAPON_CATEGORIES.at(category) + std::string(" weapons toggled"));
+			set_status_text(tr("BodyguardMenu.AllBodyguardPrefix", "All bodyguard ") + MENU_WEAPON_CATEGORIES.at(category) + tr("BodyguardMenu.WeaponsToggledSuffix", " weapons toggled"));
 			break;
 		default:
 			break;
@@ -1396,7 +1396,7 @@ bool process_bodyguard_weapons_category_menu(int category){
 	under_weapon_menu = true;
 
 	item = new MenuItem<int>();
-	item->caption = "Toggle All Weapons In Category";
+	item->caption = tr("BodyguardMenu.ToggleAllWeaponsInCategory", "Toggle All Weapons In Category");
 	item->value = index++;
 	item->isLeaf = true;
 	item->sortval = category;
@@ -1426,7 +1426,7 @@ bool onconfirm_bodyguard_weapons_menu(MenuItem<int> choice){
 				*bodyguardWeaponsToggle[a].at(b) = true;
 			}
 		}
-		set_status_text("All bodyguard weapons enabled");
+		set_status_text(tr("BodyguardMenu.AllBodyguardWeaponsEnabled", "All bodyguard weapons enabled"));
 	}
 	else if(choice.value == cs + 1){
 		for(int a = 0; a < cs; a++){
@@ -1434,7 +1434,7 @@ bool onconfirm_bodyguard_weapons_menu(MenuItem<int> choice){
 				*bodyguardWeaponsToggle[a].at(b) = false;
 			}
 		}
-		set_status_text("All bodyguard weapons disabled");
+		set_status_text(tr("BodyguardMenu.AllBodyguardWeaponsDisabled", "All bodyguard weapons disabled"));
 	}
 
 	return false;
@@ -1455,13 +1455,13 @@ bool process_bodyguard_weapons_menu(){
 	}
 
 	item = new MenuItem<int>();
-	item->caption = "Toggle All Weapons Off";
+	item->caption = tr("BodyguardMenu.ToggleAllWeaponsOff", "Toggle All Weapons Off");
 	item->value = index + 1;
 	item->isLeaf = true;
 	menuItems.insert(menuItems.begin(), item);
 
 	item = new MenuItem<int>();
-	item->caption = "Toggle All Weapons On";
+	item->caption = tr("BodyguardMenu.ToggleAllWeaponsOn", "Toggle All Weapons On");
 	item->value = index;
 	item->isLeaf = true;
 	menuItems.insert(menuItems.begin(), item);
@@ -1484,37 +1484,37 @@ void process_bodyguard_blips_menu(){
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enabled";
+	toggleItem->caption = tr("BodyguardMenu.Enabled", "Enabled");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureBodyguardOnMap;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(VEH_BLIPSIZE_CAPTIONS, onchange_body_blipsize_index);
 	listItem->wrap = false;
-	listItem->caption = "Blip Size";
+	listItem->caption = tr("BodyguardMenu.BlipSize", "Blip Size");
 	listItem->value = BodyBlipSizeIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_BLIPCOLOUR_CAPTIONS, onchange_body_blipcolour_index);
 	listItem->wrap = false;
-	listItem->caption = "Blip Colour";
+	listItem->caption = tr("BodyguardMenu.BlipColour", "Blip Colour");
 	listItem->value = BodyBlipColourIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(VEH_BLIPSYMBOL_CAPTIONS, onchange_body_blipsymbol_index);
 	listItem->wrap = false;
-	listItem->caption = "Blip Symbol";
+	listItem->caption = tr("BodyguardMenu.BlipSymbol", "Blip Symbol");
 	listItem->value = BodyBlipSymbolIndexN;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_body_blipflash_index);
 	listItem->wrap = false;
-	listItem->caption = "Blip Flashing";
+	listItem->caption = tr("BodyguardMenu.BlipFlashing", "Blip Flashing");
 	listItem->value = BodyBlipFlashIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show Blip Number";
+	toggleItem->caption = tr("BodyguardMenu.ShowBlipNumber", "Show Blip Number");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureBodyBlipNumber;
 	menuItems.push_back(toggleItem);
@@ -1539,7 +1539,7 @@ void dismiss_bodyguards(){
 	stop_b = false;
 
 	if(spawnedENTBodyguards.size() == 0){
-		set_status_text("You don't have any bodyguards");
+		set_status_text(tr("BodyguardMenu.YouDonTHaveAnyBodyguards", "You don't have any bodyguards"));
 		spawnedENTBodyguards.clear();
 		spawnedENTBodyguards.shrink_to_fit();
 		return;
@@ -1581,7 +1581,7 @@ void dismiss_bodyguards(){
 		B_VEHICLE.shrink_to_fit();
 	}
 
-	set_status_text("Bodyguards dismissed");
+	set_status_text(tr("BodyguardMenu.BodyguardsDismissed", "Bodyguards dismissed"));
 }
 
 void do_spawn_bodyguard(){
@@ -1627,7 +1627,7 @@ void do_spawn_bodyguard(){
 	if (load_saved_bodyguard == true && added_nearest_b == false) bodyGuardModel = temp_bodyguard;
 
 	if (spawning_a_ped == false && spawnedENTBodyguards.size() >= BODYGUARD_LIMIT) {
-		set_status_text("Cannot spawn any more bodyguards");
+		set_status_text(tr("BodyguardMenu.CannotSpawnAnyMoreBodyguards", "Cannot spawn any more bodyguards"));
 		return;
 	}
 
@@ -1979,8 +1979,8 @@ void maintain_bodyguards(){
 	if (FollowInVehicleIndex == 0 && b_follow_m != 0) b_follow_m = FollowInVehicleIndex;
 	if (NPC_RAGDOLL_VALUES[FollowInVehicleIndex] > 0) {
 		if (b_follow_m != FollowInVehicleIndex) {
-			if (FollowInVehicleIndex == 1) set_status_text("Aggressive driving");
-			if (FollowInVehicleIndex == 2) set_status_text("Careful driving");
+			if (FollowInVehicleIndex == 1) set_status_text(tr("BodyguardMenu.AggressiveDriving", "Aggressive driving"));
+			if (FollowInVehicleIndex == 2) set_status_text(tr("BodyguardMenu.CarefulDriving", "Careful driving"));
 			b_follow_m = FollowInVehicleIndex;
 		}
 	}
@@ -2383,25 +2383,25 @@ bool process_bodyguard_menu(){
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Add Nearest Ped As Bodyguard";
+		item->caption = tr("BodyguardMenu.AddNearestPedAsBodyguard", "Add Nearest Ped As Bodyguard");
 		item->value = 1;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Dismiss All Bodyguards";
+		item->caption = tr("BodyguardMenu.DismissAllBodyguards", "Dismiss All Bodyguards");
 		item->value = 2;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Dismiss Bodyguard";
+		item->caption = tr("BodyguardMenu.DismissBodyguard", "Dismiss Bodyguard");
 		item->value = 3;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Toggle Bodyguards To Follow Player";
+		item->caption = tr("BodyguardMenu.ToggleBodyguardsToFollowPlayer", "Toggle Bodyguards To Follow Player");
 		item->value = 4;
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -2415,25 +2415,25 @@ bool process_bodyguard_menu(){
 		menuItems.push_back(item);
 		
 		item = new MenuItem<int>();
-		item->caption = "Saved Bodyguards";
+		item->caption = tr("BodyguardMenu.SavedBodyguards", "Saved Bodyguards");
 		item->value = 6;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Change Model";
+		item->caption = tr("BodyguardMenu.ChangeModel", "Change Model");
 		item->value = 7;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Choose Weapons";
+		item->caption = tr("BodyguardMenu.ChooseWeapons", "Choose Weapons");
 		item->value = 8;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Different Weapons";
+		toggleItem->caption = tr("BodyguardMenu.DifferentWeapons", "Different Weapons");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureDifferentWeapons;
 		toggleItem->toggleValueUpdated = NULL;
@@ -2441,38 +2441,38 @@ bool process_bodyguard_menu(){
 
 		listItem = new SelectFromListMenuItem(PED_WEAPON_TITLES, onchange_bodyguards_body_weapons);
 		listItem->wrap = false;
-		listItem->caption = "Armed With...";
+		listItem->caption = tr("BodyguardMenu.ArmedWith", "Armed With...");
 		listItem->value = BodyWeaponSetIndex;
 		menuItems.push_back(listItem);
 
 		item = new MenuItem<int>();
-		item->caption = "Mark On Map";
+		item->caption = tr("BodyguardMenu.MarkOnMap", "Mark On Map");
 		item->value = 11;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Invincible";
+		toggleItem->caption = tr("BodyguardMenu.Invincible", "Invincible");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBodyguardInvincible;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Infinite Ammo";
+		toggleItem->caption = tr("BodyguardMenu.InfiniteAmmo", "Infinite Ammo");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBodyguardInfAmmo;
 		toggleItem->toggleValueUpdated = NULL;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Spawn With Helmet";
+		toggleItem->caption = tr("BodyguardMenu.SpawnWithHelmet", "Spawn With Helmet");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBodyguardHelmet;
 		toggleItem->toggleValueUpdated = NULL;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Despawn When Dead/Dismissed";
+		toggleItem->caption = tr("BodyguardMenu.DespawnWhenDeadDismissed", "Despawn When Dead/Dismissed");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBodyguardDespawn;
 		toggleItem->toggleValueUpdated = NULL;
@@ -2480,18 +2480,18 @@ bool process_bodyguard_menu(){
 
 		listItem = new SelectFromListMenuItem(VEH_BLIPSIZE_CAPTIONS, onchange_body_distance_index);
 		listItem->wrap = false;
-		listItem->caption = "Spawn Distance";
+		listItem->caption = tr("BodyguardMenu.SpawnDistance", "Spawn Distance");
 		listItem->value = BodyDistanceIndex;
 		menuItems.push_back(listItem);
 
 		listItem = new SelectFromListMenuItem(BODY_GROUPFORMATION_CAPTIONS, onchange_body_groupformation_index);
 		listItem->wrap = false;
-		listItem->caption = "Group Formation";
+		listItem->caption = tr("BodyguardMenu.GroupFormation", "Group Formation");
 		listItem->value = BodyGroupFormationIndex;
 		menuItems.push_back(listItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Random Appearance";
+		toggleItem->caption = tr("BodyguardMenu.RandomAppearance", "Random Appearance");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureRandomApp;
 		toggleItem->toggleValueUpdated = NULL;
@@ -2499,61 +2499,61 @@ bool process_bodyguard_menu(){
 
 		listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_follow_invehicle_index);
 		listItem->wrap = false;
-		listItem->caption = "Follow In Vehicle";
+		listItem->caption = tr("BodyguardMenu.FollowInVehicle", "Follow In Vehicle");
 		listItem->value = FollowInVehicleIndex;
 		menuItems.push_back(listItem);
 
 		listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_body_health_index);
 		listItem->wrap = false;
-		listItem->caption = "Bodyguard Health";
+		listItem->caption = tr("BodyguardMenu.BodyguardHealth", "Bodyguard Health");
 		listItem->value = BodyHealthIndex;
 		menuItems.push_back(listItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Enable Add/Remove Weapons Option";
+		toggleItem->caption = tr("BodyguardMenu.EnableAddRemoveWeaponsOption", "Enable Add/Remove Weapons Option");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureAddRemoveWeapon;
 		menuItems.push_back(toggleItem);
 
 		item = new MenuItem<int>();
-		item->caption = "Add/Remove Weapons";
+		item->caption = tr("BodyguardMenu.AddRemoveWeapons", "Add/Remove Weapons");
 		item->value = 22;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Share Weapon With Bodyguards";
+		toggleItem->caption = tr("BodyguardMenu.ShareWeaponWithBodyguards", "Share Weapon With Bodyguards");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBodyguardYourWeapon;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Add All Weapon Attachments";
+		toggleItem->caption = tr("BodyguardMenu.AddAllWeaponAttachments", "Add All Weapon Attachments");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBodyguardWeaponAttach;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "No Blood And Bullet Holes";
+		toggleItem->caption = tr("BodyguardMenu.NoBloodAndBulletHoles", "No Blood And Bullet Holes");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureNoBodBlood;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Spawn Aggressive Ped";
+		toggleItem->caption = tr("BodyguardMenu.SpawnAggressivePed", "Spawn Aggressive Ped");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBAggressivePed;
 		menuItems.push_back(toggleItem);
 
 		toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Cannot Be Headshot";
+		toggleItem->caption = tr("BodyguardMenu.CannotBeHeadshot", "Cannot Be Headshot");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureBCannotBeHeadshot;
 		menuItems.push_back(toggleItem);
 
 		listItem = new SelectFromListMenuItem(BODY_SHOWNUMBERS_CAPTIONS, onchange_body_shownumber_index);
 		listItem->wrap = false;
-		listItem->caption = "Show Bodyguard Number";
+		listItem->caption = tr("BodyguardMenu.ShowBodyguardNumber", "Show Bodyguard Number");
 		listItem->value = BodyShowNumbersIndex;
 		menuItems.push_back(listItem);
 
@@ -2666,7 +2666,7 @@ bool onconfirm_bodyguard_menu(MenuItem<int> choice){
 		case 3:
 		{
 			keyboard_on_screen_already = true;
-			curr_message = "Enter a number of the bodyguard (that is above his head) you want to dismiss:";
+			set_curr_message(tr("BodyguardMenu.EnterANumberOfTheBodyguardThatIsAboveHis4", "Enter a number of the bodyguard (that is above his head) you want to dismiss:"));
 			std::string result_bod = show_keyboard("Enter Name Manually", NULL);
 			if (!result_bod.empty())
 			{
@@ -2716,8 +2716,8 @@ bool onconfirm_bodyguard_menu(MenuItem<int> choice){
 		}
 		case 4:
 			stop_b = !stop_b;
-			if (stop_b) set_status_text("Stay Put");
-			else set_status_text("Follow");
+			if (stop_b) set_status_text(tr("BodyguardMenu.StayPut", "Stay Put"));
+			else set_status_text(tr("BodyguardMenu.Follow", "Follow"));
 			break;
 		case 5:
 			spawning_a_ped = true;
@@ -2738,8 +2738,8 @@ bool onconfirm_bodyguard_menu(MenuItem<int> choice){
 		case 22:
 			if (featureAddRemoveWeapon) {
 				c_armed = !c_armed;
-				if (c_armed) set_status_text("Armed");
-				else set_status_text("Disarmed");
+				if (c_armed) set_status_text(tr("BodyguardMenu.Armed", "Armed"));
+				else set_status_text(tr("BodyguardMenu.Disarmed", "Disarmed"));
 			}
 			break;
 		default:

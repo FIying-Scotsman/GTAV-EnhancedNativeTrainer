@@ -303,12 +303,12 @@ bool onconfirm_trainermenucolors_menu(MenuItem<int> choice){
 	}
 	else if(choice.value == ENTColor::colsVarsNum){
 		write_config_ini_file();
-		set_status_text("Saved to INI file");
+		set_status_text(tr("MiscMenu.SavedToINIFile", "Saved to INI file"));
 		write_text_to_log_file("INI config file written or updated");
 	}
 	else if(choice.value == ENTColor::colsVarsNum + 1){
 		ENTColor::reset_colors();
-		set_status_text("ENT menu colors reset");
+		set_status_text(tr("MiscMenu.ENTMenuColorsReset", "ENT menu colors reset"));
 	}
 
 	return false;
@@ -328,13 +328,13 @@ void process_misc_trainermenucolors_menu(){
 	}
 
 	item = new MenuItem<int>();
-	item->caption = "Save Menu Color Config";
+	item->caption = tr("MiscMenu.SaveMenuColorConfig", "Save Menu Color Config");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.insert(menuItems.begin(), item);
 
 	item = new MenuItem<int>();
-	item->caption = "Reset Menu Colors";
+	item->caption = tr("MiscMenu.ResetMenuColors", "Reset Menu Colors");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.insert(menuItems.begin(), item);
@@ -360,20 +360,20 @@ void process_misc_trainerconfig_menu(){
 	SelectFromListMenuItem *listItem;
 
 	MenuItem<int>* stdItem = new MenuItem<int>();
-	stdItem->caption = "Hotkey Setup";
+	stdItem->caption = tr("MiscMenu.HotkeySetup", "Hotkey Setup");
 	stdItem->value = TRAINERCONFIG_HOTKEY_MENU;
 	stdItem->isLeaf = false;
 	menuItems.push_back(stdItem);
 
 	listItem = new SelectFromListMenuItem(MISC_TRAINERCONTROL_CAPTIONS, onchange_misc_trainercontrol_index);
 	listItem->wrap = false;
-	listItem->caption = "Control Navigation";
+	listItem->caption = tr("MiscMenu.ControlNavigation", "Control Navigation");
 	listItem->value = TrainerControlIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(MISC_TRAINERCONTROLSCROLLING_CAPTIONS, onchange_misc_trainercontrolscrolling_index);
 	listItem->wrap = false;
-	listItem->caption = "Menu Scrolling";
+	listItem->caption = tr("MiscMenu.MenuScrolling", "Menu Scrolling");
 	listItem->value = TrainerControlScrollingIndex;
 	menuItems.push_back(listItem);
 
@@ -388,22 +388,22 @@ void process_misc_trainerconfig_menu(){
 	//menuItems.push_back(toggleItem);
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show Vehicle Previews";
+	toggleItem->caption = tr("MiscMenu.ShowVehiclePreviews", "Show Vehicle Previews");
 	toggleItem->toggleValue = &featureShowVehiclePreviews;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show Status Message On Startup";
+	toggleItem->caption = tr("MiscMenu.ShowStatusMessageOnStartup", "Show Status Message On Startup");
 	toggleItem->toggleValue = &featureShowStatusMessage;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Include Nkjellman's Extra Scenery";
+	toggleItem->caption = tr("MiscMenu.IncludeNkjellmanSExtraScenery", "Include Nkjellman's Extra Scenery");
 	toggleItem->toggleValue = &featureMiscJellmanScenery;
 	menuItems.push_back(toggleItem);
 
 	stdItem = new MenuItem<int>();
-	stdItem->caption = "Menu Colors";
+	stdItem->caption = tr("MiscMenu.MenuColors", "Menu Colors");
 	stdItem->value = 63;
 	stdItem->isLeaf = false;
 	menuItems.push_back(stdItem);
@@ -414,11 +414,11 @@ void process_misc_trainerconfig_menu(){
 bool onconfirm_misc_freezeradio_menu(MenuItem<int> choice){
 	if(choice.value == -1){
 		featureRadioFreeze = false;
-		set_status_text("Radio is no longer frozen to a station");
+		set_status_text(tr("MiscMenu.RadioIsNoLongerFrozenToAStation", "Radio is no longer frozen to a station"));
 	}
 	else{
 		featureRadioFreeze = true;
-		set_status_text(std::string("Radio is frozen to station ") + std::string(AUDIO::GET_RADIO_STATION_NAME(choice.value)));
+		set_status_text(tr("MiscMenu.RadioIsFrozenToStationPrefix", "Radio is frozen to station ") + std::string(AUDIO::GET_RADIO_STATION_NAME(choice.value)));
 	}
 	featureRadioFreezeUpdated = true;
 	radioStationIndex = choice.value;
@@ -476,7 +476,7 @@ bool onconfirm_misc_cutscene_menu(MenuItem<int> choice) {
 	}
 	else if (choice.value == -3) {
 		keyboard_on_screen_already = true;
-		curr_message = "Enter cutscene name (e.g. mph_nar_fin_ext or bmad_intro):";
+		set_curr_message(tr("MiscMenu.EnterCutsceneNameEGMphNarFinExtOrBmadInt", "Enter cutscene name (e.g. mph_nar_fin_ext or bmad_intro):"));
 		std::string result = show_keyboard("Enter Name Manually", NULL);
 		if (!result.empty()) {
 			result = trim(result);
@@ -500,25 +500,25 @@ void process_misc_cutplayer_menu() {
 	int i = -1;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Stop [Press Jump To Stop]";
+	item->caption = tr("MiscMenu.StopPressJumpToStop", "Stop [Press Jump To Stop]");
 	item->value = -1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "First Person Cutscene Camera";
+	toggleItem->caption = tr("MiscMenu.FirstPersonCutsceneCamera", "First Person Cutscene Camera");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureFirstPersonCutscene;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Switch Camera";
+	item->caption = tr("MiscMenu.SwitchCamera", "Switch Camera");
 	item->value = -2;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("MiscMenu.EnterNameManually", "Enter Name Manually");
 	item->value = -3;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -585,7 +585,7 @@ void process_misc_musicevent_menu() {
 	captions = MISC_MUSICEVENT_VALUES;
 	
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "None";
+	item->caption = tr("MiscMenu.None", "None");
 	item->value = -1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -607,7 +607,7 @@ void process_misc_freezeradio_menu(){
 	int const stations = AUDIO::_MAX_RADIO_STATION_INDEX();
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "None";
+	item->caption = tr("MiscMenu.None", "None");
 	item->value = -1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -638,33 +638,33 @@ void process_airbrake_global_menu() {
 	MenuItem<int> *item;
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("MiscMenu.Enable", "Enable");
 	toggleItem->toggleValue = &airbrake_enable;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Toggle Airbrake Mode [F6 to open/close]";
+	item->caption = tr("MiscMenu.ToggleAirbrakeModeF6ToOpenClose", "Toggle Airbrake Mode [F6 to open/close]");
 	item->value = -1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Mouse Mode";
+	toggleItem->caption = tr("MiscMenu.MouseMode", "Mouse Mode");
 	toggleItem->toggleValue = &mouse_view_control;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show Help & Controls";
+	toggleItem->caption = tr("MiscMenu.ShowHelpControls", "Show Help & Controls");
 	toggleItem->toggleValue = &help_showing;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Frozen Time";
+	toggleItem->caption = tr("MiscMenu.FrozenTime", "Frozen Time");
 	toggleItem->toggleValue = &frozen_time;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Transparency";
+	toggleItem->caption = tr("MiscMenu.Transparency", "Transparency");
 	toggleItem->toggleValue = &show_transparency;
 	menuItems.push_back(toggleItem);
 
@@ -684,17 +684,17 @@ void process_def_menutab_menu() {
 	
 	listItem = new SelectFromListMenuItem(MISC_DEF_MENUTAB_CAPTIONS, onchange_misc_def_menutab_index);
 	listItem->wrap = false;
-	listItem->caption = "Default Pause Menu Tab";
+	listItem->caption = tr("MiscMenu.DefaultPauseMenuTab", "Default Pause Menu Tab");
 	listItem->value = DefMenuTabIndex;
 	menuItems.push_back(listItem);
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Pause Game When Menu Open";
+	toggleItem->caption = tr("MiscMenu.PauseGameWhenMenuOpen", "Pause Game When Menu Open");
 	toggleItem->toggleValue = &featureGamePause;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Hide Player Info In Pause Menu";
+	toggleItem->caption = tr("MiscMenu.HidePlayerInfoInPauseMenu", "Hide Player Info In Pause Menu");
 	toggleItem->toggleValue = &featureHidePlayerInfo;
 	menuItems.push_back(toggleItem);
 
@@ -713,24 +713,24 @@ void process_billsettings_menu() {
 	SelectFromListMenuItem *listItem;
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable Phone Bill";
+	toggleItem->caption = tr("MiscMenu.EnablePhoneBill", "Enable Phone Bill");
 	toggleItem->toggleValue = &featurePhoneBillEnabled;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(MISC_PHONE_BILL_CAPTIONS, onchange_misc_phone_bill_index);
 	listItem->wrap = false;
-	listItem->caption = "Amount Per Minute";
+	listItem->caption = tr("MiscMenu.AmountPerMinute", "Amount Per Minute");
 	listItem->value = PhoneBillIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(MISC_PHONE_FREESECONDS_CAPTIONS, onchange_misc_phone_freeseconds_index);
 	listItem->wrap = false;
-	listItem->caption = "First Free Seconds";
+	listItem->caption = tr("MiscMenu.FirstFreeSeconds", "First Free Seconds");
 	listItem->value = PhoneFreeSecondsIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Can't Use Phone If Zero Balance";
+	toggleItem->caption = tr("MiscMenu.CanTUsePhoneIfZeroBalance", "Can't Use Phone If Zero Balance");
 	toggleItem->toggleValue = &featureZeroBalance;
 	menuItems.push_back(toggleItem);
 
@@ -749,18 +749,18 @@ void process_phoneonbike_menu() {
 	SelectFromListMenuItem *listItem;
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("MiscMenu.Enable", "Enable");
 	toggleItem->toggleValue = &featurePhone3DOnBike;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Phone On HUD While In First Person";
+	toggleItem->caption = tr("MiscMenu.NoPhoneOnHUDWhileInFirstPerson", "No Phone On HUD While In First Person");
 	toggleItem->toggleValue = &featureNoPhoneOnHUD;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(MISC_PHONE_FREESECONDS_CAPTIONS, onchange_misc_phone_bike_index);
 	listItem->wrap = false;
-	listItem->caption = "Animation Type";
+	listItem->caption = tr("MiscMenu.AnimationType", "Animation Type");
 	listItem->value = PhoneBikeAnimationIndex;
 	menuItems.push_back(listItem);
 
@@ -792,29 +792,29 @@ void process_phone_bill_menu(){
 
 	listItem = new SelectFromListMenuItem(MISC_PHONE_DEFAULT_CAPTIONS, onchange_misc_phone_default_index);
 	listItem->wrap = false;
-	listItem->caption = "Default Phone Model";
+	listItem->caption = tr("MiscMenu.DefaultPhoneModel", "Default Phone Model");
 	listItem->value = PhoneDefaultIndex;
 	menuItems.push_back(listItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Phone Bill";
+	item->caption = tr("MiscMenu.PhoneBill", "Phone Bill");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Use Phone While On Bike";
+	item->caption = tr("MiscMenu.UsePhoneWhileOnBike", "Use Phone While On Bike");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Phone";
+	toggleItem->caption = tr("MiscMenu.NoPhone", "No Phone");
 	toggleItem->toggleValue = &featureDisablePhone;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Disable Phone If Menu Open";
+	toggleItem->caption = tr("MiscMenu.DisablePhoneIfMenuOpen", "Disable Phone If Menu Open");
 	toggleItem->toggleValue = &featureDisablePhoneMenu;
 	menuItems.push_back(toggleItem);
 
@@ -849,50 +849,50 @@ void process_radio_settings_menu() {
 
 	listItem = new SelectFromListMenuItem(MISC_RADIO_OFF_CAPTIONS, onchange_misc_radio_off_index);
 	listItem->wrap = false;
-	listItem->caption = "Radio Off";
+	listItem->caption = tr("MiscMenu.RadioOff", "Radio Off");
 	listItem->value = RadioOffIndex;
 	menuItems.push_back(listItem);
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Portable Radio";
+	toggleItem->caption = tr("MiscMenu.PortableRadio", "Portable Radio");
 	toggleItem->toggleValue = &featurePlayerRadio;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Next Radio Track";
+	item->caption = tr("MiscMenu.NextRadioTrack", "Next Radio Track");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(MISC_RADIO_SWITCHING_CAPTIONS, onchange_misc_radio_switching_index);
 	listItem->wrap = false;
-	listItem->caption = "Radio Station Shuffle";
+	listItem->caption = tr("MiscMenu.RadioStationShuffle", "Radio Station Shuffle");
 	listItem->value = RadioSwitchingIndex;
 	menuItems.push_back(listItem);
 
 	item = new MenuItem<int>();
-	item->caption = "Freeze Radio To Station";
+	item->caption = tr("MiscMenu.FreezeRadioToStation", "Freeze Radio To Station");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Boost Radio Volume";
+	toggleItem->caption = tr("MiscMenu.BoostRadioVolume", "Boost Radio Volume");
 	toggleItem->toggleValue = &featureBoostRadio;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Consistent Radio Volume";
+	toggleItem->caption = tr("MiscMenu.ConsistentRadioVolume", "Consistent Radio Volume");
 	toggleItem->toggleValue = &featureRealisticRadioVolume;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Restore Missing Radio Station";
+	toggleItem->caption = tr("MiscMenu.RestoreMissingRadioStation", "Restore Missing Radio Station");
 	toggleItem->toggleValue = &featureEnableMissingRadioStation;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Radio In Police Vehicle";
+	toggleItem->caption = tr("MiscMenu.RadioInPoliceVehicle", "Radio In Police Vehicle");
 	toggleItem->toggleValue = &featurePoliceRadio;
 	menuItems.push_back(toggleItem);
 
@@ -911,43 +911,43 @@ void process_hud_settings_menu() {
 	int i = 0;
 	
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Hide HUD";
+	toggleItem->caption = tr("MiscMenu.HideHUD", "Hide HUD");
 	toggleItem->toggleValue = &featureMiscHideHud;
 	toggleItem->toggleValueUpdated = &featureMiscHideHudUpdated;
 	menuItems.push_back(toggleItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show HUD If Phone In Hand Only";
+	toggleItem->caption = tr("MiscMenu.ShowHUDIfPhoneInHandOnly", "Show HUD If Phone In Hand Only");
 	toggleItem->toggleValue = &featurePhoneShowHud;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show HUD In Vehicle Only";
+	toggleItem->caption = tr("MiscMenu.ShowHUDInVehicleOnly", "Show HUD In Vehicle Only");
 	toggleItem->toggleValue = &featureInVehicleNoHud;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Show HUD If Map Marker Set Only";
+	toggleItem->caption = tr("MiscMenu.ShowHUDIfMapMarkerSetOnly", "Show HUD If Map Marker Set Only");
 	toggleItem->toggleValue = &featureMarkerHud;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Dynamic Health Bar";
+	toggleItem->caption = tr("MiscMenu.DynamicHealthBar", "Dynamic Health Bar");
 	toggleItem->toggleValue = &featureDynamicHealthBar;
 	menuItems.push_back(toggleItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Scripted Blur & Slowdown";
+	toggleItem->caption = tr("MiscMenu.NoScriptedBlurSlowdown", "No Scripted Blur & Slowdown");
 	toggleItem->toggleValue = &featurenowheelblurslow;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Disable Recording";
+	toggleItem->caption = tr("MiscMenu.DisableRecording", "Disable Recording");
 	toggleItem->toggleValue = &featureDisableRecording;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Notifications";
+	toggleItem->caption = tr("MiscMenu.NoNotifications", "No Notifications");
 	toggleItem->toggleValue = &featureNoNotifications;
 	menuItems.push_back(toggleItem);
 
@@ -1987,7 +1987,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			}
 			else
 			{
-				set_status_text("Game version outdated. This requires 1.44 onwards to function!");
+				set_status_text(tr("MiscMenu.GameVersionOutdatedThisRequires144Onward", "Game version outdated. This requires 1.44 onwards to function!"));
 				featureEnableMissingRadioStation = false;
 			}
 		}

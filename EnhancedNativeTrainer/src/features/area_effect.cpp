@@ -204,94 +204,94 @@ void process_areaeffect_peds_menu(){
 	SelectFromListMenuItem *listItem;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Peds Angry";
+	item->caption = tr("AreaEffectMenu.PedsAngry", "Peds Angry");
 	item->value = -1;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Peds Weapons";
+	item->caption = tr("AreaEffectMenu.PedsWeapons", "Peds Weapons");
 	item->value = -2;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_peds_health_index);
 	listItem->wrap = false;
-	listItem->caption = "Peds Health";
+	listItem->caption = tr("AreaEffectMenu.PedsHealth", "Peds Health");
 	listItem->value = PedsHealthIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_ped_accuracy_index);
 	listItem->wrap = false;
-	listItem->caption = "Peds Accuracy";
+	listItem->caption = tr("AreaEffectMenu.PedsAccuracy", "Peds Accuracy");
 	listItem->value = PedAccuracyIndex;
 	menuItems.push_back(listItem);
 
 	ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Show Current Health";
+	togItem->caption = tr("AreaEffectMenu.NPCShowCurrentHealth", "NPC Show Current Health");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCShowHealth;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Everyone Permanently Calm";
+	togItem->caption = tr("AreaEffectMenu.EveryonePermanentlyCalm", "Everyone Permanently Calm");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePlayerIgnoredByAll;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Everyone Invincible";
+	togItem->caption = tr("AreaEffectMenu.EveryoneInvincible", "Everyone Invincible");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaPedsInvincible;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Everyone Dies";
+	togItem->caption = tr("AreaEffectMenu.EveryoneDies", "Everyone Dies");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaPedsHeadExplode;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Effects Include Drivers";
+	togItem->caption = tr("AreaEffectMenu.EffectsIncludeDrivers", "Effects Include Drivers");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsIncludeDrivers;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Effects Include Pilots";
+	togItem->caption = tr("AreaEffectMenu.EffectsIncludePilots", "Effects Include Pilots");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsIncludePilots;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_world_no_peds_gravity_index);
 	listItem->wrap = false;
-	listItem->caption = "NPC No Gravity Peds";
+	listItem->caption = tr("AreaEffectMenu.NPCNoGravityPeds", "NPC No Gravity Peds");
 	listItem->value = NoPedsGravityIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Aggressive Drivers";
+	togItem->caption = tr("AreaEffectMenu.AggressiveDrivers", "Aggressive Drivers");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAggressiveDrivers;
 	togItem->toggleValueUpdated = &featureAggressiveDriversUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Spooked Drivers";
+	togItem->caption = tr("AreaEffectMenu.SpookedDrivers", "Spooked Drivers");
 	togItem->value = 1;
 	togItem->toggleValue = &featureSpookyDrivers;
 	togItem->toggleValueUpdated = &featureSpookyDriversUpdated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Vigilante Citizens";
+	togItem->caption = tr("AreaEffectMenu.VigilanteCitizens", "Vigilante Citizens");
 	togItem->value = 1;
 	togItem->toggleValue = &featureLawAbidingCitizens;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_vigilante_blips_index);
 	listItem->wrap = false;
-	listItem->caption = "Show Vigilante Blips";
+	listItem->caption = tr("AreaEffectMenu.ShowVigilanteBlips", "Show Vigilante Blips");
 	listItem->value = VigilanteBlipIndex;
 	menuItems.push_back(listItem);
 
@@ -304,91 +304,91 @@ void process_areaeffect_vehicle_menu(){
 
 	listItem = new SelectFromListMenuItem(VEH_INVINC_MODE_CAPTIONS, onchange_veh_ped_invincibility_mode);
 	listItem->wrap = false;
-	listItem->caption = "All Vehicles Invincible";
+	listItem->caption = tr("AreaEffectMenu.AllVehiclesInvincible", "All Vehicles Invincible");
 	listItem->value = VehPedInvincibilityIndex;
 	menuItems.push_back(listItem);
 
 	ToggleMenuItem<int>* togItem = new ToggleMenuItem<int>();
-	togItem->caption = "All Vehicles Abandoned";
+	togItem->caption = tr("AreaEffectMenu.AllVehiclesAbandoned", "All Vehicles Abandoned");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaVehiclesBroken;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "All Vehicles Exploded";
+	togItem->caption = tr("AreaEffectMenu.AllVehiclesExploded", "All Vehicles Exploded");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaVehiclesExploded;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles No Lights";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesNoLights", "NPC Vehicles No Lights");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCNoLights;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles Have Neon/Xenon Lights";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesHaveNeonXenonLights", "NPC Vehicles Have Neon/Xenon Lights");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCNeonLights;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles Use Full Beam";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesUseFullBeam", "NPC Vehicles Use Full Beam");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCFullBeam;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Dirty Vehicles";
+	togItem->caption = tr("AreaEffectMenu.NPCDirtyVehicles", "NPC Dirty Vehicles");
 	togItem->value = 1;
 	togItem->toggleValue = &featureDirtyVehicles;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Clean Vehicles";
+	togItem->caption = tr("AreaEffectMenu.NPCCleanVehicles", "NPC Clean Vehicles");
 	togItem->value = 1;
 	togItem->toggleValue = &featureCleanVehicles;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC No Gravity Vehicles";
+	togItem->caption = tr("AreaEffectMenu.NPCNoGravityVehicles", "NPC No Gravity Vehicles");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCNoGravityVehicles;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles Reduced Grip";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesReducedGrip", "NPC Vehicles Reduced Grip");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCReducedGripVehicles;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_world_npc_vehicles_speed_index);
 	listItem->wrap = false;
-	listItem->caption = "NPC Vehicles Forced Speed";
+	listItem->caption = tr("AreaEffectMenu.NPCVehiclesForcedSpeed", "NPC Vehicles Forced Speed");
 	listItem->value = NPCVehicleSpeedIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Boost NPC Radio Volume";
+	togItem->caption = tr("AreaEffectMenu.BoostNPCRadioVolume", "Boost NPC Radio Volume");
 	togItem->value = 1;
 	togItem->toggleValue = &featureBoostNPCRadio;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(VEH_COLOUR_CAPTIONS, onchange_world_npc_vehicles_colour_index);
 	listItem->wrap = false;
-	listItem->caption = "NPC Vehicles Colour";
+	listItem->caption = tr("AreaEffectMenu.NPCVehiclesColour", "NPC Vehicles Colour");
 	listItem->value = VehColourIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Bus Interior Light On At Night";
+	togItem->caption = tr("AreaEffectMenu.BusInteriorLightOnAtNight", "Bus Interior Light On At Night");
 	togItem->value = 1;
 	togItem->toggleValue = &featureBusLight;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_world_npc_veh_damageoncoll_index);
 	listItem->wrap = false;
-	listItem->caption = "Destroy Car On Collision";
+	listItem->caption = tr("AreaEffectMenu.DestroyCarOnCollision", "Destroy Car On Collision");
 	listItem->value = NPCVehicleDamageOnCollIndex;
 	menuItems.push_back(listItem);
 
@@ -400,31 +400,31 @@ void process_areaeffect_advanced_ped_menu(){
 	SelectFromListMenuItem* listItem;
 	
 	ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Peds Angry";
+	togItem->caption = tr("AreaEffectMenu.PedsAngry", "Peds Angry");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaPedsRioting;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Angry Peds Use Cover";
+	togItem->caption = tr("AreaEffectMenu.AngryPedsUseCover", "Angry Peds Use Cover");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAngryPedsUseCover;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Angry Peds Also Target You";
+	togItem->caption = tr("AreaEffectMenu.AngryPedsAlsoTargetYou", "Angry Peds Also Target You");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAngryPedsTargetYou;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS, onchange_world_selective_peds_angry_index);
 	listItem->wrap = false;
-	listItem->caption = "Ped Type";
+	listItem->caption = tr("AreaEffectMenu.PedType", "Ped Type");
 	listItem->value = WorldSelectivePedsIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Targeted Angry Peds";
+	togItem->caption = tr("AreaEffectMenu.TargetedAngryPeds", "Targeted Angry Peds");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAngryMenManually;
 	menuItems.push_back(togItem);
@@ -436,37 +436,37 @@ void process_areaeffect_peds_weapons_menu() {
 	std::vector<MenuItem<int>*> menuItems;
 
 	ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Enabled";
+	togItem->caption = tr("AreaEffectMenu.Enabled", "Enabled");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsWeapons;
 	menuItems.push_back(togItem);
 
 	SelectFromListMenuItem* listItem = new SelectFromListMenuItem(PED_WEAPON_TITLES, onchange_areaeffect_ped_weapons);
 	listItem->wrap = false;
-	listItem->caption = "Peds Armed With...";
+	listItem->caption = tr("AreaEffectMenu.PedsArmedWith", "Peds Armed With...");
 	listItem->value = pedWeaponSetIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(PED_WEAPONS_SELECTIVE_CAPTIONS, onchange_ped_weapons_selective_index);
 	listItem->wrap = false;
-	listItem->caption = "Custom Weapon";
+	listItem->caption = tr("AreaEffectMenu.CustomWeapon", "Custom Weapon");
 	listItem->value = PedWeaponsSelectiveIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Peds Can Switch Weapons";
+	togItem->caption = tr("AreaEffectMenu.PedsCanSwitchWeapons", "Peds Can Switch Weapons");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsSwitchWeapons;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Explosive Melee";
+	togItem->caption = tr("AreaEffectMenu.ExplosiveMelee", "Explosive Melee");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsExplosiveMelee;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Explosive Ammo";
+	togItem->caption = tr("AreaEffectMenu.ExplosiveAmmo", "Explosive Ammo");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsExplosiveAmmo;
 	menuItems.push_back(togItem);
@@ -688,7 +688,7 @@ void update_area_effects(Ped playerPed){
 	if (!featureAngryMenManually) sa_message = false;
 	if (featureAngryMenManually && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, true)) {
 		if (sa_message == false) {
-		set_status_text("Equip the Stungun. Aim at a ped and at another ped to start a fight.");
+		set_status_text(tr("AreaEffectMenu.EquipTheStungunAimAtAPedAndAtAnotherPedT", "Equip the Stungun. Aim at a ped and at another ped to start a fight."));
 		sa_message = true;
 		}
 		Hash tempWeap;

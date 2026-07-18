@@ -19,6 +19,9 @@
     <ClCompile Include="src\io\config_io.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
+    <ClCompile Include="src\io\translation.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
     <ClCompile Include="src\io\keyboard.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
@@ -175,6 +178,9 @@
       <Filter>inc\features</Filter>
     </ClInclude>
     <ClInclude Include="src\io\config_io.h">
+      <Filter>inc\io</Filter>
+    </ClInclude>
+    <ClInclude Include="src\io\translation.h">
       <Filter>inc\io</Filter>
     </ClInclude>
     <ClInclude Include="src\io\io.h">

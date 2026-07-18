@@ -109,7 +109,7 @@ void begin_prop_placement(SpawnedPropInstance prop)
 	//check it worked
 	if (!CAM::DOES_CAM_EXIST(propCamera))
 	{
-		set_status_text("Camera failure");
+		set_status_text(tr("PropsMenu.CameraFailure", "Camera failure"));
 		return;
 	}
 

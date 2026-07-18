@@ -1739,6 +1739,13 @@ bool process_veh_seat_menu();
 extern char* curr_message;
 extern bool keyboard_on_screen_already;
 
+/**
+Sets the on-screen keyboard prompt text (curr_message). curr_message is a raw char* read
+across multiple frames while the keyboard overlay is up, so it can't safely point at a
+temporary (e.g. tr()'s return value) - this keeps the backing storage alive instead.
+*/
+void set_curr_message(const std::string& text);
+
 void GenerateVehicleModelList();
 void PopulateVehicleModelsArray();
 

@@ -865,18 +865,18 @@ void road_laws()
 					}
 				}
 
-				if (againsttraffic_check == true) set_status_text("FINED FOR DRIVING AGAINST TRAFFIC");
-				if (pavementdriving_check == true) set_status_text("FINED FOR DRIVING ON THE PAVEMENT");
-				if (vehicledamaged_check == true) set_status_text("FINED FOR USING A DAMAGED VEHICLE");
-				if (hohelmet_check == true) set_status_text("FINED FOR NOT WEARING A HELMET WHILE DRIVING");
-				if (mobilephone_check == true) set_status_text("FINED FOR USING A MOBILE PHONE WHILE DRIVING");
-				if (vehiclecollision_check == true) set_status_text("FINED FOR A VEHICLE ACCIDENT");
-				if (speedingincity_check == true) set_status_text("FINED FOR SPEEDING IN THE CITY");
-				if (speedingonspeedway_check == true) set_status_text("FINED FOR SPEEDING ON A FREEWAY");
-				if (runningredlight_check == true) set_status_text("FINED FOR RUNNING A REDLIGHT");
-				if (stolenvehicle_check == true) set_status_text("FINED FOR USING A STOLEN VEHICLE");
-				if (nolightsnighttime_check == true) set_status_text("FINED FOR DRIVING WITHOUT HEADLIGHTS");
-				if (escapingpolice_check == true) set_status_text("FINED FOR EVADING THE POLICE");
+				if (againsttraffic_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORDRIVINGAGAINSTTRAFFIC", "FINED FOR DRIVING AGAINST TRAFFIC"));
+				if (pavementdriving_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORDRIVINGONTHEPAVEMENT", "FINED FOR DRIVING ON THE PAVEMENT"));
+				if (vehicledamaged_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORUSINGADAMAGEDVEHICLE", "FINED FOR USING A DAMAGED VEHICLE"));
+				if (hohelmet_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORNOTWEARINGAHELMETWHILEDRIVING", "FINED FOR NOT WEARING A HELMET WHILE DRIVING"));
+				if (mobilephone_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORUSINGAMOBILEPHONEWHILEDRIVING", "FINED FOR USING A MOBILE PHONE WHILE DRIVING"));
+				if (vehiclecollision_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORAVEHICLEACCIDENT", "FINED FOR A VEHICLE ACCIDENT"));
+				if (speedingincity_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORSPEEDINGINTHECITY", "FINED FOR SPEEDING IN THE CITY"));
+				if (speedingonspeedway_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORSPEEDINGONAFREEWAY", "FINED FOR SPEEDING ON A FREEWAY"));
+				if (runningredlight_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORRUNNINGAREDLIGHT", "FINED FOR RUNNING A REDLIGHT"));
+				if (stolenvehicle_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORUSINGASTOLENVEHICLE", "FINED FOR USING A STOLEN VEHICLE"));
+				if (nolightsnighttime_check == true) set_status_text(tr("RoadLawsMenu.FINEDFORDRIVINGWITHOUTHEADLIGHTS", "FINED FOR DRIVING WITHOUT HEADLIGHTS"));
+				if (escapingpolice_check == true) set_status_text(tr("RoadLawsMenu.FINEDFOREVADINGTHEPOLICE", "FINED FOR EVADING THE POLICE"));
 			}
 
 			againsttraffic_check = false;
@@ -954,7 +954,7 @@ void road_laws()
 
 		if (being_arrested == true) {
 			AI::TASK_ARREST_PED(cop_that_fines_you, PLAYER::PLAYER_PED_ID());
-			set_status_text("You're being arrested because you have no money to pay the fine");
+			set_status_text(tr("RoadLawsMenu.YouReBeingArrestedBecauseYouHaveNoMoneyT", "You're being arrested because you have no money to pay the fine"));
 			being_arrested = false;
 		}
 

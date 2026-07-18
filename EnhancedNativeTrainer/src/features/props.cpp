@@ -341,7 +341,7 @@ void process_props_menu_incategory(int categoryIndex)
 	/*
 	MenuItem<int>* item = new MenuItem<int>();
 	item->value = -1;
-	item->caption = "Spawn All In Category";
+	item->caption = tr("PropsMenu.SpawnAllInCategory", "Spawn All In Category");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	*/
@@ -365,7 +365,7 @@ bool onconfirm_prop_category(MenuItem<int> choice)
 	if (choice.value == -1)
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter prop name (e.g. prop_fruit_basket):"; // spawn a prop
+		set_curr_message(tr("PropsMenu.EnterPropNameEGPropFruitBasket", "Enter prop name (e.g. prop_fruit_basket):")); // spawn a prop
 		std::string result = show_keyboard("Enter Name Manually", (char*)lastCustomPropSpawn.c_str());
 		if (!result.empty())
 		{
@@ -402,11 +402,11 @@ bool onconfirm_prop_category(MenuItem<int> choice)
 			}
 			if (!STREAMING::IS_IPL_ACTIVE(ipl))
 			{
-				set_status_text("Failed to load IPL");
+				set_status_text(tr("PropsMenu.FailedToLoadIPL", "Failed to load IPL"));
 			}
 			else
 			{
-				set_status_text("Loaded IPL");
+				set_status_text(tr("PropsMenu.LoadedIPL", "Loaded IPL"));
 			}
 		}
 		return false;
@@ -438,7 +438,7 @@ void process_props_spawn_menu()
 
 	MenuItem<int>* item = new MenuItem<int>();
 	item->value = -1;
-	item->caption = "Enter Name Manually";
+	item->caption = tr("PropsMenu.EnterNameManually", "Enter Name Manually");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	i++;
@@ -446,7 +446,7 @@ void process_props_spawn_menu()
 	/*
 	item = new MenuItem<int>();
 	item->value = -2;
-	item->caption = "Request IPL Manually";
+	item->caption = tr("PropsMenu.RequestIPLManually", "Request IPL Manually");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	i++;
@@ -454,17 +454,17 @@ void process_props_spawn_menu()
 
 	/*
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Spawn Param 1";
+	toggleItem->caption = tr("PropsMenu.SpawnParam1", "Spawn Param 1");
 	toggleItem->toggleValue = &creationParam1;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Spawn Param 2";
+	toggleItem->caption = tr("PropsMenu.SpawnParam2", "Spawn Param 2");
 	toggleItem->toggleValue = &creationParam2;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Spawn Param 3";
+	toggleItem->caption = tr("PropsMenu.SpawnParam3", "Spawn Param 3");
 	toggleItem->toggleValue = &creationParam3;
 	menuItems.push_back(toggleItem);
 	*/
@@ -506,33 +506,33 @@ bool prop_spawn_options_menu()
 
 	ToggleMenuItem<int>* item = new ToggleMenuItem<int>();
 	item->toggleValue = &propCreationIsInvincible;
-	item->caption = "Invincible?";
+	item->caption = tr("PropsMenu.Invincible", "Invincible?");
 	menuItems.push_back(item);
 	i++;
 
 	item = new ToggleMenuItem<int>();
 	item->toggleValue = &propCreationIsImmovable;
-	item->caption = "Immovable?";
+	item->caption = tr("PropsMenu.Immovable", "Immovable?");
 	menuItems.push_back(item);
 	i++;
 
 	item = new ToggleMenuItem<int>();
 	item->toggleValue = &propCreationHasGravity;
-	item->caption = "Has Gravity?";
+	item->caption = tr("PropsMenu.HasGravity", "Has Gravity?");
 	menuItems.push_back(item);
 	i++;
 
 	/*
 	item = new ToggleMenuItem<int>();
 	item->toggleValue = &propCreationIsOnFire;
-	item->caption = "On Fire?";
+	item->caption = tr("PropsMenu.OnFire", "On Fire?");
 	menuItems.push_back(item);
 	i++;
 	*/
 
 	SelectFromListMenuItem* alphaItem = new SelectFromListMenuItem(ALPHA_LABELS, onchange_spawn_alpha);
 	alphaItem->value = propCreationAlphaIndex;
-	alphaItem->caption = "Alpha (Opacity)";
+	alphaItem->caption = tr("PropsMenu.AlphaOpacity", "Alpha (Opacity)");
 	alphaItem->wrap = false;
 	menuItems.push_back(alphaItem);
 	i++;
@@ -575,7 +575,7 @@ bool onconfirm_prop_menu(MenuItem<int> choice)
 
 		if (propsWeCreated.size() == 0)
 		{
-			set_status_text("No spawned objects - create some first");
+			set_status_text(tr("PropsMenu.NoSpawnedObjectsCreateSomeFirst", "No spawned objects - create some first"));
 		}
 		else
 		{
@@ -607,42 +607,42 @@ void process_props_menu()
 
 	MenuItem<int>* item = new MenuItem<int>();
 	item->value = 0;
-	item->caption = "Object Spawner";
+	item->caption = tr("PropsMenu.ObjectSpawner", "Object Spawner");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	i++;
 
 	item = new MenuItem<int>();
 	item->value = 4;
-	item->caption = "Saved Object Sets";
+	item->caption = tr("PropsMenu.SavedObjectSets", "Saved Object Sets");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	i++;
 
 	item = new MenuItem<int>();
 	item->value = 2;
-	item->caption = "Spawn Options";
+	item->caption = tr("PropsMenu.SpawnOptions", "Spawn Options");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	i++;
 
 	item = new MenuItem<int>();
 	item->value = 3;
-	item->caption = "Edit Spawned Objects";
+	item->caption = tr("PropsMenu.EditSpawnedObjects", "Edit Spawned Objects");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	i++;
 
 	item = new MenuItem<int>();
 	item->value = 1;
-	item->caption = "Remove All Spawned Objects";
+	item->caption = tr("PropsMenu.RemoveAllSpawnedObjects", "Remove All Spawned Objects");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	i++;
 
 	item = new MenuItem<int>();
 	item->value = 5;
-	item->caption = "Check Object Limit";
+	item->caption = tr("PropsMenu.CheckObjectLimit", "Check Object Limit");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	i++;
@@ -1013,7 +1013,7 @@ void teleport_to_last_prop()
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, coords.x, coords.y, coords.z, 0, 0, 1);
 	ENTITY::SET_ENTITY_HEADING(playerPed, 0.0f);
 	WAIT(0);
-	set_status_text("Teleported");
+	set_status_text(tr("PropsMenu.Teleported", "Teleported"));
 }
 
 void explode_last_prop(int explosionID)
@@ -1042,7 +1042,7 @@ bool onconfirm_prop_single_instance_menu(MenuItem<int> choice)
 		manage_prop_set();
 		propInstanceMenuInterruptFlag = true;
 		requireRefreshOfPropInstanceMenu = true;
-		set_status_text("Object deleted");
+		set_status_text(tr("PropsMenu.ObjectDeleted", "Object deleted"));
 		return true;
 	}
 	else if (choice.value == 2)
@@ -1090,19 +1090,19 @@ bool prop_spawned_single_instance_menu(int index)
 
 	MenuItem<int>* item = new MenuItem<int>();
 	item->value = 1;
-	item->caption = "Delete This Object";
+	item->caption = tr("PropsMenu.DeleteThisObject", "Delete This Object");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->value = 2;
-	item->caption = "Move This Object";
+	item->caption = tr("PropsMenu.MoveThisObject", "Move This Object");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->value = 5;
-	item->caption = "Teleport To Object";
+	item->caption = tr("PropsMenu.TeleportToObject", "Teleport To Object");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
@@ -1110,46 +1110,46 @@ bool prop_spawned_single_instance_menu(int index)
 	togItem->getter_call = is_prop_invincible;
 	togItem->setter_call = set_prop_invincible;
 	togItem->extra_arguments.push_back(index);
-	togItem->caption = "Invincible?";
+	togItem->caption = tr("PropsMenu.Invincible", "Invincible?");
 	menuItems.push_back(togItem);
 
 	togItem = new FunctionDrivenToggleMenuItem<int>();
 	togItem->getter_call = is_prop_immovable;
 	togItem->setter_call = set_prop_immovable;
 	togItem->extra_arguments.push_back(index);
-	togItem->caption = "Immovable?";
+	togItem->caption = tr("PropsMenu.Immovable", "Immovable?");
 	menuItems.push_back(togItem);
 
 	togItem = new FunctionDrivenToggleMenuItem<int>();
 	togItem->getter_call = is_prop_gravity_enabled;
 	togItem->setter_call = set_prop_gravity_enabled;
 	togItem->extra_arguments.push_back(index);
-	togItem->caption = "Has Gravity?";
+	togItem->caption = tr("PropsMenu.HasGravity", "Has Gravity?");
 	menuItems.push_back(togItem);
 
 	togItem = new FunctionDrivenToggleMenuItem<int>();
 	togItem->getter_call = is_prop_on_fire;
 	togItem->setter_call = set_prop_on_fire;
 	togItem->extra_arguments.push_back(index);
-	togItem->caption = "On Fire?";
+	togItem->caption = tr("PropsMenu.OnFire", "On Fire?");
 	menuItems.push_back(togItem);
 
 	SelectFromListMenuItem* alphaItem = new SelectFromListMenuItem(ALPHA_LABELS, onchange_spawn_alpha);
 	alphaItem->value = propCreationAlphaIndex;
-	alphaItem->caption = "Alpha (Opacity)";
+	alphaItem->caption = tr("PropsMenu.AlphaOpacity", "Alpha (Opacity)");
 	alphaItem->wrap = false;
 	alphaItem->extras.push_back(index);
 	menuItems.push_back(alphaItem);
 
 	item = new MenuItem<int>();
 	item->value = 3;
-	item->caption = "Explode This Object (Default)";
+	item->caption = tr("PropsMenu.ExplodeThisObjectDefault", "Explode This Object (Default)");
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->value = 4;
-	item->caption = "Custom Explosions";
+	item->caption = tr("PropsMenu.CustomExplosions", "Custom Explosions");
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	
@@ -1250,7 +1250,7 @@ void save_current_props(int slot)
 		}
 
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a save name:"; // save a prop
+		set_curr_message(tr("PropsMenu.EnterASaveName", "Enter a save name:")); // save a prop
 		auto existingText = ss.str();
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
@@ -1294,12 +1294,12 @@ void save_current_props(int slot)
 			ENTDatabase* database = get_database();
 			if (database->save_props(dbProps, result, slot))
 			{
-				set_status_text("Saved objects successfully");
+				set_status_text(tr("PropsMenu.SavedObjectsSuccessfully", "Saved objects successfully"));
 				activeSavedPropSlotName = result;
 			}
 			else
 			{
-				set_status_text("Error saving objects");
+				set_status_text(tr("PropsMenu.ErrorSavingObjects", "Error saving objects"));
 			}
 
 			for (std::vector<SavedPropDBRow*>::iterator it = dbProps.begin(); it != dbProps.end();)
@@ -1331,7 +1331,7 @@ bool onconfirm_savedprops_slot_menu(MenuItem<int> choice)
 	case 3: //rename
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a new name:"; // rename a saved prop
+		set_curr_message(tr("PropsMenu.EnterANewName", "Enter a new name:")); // rename a saved prop
 		std::string result = show_keyboard("Enter Name Manually", (char*)activeSavedPropSlotName.c_str());
 		if (!result.empty())
 		{
@@ -1369,7 +1369,7 @@ bool onconfirm_savedprops_slot_menu(MenuItem<int> choice)
 		database->populate_saved_prop_set(set);
 		cb->data = set;
 
-		set_status_text("A save dialog should appear shortly...");
+		set_status_text(tr("PropsMenu.ASaveDialogShouldAppearShortly", "A save dialog should appear shortly..."));
 
 		show_save_dialog_in_thread(title, cb);
 		break;
@@ -1391,31 +1391,31 @@ bool process_savedprops_slot_menu(int slot)
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = false;
 		item->value = 1;
-		item->caption = "Spawn Objects";
+		item->caption = tr("PropsMenu.SpawnObjects", "Spawn Objects");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 2;
-		item->caption = "Overwrite With Current";
+		item->caption = tr("PropsMenu.OverwriteWithCurrent", "Overwrite With Current");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 3;
-		item->caption = "Rename";
+		item->caption = tr("PropsMenu.Rename", "Rename");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 4;
-		item->caption = "Delete";
+		item->caption = tr("PropsMenu.Delete", "Delete");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 5;
-		item->caption = "Save To XML";
+		item->caption = tr("PropsMenu.SaveToXML", "Save To XML");
 		menuItems.push_back(item);
 
 		draw_generic_menu<int>(menuItems, 0, activeSavedPropSlotName, onconfirm_savedprops_slot_menu, NULL, NULL, props_individual_slot_menu_interrupt);
@@ -1430,7 +1430,7 @@ bool onconfirm_savedprops_menu(MenuItem<int> choice)
 		manage_prop_set();
 		if (propsWeCreated.size() == 0)
 		{
-			set_status_text("No spawned objects - create some first");
+			set_status_text(tr("PropsMenu.NoSpawnedObjectsCreateSomeFirst", "No spawned objects - create some first"));
 		}
 		else
 		{
@@ -1448,7 +1448,7 @@ bool onconfirm_savedprops_menu(MenuItem<int> choice)
 		LoadFileDialogCallback* cb = new LoadFileDialogCallback();
 		activeLoadFileCallbacks.insert(cb);
 
-		set_status_text("A load dialog should appear shortly...");
+		set_status_text(tr("PropsMenu.ALoadDialogShouldAppearShortly", "A load dialog should appear shortly..."));
 
 		show_load_dialog_in_thread(title, cb);
 		return false;
@@ -1479,13 +1479,13 @@ bool process_savedprops_menu()
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = false;
 		item->value = -1;
-		item->caption = "Create New Saved Object Set";
+		item->caption = tr("PropsMenu.CreateNewSavedObjectSet", "Create New Saved Object Set");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = false;
 		item->value = -2;
-		item->caption = "Import Object Set From XML";
+		item->caption = tr("PropsMenu.ImportObjectSetFromXML", "Import Object Set From XML");
 		menuItems.push_back(item);
 
 		for each (SavedPropSet *sv in savedSets)
@@ -1539,21 +1539,21 @@ void update_props_pending_dialogs()
 		{
 			if (saveCB->success)
 			{
-				set_status_text("Saving objects...");
+				set_status_text(tr("PropsMenu.SavingObjects", "Saving objects..."));
 				SavedPropSet* set = static_cast<SavedPropSet*>(saveCB->data);
 				bool success = generate_xml_for_propset(set, saveCB->filePath);
 				if (success)
 				{
-					set_status_text("Saved to XML successfully");
+					set_status_text(tr("PropsMenu.SavedToXMLSuccessfully", "Saved to XML successfully"));
 				}
 				else
 				{
-					set_status_text("Saving to XML failed");
+					set_status_text(tr("PropsMenu.SavingToXMLFailed", "Saving to XML failed"));
 				}
 			}
 			else
 			{
-				set_status_text("Save cancelled");
+				set_status_text(tr("PropsMenu.SaveCancelled", "Save cancelled"));
 			}
 			it = activeSaveFileCallbacks.erase(it);
 			delete saveCB->data;
@@ -1574,7 +1574,7 @@ void update_props_pending_dialogs()
 			loadCB->processed = true;
 			if (loadCB->success)
 			{
-				set_status_text("Object file found - parsing content...");
+				set_status_text(tr("PropsMenu.ObjectFileFoundParsingContent", "Object file found - parsing content..."));
 				SavedPropSet* set = new SavedPropSet();
 				bool success = parse_xml_for_propset(loadCB->filePath, set);
 				if (success)
@@ -1582,7 +1582,7 @@ void update_props_pending_dialogs()
 					std::ostringstream ss;
 					ss << set->saveName;
 					keyboard_on_screen_already = true;
-					curr_message = "Enter a name:"; // import objects
+					set_curr_message(tr("PropsMenu.EnterAName", "Enter a name:")); // import objects
 					auto existingText = ss.str();
 					std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 					if (!result.empty())
@@ -1591,28 +1591,28 @@ void update_props_pending_dialogs()
 						bool dbLoaded = database->save_props(set->items, result, -1);
 						if (dbLoaded)
 						{
-							set_status_text("Objects imported successfully");
+							set_status_text(tr("PropsMenu.ObjectsImportedSuccessfully", "Objects imported successfully"));
 							requireRefreshOfPropsSaveSlots = true;
 						}
 						else
 						{
-							set_status_text("Object import into database failed");
+							set_status_text(tr("PropsMenu.ObjectImportIntoDatabaseFailed", "Object import into database failed"));
 						}
 					}
 					else
 					{
 						write_text_to_log_file("Keyboard returned empty");
-						set_status_text("Object load cancelled");
+						set_status_text(tr("PropsMenu.ObjectLoadCancelled", "Object load cancelled"));
 					}
 				}
 				else
 				{
-					set_status_text("Object load failed");
+					set_status_text(tr("PropsMenu.ObjectLoadFailed", "Object load failed"));
 				}
 			}
 			else
 			{
-				set_status_text("Object load cancelled/failed");
+				set_status_text(tr("PropsMenu.ObjectLoadCancelledFailed", "Object load cancelled/failed"));
 			}
 			it2 = activeLoadFileCallbacks.erase(it2);
 			delete loadCB;

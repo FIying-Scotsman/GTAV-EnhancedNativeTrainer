@@ -35,7 +35,7 @@ bool onconfirm_neon_lights_selection(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Error:~r~ Player isn't in a vehicle");
+		set_status_text(tr("NeonMenu.RErrorRPlayerIsnTInAVehicle", "~r~Error:~r~ Player isn't in a vehicle"));
 		return true;
 	}
 
@@ -62,7 +62,7 @@ void set_neonLights(bool applied, std::vector<int> extras){
 	bool lightFound = false;
 
 	if(!is_this_a_car(veh) && !is_this_a_motorcycle(veh)){
-		set_status_text("~r~Error:~r~ Can't add neon lights to this vehicle");
+		set_status_text(tr("NeonMenu.RErrorRCanTAddNeonLightsToThisVehicle", "~r~Error:~r~ Can't add neon lights to this vehicle"));
 		return;
 	}
 
@@ -172,21 +172,21 @@ bool process_neon_lights_menu(){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+		set_status_text(tr("NeonMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
 
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()); // Get current vehicle
 
 	if(!is_this_a_car(veh) && !is_this_a_motorcycle(veh)){
-		set_status_text("Can't add neon lights to this vehicle");
+		set_status_text(tr("NeonMenu.CanTAddNeonLightsToThisVehicle", "Can't add neon lights to this vehicle"));
 		return false;
 	}
 
 	std::vector<MenuItem<int>*> menuItems;
 
 	MenuItem<int> *allLightsToggle = new MenuItem<int>();
-	allLightsToggle->caption = "Toggle All Neon Lights";
+	allLightsToggle->caption = tr("NeonMenu.ToggleAllNeonLights", "Toggle All Neon Lights");
 	allLightsToggle->value = -1;
 	allLightsToggle->isLeaf = true;
 	menuItems.push_back(allLightsToggle);
