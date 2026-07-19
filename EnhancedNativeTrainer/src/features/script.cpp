@@ -2573,6 +2573,9 @@ void main(){
 	//Go through the vehicle pool and make the vehicle arrays
 	PopulateVehicleModelsArray();
 
+	//Discover DLC/addon weapons not covered by the static weapon tables
+	PopulateAddonWeaponsArray();
+
 	write_text_to_log_file("Loaded settings OK");
 
 	// this creates a new locale based on the current application default

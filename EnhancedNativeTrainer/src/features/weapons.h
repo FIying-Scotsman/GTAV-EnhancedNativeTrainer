@@ -19,6 +19,61 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\storage\database.h"
 #include "..\common\option_table.h"
 
+// Output struct for EXTRAMETADATA::GET_DLC_WEAPON_DATA (hash 0x79923CD21BECE14E). Not
+// documented by any native header - layout cross-verified byte-for-byte against
+// three independent sources: the production citizenfx/fivem client source
+// (DlcWeaponStructs.cs), the appi-rp.com native database, and the sruckstar/
+// AddonWeapons2 reference mod. The static_asserts below catch a layout mismatch
+// at compile time rather than risking a buffer overrun at runtime.
+#pragma pack(push, 1)
+struct DlcWeaponData
+{
+	int emptyCheck;               // 0x00 - non-zero if this slot has data
+	int _pad0;                    // 0x04
+	Hash weaponHash;               // 0x08
+	int _pad1;                    // 0x0C
+	int unk1;                     // 0x10
+	int _pad2;                    // 0x14
+	int weaponCost;               // 0x18
+	int _pad3;                    // 0x1C
+	int ammoCost;                 // 0x20
+	int _pad4;                    // 0x24
+	Hash ammoType;                 // 0x28
+	int _pad5;                    // 0x2C
+	int defaultClipSize;          // 0x30
+	int _pad6;                    // 0x34
+	char nameLabel[64];           // 0x38 - GXT key, e.g. "WT_PIST2"
+	char descLabel[64];           // 0x78
+	char desc2Label[64];          // 0xB8 - usually "the " + name
+	char upperCaseNameLabel[64];  // 0xF8
+};
+static_assert(sizeof(DlcWeaponData) == 0x138, "DlcWeaponData layout mismatch");
+
+// Output struct for EXTRAMETADATA::GET_DLC_WEAPON_COMPONENT_DATA (hash 0x6CF598A2957C2BF8).
+// Same verification provenance as DlcWeaponData above.
+struct DlcWeaponComponentData
+{
+	int attachBone;               // 0x00
+	int _pad0;                    // 0x04
+	int isActiveByDefault;        // 0x08
+	int _pad1;                    // 0x0C
+	int unk1;                     // 0x10
+	int _pad2;                    // 0x14
+	Hash componentHash;            // 0x18
+	int _pad3;                    // 0x1C
+	int unk2;                     // 0x20
+	int _pad4;                    // 0x24
+	int componentCost;            // 0x28
+	int _pad5;                    // 0x2C
+	char nameLabel[64];           // 0x30
+	char descLabel[64];           // 0x70
+	char _reserved[0x60];         // 0xB0 - trailing space the native still writes into;
+	                              // citizenfx/fivem declares this struct as 0x110 bytes
+	                              // total even though its own named fields stop at 0xB0.
+};
+static_assert(sizeof(DlcWeaponComponentData) == 0x110, "DlcWeaponComponentData layout mismatch");
+#pragma pack(pop)
+
 const std::vector<std::string> MENU_WEAPON_CATEGORIES{ "Melee", "Handguns", "Submachine Guns", "Assault Rifles", "Shotguns", "Sniper Rifles", "Heavy Weapons", "Thrown Weapons" };
 
 // Count: 20
@@ -1051,8 +1106,7 @@ const float* const WEAP_DMG_FLOAT = WEAP_DMG_FLOAT_VEC.data();
 
 const int PARACHUTE_ID = 0xFBAB5776;
 
-const int TOTAL_WEAPONS_COUNT = 100;
-const int MAX_MOD_SLOTS = 15; 
+const int MAX_MOD_SLOTS = 15;
 
 extern bool featureNightVision;
 extern bool featureThermalVision;
@@ -1075,6 +1129,10 @@ extern int tick_allw;
 bool process_weapon_menu();
 
 bool process_weaponlist_menu();
+
+void PopulateAddonWeaponsArray();
+
+bool process_addon_weapons_menu();
 
 void reset_weapon_globals();
 

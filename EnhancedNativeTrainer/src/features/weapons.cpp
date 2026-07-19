@@ -18,6 +18,10 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\config_io.h"
 #include "..\io\controller.h"
 #include <ctime>
+#include <algorithm>
+#include <set>
+#include <sstream>
+#include <cstring>
 
 int activeLineIndexWeapon = 0;
 int lastSelectedWeaponCategory = 0;
@@ -135,15 +139,80 @@ std::string lastPowerWeapon;
 std::string lastCustomWeapon;
 char* currWeaponCompHash;
 
-int const SAVED_WEAPONS_COUNT = TOTAL_WEAPONS_COUNT;
-int saved_weapon_model[SAVED_WEAPONS_COUNT];
-int saved_ammo[SAVED_WEAPONS_COUNT];
-int saved_clip_ammo[SAVED_WEAPONS_COUNT];
-int saved_weapon_tints[SAVED_WEAPONS_COUNT];
-bool saved_weapon_mods[SAVED_WEAPONS_COUNT][MAX_MOD_SLOTS];
+// Sized from the real weapon table instead of a hardcoded guess - VOV_WEAPON_VALUES
+// has grown past what old fixed-size counts assumed, which used to silently drop
+// the tail of the list from Saved Weapons.
+int total_static_weapon_count() {
+	int count = 0;
+	for (int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++)
+		count += VOV_WEAPON_VALUES[a].size();
+	return count;
+}
+int const SAVED_WEAPONS_COUNT = total_static_weapon_count();
+std::vector<int> saved_weapon_model(SAVED_WEAPONS_COUNT);
+std::vector<int> saved_ammo(SAVED_WEAPONS_COUNT);
+std::vector<int> saved_clip_ammo(SAVED_WEAPONS_COUNT);
+std::vector<int> saved_weapon_tints(SAVED_WEAPONS_COUNT);
+std::vector<std::vector<bool>> saved_weapon_mods(SAVED_WEAPONS_COUNT, std::vector<bool>(MAX_MOD_SLOTS));
 bool saved_parachute = false;
 int saved_parachute_tint = 0;
 int saved_armour = 0;
+
+// Weapons discovered at runtime via WEAPON::GET_DLC_WEAPON_DATA that aren't part
+// of the static weapon tables above - covers both Rockstar's own DLC weapons and
+// anything added by 3rd-party addon weapon packs. Populated by
+// PopulateAddonWeaponsArray(), mirroring vehicles.cpp's PopulateVehicleModelsArray
+// pattern. Equip/ammo/tint only - not part of the Saved Weapons snapshot system,
+// since a "Rescan" can change indices at runtime in a way a positional save slot
+// can't safely track.
+struct AddonWeaponEntry { Hash hash; std::string caption; };
+std::vector<AddonWeaponEntry> g_addonWeapons;
+int lastSelectedAddonWeapon = 0;
+
+std::string resolve_dlc_weapon_caption(const DlcWeaponData &data) {
+	std::string label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)data.nameLabel);
+	if (!label.empty()) return label;
+
+	size_t rawLen = strnlen(data.nameLabel, sizeof(data.nameLabel));
+	if (rawLen > 0) return std::string(data.nameLabel, rawLen);
+
+	std::stringstream ss;
+	ss << "Weapon 0x" << std::hex << std::uppercase << (unsigned int)data.weaponHash;
+	return ss.str();
+}
+
+void PopulateAddonWeaponsArray() {
+	g_addonWeapons.clear();
+
+	// Weapons the static tables above already support shouldn't be duplicated
+	// into this list.
+	std::set<Hash> knownHashes;
+	for (int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++) {
+		for (int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++) {
+			knownHashes.insert(MISC::GET_HASH_KEY((char*)VOV_WEAPON_VALUES[a].at(b).c_str()));
+		}
+	}
+
+	std::set<Hash> seenHashes;
+	int numDlcWeapons = EXTRAMETADATA::GET_NUM_DLC_WEAPONS();
+	for (int i = 0; i < numDlcWeapons; i++) {
+		DlcWeaponData data{};
+		if (!EXTRAMETADATA::GET_DLC_WEAPON_DATA(i, (Any*)&data)) continue;
+		if (data.weaponHash == 0) continue;
+		if (seenHashes.count(data.weaponHash) > 0) continue; // Rockstar's own list contains duplicates
+		seenHashes.insert(data.weaponHash);
+		if (knownHashes.count(data.weaponHash) > 0) continue;
+
+		AddonWeaponEntry entry;
+		entry.hash = data.weaponHash;
+		entry.caption = resolve_dlc_weapon_caption(data);
+		g_addonWeapons.push_back(entry);
+	}
+
+	std::sort(g_addonWeapons.begin(), g_addonWeapons.end(), [](const AddonWeaponEntry &a, const AddonWeaponEntry &b) {
+		return a.caption < b.caption;
+	});
+}
 
 int tick_rap_allw = 0;
 int w_tick_rap_secs_passed = 0;
@@ -551,6 +620,19 @@ int get_current_revolver_appearance(){
 	return 0;
 }
 
+// MK2_WEAPONS and MK2_WEAPONS_LIVERY_COMP (weapons.h) are parallel arrays - the
+// camo component at MK2_WEAPONS_LIVERY_COMP[i] is the one that applies to
+// MK2_WEAPONS[i]. Returns false for anything that isn't an MK2 weapon.
+bool get_mk2_camo_component(Hash weaponHash, char** outCompHash){
+	for(int i = 0; i < MK2_WEAPONS.size(); i++){
+		if(weaponHash == MISC::GET_HASH_KEY(MK2_WEAPONS.at(i))){
+			*outCompHash = MK2_WEAPONS_LIVERY_COMP.at(i);
+			return true;
+		}
+	}
+	return false;
+}
+
 bool process_individual_weapon_menu(int weaponIndex){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	
@@ -672,14 +754,20 @@ bool process_individual_weapon_menu(int weaponIndex){
 			tintItem->onConfirmFunction = onconfirm_open_tint_menu;
 			menuItems.push_back(tintItem);
 
-			/* Returns empty menu - needs work!
+			// Only MK2 weapons that already have their camo component attached
+			// support a separate livery/camo colour - anything else leaves this
+			// entry hidden rather than showing a menu with nothing in it.
+			char* camoCompHash = nullptr;
+			if(get_mk2_camo_component(thisWeaponHash, &camoCompHash) && WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, thisWeaponHash, MISC::GET_HASH_KEY(camoCompHash))){
+				currWeaponCompHash = camoCompHash;
 
-			MenuItem<int> *LiveryTintItem = new MenuItem<int>();
-			LiveryTintItem->caption = tr("WeaponMenu.WeaponLiveryColours", "Weapon Livery Colours");
-			LiveryTintItem->value = 5;
-			LiveryTintItem->isLeaf = false;
-			LiveryTintItem->onConfirmFunction = onconfirm_open_tint_menu_colour;
-			menuItems.push_back(LiveryTintItem);*/
+				MenuItem<int> *LiveryTintItem = new MenuItem<int>();
+				LiveryTintItem->caption = tr("WeaponMenu.WeaponLiveryColours", "Weapon Livery Colours");
+				LiveryTintItem->value = 5;
+				LiveryTintItem->isLeaf = false;
+				LiveryTintItem->onConfirmFunction = onconfirm_open_tint_menu_colour;
+				menuItems.push_back(LiveryTintItem);
+			}
 		}
 	}
 
@@ -760,6 +848,126 @@ bool process_weaponlist_menu(){
 	}
 
 	return draw_generic_menu<int>(menuItems, &weaponSelectionIndex, "Weapon Categories", onconfirm_weaponlist_menu, NULL, NULL);
+}
+
+// Addon Weapons - the runtime-discovered counterpart to the static category menus
+// above. See PopulateAddonWeaponsArray() (near the top of this file) for how
+// g_addonWeapons is populated.
+
+void onconfirm_equip_addon_weapon(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	const AddonWeaponEntry &weapon = g_addonWeapons.at(lastSelectedAddonWeapon);
+
+	WEAPON::GIVE_WEAPON_TO_PED(playerPed, weapon.hash, 250, false, true);
+	set_status_text(weapon.caption + tr("WeaponMenu.AddedSuffix", " added"));
+}
+
+void onconfirm_fill_addon_weapon_ammo(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	Hash weaponHash = g_addonWeapons.at(lastSelectedAddonWeapon).hash;
+
+	int maxAmmo = 0;
+	WEAPON::GET_MAX_AMMO(playerPed, weaponHash, &maxAmmo);
+	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weaponHash, false);
+
+	WEAPON::SET_AMMO_IN_CLIP(playerPed, weaponHash, maxClipAmmo);
+	WEAPON::SET_PED_AMMO(playerPed, weaponHash, maxAmmo, FALSE);
+
+	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
+}
+
+bool onconfirm_addon_weapon_tint(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	Hash weaponHash = g_addonWeapons.at(lastSelectedAddonWeapon).hash;
+
+	WEAPON::SET_PED_WEAPON_TINT_INDEX(playerPed, weaponHash, choice.value);
+
+	return true;
+}
+
+void onhighlight_addon_weapon_tint(MenuItem<int> choice){
+	onconfirm_addon_weapon_tint(choice);
+}
+
+// Defined later in this file, alongside onconfirm_open_tint_menu.
+std::vector<MenuItem<int>*> build_weapon_tint_menu_items(Hash weaponHash);
+
+void onconfirm_open_addon_weapon_tint_menu(MenuItem<int> choice){
+	int tintSelection = 0;
+	Hash weaponHash = g_addonWeapons.at(lastSelectedAddonWeapon).hash;
+
+	std::vector<MenuItem<int>*> menuItems = build_weapon_tint_menu_items(weaponHash);
+
+	draw_generic_menu<int>(menuItems, &tintSelection, tr("WeaponMenu.SelectWeaponTint", "Select Weapon Tint"), onconfirm_addon_weapon_tint, onhighlight_addon_weapon_tint, NULL);
+}
+
+bool process_individual_addon_weapon_menu(int index){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	lastSelectedAddonWeapon = index;
+
+	const AddonWeaponEntry &weapon = g_addonWeapons.at(index);
+	std::vector<MenuItem<int>*> menuItems;
+
+	MenuItem<int> *equipItem = new MenuItem<int>();
+	equipItem->caption = tr("WeaponMenu.EquipPrefix", "Equip ") + weapon.caption + tr("WeaponMenu.QuestionSuffix", "?");
+	equipItem->value = 0;
+	equipItem->isLeaf = true;
+	equipItem->onConfirmFunction = onconfirm_equip_addon_weapon;
+	menuItems.push_back(equipItem);
+
+	if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, weapon.hash, FALSE)){
+		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapon.hash, false);
+
+		if(maxClipAmmo > 0){
+			MenuItem<int> *fillAmmoItem = new MenuItem<int>();
+			fillAmmoItem->caption = tr("WeaponMenu.FillAmmo", "Fill Ammo");
+			fillAmmoItem->value = 1;
+			fillAmmoItem->isLeaf = true;
+			fillAmmoItem->onConfirmFunction = onconfirm_fill_addon_weapon_ammo;
+			menuItems.push_back(fillAmmoItem);
+		}
+
+		MenuItem<int> *tintItem = new MenuItem<int>();
+		tintItem->caption = tr("WeaponMenu.WeaponTints", "Weapon Tints");
+		tintItem->value = 2;
+		tintItem->isLeaf = false;
+		tintItem->onConfirmFunction = onconfirm_open_addon_weapon_tint_menu;
+		menuItems.push_back(tintItem);
+	}
+
+	return draw_generic_menu<int>(menuItems, 0, weapon.caption, NULL, NULL, NULL);
+}
+
+bool onconfirm_addon_weapon_in_category(MenuItem<int> choice){
+	if(choice.value == -1){
+		PopulateAddonWeaponsArray();
+		set_status_text(tr("WeaponMenu.AddonWeaponsRescanned", "Addon weapons rescanned"));
+		return false;
+	}
+
+	process_individual_addon_weapon_menu(choice.value);
+	return false;
+}
+
+bool process_addon_weapons_menu(){
+	std::vector<MenuItem<int>*> menuItems;
+	int selectionIndex = 0;
+
+	MenuItem<int> *rescanItem = new MenuItem<int>();
+	rescanItem->caption = tr("WeaponMenu.RescanAddonWeapons", "Rescan Addon Weapons");
+	rescanItem->value = -1;
+	rescanItem->isLeaf = true;
+	menuItems.push_back(rescanItem);
+
+	for(int i = 0; i < g_addonWeapons.size(); i++){
+		MenuItem<int> *item = new MenuItem<int>();
+		item->caption = g_addonWeapons.at(i).caption;
+		item->value = i;
+		item->isLeaf = false;
+		menuItems.push_back(item);
+	}
+
+	return draw_generic_menu<int>(menuItems, &selectionIndex, tr("WeaponMenu.AddonWeapons", "Addon Weapons"), onconfirm_addon_weapon_in_category, NULL, NULL);
 }
 
 void onchange_cop_armed_index(int value, SelectFromListMenuItem* source){
@@ -1342,6 +1550,9 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 		case 41: // menu item position, not a sequential .value - see "Aimbot ESP" in process_weapon_menu()
 			if (AIMBOT_INCLUDED) process_aimbot_esp_menu();
 			break;
+		case 42: // menu item position, not a sequential .value - see "Addon Weapons" in process_weapon_menu()
+			process_addon_weapons_menu();
+			break;
 	default:
 		break;
 	}
@@ -1622,6 +1833,12 @@ bool process_weapon_menu(){
 		item->isLeaf = false;
 		menuItems.push_back(item);
 	}
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.AddonWeapons", "Addon Weapons");
+	item->value = i++;
+	item->isLeaf = false;
+	menuItems.push_back(item);
 
 	return draw_generic_menu<int>(menuItems, &activeLineIndexWeapon, caption, onconfirm_weapon_menu, NULL, NULL);
 }
@@ -2792,6 +3009,25 @@ bool onconfirm_weapon_mod_menu_tint(MenuItem<int> choice){
 	return true;
 }
 
+// Standard weapons have 8 primary tints (GXT keys WM_TINT0-7); MK2 weapons have
+// up to 32 (GXT keys WCT_TINT_0-31). GET_WEAPON_TINT_COUNT is also known to
+// report 33 for some MK2 weapons even though only 32 tints actually exist.
+std::vector<MenuItem<int>*> build_weapon_tint_menu_items(Hash weaponHash) {
+	std::vector<MenuItem<int>*> items;
+	int tintCount = WEAPON::GET_WEAPON_TINT_COUNT(weaponHash);
+	if (tintCount == 33) tintCount = 32;
+	const char* prefix = (tintCount == 8) ? "WM_TINT" : "WCT_TINT_";
+
+	for (int i = 0; i < tintCount; i++) {
+		MenuItem<int> *item = new MenuItem<int>();
+		std::string label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)(std::string(prefix) + std::to_string(i)).c_str());
+		item->caption = label.empty() ? ("Livery " + std::to_string(i)) : label;
+		item->value = i;
+		items.push_back(item);
+	}
+	return items;
+}
+
 void onconfirm_open_tint_menu(MenuItem<int> choice) {
 	int tintSelection = 0;
 
@@ -2800,14 +3036,8 @@ void onconfirm_open_tint_menu(MenuItem<int> choice) {
 	if (equip_ped != PLAYER::PLAYER_PED_ID()) weaponValue = VOV_WEAPON_VALUES[lastSelectedBodWeaponCategory].at(lastSelectedBodWeapon);
 	char *weaponChar = (char*)weaponValue.c_str();
 	int weapHash = MISC::GET_HASH_KEY(weaponChar);
-	std::vector<MenuItem<int>*> menuItems;
-		
-	for (int i = 0; i < WEAPON::GET_WEAPON_TINT_COUNT(weapHash); i++) {
-		MenuItem<int> *item = new MenuItem<int>();
-		item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)("WCT_C_TINT_" + std::to_string(i)).c_str()); // CAPTIONS_TINT_MK2[i];
-		item->value = i;
-		menuItems.push_back(item);
-	}
+
+	std::vector<MenuItem<int>*> menuItems = build_weapon_tint_menu_items(weapHash);
 
 	draw_generic_menu<int>(menuItems, &tintSelection, tr("WeaponMenu.SelectWeaponTint", "Select Weapon Tint"), onconfirm_weapon_mod_menu_tint, onhighlight_weapon_mod_menu_tint, NULL);
 }
@@ -2829,40 +3059,18 @@ bool onconfirm_weapon_mod_menu_tint_colour(MenuItem<int> choice) {
 }
 
 void onconfirm_open_tint_menu_colour(MenuItem<int> choice) {
-	Ped playerPed = equip_ped;
 	int tintColourSelection = 0;
-	std::vector<MenuItem<int>*> menuItems;
 
 	std::string weaponName = "";
 	if (equip_ped == PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	if (equip_ped != PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedBodWeaponCategory].at(lastSelectedBodWeapon);
 	int weapHash = MISC::GET_HASH_KEY((char*)weaponName.c_str());
 
-	for each(char* MK2_wep in MK2_WEAPONS)
-	{
-		if (weapHash == MISC::GET_HASH_KEY((char*)MK2_wep))
-		{
-			for each (char* MK2_wep_comp in MK2_WEAPONS_LIVERY_COMP)
-			{
-				if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, MISC::GET_HASH_KEY(MK2_wep_comp)))
-				{
-					currWeaponCompHash = MK2_wep_comp;
+	// currWeaponCompHash was already resolved and gated by
+	// process_individual_weapon_menu before this item was ever shown.
+	std::vector<MenuItem<int>*> menuItems = build_weapon_tint_menu_items(weapHash);
 
-					for (int i = 0; i < WEAPON::GET_WEAPON_TINT_COUNT(weapHash); i++) {
-						MenuItem<int> *item = new MenuItem<int>();
-						item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)("WCT_C_TINT_" + std::to_string(i)).c_str()); //  CAPTIONS_TINT_MK2[i];
-						item->value = i;
-						menuItems.push_back(item);
-					}
-				}
-			}
-
-		}
-		else
-			set_status_text(tr("WeaponMenu.ErrorApplyingLiveryColour", "Error applying Livery colour"));
-	}
-
-	draw_generic_menu<int>(menuItems, &tintColourSelection, "Select Weapon Livery Color", onconfirm_weapon_mod_menu_tint_colour, onhighlight_weapon_mod_menu_tint_colour, NULL);
+	draw_generic_menu<int>(menuItems, &tintColourSelection, tr("WeaponMenu.SelectWeaponLiveryColour", "Select Weapon Livery Colour"), onconfirm_weapon_mod_menu_tint_colour, onhighlight_weapon_mod_menu_tint_colour, NULL);
 }
 
 void add_weapon_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
