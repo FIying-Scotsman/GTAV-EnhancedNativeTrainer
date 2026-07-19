@@ -28,11 +28,12 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "entcolor.h"
 
 #include <string>
-#include <sstream> 
+#include <sstream>
 
 #include <ctime>
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 #pragma warning(disable : 4244 4305 4267) // double <-> float conversions <-> size_t conversions
 
@@ -161,7 +162,7 @@ class SelectFromListMenuItem: public MenuItem <int>{
 	// Dynamic captions: copies the list into this item. Use this overload when the
 	// caption list is built at runtime (e.g. from live game state) and its storage
 	// won't otherwise outlive this menu item.
-	inline SelectFromListMenuItem(std::vector<std::string> captions, void(*onValueChangeCallback)(int, SelectFromListMenuItem*)){
+	inline SelectFromListMenuItem(std::vector<std::string> captions, std::function<void(int, SelectFromListMenuItem*)> onValueChangeCallback){
 		this->ownedCaptions = std::move(captions);
 		this->itemCaptions = &this->ownedCaptions;
 		this->onValueChangeCallback = onValueChangeCallback;
@@ -170,7 +171,7 @@ class SelectFromListMenuItem: public MenuItem <int>{
 	// Static captions: points at a table whose storage is guaranteed to outlive this
 	// item (e.g. a file-scope "const std::vector<std::string>" produced by captionsOf()).
 	// Avoids re-copying the caption list every time the menu item is constructed.
-	inline SelectFromListMenuItem(const std::vector<std::string>* staticCaptions, void(*onValueChangeCallback)(int, SelectFromListMenuItem*)){
+	inline SelectFromListMenuItem(const std::vector<std::string>* staticCaptions, std::function<void(int, SelectFromListMenuItem*)> onValueChangeCallback){
 		this->itemCaptions = staticCaptions;
 		this->onValueChangeCallback = onValueChangeCallback;
 	}
@@ -190,7 +191,7 @@ class SelectFromListMenuItem: public MenuItem <int>{
 
 	inline const std::vector<std::string>& captions() const { return *itemCaptions; }
 
-	void(*onValueChangeCallback)(int index, SelectFromListMenuItem* source);
+	std::function<void(int index, SelectFromListMenuItem* source)> onValueChangeCallback;
 
 	bool wrap = true;
 

@@ -71,20 +71,16 @@ Hash temp_weapon = -1;
 
 //Flashlight strobe
 int WeapStrobeIndexN = 0;
-bool WeapStrobeChanged = true;
 bool f_strobe = false;
 int strb_c = 0;
 float strobe_tick = 0.0;
 
 //Flashlight Intensity
 int WeapFlashDistIndex = 0;
-bool WeapFlashDistChanged = true;
 
 bool featureWeaponInfiniteAmmo = false;
-bool featureWeaponInfiniteParachutes = false;
-bool featureWeaponInfiniteParachutesUpdated = false;
-bool featureWeaponNoParachutes = false;
-bool featureWeaponNoParachutesUpdated = false;
+ToggleFeature featureWeaponInfiniteParachutes{false, false};
+ToggleFeature featureWeaponNoParachutes{false, false};
 bool featureWeaponNoReload = false;
 bool featureCopTakeWeapon = false;
 bool featureWeaponFireAmmo = false;
@@ -163,14 +159,12 @@ const std::vector<std::string> WEAPONS_COPARMED_CAPTIONS{ "\"WEAPON_UNARMED\"", 
 "\"WEAPON_DBSHOTGUN\"", "\"WEAPON_AUTOSHOTGUN\"", "\"WEAPON_MUSKET\"", "\"WEAPON_SAWNOFFSHOTGUN\"", "\"WEAPON_COMBATMG\"", "\"WEAPON_MINIGUN\"", "\"WEAPON_GUSENBERG\"", "\"WEAPON_SNIPERRIFLE\"", "\"WEAPON_HEAVYSNIPER\"", 
 "\"WEAPON_GRENADELAUNCHER\"", "\"WEAPON_GRENADELAUNCHER_SMOKE\"", "\"WEAPON_RPG\"", "\"WEAPON_HOMINGLAUNCHER\"", "\"WEAPON_COMPACTLAUNCHER\"", "\"WEAPON_RAILGUN\"", "\"WEAPON_FIREWORK\"", "\"WEAPON_RAYPISTOL\"", "\"WEAPON_RAYCARBINE\"" };
 int CopCurrArmedIndex = 1;
-bool CopCurrArmedChanged = true;
 
 // Vehicle Weapon
 const std::vector<std::string> WEAPONS_VEHICLE_CAPTIONS{ "OFF", "\"WEAPON_RPG\"", "\"WEAPON_GRENADE\"", "\"WEAPON_MOLOTOV\"", "\"WEAPON_FIREWORK\"", "\"VEHICLE_WEAPON_PLAYER_BULLET\"", "\"VEHICLE_WEAPON_PLAYER_LAZER\"", 
 "\"WEAPON_DBSHOTGUN\"", "\"WEAPON_GRENADELAUNCHER\"", "\"WEAPON_RAILGUN\"", "\"VEHICLE_WEAPON_MINE\"", "\"VEHICLE_WEAPON_MINE_KINETIC\"", "\"VEHICLE_WEAPON_MINE_EMP\"", "\"VEHICLE_WEAPON_MINE_SPIKE\"", 
 "\"VEHICLE_WEAPON_MINE_SLICK\"", "\"VEHICLE_WEAPON_MINE_TAR\"", "\"WEAPON_PROXMINE\""/*, "\"WEAPON_FLAREGUN\"", "\"WEAPON_RAYPISTOL\""*/ };
 int VehCurrWeaponIndex = 0;
-bool VehCurrWeaponChanged = true;
 
 // Cop Wanted Level
 constexpr Option<int> COPALARM_OPTIONS[] = {
@@ -181,7 +175,6 @@ const std::vector<std::string> WEAPONS_COPALARM_CAPTIONS = captionsOf(COPALARM_O
 const std::vector<int> WEAPONS_COPALARM_VALUES_VEC = valuesOf(COPALARM_OPTIONS);
 const int* const WEAPONS_COPALARM_VALUES = WEAPONS_COPALARM_VALUES_VEC.data();
 int CopAlarmIndex = 1;
-bool CopAlarmChanged = true;
 
 // Rapid Fire Speed
 constexpr Option<int> RAPIDFIRE_OPTIONS[] = {
@@ -192,31 +185,25 @@ const std::vector<std::string> WEAPONS_RAPIDFIRE_CAPTIONS = captionsOf(RAPIDFIRE
 const std::vector<int> WEAPONS_RAPIDFIRE_VALUES_VEC = valuesOf(RAPIDFIRE_OPTIONS);
 const int* const WEAPONS_RAPIDFIRE_VALUES = WEAPONS_RAPIDFIRE_VALUES_VEC.data();
 int RapidFireIndex = 8;
-bool RapidFireChanged = true;
 
 // Toggle Vision For Sniper Rifles
 const std::vector<std::string> WEAPONS_SNIPERVISION_CAPTIONS{ "OFF", "Via Hotkey", "Night Vision", "Thermal Vision" };
 int SniperVisionIndex = 0;
-bool SniperVisionChanged = true;
 
 // Power Punch Strength
 int PowerPunchIndex = 2;
-bool PowerPunchChanged = true;
 
 // Fire Mode
 const std::vector<std::string> WEAPONS_FIREMODE_CAPTIONS{ "Default", "Single Fire", "Burst Semi", "Burst Auto" };
 int WeaponsFireModeIndex = 0;
-bool WeaponsFireModeChanged = true;
 
 // No Reticle
 const std::vector<std::string> WEAPONS_NORETICLE_CAPTIONS{ "OFF", "Always", "For First Person Mode Only" };
 int WeaponsNoReticle = 0;
-bool WeaponsNoReticleChanged = true;
 
 // Load Saved Weapons Automatically
 const std::vector<std::string> WEAPONS_SAVED_LOAD_CAPTIONS{ "OFF", "Add To Inventory", "Saved Weapons Only" };
 int WeaponsSavedLoad = 0;
-bool WeaponsSavedLoadChanged = true;
 
 /* Begin Gravity Gun related code */
 
@@ -774,14 +761,12 @@ bool process_weaponlist_menu(){
 	return draw_generic_menu<int>(menuItems, &weaponSelectionIndex, "Weapon Categories", onconfirm_weaponlist_menu, NULL, NULL);
 }
 
-void onchange_cop_armed_index(int value, SelectFromListMenuItem* source){ 
+void onchange_cop_armed_index(int value, SelectFromListMenuItem* source){
 	CopCurrArmedIndex = value;
-	CopCurrArmedChanged = true;
 }
 
 void onchange_cop_alarm_index(int value, SelectFromListMenuItem* source){
 	CopAlarmIndex = value;
-	CopAlarmChanged = true;
 }
 
 bool onconfirm_coparmed_menu(MenuItem<int> choice)
@@ -845,57 +830,46 @@ void process_copweapon_menu(){
 
 void onchange_chance_police_calling_index(int value, SelectFromListMenuItem* source){
 	ChancePoliceCallingIndex = value;
-	ChancePoliceCallingChanged = true;
 }
 
 void onchange_chance_attacking_you_index(int value, SelectFromListMenuItem* source){
 	ChanceAttackingYouIndex = value;
-	ChanceAttackingYouChanged = true;
 }
 
 void onchange_sniper_vision_modifier(int value, SelectFromListMenuItem* source){
 	SniperVisionIndex = value;
-	SniperVisionChanged = true;
 }
 
 void onchange_power_punch_index(int value, SelectFromListMenuItem* source) {
 	PowerPunchIndex = value;
-	PowerPunchChanged = true;
 }
 
 void onchange_weapons_firemode_modifier(int value, SelectFromListMenuItem* source) {
 	WeaponsFireModeIndex = value;
-	WeaponsFireModeChanged = true;
 }
 
 void onchange_weapons_rapidfire_modifier(int value, SelectFromListMenuItem* source) {
 	RapidFireIndex = value;
-	RapidFireChanged = true;
 }
 
 void onchange_weap_strobe_index(int value, SelectFromListMenuItem* source) {
 	WeapStrobeIndexN = value;
-	WeapStrobeChanged = true;
 }
 
 void onchange_weap_flashdist_index(int value, SelectFromListMenuItem* source) {
 	WeapFlashDistIndex = value;
-	WeapFlashDistChanged = true;
 }
 
 void onchange_vehicle_weapon_modifier(int value, SelectFromListMenuItem* source) {
 	VehCurrWeaponIndex = value;
-	VehCurrWeaponChanged = true;
 }
 
 void onchange_weapon_no_reticle_modifier(int value, SelectFromListMenuItem* source) {
 	WeaponsNoReticle = value;
-	WeaponsNoReticleChanged = true;
 }
 
 void onchange_weapon_load_saved_modifier(int value, SelectFromListMenuItem* source) {
 	WeaponsSavedLoad = value;
-	WeaponsSavedLoadChanged = true;
 }
 
 ///////////////////////////////// TOGGLE VISION FOR SNIPER RIFLES /////////////////////////////////
@@ -1503,15 +1477,15 @@ bool process_weapon_menu(){
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WeaponMenu.InfiniteParachutes", "Infinite Parachutes");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWeaponInfiniteParachutes;
-	toggleItem->toggleValueUpdated = &featureWeaponInfiniteParachutesUpdated;
+	toggleItem->toggleValue = &featureWeaponInfiniteParachutes.enabled;
+	toggleItem->toggleValueUpdated = &featureWeaponInfiniteParachutes.updated;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WeaponMenu.NoParachutes", "No Parachutes");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWeaponNoParachutes;
-	toggleItem->toggleValueUpdated = &featureWeaponNoParachutesUpdated;
+	toggleItem->toggleValue = &featureWeaponNoParachutes.enabled;
+	toggleItem->toggleValueUpdated = &featureWeaponNoParachutes.updated;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
@@ -1683,10 +1657,10 @@ void reset_weapon_globals(){
 	featurePlayerMelee = true;
 	
 	featureWeaponInfiniteAmmo =
-		featureWeaponInfiniteParachutes =
-		featureWeaponInfiniteParachutesUpdated =
-		featureWeaponNoParachutes =
-		featureWeaponNoParachutesUpdated =
+		featureWeaponInfiniteParachutes.enabled =
+		featureWeaponInfiniteParachutes.updated =
+		featureWeaponNoParachutes.enabled =
+		featureWeaponNoParachutes.updated =
 		featureWeaponNoReload =
 		featureCopTakeWeapon =
 		featureWeaponFireAmmo =
@@ -1950,13 +1924,13 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	}
 
 	// Infinite Parachutes
-	if(featureWeaponInfiniteParachutesUpdated){
-		if(featureWeaponInfiniteParachutes){
-			featureWeaponNoParachutes = false;
+	if(featureWeaponInfiniteParachutes.updated){
+		if(featureWeaponInfiniteParachutes.enabled){
+			featureWeaponNoParachutes.enabled = false;
 		}
-		featureWeaponInfiniteParachutesUpdated = false;
+		featureWeaponInfiniteParachutes.updated = false;
 	}
-	if(bPlayerExists && featureWeaponInfiniteParachutes && detained == false && in_prison == false && super_jump_no_parachute == false){
+	if(bPlayerExists && featureWeaponInfiniteParachutes.enabled && detained == false && in_prison == false && super_jump_no_parachute == false){
 		int pState = PED::GET_PED_PARACHUTE_STATE(playerPed);
 		//unarmed or falling - don't try and give p/chute to player already using one, crashes game
 		if(pState == -1 || pState == 3){
@@ -1965,13 +1939,13 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	}
 
 	// No Parachutes
-	if(featureWeaponNoParachutesUpdated){
-		if(featureWeaponNoParachutes){
-			featureWeaponInfiniteParachutes = false;
+	if(featureWeaponNoParachutes.updated){
+		if(featureWeaponNoParachutes.enabled){
+			featureWeaponInfiniteParachutes.enabled = false;
 		}
-		featureWeaponNoParachutesUpdated = false;
+		featureWeaponNoParachutes.updated = false;
 	}
-	if(bPlayerExists && featureWeaponNoParachutes){
+	if(bPlayerExists && featureWeaponNoParachutes.enabled){
 		int pState = PED::GET_PED_PARACHUTE_STATE(playerPed);
 		if((pState == -1 || pState == 3) && WEAPON::HAS_PED_GOT_WEAPON(playerPed, PARACHUTE_ID, FALSE)){
 			WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
@@ -2897,8 +2871,8 @@ void add_weapon_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* 
 	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponVacuumGrenades", &featureWeaponVacuumGrenades});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponFireAmmo", &featureWeaponFireAmmo});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponInfiniteAmmo", &featureWeaponInfiniteAmmo});
-	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponInfiniteParachutes", &featureWeaponInfiniteParachutes, &featureWeaponInfiniteParachutesUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponNoParachutes", &featureWeaponNoParachutes, &featureWeaponNoParachutesUpdated });
+	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponInfiniteParachutes", &featureWeaponInfiniteParachutes.enabled, &featureWeaponInfiniteParachutes.updated });
+	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponNoParachutes", &featureWeaponNoParachutes.enabled, &featureWeaponNoParachutes.updated });
 	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponNoReload", &featureWeaponNoReload});
 	results->push_back(FeatureEnabledLocalDefinition{"featureCopTakeWeapon", &featureCopTakeWeapon });
 	results->push_back(FeatureEnabledLocalDefinition{"featureGravityGun", &featureGravityGun});

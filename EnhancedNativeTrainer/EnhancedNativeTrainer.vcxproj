@@ -33,13 +33,21 @@
     <ClCompile Include="src\features\time.cpp" />
     <ClCompile Include="src\features\tyresmokemenu.cpp" />
     <ClCompile Include="src\features\xenonColourMenu.cpp" />
-    <ClCompile Include="src\io\config_io.cpp" />
+    <ClCompile Include="src\io\config_io.cpp">
+      <!-- Uses #import for MSXML2 COM interop, which MSVC does not support under /MP. -->
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+    </ClCompile>
     <ClCompile Include="src\io\translation.cpp" />
     <ClCompile Include="src\io\controller.cpp" />
     <ClCompile Include="src\rage_thread\rage_thread.cpp" />
     <ClCompile Include="src\storage\database.cpp" />
     <ClCompile Include="src\debug\debuglog.cpp" />
-    <ClCompile Include="inc\sqlite3\sqlite3.c" />
+    <ClCompile Include="inc\sqlite3\sqlite3.c">
+      <!-- database.cpp only does plain CRUD with foreign keys and sqlite3_open16 (UTF-16) -
+           no FTS/RTREE/virtual tables, extension loading, or the Tcl/authorizer/incremental-blob
+           APIs, so their SQLite subsystems can be compiled out. -->
+      <PreprocessorDefinitions>SQLITE_OMIT_LOAD_EXTENSION;SQLITE_OMIT_DEPRECATED;SQLITE_OMIT_SHARED_CACHE;SQLITE_OMIT_AUTHORIZATION;SQLITE_OMIT_INCRBLOB;SQLITE_OMIT_GET_TABLE;SQLITE_OMIT_COMPLETE;SQLITE_OMIT_PROGRESS_CALLBACK;SQLITE_OMIT_TRACE;SQLITE_OMIT_TCL_VARIABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
     <ClCompile Include="src\io\io.cpp" />
     <ClCompile Include="src\io\keyboard.cpp" />
     <ClCompile Include="main.cpp" />
@@ -56,7 +64,10 @@
     <ClCompile Include="src\ui_support\file_dialog.cpp" />
     <ClCompile Include="src\utils.cpp" />
     <ClCompile Include="src\xml\filestream.hpp" />
-    <ClCompile Include="src\xml\xml_import_export.cpp" />
+    <ClCompile Include="src\xml\xml_import_export.cpp">
+      <!-- Uses #import for MSXML2 COM interop, which MSVC does not support under /MP. -->
+      <MultiProcessorCompilation>false</MultiProcessorCompilation>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\common\option_table.h" />
@@ -397,6 +408,7 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;NativeTrainer_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -416,11 +428,12 @@
       <WarningLevel>Level3</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <Optimization>MaxSpeed</Optimization>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>MinSpace</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;NativeTrainer_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FloatingPointModel>Fast</FloatingPointModel>
       <ExceptionHandling>false</ExceptionHandling>
       <DisableSpecificWarnings>4530;4996;4267</DisableSpecificWarnings>

@@ -10,8 +10,6 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <tchar.h>
 #include <windows.h>
 
-#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
-
 #include <map>
 #include <vector>
 #include <fstream>

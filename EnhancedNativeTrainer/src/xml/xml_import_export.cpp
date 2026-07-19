@@ -4,6 +4,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
+#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
+
 #include "xml_import_export.h"
 #include "..\version.h"
 #include "..\features\script.h"
@@ -11,9 +13,14 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\debug\debuglog.h"
 
 // A global Windows "basic string". Actual memory is allocated by the
-// COM methods used by MSXML which take &keyconf_bstr. We must use SysFreeString() 
+// COM methods used by MSXML which take &keyconf_bstr. We must use SysFreeString()
 // to free this memory before subsequent uses, to prevent a leak.
 BSTR xmlParser_bstr;
+
+// Internal helpers - not used outside this file, so the COM types they take
+// don't need to leak into xml_import_export.h (and its #import with them).
+static void handle_error(IXMLDOMDocumentPtr doc);
+static bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream);
 
 bool generate_xml_for_propset(SavedPropSet* props, std::string outputFile)
 {
@@ -306,7 +313,7 @@ bool parse_xml_for_propset(std::string inputFile, SavedPropSet* set)
 	return true;
 }
 
-void handle_error(IXMLDOMDocumentPtr doc)
+static void handle_error(IXMLDOMDocumentPtr doc)
 {
 	std::ostringstream ss;
 	IXMLDOMParseError* pError;
@@ -325,7 +332,7 @@ void handle_error(IXMLDOMDocumentPtr doc)
 	write_text_to_log_file(ss.str());
 }
 
-bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream)
+static bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream)
 {
 	// Create the writer
 	MSXML2::IMXWriterPtr pMXWriter;

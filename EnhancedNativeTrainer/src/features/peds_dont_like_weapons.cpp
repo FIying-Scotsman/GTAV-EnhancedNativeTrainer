@@ -28,9 +28,7 @@ bool featurePoliceAgainst = true;
 bool call_the_police = false;
 
 int ChancePoliceCallingIndex = 5;
-bool ChancePoliceCallingChanged = true;
 int ChanceAttackingYouIndex = 1;
-bool ChanceAttackingYouChanged = true;
 
 /////////////////////////////////// PEDS DON'T LIKE WEAPONS /////////////////////////////////////////////
 void peds_dont_like_weapons() {

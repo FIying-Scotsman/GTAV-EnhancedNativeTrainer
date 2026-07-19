@@ -43,10 +43,8 @@ bool featurePedsWeapons = false;
 bool featureAngryMenManually = false;
 bool featurePedsIncludeDrivers = false;
 bool featurePedsIncludePilots = false;
-bool featureAggressiveDrivers = false;
-bool featureAggressiveDriversUpdated = false;
-bool featureSpookyDrivers = false;
-bool featureSpookyDriversUpdated = false;
+ToggleFeature featureAggressiveDrivers{false, false};
+ToggleFeature featureSpookyDrivers{false, false};
 bool featureLawAbidingCitizens = false;
 bool featureNPCNoLights = false;
 bool featureNPCNeonLights = false;
@@ -90,7 +88,6 @@ int s_seconds = 0;
 Blip blip_vigilante = -1;
 std::vector<Blip> BLIPTABLE_VIGILANTE;
 int VigilanteBlipIndex = 0;
-bool VigilanteBlipChanged = true;
 bool b_not_equal = false;
 
 // spooked drivers
@@ -106,29 +103,22 @@ const std::vector<std::string> PED_WEAPONS_SELECTIVE_CAPTIONS{ "\"WEAPON_UNARMED
 "\"WEAPON_DBSHOTGUN\"", "\"WEAPON_AUTOSHOTGUN\"", "\"WEAPON_MUSKET\"", "\"WEAPON_SAWNOFFSHOTGUN\"", "\"WEAPON_COMBATMG\"", "\"WEAPON_MINIGUN\"", "\"WEAPON_GUSENBERG\"", "\"WEAPON_SNIPERRIFLE\"", "\"WEAPON_HEAVYSNIPER\"",
 "\"WEAPON_GRENADELAUNCHER\"", "\"WEAPON_GRENADELAUNCHER_SMOKE\"", "\"WEAPON_RPG\"", "\"WEAPON_HOMINGLAUNCHER\"", "\"WEAPON_COMPACTLAUNCHER\"", "\"WEAPON_RAILGUN\"", "\"WEAPON_FIREWORK\"", "\"WEAPON_RAYCARBINE\"", "\"WEAPON_RAYMINIGUN\"",
 "\"WEAPON_RAYPISTOL\"" };
-int PedWeaponsSelectiveIndex = 0;
-bool PedWeaponsSelective1Changed = true;
+ChangeTrackedValue<int> PedWeaponsSelectiveIndex{0, true};
 
 //NPC Vehicle Invicible
 int VehPedInvincibilityIndex = 0;
-bool VehPedInvincibilityChanged = true;
 
 // NPC Vehicle Speed
 int NPCVehicleSpeedIndex = 0;
-bool NPCVehicleSpeedChanged = true;
 int PedAccuracyIndex = 0;
-bool PedAccuracyChanged = true;
 
 // Selective Angry Peds
 const std::vector<std::string> WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS{ "OFF", "Only Men Are Angry", "Only Women Are Angry" };
 int WorldSelectivePedsIndex = 0;
-bool WorldSelectivePedsChanged = true;
 
 // No Peds Gravity & Never Dirty
 int NoPedsGravityIndex = 0;
-bool NoPedsGravityChanged = true;
 int featureNeverDirty = 0;
-bool NeverDirtyChanged = true;
 
 void add_areaeffect_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
 	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerIgnoredByAll", &featurePlayerIgnoredByAll}); 
@@ -147,8 +137,8 @@ void add_areaeffect_feature_enablements(std::vector<FeatureEnabledLocalDefinitio
 	results->push_back(FeatureEnabledLocalDefinition{"featureAngryMenManually", &featureAngryMenManually});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePedsIncludeDrivers", &featurePedsIncludeDrivers});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePedsIncludePilots", &featurePedsIncludePilots});
-	results->push_back(FeatureEnabledLocalDefinition{"featureAggressiveDrivers", &featureAggressiveDrivers});
-	results->push_back(FeatureEnabledLocalDefinition{"featureSpookyDrivers", &featureSpookyDrivers});
+	results->push_back(FeatureEnabledLocalDefinition{"featureAggressiveDrivers", &featureAggressiveDrivers.enabled});
+	results->push_back(FeatureEnabledLocalDefinition{"featureSpookyDrivers", &featureSpookyDrivers.enabled});
 	results->push_back(FeatureEnabledLocalDefinition{"featureLawAbidingCitizens", &featureLawAbidingCitizens});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNPCNoLights", &featureNPCNoLights}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureNPCNeonLights", &featureNPCNeonLights}); 
@@ -174,10 +164,10 @@ void reset_areaeffect_globals(){
 	featureAngryPedsUseCover = false;
 	featurePedsIncludeDrivers = false;
 	featurePedsIncludePilots = false;
-	featureAggressiveDrivers = false;
-	featureAggressiveDriversUpdated = false;
-	featureSpookyDrivers = false;
-	featureSpookyDriversUpdated = false;
+	featureAggressiveDrivers.enabled = false;
+	featureAggressiveDrivers.updated = false;
+	featureSpookyDrivers.enabled = false;
+	featureSpookyDrivers.updated = false;
 	featureLawAbidingCitizens = false;
 	featureNPCNoLights = false;
 	featureNPCNeonLights = false;
@@ -272,15 +262,15 @@ void process_areaeffect_peds_menu(){
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("AreaEffectMenu.AggressiveDrivers", "Aggressive Drivers");
 	togItem->value = 1;
-	togItem->toggleValue = &featureAggressiveDrivers;
-	togItem->toggleValueUpdated = &featureAggressiveDriversUpdated;
+	togItem->toggleValue = &featureAggressiveDrivers.enabled;
+	togItem->toggleValueUpdated = &featureAggressiveDrivers.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("AreaEffectMenu.SpookedDrivers", "Spooked Drivers");
 	togItem->value = 1;
-	togItem->toggleValue = &featureSpookyDrivers;
-	togItem->toggleValueUpdated = &featureSpookyDriversUpdated;
+	togItem->toggleValue = &featureSpookyDrivers.enabled;
+	togItem->toggleValueUpdated = &featureSpookyDrivers.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -450,7 +440,7 @@ void process_areaeffect_peds_weapons_menu() {
 	listItem = new SelectFromListMenuItem(&PED_WEAPONS_SELECTIVE_CAPTIONS, onchange_ped_weapons_selective_index);
 	listItem->wrap = false;
 	listItem->caption = tr("AreaEffectMenu.CustomWeapon", "Custom Weapon");
-	listItem->value = PedWeaponsSelectiveIndex;
+	listItem->value = PedWeaponsSelectiveIndex.value;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -653,9 +643,9 @@ void update_area_effects(Ped playerPed){
 		if((featureAreaPedsRioting && pedWeaponSetIndex != 0) || pedWeaponSetIndex != 0){
 			give_all_nearby_peds_a_weapon(pedWeaponSetIndex); //  != 0
 		}
-		if ((featureAreaPedsRioting && PedWeaponsSelectiveIndex != 0) || PedWeaponsSelective1Changed || PedWeaponsSelectiveIndex != 0) {
-			give_all_nearby_peds_a_weapon(PedWeaponsSelectiveIndex); //  != 0
-			PedWeaponsSelective1Changed = false;
+		if ((featureAreaPedsRioting && PedWeaponsSelectiveIndex.value != 0) || PedWeaponsSelectiveIndex.changed || PedWeaponsSelectiveIndex.value != 0) {
+			give_all_nearby_peds_a_weapon(PedWeaponsSelectiveIndex.value); //  != 0
+			PedWeaponsSelectiveIndex.changed = false;
 		}
 	}
 	
@@ -747,7 +737,7 @@ void update_area_effects(Ped playerPed){
 	}
 
 	// Aggressive Drivers && Vigilante Citizens
-	if ((featureAggressiveDrivers || featureLawAbidingCitizens) && !featurePlayerIgnoredByAll && !featurePlayerInvisible && GAMEPLAY::GET_MISSION_FLAG() == 0) { // !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp")
+	if ((featureAggressiveDrivers.enabled || featureLawAbidingCitizens) && !featurePlayerIgnoredByAll && !featurePlayerInvisible && GAMEPLAY::GET_MISSION_FLAG() == 0) { // !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp")
 		Vehicle veh_me = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
 		Vector3 veh_me_coords = ENTITY::GET_ENTITY_COORDS(veh_me, true);
 		Vector3 me_coords = ENTITY::GET_ENTITY_COORDS(playerPed, true);
@@ -791,7 +781,7 @@ void update_area_effects(Ped playerPed){
 				} // end of vigilante citizens
 				
 				// aggressive drivers
-				if (featureAggressiveDrivers && !SCRIPT::HAS_SCRIPT_LOADED("fbi4_prep3amb")) {
+				if (featureAggressiveDrivers.enabled && !SCRIPT::HAS_SCRIPT_LOADED("fbi4_prep3amb")) {
 					Vehicle veh_coll_with = PED::GET_VEHICLE_PED_IS_IN(veh_agressive[i], false);
 					Vector3 veh_coll_with_coords = ENTITY::GET_ENTITY_COORDS(veh_coll_with, true);
 					int vehcoll_with_dist_x = (veh_me_coords.x - veh_coll_with_coords.x);
@@ -983,7 +973,7 @@ void update_area_effects(Ped playerPed){
 	} // end of aggressive drivers && vigilante citizens
 
 	// Spooked Drivers
-	if (featureSpookyDrivers && PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if (featureSpookyDrivers.enabled && PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) && GAMEPLAY::GET_MISSION_FLAG() == 0) {
 		Vehicle veh_me = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
 		Vector3 veh_me_coords = ENTITY::GET_ENTITY_COORDS(veh_me, true);
 		Vehicle veh_col = -1;
@@ -1099,13 +1089,13 @@ void update_area_effects(Ped playerPed){
 		}
 
 	}
-	if (featureAggressiveDriversUpdated) {
-		featureSpookyDrivers = false;
-		featureAggressiveDriversUpdated = false;
+	if (featureAggressiveDrivers.updated) {
+		featureSpookyDrivers.enabled = false;
+		featureAggressiveDrivers.updated = false;
 	}
-	if (featureSpookyDriversUpdated) {
-		featureAggressiveDrivers = false;
-		featureSpookyDriversUpdated = false;
+	if (featureSpookyDrivers.updated) {
+		featureAggressiveDrivers.enabled = false;
+		featureSpookyDrivers.updated = false;
 	} // end of spooked drivers
 	
 }
@@ -1513,17 +1503,14 @@ void onchange_areaeffect_ped_weapons(int value, SelectFromListMenuItem* source){
 
 void onchange_world_npc_vehicles_speed_index(int value, SelectFromListMenuItem* source) {
 	NPCVehicleSpeedIndex = value;
-	NPCVehicleSpeedChanged = true;
 }
 
 void onchange_veh_ped_invincibility_mode(int value, SelectFromListMenuItem* source) {
 	VehPedInvincibilityIndex = value;
-	VehPedInvincibilityChanged = true;
 }
 
 void onchange_world_selective_peds_angry_index(int value, SelectFromListMenuItem* source) {
 	WorldSelectivePedsIndex = value;
-	WorldSelectivePedsChanged = true;
 }
 
 void onchange_peds_health_index(int value, SelectFromListMenuItem* source) {
@@ -1533,22 +1520,19 @@ void onchange_peds_health_index(int value, SelectFromListMenuItem* source) {
 
 void onchange_world_no_peds_gravity_index(int value, SelectFromListMenuItem* source) {
 	NoPedsGravityIndex = value;
-	NoPedsGravityChanged = true;
 }
 
 void onchange_vigilante_blips_index(int value, SelectFromListMenuItem* source) {
 	VigilanteBlipIndex = value;
-	VigilanteBlipChanged = true;
 }
 
 void onchange_ped_accuracy_index(int value, SelectFromListMenuItem* source) {
 	PedAccuracyIndex = value;
-	PedAccuracyChanged = true;
 }
 
 void onchange_ped_weapons_selective_index(int value, SelectFromListMenuItem* source){
-	PedWeaponsSelectiveIndex = value;
-	PedWeaponsSelective1Changed = true;
+	PedWeaponsSelectiveIndex.value = value;
+	PedWeaponsSelectiveIndex.changed = true;
 }
 
 void give_all_nearby_peds_a_weapon(bool enabled){ 
@@ -1601,8 +1585,8 @@ void give_all_nearby_peds_a_weapon(bool enabled){
 		else
 		{
 			if (!PED::IS_PED_GROUP_MEMBER(xped, PLAYER::GET_PLAYER_GROUP(PLAYER::PLAYER_PED_ID())) && PED::GET_PED_TYPE(xped) != 6 && PED::GET_PED_TYPE(xped) != 27 && PED::GET_PED_TYPE(xped) != 29) {
-				char *currWeapon = new char[PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex].length() + 1];
-				strcpy(currWeapon, PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex].c_str());
+				char *currWeapon = new char[PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex.value].length() + 1];
+				strcpy(currWeapon, PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex.value].c_str());
 				Hash Ped_Selective_Weapon = GAMEPLAY::GET_HASH_KEY(currWeapon);
 				if (!featurePedsIncludeDrivers && WEAPON::GET_SELECTED_PED_WEAPON(xped) != Ped_Selective_Weapon && !PED::IS_PED_IN_ANY_VEHICLE(xped, false)) WEAPON::GIVE_WEAPON_TO_PED(xped, Ped_Selective_Weapon, 999, FALSE, TRUE); // !WEAPON::HAS_PED_GOT_WEAPON(xped, Ped_Selective_Weapon, 0)
 				if (featurePedsIncludeDrivers && WEAPON::GET_SELECTED_PED_WEAPON(xped) != Ped_Selective_Weapon) WEAPON::GIVE_WEAPON_TO_PED(xped, Ped_Selective_Weapon, 999, FALSE, TRUE);
@@ -1618,7 +1602,7 @@ void add_areaeffect_generic_settings(std::vector<StringPairSettingDBRow>* result
 	results->push_back(StringPairSettingDBRow{"pedWeaponSetIndex", std::to_string(pedWeaponSetIndex)});
 	results->push_back(StringPairSettingDBRow{"VehPedInvincibilityIndex", std::to_string(VehPedInvincibilityIndex)});
 	results->push_back(StringPairSettingDBRow{"VigilanteBlipIndex", std::to_string(VigilanteBlipIndex)});
-	results->push_back(StringPairSettingDBRow{"PedWeaponsSelectiveIndex", std::to_string(PedWeaponsSelectiveIndex)});
+	results->push_back(StringPairSettingDBRow{"PedWeaponsSelectiveIndex", std::to_string(PedWeaponsSelectiveIndex.value)});
 	results->push_back(StringPairSettingDBRow{"WorldSelectivePedsIndex", std::to_string(WorldSelectivePedsIndex)});
 }
 
@@ -1629,20 +1613,17 @@ void handle_generic_settings_areaeffect(std::vector<StringPairSettingDBRow>* set
 			pedWeaponSetIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("PedWeaponsSelectiveIndex") == 0){
-			PedWeaponsSelectiveIndex = stoi(setting.value);
-			PedWeaponsSelective1Changed = true;
+			PedWeaponsSelectiveIndex.value = stoi(setting.value);
+			PedWeaponsSelectiveIndex.changed = true;
 		}
 		else if (setting.name.compare("VigilanteBlipIndex") == 0) {
 			VigilanteBlipIndex = stoi(setting.value);
-			VigilanteBlipChanged = true;
 		}
 		else if (setting.name.compare("VehPedInvincibilityIndex") == 0) {
 			VehPedInvincibilityIndex = stoi(setting.value);
-			VehPedInvincibilityChanged = true;
 		}
 		else if (setting.name.compare("WorldSelectivePedsIndex") == 0) {
 			WorldSelectivePedsIndex = stoi(setting.value);
-			PedWeaponsSelective1Changed = true;
 		}
 	}
 }

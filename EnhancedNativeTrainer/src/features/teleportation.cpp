@@ -778,12 +778,10 @@ const Option<int> TEL_3DMARKER_OPTIONS[] = { // "0", // "4", "6", , "8" , "5" //
 const std::vector<std::string> TEL_3DMARKER_CAPTIONS = captionsOf(TEL_3DMARKER_OPTIONS);
 const std::vector<int> TEL_3DMARKER_VALUES = valuesOf(TEL_3DMARKER_OPTIONS);
 int Tel3dmarkerIndexN = 1;
-bool Tel3dmarker_Changed = true;
 
 //Marker Type
 const std::vector<std::string> TEL_3DMARKER_MARTYPE_CAPTIONS{ "Symbol", "Column" };
 int Tel3dmarker_martype_Index = 0;
-bool Tel3dmarker_martype_Changed = true;
 
 void teleport_to_coords(Entity e, Vector3 coords){
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords.x, coords.y, coords.z, 0, 0, 1);
@@ -924,32 +922,26 @@ void add_coords_generic_settings(std::vector<StringPairSettingDBRow>* results)
 
 void onchange_tel_chauffeur_index(int value, SelectFromListMenuItem *source){
 	TelChauffeurIndex = value;
-	TelChauffeur_Changed = true;
 }
 
 void onchange_tel_3dmarker_index(int value, SelectFromListMenuItem *source){
 	Tel3dmarkerIndexN = value;
-	Tel3dmarker_Changed = true;
 }
 
 void onchange_tel_3dmarker_martype_index(int value, SelectFromListMenuItem *source){
 	Tel3dmarker_martype_Index = value;
-	Tel3dmarker_martype_Changed = true;
 }
 
 void onchange_tel_chauffeur_speed_index(int value, SelectFromListMenuItem *source){
 	TelChauffeur_speed_IndexN = value;
-	TelChauffeur_speed_Changed = true;
 }
 
 void onchange_tel_chauffeur_altitude_index(int value, SelectFromListMenuItem *source){
 	TelChauffeur_altitude_Index = value;
-	TelChauffeur_altitude_Changed = true;
 }
 
 void onchange_tel_chauffeur_drivingstyles_index(int value, SelectFromListMenuItem *source){
 	TelChauffeur_drivingstyles_Index = value;
-	TelChauffeur_drivingstyles_Changed = true;
 }
 
 void handle_generic_settings_teleportation(std::vector<StringPairSettingDBRow>* settings){
@@ -1394,8 +1386,8 @@ bool process_teleport_menu(int categoryIndex){
 		togItem = new ToggleMenuItem<int>();
 		togItem->caption = tr("TeleportMenu.LoadOnlineMap", "Load Online Map");
 		togItem->value = 8;
-		togItem->toggleValue = &featureMPMap;
-		togItem->toggleValueUpdated = &featureMPMapUpdated;
+		togItem->toggleValue = &featureMPMap.enabled;
+		togItem->toggleValueUpdated = &featureMPMap.updated;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();

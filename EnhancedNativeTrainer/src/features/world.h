@@ -19,6 +19,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <cstdint>
 #include "..\..\inc\main.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "..\ent-enums.h"
 #include "..\utils.h"
 #include "..\common\ENTUtil.h"
@@ -91,7 +92,7 @@ extern bool featureFirstPersonDeathCamera;
 
 void EnableTracks(bool tracksVehicle, bool tracksPeds, bool deepTracksVehicle, bool deepTracksPed);
 
-void EnableSnow(bool featureSnow);
+void EnableSnow(bool* snowEnabled);
 
 extern bool featureBusLight;
 
@@ -106,8 +107,7 @@ const Option<int> WORLD_GRAVITY_LEVEL_OPTIONS[] = {
 const std::vector<std::string> WORLD_GRAVITY_LEVEL_CAPTIONS = captionsOf(WORLD_GRAVITY_LEVEL_OPTIONS);
 const std::vector<int> WORLD_GRAVITY_LEVEL_VALUES = valuesOf(WORLD_GRAVITY_LEVEL_OPTIONS);
 
-extern bool featurePenitentiaryMap;
-extern bool featureCayoPericoMap;
+extern ToggleFeature featurePenitentiaryMap;
+extern ToggleFeature featureCayoPericoMap;
 
-extern bool featureWorldNoTraffic;
-extern bool featureWorldNoTrafficUpdated;
+extern ToggleFeature featureWorldNoTraffic;

@@ -99,11 +99,8 @@ extern int BarPositionIndexN;
 const std::vector<std::string> FUEL_COLOURS_R_CAPTIONS{ "OFF", "10", "30", "50", "70", "90", "110", "130", "150", "170", "190", "210", "230", "250", "255" }; // "20", "40", "60", "80", "100", "120",  "140", "160", "180", "200", "220", "240",
 const int FUEL_COLOURS_R_VALUES[] = { 0, 10, 30, 50, 70, 90, 110, 130, 150, 170, 190, 210, 230, 250, 255 }; // 20, 40, 60, 80, 100, 120, 140, 160, 180, 200, 220, 240,
 extern int FuelColours_R_IndexN;
-extern bool FuelColours_R_Changed;
 extern int FuelColours_G_IndexN;
-extern bool FuelColours_G_Changed;
 extern int FuelColours_B_IndexN;
-extern bool FuelColours_B_Changed;
 
 //Show Blips
 const std::vector<std::string> VEH_FUELBLIPS_CAPTIONS{ "OFF", "Everywhere", "On Radar Only", "If Phone In Hand Only" };

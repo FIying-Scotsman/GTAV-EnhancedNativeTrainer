@@ -45,27 +45,16 @@ bool featureEngineHealthBar = false;
 bool featureLimpMode = false;
 
 int CarEngineHealthIndexN = 7;
-bool CarEngineHealthChanged = true;
 int BikeEngineHealthIndexN = 7;
-bool BikeEngineHealthChanged = true;
 int PlaneEngineHealthIndexN = 7;
-bool PlaneEngineHealthChanged = true;
 int HeliEngineHealthIndexN = 7;
-bool HeliEngineHealthChanged = true;
 int BoatEngineHealthIndexN = 7;
-bool BoatEngineHealthChanged = true;
 int RestorationSpeedIndexN = 2;
-bool RestorationSpeedChanged = true;
 int CarEngineDegradeIndex = 5;
-bool CarEngineDegradeChanged = true;
 int BikeEngineDegradeIndex = 5;
-bool BikeEngineDegradeChanged = true;
 int PlaneEngineDegradeIndex = 5;
-bool PlaneEngineDegradeChanged = true;
 int HeliEngineDegradeIndex = 5;
-bool HeliEngineDegradeChanged = true;
 int BoatEngineDegradeIndex = 5;
-bool BoatEngineDegradeChanged = true;
 
 //////////////////////////////////////////////// ENGINE DAMAGE /////////////////////////////////////////////////////////////////
 void engine_can_degrade()

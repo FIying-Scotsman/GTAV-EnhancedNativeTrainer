@@ -36,7 +36,6 @@ using namespace std;
 
 //vehicle invincibility
 int VehInvincibilityIndex = 0;
-bool VehInvincibilityChanged = true;
 bool featureVehInvincibleUpdated = false;
 
 bool feature3rdpersonviewonly = false;
@@ -148,12 +147,9 @@ bool featureVehSpawnInto = false;
 bool featureVehSpawnTuned = false;
 bool featureVehSpawnOptic = false;
 bool featureVehicleDoorInstant = false;
-bool featureLockVehicleDoors = false;
-bool featureLockVehicleDoorsUpdated = false;
-bool featureWearHelmetOff = false;
-bool featureWearHelmetOffUpdated = false;
-bool featureVehLightsOn = false;
-bool featureVehLightsOnUpdated = false;
+ToggleFeature featureLockVehicleDoors{false, false};
+ToggleFeature featureWearHelmetOff{false, false};
+ToggleFeature featureVehLightsOn{false, false};
 bool window_roll = false;
 bool interior_lights = false;
 bool veh_searching = false;
@@ -208,8 +204,7 @@ int nitrous_m = -2;
 
 int sheshark_light_toogle = 1;
 
-bool featureDespawnScriptDisabled = false;
-bool featureDespawnScriptDisabledUpdated = false;
+ToggleFeature featureDespawnScriptDisabled{false, false};
 
 int activeLineIndexVeh = 0;
 int activeSavedVehicleIndex = -1;
@@ -859,8 +854,8 @@ void vehicle_set_alarm() {
 }
 
 void doorslocked_switching() {
-	featureLockVehicleDoors = !featureLockVehicleDoors;
-	if (featureLockVehicleDoors) set_status_text(tr("VehicleMenu.DoorsLocked", "Doors Locked"));
+	featureLockVehicleDoors.enabled = !featureLockVehicleDoors.enabled;
+	if (featureLockVehicleDoors.enabled) set_status_text(tr("VehicleMenu.DoorsLocked", "Doors Locked"));
 	else set_status_text(tr("VehicleMenu.DoorsUnlocked", "Doors Unlocked"));
 	WAIT(100);
 }
@@ -1287,7 +1282,7 @@ bool process_veh_door_menu(){
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("VehicleMenu.LockVehicleDoors", "Lock Vehicle Doors");
 	toggleItem->value = -4;
-	toggleItem->toggleValue = &featureLockVehicleDoors;
+	toggleItem->toggleValue = &featureLockVehicleDoors.enabled;
 	menuItems.push_back(toggleItem);
 
 	std::vector<MenuItem<int>*> menuItemsRoll;
@@ -2458,8 +2453,8 @@ void process_veh_menu(){
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("VehicleMenu.DonTWearHelmet", "Don't Wear Helmet");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWearHelmetOff;
-	toggleItem->toggleValueUpdated = &featureWearHelmetOffUpdated;
+	toggleItem->toggleValue = &featureWearHelmetOff.enabled;
+	toggleItem->toggleValueUpdated = &featureWearHelmetOff.updated;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
@@ -2483,7 +2478,7 @@ void process_veh_menu(){
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("VehicleMenu.DisableDespawnOfDLCVehicles", "Disable Despawn Of DLC Vehicles");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureDespawnScriptDisabled;
+	toggleItem->toggleValue = &featureDespawnScriptDisabled.enabled;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(&VEH_MASS_CAPTIONS, onchange_veh_mass_index);
@@ -2609,8 +2604,8 @@ void process_veh_menu(){
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("VehicleMenu.ForceVehicleLightsOn", "Force Vehicle Lights On");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureVehLightsOn;
-	toggleItem->toggleValueUpdated = &featureVehLightsOnUpdated;
+	toggleItem->toggleValue = &featureVehLightsOn.enabled;
+	toggleItem->toggleValueUpdated = &featureVehLightsOn.updated;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
@@ -2842,17 +2837,17 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 	}
 
 	// Disable Despawn Of DLC Vehicles
-	if (featureDespawnScriptDisabled && featureDespawnScriptDisabledUpdated == false) {
+	if (featureDespawnScriptDisabled.enabled && featureDespawnScriptDisabled.updated == false) {
 		set_status_text(tr("VehicleMenu.RNoteRInGameShopsWillNotWorkUntilYouTurn", "~r~Note:~r~ in-game shops will not work until you turn off the 'disable despawn' option."));
 		GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("shop_controller");
-		featureDespawnScriptDisabledUpdated = true;
+		featureDespawnScriptDisabled.updated = true;
 	}
-	if (!featureDespawnScriptDisabled && featureDespawnScriptDisabledUpdated == true) {
+	if (!featureDespawnScriptDisabled.enabled && featureDespawnScriptDisabled.updated == true) {
 		SCRIPT::REQUEST_SCRIPT("shop_controller");
 		while (!SCRIPT::HAS_SCRIPT_LOADED("shop_controller")) WAIT(0);
 		if (SCRIPT::HAS_SCRIPT_LOADED("shop_controller")) {
 			SYSTEM::START_NEW_SCRIPT("shop_controller", 5000);
-			featureDespawnScriptDisabledUpdated = false;
+			featureDespawnScriptDisabled.updated = false;
 		}
 	}
 
@@ -3021,9 +3016,9 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 
 	// No Helmet 
 	if (bPlayerExists){
-		if (featureWearHelmetOffUpdated || did_player_just_enter_vehicle(playerPed)){
-			PED::SET_PED_HELMET(playerPed, !featureWearHelmetOff); // Prevents player from wearing a helmet
-			featureWearHelmetOffUpdated = false;
+		if (featureWearHelmetOff.updated || did_player_just_enter_vehicle(playerPed)){
+			PED::SET_PED_HELMET(playerPed, !featureWearHelmetOff.enabled); // Prevents player from wearing a helmet
+			featureWearHelmetOff.updated = false;
 		}
 	}
 
@@ -4414,14 +4409,14 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 
 	// Force Vehicle Lights On
 	if(bPlayerExists) {
-		if(featureVehLightsOnUpdated || did_player_just_enter_vehicle(playerPed)){
-			if(featureVehLightsOn){
+		if(featureVehLightsOn.updated || did_player_just_enter_vehicle(playerPed)){
+			if(featureVehLightsOn.enabled){
 				VEHICLE::SET_VEHICLE_LIGHTS(veh, 2); // 0 = normal, 1 = force off, 2 = forced on (visual_night), 3 = forced on (blink), 4 = forced off (blink), 5+ = normal
-				featureVehLightsOnUpdated = false;
+				featureVehLightsOn.updated = false;
 			}
 			else{
 				VEHICLE::SET_VEHICLE_LIGHTS(veh, 0);
-				featureVehLightsOnUpdated = false;
+				featureVehLightsOn.updated = false;
 			}
 		}
 	}
@@ -4943,10 +4938,10 @@ void reset_vehicle_globals() {
 		featureFuel = 
 		featureVehMassMult =
 		featureVehicleDoorInstant =
-		featureLockVehicleDoors =
+		featureLockVehicleDoors.enabled =
 		featureVehSpawnInto = 
 		featureNoVehFallOff =
-		featureWearHelmetOff =
+		featureWearHelmetOff.enabled =
 		featureEngineDegrade = 
 		featureEngineHealthBar = 
 		featureLimpMode = 
@@ -4958,16 +4953,16 @@ void reset_vehicle_globals() {
 		featureRestoreTracked =
 		featureRoutineOfRinger =
 		featureShowPedCons =
-		featureVehLightsOn = false;
+		featureVehLightsOn.enabled = false;
 
-	featureLockVehicleDoorsUpdated = false;
+	featureLockVehicleDoors.updated = false;
 	featureRoutineAnimations = true;
 		featureBlipNumber = true;
 		featureRoutineBars = true;
 		featureDoorLocked = true;
 		featureIgnition = true;
 		featureHazards = true;
-		featureWearHelmetOffUpdated = true;
+		featureWearHelmetOff.updated = true;
 		featurePoliceVehicleBlip = true;
 		featurePoliceNoFlip = true;
 		featureAltitude = true;
@@ -4983,11 +4978,11 @@ void reset_vehicle_globals() {
 		featureStolenVehicle = true;
 		featureNoLightsNightTime = true;
 		featureEscapingPolice = true;
-		featureVehLightsOnUpdated = true;
+		featureVehLightsOn.updated = true;
 		featureShowIgnAnim = true;
 
-	featureDespawnScriptDisabled = false;
-	featureDespawnScriptDisabledUpdated = false;
+	featureDespawnScriptDisabled.enabled = false;
+	featureDespawnScriptDisabled.updated = false;
 }
 
 void keyboard_tip_message(char* curr_message_s) {
@@ -5242,9 +5237,9 @@ void add_vehicle_feature_enablements(std::vector<FeatureEnabledLocalDefinition>*
 	results->push_back(FeatureEnabledLocalDefinition{"featureSpeedInAir", &featureSpeedInAir });
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehSpawnTuned", &featureVehSpawnTuned});
 	results->push_back(FeatureEnabledLocalDefinition{"featureVehSpawnOptic", &featureVehSpawnOptic});
-	results->push_back(FeatureEnabledLocalDefinition{"featureWearHelmetOff", &featureWearHelmetOff, &featureWearHelmetOffUpdated});
-	results->push_back(FeatureEnabledLocalDefinition{"featureDespawnScriptDisabled", &featureDespawnScriptDisabled}); // , &featureDespawnScriptDisabledUpdated
-	results->push_back(FeatureEnabledLocalDefinition{"featureVehLightsOn", &featureVehLightsOn, &featureVehLightsOnUpdated});
+	results->push_back(FeatureEnabledLocalDefinition{"featureWearHelmetOff", &featureWearHelmetOff.enabled, &featureWearHelmetOff.updated});
+	results->push_back(FeatureEnabledLocalDefinition{"featureDespawnScriptDisabled", &featureDespawnScriptDisabled.enabled}); // , &featureDespawnScriptDisabled.updated
+	results->push_back(FeatureEnabledLocalDefinition{"featureVehLightsOn", &featureVehLightsOn.enabled, &featureVehLightsOn.updated});
 	results->push_back(FeatureEnabledLocalDefinition{"featureEngineDegrade", &featureEngineDegrade});
 	results->push_back(FeatureEnabledLocalDefinition{"featureEngineHealthBar", &featureEngineHealthBar});
 	results->push_back(FeatureEnabledLocalDefinition{"featureLimpMode", &featureLimpMode});
@@ -6178,7 +6173,6 @@ void handle_generic_settings_vehicle(std::vector<StringPairSettingDBRow>* settin
 
 void onchange_veh_invincibility_mode(int value, SelectFromListMenuItem* source){
 	VehInvincibilityIndex = value;
-	VehInvincibilityChanged = true;
 }
 
 void onchange_veh_speed_boost_index(int value, SelectFromListMenuItem *source){
@@ -6191,397 +6185,318 @@ int get_current_veh_eng_pow_index(){
 
 void onchange_veh_eng_pow_index(int value, SelectFromListMenuItem* source){
 	engPowMultIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_never_dirty(int value, SelectFromListMenuItem* source) {
 	featureNeverDirty = value;
-	NeverDirtyChanged = true;
 }
 
 void onchange_veh_mass_index(int value, SelectFromListMenuItem* source){
 	VehMassMultIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_player_forceshield_mode(int value, SelectFromListMenuItem* source) {
 	current_player_forceshieldN = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_infiniteboost_index(int value, SelectFromListMenuItem* source) {
 	InfiniteBoostIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_nitrous_index(int value, SelectFromListMenuItem* source) {
 	NitrousIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_turn_signals_index(int value, SelectFromListMenuItem* source){
 	turnSignalsIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_turn_signals_angle_index(int value, SelectFromListMenuItem* source) {
 	turnSignalsAngleIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_nitrous_power_index(int value, SelectFromListMenuItem* source) {
 	NitrousPowerIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_turn_signals_acceleration_index(int value, SelectFromListMenuItem* source) {
 	turnSignalsAccelerationIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_jumpy_index(int value, SelectFromListMenuItem* source) {
 	JumpyVehIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_heavy_veh_index(int value, SelectFromListMenuItem* source) {
 	HeavyVehIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_custom_eng_pow_index(int value, SelectFromListMenuItem* source) {
 	engCustomPowMultIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_invisibility_index(int value, SelectFromListMenuItem* source) {
 	VehInvisIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_lightsOff_index(int value, SelectFromListMenuItem* source){
 	lightsOffIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_speedlimiter_index(int value, SelectFromListMenuItem* source){
 	speedLimiterIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_cityspeedlimiter_index(int value, SelectFromListMenuItem* source) {
 	speedCityLimiterIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_countryspeedlimiter_index(int value, SelectFromListMenuItem* source) {
 	speedCountryLimiterIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_speed_size_index(int value, SelectFromListMenuItem* source){
 	SpeedSizeIndex = value;
-	SizeChanged = true;
 }
 
 void onchange_speed_position_index(int value, SelectFromListMenuItem* source){
 	SpeedPositionIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_door_autolock_index(int value, SelectFromListMenuItem* source) {
 	DoorAutolockIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_fuel_background_opacity_index(int value, SelectFromListMenuItem* source){
 	FuelBackground_Opacity_IndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_remember_index(int value, SelectFromListMenuItem* source){
 	VehRememberIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_blipsize_index(int value, SelectFromListMenuItem* source){
 	VehBlipSizeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_levitation_index(int value, SelectFromListMenuItem* source) {
 	LevitationIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_blipcolour_index(int value, SelectFromListMenuItem* source){
 	VehBlipColourIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_world_npc_vehicles_colour_index(int value, SelectFromListMenuItem* source) {
 	VehColourIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_vehicles_random_colour_index(int value, SelectFromListMenuItem* source) {
 	VehRandomColourIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_world_npc_veh_damageoncoll_index(int value, SelectFromListMenuItem* source) {
 	NPCVehicleDamageOnCollIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_speeding_city_index(int value, SelectFromListMenuItem* source){
 	SpeedingCityIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_detection_range_index(int value, SelectFromListMenuItem* source){
 	DetectionRangeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_pirsuit_range_index(int value, SelectFromListMenuItem* source){
 	PirsuitRangeIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_stars_punish_index(int value, SelectFromListMenuItem* source){
 	StarsPunishIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_enginerunning_index(int value, SelectFromListMenuItem* source){
 	EngineRunningIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_autoshutengine_index(int value, SelectFromListMenuItem* source) {
 	AutoShutEngineIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_skill_index(int value, SelectFromListMenuItem* source) {
 	RingerSkillIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_breaking_into_index(int value, SelectFromListMenuItem* source) {
 	RingerBreakSecMaxIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_breaking_into_min_index(int value, SelectFromListMenuItem* source) {
 	RingerBreakSecMinIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_hotwire_index(int value, SelectFromListMenuItem* source) {
 	RingerHotwireSecMaxIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_hotwire_min_index(int value, SelectFromListMenuItem* source) {
 	RingerHotwireSecMinIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_breaking_attempt_index(int value, SelectFromListMenuItem* source) {
 	RingerBreakAttemptIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_drag_out_index(int value, SelectFromListMenuItem* source) {
 	RingerDragOutIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_ped_alertness_index(int value, SelectFromListMenuItem* source) {
 	RingerPedAlertnessIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_call_cop_index(int value, SelectFromListMenuItem* source) {
 	RingerCallCopSecIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_hydraulics_index(int value, SelectFromListMenuItem* source) {
 	HydraulicsIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_vislight_index(int value, SelectFromListMenuItem* source) {
 	VisLightIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_vislight3d_index(int value, SelectFromListMenuItem* source) {
 	VisLight3dIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_speeding_speedway_index(int value, SelectFromListMenuItem* source){
 	SpeedingSpeedwayIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_fine_size_index(int value, SelectFromListMenuItem* source){
 	FineSizeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_blipsymbol_index(int value, SelectFromListMenuItem* source){
 	VehBlipSymbolIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_blipflash_index(int value, SelectFromListMenuItem* source){
 	VehBlipFlashIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_veh_trackedautosave_index(int value, SelectFromListMenuItem* source) {
 	VehTrackedAutoSaveIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_fuel_blips_index(int value, SelectFromListMenuItem* source){
 	FuelBlipsIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_idle_consumption_index(int value, SelectFromListMenuItem* source) {
 	IdleConsumptionIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_car_consumption_index(int value, SelectFromListMenuItem* source){
 	CarConsumptionIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_bike_consumption_index(int value, SelectFromListMenuItem* source){
 	BikeConsumptionIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_boat_consumption_index(int value, SelectFromListMenuItem* source){
 	BoatConsumptionIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_plane_consumption_index(int value, SelectFromListMenuItem* source){
 	PlaneConsumptionIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_heli_consumption_index(int value, SelectFromListMenuItem* source){
 	HeliConsumptionIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_car_enginehealth_index(int value, SelectFromListMenuItem* source) {
 	CarEngineHealthIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_bike_enginehealth_index(int value, SelectFromListMenuItem* source) {
 	BikeEngineHealthIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_boat_enginehealth_index(int value, SelectFromListMenuItem* source) {
 	BoatEngineHealthIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_plane_enginehealth_index(int value, SelectFromListMenuItem* source) {
 	PlaneEngineHealthIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_heli_enginehealth_index(int value, SelectFromListMenuItem* source) {
 	HeliEngineHealthIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_car_enginedegrade_index(int value, SelectFromListMenuItem* source) {
 	CarEngineDegradeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_bike_enginedegrade_index(int value, SelectFromListMenuItem* source) {
 	BikeEngineDegradeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_boat_enginedegrade_index(int value, SelectFromListMenuItem* source) {
 	BoatEngineDegradeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_plane_enginedegrade_index(int value, SelectFromListMenuItem* source) {
 	PlaneEngineDegradeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_heli_enginedegrade_index(int value, SelectFromListMenuItem* source) {
 	HeliEngineDegradeIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_restoration_speed_index(int value, SelectFromListMenuItem* source) {
 	RestorationSpeedIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_refuelspeed_index(int value, SelectFromListMenuItem* source){
 	RefuelingSpeedIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_fuelprice_index(int value, SelectFromListMenuItem* source){
 	FuelPriceIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_canprice_index(int value, SelectFromListMenuItem* source){
 	JerrycanPriceIndex = value;
-	PositionChanged = true;
 }
 
 void onchange_random1_index(int value, SelectFromListMenuItem* source){
 	Random1Index = value;
-	PositionChanged = true;
 }
 
 void onchange_random2_index(int value, SelectFromListMenuItem* source){
 	Random2Index = value;
-	PositionChanged = true;
 }
 
 void onchange_barposition_index(int value, SelectFromListMenuItem* source){
 	BarPositionIndexN = value;
-	PositionChanged = true;
 }
 
 void onchange_fuel_colours_r_index(int value, SelectFromListMenuItem* source){
 	FuelColours_R_IndexN = value;
-	FuelColours_R_Changed = true;
 }
 
 void onchange_fuel_colours_g_index(int value, SelectFromListMenuItem* source){
 	FuelColours_G_IndexN = value;
-	FuelColours_G_Changed = true;
 }
 
 void onchange_fuel_colours_b_index(int value, SelectFromListMenuItem* source){
 	FuelColours_B_IndexN = value;
-	FuelColours_B_Changed = true;
 }
 
 MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){

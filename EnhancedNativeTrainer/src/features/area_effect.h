@@ -12,6 +12,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\..\inc\main.h"
 #include "..\storage\database.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include <string>
 #include <sstream> 
 #include <fstream>
@@ -43,12 +44,10 @@ const std::vector<std::string> WORLD_NPC_VEHICLESPEED_CAPTIONS = captionsOf(WORL
 const std::vector<int> WORLD_NPC_VEHICLESPEED_VALUES = valuesOf(WORLD_NPC_VEHICLESPEED_OPTIONS);
 
 const std::vector<std::string> WORLD_REDUCEDGRIP_SNOWING_CAPTIONS{ "OFF", "Simple", "Advanced" };
-extern bool featureSnow;
 extern int NPCVehicleSpeedIndex;
 extern int PedAccuracyIndex;
 extern int NoPedsGravityIndex;
 extern int featureNeverDirty;
-extern bool NeverDirtyChanged;
 
 class ENTTrackedPedestrian{
 	public:

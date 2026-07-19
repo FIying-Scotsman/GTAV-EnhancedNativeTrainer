@@ -60,13 +60,9 @@ bool featurePedPrison_Robe = false;
 bool featurePrison_Yard = true;
 
 int current_player_prison = 0;
-bool current_player_prison_Changed = true;
 int current_player_escapemoney = 4;
-bool current_player_escapemoney_Changed = true;
 int current_player_discharge = 3;
-bool current_player_discharge_Changed = true;
 int current_escape_stars = 4;
-bool current_escape_stars_Changed = true;
 
 ////////////////////////////////////////// PRISON BREAK //////////////////////////////////////////
 void prison_break()

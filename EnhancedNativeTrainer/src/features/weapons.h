@@ -15,6 +15,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\..\inc\enums.h"
 #include "..\..\inc\main.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "..\storage\database.h"
 #include "..\common\option_table.h"
 

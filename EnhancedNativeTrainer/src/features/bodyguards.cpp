@@ -120,17 +120,13 @@ int skinTypesBodyguardMenuLastConfirmed[2] = {0, 0};
 
 //Blip Size
 int BodyBlipSizeIndex = 2;
-bool BodyBlipSize_Changed = true;
 int BodyDistanceIndex = 7;
-bool BodyDistance_Changed = true;
 
 //Blip Colour
 int BodyBlipColourIndex = 0;
-bool BodyBlipColour_Changed = true;
 
 //Blip Symbol
 int BodyBlipSymbolIndexN = 0;
-bool BodyBlipSymbol_Changed = true;
 
 //Group Formation
 const Option<int> BODY_GROUPFORMATION_OPTIONS[] = {
@@ -141,21 +137,17 @@ const Option<int> BODY_GROUPFORMATION_OPTIONS[] = {
 const std::vector<std::string> BODY_GROUPFORMATION_CAPTIONS = captionsOf(BODY_GROUPFORMATION_OPTIONS);
 const std::vector<int> BODY_GROUPFORMATION_VALUES = valuesOf(BODY_GROUPFORMATION_OPTIONS);
 int BodyGroupFormationIndex = 1;
-bool BodyGroupFormationChanged = true;
 
 //Show Numbers
 const std::vector<std::string> BODY_SHOWNUMBERS_CAPTIONS{ "When Menu Is Open", "Always", "Never" };
 int BodyShowNumbersIndex = 0;
-bool BodyShowNumbersChanged = true;
 
 //Blip Flashing
 int BodyBlipFlashIndex = 0;
 int FollowInVehicleIndex = 0;
-bool FollowInVehicleChanged = true;
 
 //Bodyguard Health
 int BodyHealthIndex = 6;
-bool BodyHealthChanged = true;
 
 const Option<std::string> SKINS_ANIMALS_OPTIONS[] = {
 	{ "Chop", "a_c_chop" },
@@ -2827,22 +2819,18 @@ void reset_bodyguards_globals(){
 
 void onchange_body_blipsize_index(int value, SelectFromListMenuItem* source){
 	BodyBlipSizeIndex = value;
-	BodyBlipSize_Changed = true;
 }
 
 void onchange_body_distance_index(int value, SelectFromListMenuItem* source) {
 	BodyDistanceIndex = value;
-	BodyDistance_Changed = true;
 }
 
 void onchange_body_groupformation_index(int value, SelectFromListMenuItem* source) {
 	BodyGroupFormationIndex = value;
-	BodyGroupFormationChanged = true;
 }
 
 void onchange_follow_invehicle_index(int value, SelectFromListMenuItem* source) {
 	FollowInVehicleIndex = value;
-	FollowInVehicleChanged = true;
 }
 
 void onchange_bodyguards_body_weapons(int value, SelectFromListMenuItem* source) {
@@ -2851,22 +2839,18 @@ void onchange_bodyguards_body_weapons(int value, SelectFromListMenuItem* source)
 
 void onchange_body_health_index(int value, SelectFromListMenuItem* source) {
 	BodyHealthIndex = value;
-	BodyHealthChanged = true;
 }
 
 void onchange_body_shownumber_index(int value, SelectFromListMenuItem* source) {
 	BodyShowNumbersIndex = value;
-	BodyShowNumbersChanged = true;
 }
 
 void onchange_body_blipcolour_index(int value, SelectFromListMenuItem* source){
 	BodyBlipColourIndex = value;
-	BodyBlipColour_Changed = true;
 }
 
 void onchange_body_blipsymbol_index(int value, SelectFromListMenuItem* source){
 	BodyBlipSymbolIndexN = value;
-	BodyBlipSymbol_Changed = true;
 }
 
 void onchange_body_blipflash_index(int value, SelectFromListMenuItem* source){

@@ -34,9 +34,7 @@ bool featureSpeedOnGround = false;
 bool featureSpeedInAir = false;
 
 int SpeedSizeIndex = 0;
-bool SizeChanged = true;
 int SpeedPositionIndexN = 0;
-bool PositionChanged = true;
 
 float textX = 0;
 float textY = -1;

@@ -115,12 +115,10 @@ Ped curr_cut_ped = 0;
 Ped switched_c = -1;
 bool featureFirstPersonCutscene = false;
 
-bool featurePlayerRadio = false;
+ToggleFeature featurePlayerRadio{false, false};
 bool featureDisablePhone = false;
 bool featureDisablePhoneMenu = false;
-bool featurePlayerRadioUpdated = false;
-bool featureRadioFreeze = false;
-bool featureRadioFreezeUpdated = false;
+ToggleFeature featureRadioFreeze{false, false};
 bool featureBoostRadio = true;
 bool featureRealisticRadioVolume = false;
 bool featureWantedMusic = false;
@@ -130,8 +128,7 @@ bool featureNoComleteMessage = false;
 bool featurePoliceRadio = false;
 //bool police_radio_check = false;
 bool featureMiscLockRadio = false;
-bool featureMiscHideHud = false;
-bool featureMiscHideHudUpdated = false;
+ToggleFeature featureMiscHideHud{false, false};
 bool featurePhoneShowHud = false;
 bool featureInVehicleNoHud = false;
 bool featureMarkerHud = false;
@@ -178,19 +175,15 @@ const Hash SP2_TOTAL_CASH = 0x8D75047D;
 
 // Phone Bill Amount
 int PhoneBillIndex = 2;
-bool PhoneBillChanged = true;
 
 // Phone Bill Free Seconds
 int PhoneFreeSecondsIndex = 0;
-bool PhoneFreeSecondsChanged = true;
 int PhoneBikeAnimationIndex = 0;
-bool PhoneBikeAnimationChanged = true;
 
 int missing_station = 0;
 
 // Default Menu Tab
 int DefMenuTabIndex = 0;
-bool DefMenuTabChanged = true;
 
 // Default Phone
 const Option<int> MISC_PHONE_DEFAULT_OPTIONS[] = {
@@ -204,12 +197,10 @@ const Option<int> MISC_PHONE_DEFAULT_OPTIONS[] = {
 const std::vector<std::string> MISC_PHONE_DEFAULT_CAPTIONS = captionsOf(MISC_PHONE_DEFAULT_OPTIONS);
 const std::vector<int> MISC_PHONE_DEFAULT_VALUES = valuesOf(MISC_PHONE_DEFAULT_OPTIONS);
 int PhoneDefaultIndex = 0;
-bool PhoneDefaultChanged = true;
 
 // Radio Off
 const std::vector<std::string> MISC_RADIO_OFF_CAPTIONS{ "Default", "Always", "For Bikes Only" };
 int RadioOffIndex = 0;
-bool RadioOffChanged = true;
 
 // Radio Station Shuffle
 const Option<int> MISC_RADIO_SWITCHING_OPTIONS[] = {
@@ -225,15 +216,12 @@ const Option<int> MISC_RADIO_SWITCHING_OPTIONS[] = {
 const std::vector<std::string> MISC_RADIO_SWITCHING_CAPTIONS = captionsOf(MISC_RADIO_SWITCHING_OPTIONS);
 const std::vector<int> MISC_RADIO_SWITCHING_VALUES = valuesOf(MISC_RADIO_SWITCHING_OPTIONS);
 int RadioSwitchingIndex = 0;
-bool RadioSwitchingChanged = true;
 
 // Trainer Controls
 int TrainerControlIndex = 0;
-bool TrainerControlChanged = true;
 
 // Trainer Scrolling Controls
 int TrainerControlScrollingIndex = 0;
-bool TrainerControlScrollingChanged = true;
 
 void onchange_hotkey_function(int value, SelectFromListMenuItem* source){
 	change_hotkey_function(source->extras.at(0), value);
@@ -411,14 +399,14 @@ void process_misc_trainerconfig_menu(){
 
 bool onconfirm_misc_freezeradio_menu(MenuItem<int> choice){
 	if(choice.value == -1){
-		featureRadioFreeze = false;
+		featureRadioFreeze.enabled = false;
 		set_status_text(tr("MiscMenu.RadioIsNoLongerFrozenToAStation", "Radio is no longer frozen to a station"));
 	}
 	else{
-		featureRadioFreeze = true;
+		featureRadioFreeze.enabled = true;
 		set_status_text(tr("MiscMenu.RadioIsFrozenToStationPrefix", "Radio is frozen to station ") + std::string(AUDIO::GET_RADIO_STATION_NAME(choice.value)));
 	}
-	featureRadioFreezeUpdated = true;
+	featureRadioFreeze.updated = true;
 	radioStationIndex = choice.value;
 
 	return false;
@@ -853,7 +841,7 @@ void process_radio_settings_menu() {
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MiscMenu.PortableRadio", "Portable Radio");
-	toggleItem->toggleValue = &featurePlayerRadio;
+	toggleItem->toggleValue = &featurePlayerRadio.enabled;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
@@ -910,8 +898,8 @@ void process_hud_settings_menu() {
 	
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("MiscMenu.HideHUD", "Hide HUD");
-	toggleItem->toggleValue = &featureMiscHideHud;
-	toggleItem->toggleValueUpdated = &featureMiscHideHudUpdated;
+	toggleItem->toggleValue = &featureMiscHideHud.enabled;
+	toggleItem->toggleValueUpdated = &featureMiscHideHud.updated;
 	menuItems.push_back(toggleItem);
 	
 	toggleItem = new ToggleMenuItem<int>();
@@ -1051,76 +1039,67 @@ void initialize() {
 
 void onchange_misc_phone_bill_index(int value, SelectFromListMenuItem* source){
 	PhoneBillIndex = value;
-	PhoneBillChanged = true;
 }
 
 void onchange_misc_phone_default_index(int value, SelectFromListMenuItem* source) {
 	PhoneDefaultIndex = value;
-	PhoneDefaultChanged = true;
 }
 
 void onchange_misc_radio_off_index(int value, SelectFromListMenuItem* source) {
 	RadioOffIndex = value;
-	RadioOffChanged = true;
 }
 
 void onchange_misc_radio_switching_index(int value, SelectFromListMenuItem* source) {
 	RadioSwitchingIndex = value;
-	RadioSwitchingChanged = true;
 }
 
 void onchange_misc_trainercontrol_index(int value, SelectFromListMenuItem* source) {
 	TrainerControlIndex = value;
-	TrainerControlChanged = true;
 }
 
 void onchange_misc_trainercontrolscrolling_index(int value, SelectFromListMenuItem* source) {
 	TrainerControlScrollingIndex = value;
-	TrainerControlScrollingChanged = true;
 }
 
 void onchange_misc_def_menutab_index(int value, SelectFromListMenuItem* source) {
 	DefMenuTabIndex = value;
-	DefMenuTabChanged = true;
 }
 
 void onchange_misc_phone_freeseconds_index(int value, SelectFromListMenuItem* source){
 	PhoneFreeSecondsIndex = value;
-	PhoneFreeSecondsChanged = true;
 }
 
 void onchange_misc_phone_bike_index(int value, SelectFromListMenuItem* source) {
 	PhoneBikeAnimationIndex = value;
-	PhoneBikeAnimationChanged = true;
 }
 
 void HUD_switching() {
-	featureMiscHideHud = !featureMiscHideHud;
-	//if (featureMiscHideHud) set_status_text("HUD OFF");
+	featureMiscHideHud.enabled = !featureMiscHideHud.enabled;
+	//if (featureMiscHideHud.enabled) set_status_text("HUD OFF");
 	//else set_status_text("HUD ON");
 	WAIT(100);
 }
 
 void Traffic_switching() {
-	featureWorldNoTraffic = !featureWorldNoTraffic;
-	featureWorldNoTrafficUpdated = !featureWorldNoTrafficUpdated;
+	featureWorldNoTraffic.enabled = !featureWorldNoTraffic.enabled;
+	featureWorldNoTraffic.updated = !featureWorldNoTraffic.updated;
 	WAIT(100);
 }
 
 void reset_misc_globals(){
-	featureMiscHideHud =
+	featureMiscHideHud.enabled =
 		featurePhoneShowHud = 
 		featureInVehicleNoHud =
 		featureMarkerHud =
 		featureDynamicHealthBar =
 		featureDisableRecording =
 		featureNoNotifications =
-		featurePlayerRadio =
+		featurePlayerRadio.enabled =
 		featureDisablePhone =
 		featureDisablePhoneMenu =
 		featureMiscLockRadio =
 		featureMiscJellmanScenery =
-		featureRadioFreeze =
+		featureRadioFreeze.enabled =
 		featureWantedMusic = 
 		featureFlyingMusic = 
 		featurePoliceScanner = 
@@ -1162,8 +1141,8 @@ void reset_misc_globals(){
 	featureNoAutoRespawn = false;
 	featureRealisticRadioVolume = false;
 
-	featureRadioFreezeUpdated =
-	featureMiscHideHudUpdated =
+	featureRadioFreeze.updated =
+	featureMiscHideHud.updated =
 	featureBoostRadio = true;
 
 	ENTColor::reset_colors();
@@ -1206,8 +1185,8 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	}
 
 	// Portable Radio
-	if (featurePlayerRadio || featurePlayerRadioUpdated) {
-		if (featurePlayerRadio) AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(true);
+	if (featurePlayerRadio.enabled || featurePlayerRadio.updated) {
+		if (featurePlayerRadio.enabled) AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(true);
 		else AUDIO::SET_MOBILE_RADIO_ENABLED_DURING_GAMEPLAY(false);
 	}
 
@@ -1263,7 +1242,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	}
 	
 	// Radio Station Shuffle
-	if (MISC_RADIO_SWITCHING_VALUES[RadioSwitchingIndex] > 0 && (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) || featurePlayerRadio || featurePlayerRadioUpdated)) {
+	if (MISC_RADIO_SWITCHING_VALUES[RadioSwitchingIndex] > 0 && (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) || featurePlayerRadio.enabled || featurePlayerRadio.updated)) {
 		if (MISC_RADIO_SWITCHING_VALUES[RadioSwitchingIndex] > 1) {
 			r_secs_passed = clock() / CLOCKS_PER_SEC;
 			if (((clock() / CLOCKS_PER_SEC) - r_secs_curr) != 0) {
@@ -1299,17 +1278,17 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	}
 	
 	// Freeze Radio To Station
-	if (featureRadioFreeze) {
+	if (featureRadioFreeze.enabled) {
 		if (AUDIO::GET_PLAYER_RADIO_STATION_INDEX() != radioStationIndex && AUDIO::GET_PLAYER_RADIO_STATION_INDEX() != 255) {
 			AUDIO::SET_RADIO_TO_STATION_INDEX(radioStationIndex);
 		}
 	}
-	else if (featureRadioFreezeUpdated) {
+	else if (featureRadioFreeze.updated) {
 		// Leave it empty for now.
 	}
 
 	// Hide Hud
-	if (featureMiscHideHud/* || (featureMiscHideENTHud && menu_showing == true)*/) {
+	if (featureMiscHideHud.enabled/* || (featureMiscHideENTHud && menu_showing == true)*/) {
 		for (int i = 0; i < 21; i++) {
 			//at least in theory...
 			switch (i){
@@ -1326,18 +1305,18 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		}
 
 		UI::DISPLAY_RADAR(false);
-		featureMiscHideHudUpdated = false;
+		featureMiscHideHud.updated = false;
 	}
-	else if (/*(*/featureMiscHideHudUpdated/* && !featureMiscHideENTHud) || (featureMiscHideENTHud && menu_showing == false)*/){
+	else if (/*(*/featureMiscHideHud.updated/* && !featureMiscHideENTHud) || (featureMiscHideENTHud && menu_showing == false)*/){
 		UI::DISPLAY_RADAR(true);
-		featureMiscHideHudUpdated = false;
+		featureMiscHideHud.updated = false;
 	}
 	
 	// Show Hud If Phone In Hand
 	if (featurePhoneShowHud) {
 		if (!phone_toggle) {
 			UI::DISPLAY_RADAR(false);
-			featureMiscHideHudUpdated = false;
+			featureMiscHideHud.updated = false;
 		}
 		
 		if (PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed)) {
@@ -1350,7 +1329,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			phone_toggle = false;
 		}
 	}
-	else if (!featureMiscHideHud && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) {
+	else if (!featureMiscHideHud.enabled && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) {
 		UI::DISPLAY_RADAR(true);
 		phone_toggle = false;
 	}
@@ -1359,7 +1338,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	if (featureInVehicleNoHud) {
 		if (!phone_toggle_vehicle && !featurePhoneShowHud) {
 			UI::DISPLAY_RADAR(false);
-			featureMiscHideHudUpdated = false;
+			featureMiscHideHud.updated = false;
 		}
 
 		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 1)) {
@@ -1372,7 +1351,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			phone_toggle_vehicle = false;
 		}
 	}
-	else if (!featureMiscHideHud && !featurePhoneShowHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) {
+	else if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) {
 		UI::DISPLAY_RADAR(true);
 		phone_toggle_vehicle = false;
 	}
@@ -1381,7 +1360,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	if (featureMarkerHud) {
 		if (!phone_toggle_vehicle && !featurePhoneShowHud && !featureInVehicleNoHud) {
 			UI::DISPLAY_RADAR(false);
-			featureMiscHideHudUpdated = false;
+			featureMiscHideHud.updated = false;
 		}
 		bool blipFound = false;
 		int blipIterator = UI::_GET_BLIP_INFO_ID_ITERATOR(); // search for marker blip
@@ -1400,7 +1379,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			phone_toggle_vehicle = false;
 		}
 	}
-	else if (!featureMiscHideHud && !featurePhoneShowHud && !featureInVehicleNoHud/* && !featureMiscHideENTHud*/) {
+	else if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureInVehicleNoHud/* && !featureMiscHideENTHud*/) {
 		UI::DISPLAY_RADAR(true);
 		phone_toggle_vehicle = false;
 	}
@@ -1517,8 +1496,8 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	}
 	
 	// Lock player vehicle doors
-	if (featureLockVehicleDoors) {
-		if (featureLockVehicleDoorsUpdated == false) {
+	if (featureLockVehicleDoors.enabled) {
+		if (featureLockVehicleDoors.updated == false) {
 			if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1)) veh_l = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 			if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1)) {
 				find_nearest_vehicle();
@@ -1526,14 +1505,14 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			}
 			VEHICLE::SET_VEHICLE_DOORS_LOCKED(veh_l, 4);
 		}
-		featureLockVehicleDoorsUpdated = true;
+		featureLockVehicleDoors.updated = true;
 		PED::SET_PED_CAN_BE_DRAGGED_OUT(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_l, -1), false);
 	}
-	if (!featureLockVehicleDoors && featureLockVehicleDoorsUpdated == true) {
+	if (!featureLockVehicleDoors.enabled && featureLockVehicleDoors.updated == true) {
 		VEHICLE::SET_VEHICLE_DOORS_LOCKED(veh_l, 0);
 		PED::SET_PED_CAN_BE_DRAGGED_OUT(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_l, -1), true);
 
-		featureLockVehicleDoorsUpdated = false;
+		featureLockVehicleDoors.updated = false;
 	}
 
 	// Dynamic Health Bar
@@ -1544,7 +1523,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		dynamic_loading = false;
 	}
 	if (featureDynamicHealthBar && !CUTSCENE::IS_CUTSCENE_PLAYING() && ENTITY::DOES_ENTITY_EXIST(playerPed) && !DLC2::GET_IS_LOADING_SCREEN_ACTIVE() && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) {
-		if (!featureMiscHideHud && !featurePhoneShowHud && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) UI::DISPLAY_RADAR(false); // There is no need to hide HUD if it's already hidden
+		if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) UI::DISPLAY_RADAR(false); // There is no need to hide HUD if it's already hidden
 		//auto addr = getScriptHandleBaseAddress(playerPed);
 		//float health = (*(float *)(addr + 0x280)) - 100;
 		float health = ENTITY::GET_ENTITY_HEALTH(playerPed) - 100;
@@ -2006,8 +1985,8 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 }
 
 void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
-	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerRadio", &featurePlayerRadio, &featurePlayerRadioUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{"featureRadioFreeze", &featureRadioFreeze, &featureRadioFreezeUpdated });
+	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerRadio", &featurePlayerRadio.enabled, &featurePlayerRadio.updated });
+	results->push_back(FeatureEnabledLocalDefinition{"featureRadioFreeze", &featureRadioFreeze.enabled, &featureRadioFreeze.updated });
 	results->push_back(FeatureEnabledLocalDefinition{"featureBoostRadio", &featureBoostRadio }); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureRealisticRadioVolume", &featureRealisticRadioVolume});
 	results->push_back(FeatureEnabledLocalDefinition{"featureWantedMUsic", &featureWantedMusic}); 
@@ -2018,7 +1997,7 @@ void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoComleteMessage", &featureNoComleteMessage}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceRadio", &featurePoliceRadio}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureMiscLockRadio", &featureMiscLockRadio});
-	results->push_back(FeatureEnabledLocalDefinition{"featureMiscHideHud", &featureMiscHideHud, &featureMiscHideHudUpdated});
+	results->push_back(FeatureEnabledLocalDefinition{"featureMiscHideHud", &featureMiscHideHud.enabled, &featureMiscHideHud.updated});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePhoneShowHud", &featurePhoneShowHud}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureInVehicleNoHud", &featureInVehicleNoHud});
 	results->push_back(FeatureEnabledLocalDefinition{"featureMarkerHud", &featureMarkerHud});
@@ -2117,12 +2096,12 @@ bool is_vehicle_preview_enabled(){
 //}
 
 bool is_hud_hidden(){
-	return featureMiscHideHud;
+	return featureMiscHideHud.enabled;
 }
 
 void set_hud_hidden(bool hidden){
-	featureMiscHideHud = hidden;
-	featureMiscHideHudUpdated = true;
+	featureMiscHideHud.enabled = hidden;
+	featureMiscHideHud.updated = true;
 }
 
 void set_hud_shown(bool hidden){

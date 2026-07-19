@@ -18,6 +18,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\config_io.h"
 #include "..\io\translation.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "..\storage\database.h"
 #include "..\debug\debuglog.h"
 #include "skins.h"
@@ -289,7 +290,5 @@ const std::vector<int> NPC_RAGDOLL_VALUES = valuesOf(NPC_RAGDOLL_OPTIONS);
 
 const int MISC_TRAINERCONTROL_VALUES[] = { 0, 1 };
 
-extern bool featureMPMap;
-extern bool featureMPMapUpdated;
-
+extern ToggleFeature featureMPMap;
 extern int ped_prop_idx;

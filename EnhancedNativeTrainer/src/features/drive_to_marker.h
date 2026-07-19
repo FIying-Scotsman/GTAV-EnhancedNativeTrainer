@@ -11,7 +11,6 @@ extern Vehicle curr_veh;
 extern bool featureLandAtDestination;
 
 extern int TelChauffeurIndex;
-extern bool TelChauffeur_Changed;
 
 //Chauffeur Speed
 const Option<int> TEL_CHAUFFEUR_SPEED_OPTIONS[] = { // "30", "50",  // 30, 50, 
@@ -26,7 +25,6 @@ const Option<int> TEL_CHAUFFEUR_SPEED_OPTIONS[] = { // "30", "50",  // 30, 50,
 const std::vector<std::string> TEL_CHAUFFEUR_SPEED_CAPTIONS = captionsOf(TEL_CHAUFFEUR_SPEED_OPTIONS);
 const std::vector<int> TEL_CHAUFFEUR_SPEED_VALUES = valuesOf(TEL_CHAUFFEUR_SPEED_OPTIONS);
 extern int TelChauffeur_speed_IndexN;
-extern bool TelChauffeur_speed_Changed;
 
 //Chauffeur Altitude
 const Option<int> TEL_CHAUFFEUR_ALTITUDE_OPTIONS[] = {
@@ -45,7 +43,6 @@ const Option<int> TEL_CHAUFFEUR_ALTITUDE_OPTIONS[] = {
 const std::vector<std::string> TEL_CHAUFFEUR_ALTITUDE_CAPTIONS = captionsOf(TEL_CHAUFFEUR_ALTITUDE_OPTIONS);
 const std::vector<int> TEL_CHAUFFEUR_ALTITUDE_VALUES = valuesOf(TEL_CHAUFFEUR_ALTITUDE_OPTIONS);
 extern int TelChauffeur_altitude_Index;
-extern bool TelChauffeur_altitude_Changed;
 
 //Driving Styles
 const Option<int> TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS[] = {
@@ -57,7 +54,6 @@ const Option<int> TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS[] = {
 const std::vector<std::string> TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS = captionsOf(TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS);
 const std::vector<int> TEL_CHAUFFEUR_DRIVINGSTYLES_VALUES = valuesOf(TEL_CHAUFFEUR_DRIVINGSTYLES_OPTIONS);
 extern int TelChauffeur_drivingstyles_Index;
-extern bool TelChauffeur_drivingstyles_Changed;
 
 Vector3 get_blip_marker();
 

@@ -65,12 +65,10 @@ int clear_props_m = -2;
 
 // Reset Player Model On Death
 int ResetSkinOnDeathIdx = 0;
-bool ResetSkinOnDeathChanged = true;
 
 // Auto Apply Last Saved Skin
 const std::vector<std::string> SKINS_AUTO_SKIN_SAVED_CAPTIONS{ "OFF", "Restore Character", "Saved Character Only" };
 int AutoApplySkinSavedIndex = 0;
-bool AutoApplySkinSavedChanged = true;
 
 /***
 * METHODS
@@ -78,12 +76,10 @@ bool AutoApplySkinSavedChanged = true;
 
 void onchange_skins_reset_skin_ondeath_index(int value, SelectFromListMenuItem* source) {
 	ResetSkinOnDeathIdx = value;
-	ResetSkinOnDeathChanged = true;
 }
 
 void onchange_auto_apply_skin_saved_index(int value, SelectFromListMenuItem* source) {
 	AutoApplySkinSavedIndex = value;
-	AutoApplySkinSavedChanged = true;
 }
 
 void reset_skin_globals()

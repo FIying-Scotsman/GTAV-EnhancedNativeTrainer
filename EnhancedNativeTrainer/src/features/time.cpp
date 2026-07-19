@@ -13,6 +13,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "propplacement.h"
 #include <iomanip>
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "script.h"
 
 const Option<float> TIME_SPEED_OPTIONS[] = {
@@ -73,16 +74,14 @@ std::vector<Vehicle> VEH_CURR;
 int timeSpeedIndexWhileAiming = DEFAULT_TIME_SPEED;
 int timeSpeedIndex = DEFAULT_TIME_SPEED;
 
-int timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
+ChangeTrackedValue<int> timeFlowRateIndex{DEFAULT_TIME_FLOW_RATE, true};
 int HotkeyFlowRateIndex = DEFAULT_HOTKEY_FLOW_RATE;
 
 bool featureTimeSynced = false;
 bool featureShowtime = false;
 bool featurehotkeytime = false;
 bool featureSpeedAimInVeh = false;
-bool timeFlowRateChanged = true;
 bool timeFlowRateLocked = true;
-bool HotkeyFlowRateChanged = true;
 bool HotkeyFlowRateLocked = true;
 
 bool slow_aim = false;
@@ -93,7 +92,7 @@ bool requireRefreshOfTime = false;
 
 int activeLineIndexTime = 0;
 
-float timeFactor = 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex);
+float timeFactor = 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex.value);
 
 int timeSinceAimingBegan = 0;
 
@@ -165,30 +164,30 @@ void onchange_aiming_speed_callback(int value, SelectFromListMenuItem* source) {
 }
 
 void onchange_time_flow_rate_callback(int value, SelectFromListMenuItem *source) {
-	timeFlowRateIndex = value, timeFlowRateChanged = true, timeFlowRateLocked = false;
+	timeFlowRateIndex.value = value, timeFlowRateIndex.changed = true, timeFlowRateLocked = false;
 }
 
 void onchange_hotkey_flow_rate_callback(int value, SelectFromListMenuItem *source) {
-	HotkeyFlowRateIndex = value, HotkeyFlowRateChanged = true, HotkeyFlowRateLocked = false;
+	HotkeyFlowRateIndex = value, HotkeyFlowRateLocked = false;
 }
 
 void onchange_hotkey_freeze_unfreeze_time() {
-	if (timeFlowRateIndex != 0) {
-		frozentimestate = timeFlowRateIndex;
-		timeFlowRateIndex = 0;
-		timeFlowRateChanged = true;
+	if (timeFlowRateIndex.value != 0) {
+		frozentimestate = timeFlowRateIndex.value;
+		timeFlowRateIndex.value = 0;
+		timeFlowRateIndex.changed = true;
 		set_status_text(tr("TimeMenu.TimeIsFrozen", "Time is frozen"));
 		requireRefreshOfTime = true;
 	}
 	else
 	{
 		if (frozentimestate != -1) {
-			timeFlowRateIndex = frozentimestate;
-			timeFlowRateChanged = true;
+			timeFlowRateIndex.value = frozentimestate;
+			timeFlowRateIndex.changed = true;
 		}
 		else {
-			timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
-			timeFlowRateChanged = true;
+			timeFlowRateIndex.value = DEFAULT_TIME_FLOW_RATE;
+			timeFlowRateIndex.changed = true;
 		}
 		set_status_text(tr("TimeMenu.TimeIsUnfrozen", "Time is unfrozen"));
 		requireRefreshOfTime = true;
@@ -249,7 +248,7 @@ void all_time_flow_rate() {
 
 		listItem = new SelectFromListMenuItem(&TIME_FLOW_RATE_CAPTIONS, onchange_time_flow_rate_callback);
 		listItem->caption = tr("TimeMenu.TimeFlowRate", "Time Flow Rate");
-		listItem->value = timeFlowRateIndex;
+		listItem->value = timeFlowRateIndex.value;
 		listItem->wrap = false;
 		listItem->onConfirmFunction = onconfirm_time_flow_rate;
 		menuItems.push_back(listItem);
@@ -442,15 +441,14 @@ void process_time_menu(){
 
 void reset_time_globals(){
 	featureTimeSynced = false;
-	timeFlowRateChanged = true;
-	HotkeyFlowRateChanged = true;
+	timeFlowRateIndex.changed = true;
 	featureShowtime = false;
 	featurehotkeytime = false;
 	featureSpeedAimInVeh = false;
 
 	timeSpeedIndexWhileAiming = DEFAULT_TIME_SPEED;
 	timeSpeedIndex = DEFAULT_TIME_SPEED;
-	timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE; 
+	timeFlowRateIndex.value = DEFAULT_TIME_FLOW_RATE; 
 	HotkeyFlowRateIndex = DEFAULT_HOTKEY_FLOW_RATE;
 }
 
@@ -775,7 +773,7 @@ void handle_generic_settings_time(std::vector<StringPairSettingDBRow>* settings)
 			timeSpeedIndexWhileAiming = stoi(setting.value);
 		}
 		else if(setting.name.compare("timeFlowRateIndex") == 0){
-			timeFlowRateIndex = stoi(setting.value);
+			timeFlowRateIndex.value = stoi(setting.value);
 		}
 		else if (setting.name.compare("HotkeyFlowRateIndex") == 0) {
 			HotkeyFlowRateIndex = stoi(setting.value);
@@ -785,15 +783,15 @@ void handle_generic_settings_time(std::vector<StringPairSettingDBRow>* settings)
 
 void add_time_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"timeSpeedIndexWhileAiming", std::to_string(timeSpeedIndexWhileAiming)});
-	results->push_back(StringPairSettingDBRow{"timeFlowRateIndex", std::to_string(timeFlowRateIndex)});
+	results->push_back(StringPairSettingDBRow{"timeFlowRateIndex", std::to_string(timeFlowRateIndex.value)});
 	results->push_back(StringPairSettingDBRow{"HotkeyFlowRateIndex", std::to_string(HotkeyFlowRateIndex)});
 }
 
 void update_time_features(Player player){
 	// time sync
 	if(featureTimeSynced){
-		if(timeFlowRateIndex != DEFAULT_TIME_FLOW_RATE){
-			timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE, timeFlowRateChanged = true;
+		if(timeFlowRateIndex.value != DEFAULT_TIME_FLOW_RATE){
+			timeFlowRateIndex.value = DEFAULT_TIME_FLOW_RATE, timeFlowRateIndex.changed = true;
 
 		}
 
@@ -807,21 +805,21 @@ void update_time_features(Player player){
 	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && featureSpeedAimInVeh) slow_aim = false;
 
 	// time flow rate
-	if(timeFlowRateChanged){
-		timeFlowRateChanged = false;
+	if(timeFlowRateIndex.changed){
+		timeFlowRateIndex.changed = false;
 
-		if(timeFlowRateIndex == DEFAULT_TIME_FLOW_RATE){
+		if(timeFlowRateIndex.value == DEFAULT_TIME_FLOW_RATE){
 			TIME::PAUSE_CLOCK(false);
 		}
 		else{
 			TIME::PAUSE_CLOCK(true);
 		}
-		timeFactor = timeFlowRateIndex == 0 ? -1.0f : 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex);
+		timeFactor = timeFlowRateIndex.value == 0 ? -1.0f : 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex.value);
 		SYSTEM::SETTIMERA(0);
 	}
-	if(timeFlowRateIndex != DEFAULT_TIME_FLOW_RATE){
+	if(timeFlowRateIndex.value != DEFAULT_TIME_FLOW_RATE){
 		TIME::PAUSE_CLOCK(true);
-		if(timeFlowRateIndex > 0){
+		if(timeFlowRateIndex.value > 0){
 			int hours = 0;
 			int minutes = 0;
 			int seconds = static_cast<int>(static_cast<float>(SYSTEM::TIMERA()) / timeFactor);

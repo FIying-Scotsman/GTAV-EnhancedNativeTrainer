@@ -48,13 +48,9 @@ int temp_dist = -1;
 //
 
 int TelChauffeurIndex = 3;
-bool TelChauffeur_Changed = true;
 int TelChauffeur_speed_IndexN = 1;
-bool TelChauffeur_speed_Changed = true;
 int TelChauffeur_altitude_Index = 5;
-bool TelChauffeur_altitude_Changed = true;
 int TelChauffeur_drivingstyles_Index = 0;
-bool TelChauffeur_drivingstyles_Changed = true;
 
 ////////////////////////////////// DRIVE TO MARKER ////////////////////////////////////
 Vector3 get_blip_marker() {

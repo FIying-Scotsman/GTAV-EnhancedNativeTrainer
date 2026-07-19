@@ -417,7 +417,7 @@ void SelectFromListMenuItem::handleLeftPress(){
 		}
 		this->value = this->captions().size() - 1;
 	}
-	if(onValueChangeCallback != NULL){
+	if(onValueChangeCallback){
 		this->onValueChangeCallback(value, this);
 	}
 }
@@ -431,7 +431,7 @@ void SelectFromListMenuItem::handleRightPress(){
 		}
 		this->value = 0;
 	}
-	if(onValueChangeCallback != NULL){
+	if(onValueChangeCallback){
 		this->onValueChangeCallback(value, this);
 	}
 }

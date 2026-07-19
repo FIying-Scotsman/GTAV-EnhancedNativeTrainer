@@ -15,6 +15,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\..\inc\enums.h"
 #include "..\..\inc\main.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "..\storage\database.h"
 #include "..\ent-enums.h"
 #include "..\utils.h"
@@ -109,9 +110,7 @@ extern int speedLimiterIndex;
 extern int speedCityLimiterIndex;
 extern int speedCountryLimiterIndex;
 extern Vehicle veh_l;
-extern bool featureLockVehicleDoors;
-extern bool featureLockVehicleDoorsUpdated;
-
+extern ToggleFeature featureLockVehicleDoors;
 // engine power stuff
 const Option<int> VEH_ENG_POW_OPTIONS[] = {
 	{ "OFF", -1 },

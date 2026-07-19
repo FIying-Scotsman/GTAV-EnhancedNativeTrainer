@@ -12,6 +12,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "area_effect.h"
 #include "script.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include <Psapi.h>
 #include <Windows.h>
 #include "misc.h"
@@ -40,7 +41,6 @@ Blip blip_cops = -1;
 std::vector<Blip> BLIPTABLE_COP;
 std::vector<Ped> COP_VECTOR;
 int CopBlipPermIndex = 0;
-bool CopBlipPermChanged = true;
 int cop_blip_perm = -2;
 
 Vehicle veh_i_last_used = -1;
@@ -74,29 +74,22 @@ bool startup_w = false;
 bool featureRestrictedZones = true;
 
 bool featureWorldNoPeds = false;
-bool featureWorldNoTraffic = false;
 bool featureNoPlanesHelis = false;
 bool featureNoAnimals = false;
 bool no_animals = false;
 
-bool featureWorldNoFireTruck = false;
-bool featureWorldNoFireTruckUpdated = false;
-bool featureWorldNoAmbulance = false;
-bool featureWorldNoAmbulanceUpdated = false;
+ToggleFeature featureWorldNoFireTruck{false, false};
+ToggleFeature featureWorldNoAmbulance{false, false};
 
-bool featureWorldNoTrafficUpdated = false;
-bool featureNoMinimapRot = false;
-bool featureNoMinimapRotUpdated = false;
+ToggleFeature featureWorldNoTraffic{false, false};
+ToggleFeature featureNoMinimapRot{false, false};
 bool featureNoWaypoint = false;
 bool featureNoGameHintCameraLocking = false;
 bool featureNoPoliceBlips = false;
 bool featureFullMap = false;
-bool featurePenitentiaryMap = false;
-bool featureCayoPericoMap = false;
-bool featureZancudoMap = false;
-bool featureZancudoMapUpdated = false;
-bool featurePenitentiaryMapUpdated = false;
-bool featureCayoPericoMapUpdated = false;
+ToggleFeature featurePenitentiaryMap{false, false};
+ToggleFeature featureCayoPericoMap{false, false};
+ToggleFeature featureZancudoMap{false, false};
 bool featureBusLight = false;
 bool featureAcidWater = false;
 bool featureAcidRain = false;
@@ -107,30 +100,21 @@ bool wavesstrength_toggle = false;
 int windstrength_changed = -1;
 int wavesstrength_changed = -1;
 
-bool featureWorldRandomCops = true;
-bool featureWorldRandomTrains = true;
-bool featureWorldRandomBoats = true;
-bool featureWorldGarbageTrucks = true;
+ToggleFeature featureWorldRandomCops{true, false};
+ToggleFeature featureWorldRandomTrains{true, false};
+ToggleFeature featureWorldRandomBoats{true, false};
+ToggleFeature featureWorldGarbageTrucks{true, false};
 
-bool featureWorldRandomCopsUpdated = false;
-bool featureWorldRandomTrainsUpdated = false;
-bool featureWorldRandomBoatsUpdated = false;
-bool featureWorldGarbageTrucksUpdated = false;
-
-bool featureBlackout = false;
-bool featureBlackoutUpdated = false;
+ToggleFeature featureBlackout{false, false};
 bool featureHeadlightsBlackout = false;
 
-bool featureWeatherFreeze = false;
-bool featureWeatherFreezeUpdated = false;
+ToggleFeature featureWeatherFreeze{false, false};
 
 bool featureCloudsFreeze = false;
 
-bool featureSnow = false;
-bool featureSnowUpdated = false;
+ToggleFeature featureSnow{false, false};
 
-bool featureMPMap = false;
-bool featureMPMapUpdated = true;
+ToggleFeature featureMPMap{false, true};
 int MPMapCounter = 0;
 
 bool radar_map_toogle_1 = false;
@@ -146,13 +130,10 @@ BOOL highbeamsBAutoOn = -1;
 // Radar Map Size
 const std::vector<std::string> WORLD_RADAR_MAP_CAPTIONS{ "Normal", "Big", "Full" };
 int RadarMapIndexN = 0;
-bool RadarMapChanged = true;
 
 // Reduced Grip If Heavy Snow && Slippery When Wet
 int RadarReducedGripSnowingCustomIndex = 0;
-bool RadarReducedGripSnowingChanged = true;
 int RadarReducedGripRainingCustomIndex = 0;
-bool RadarReducedGripRainingChanged = true;
 
 // Wind Strength
 const Option<int> WORLD_WIND_STRENGTH_OPTIONS[] = {
@@ -163,11 +144,9 @@ const Option<int> WORLD_WIND_STRENGTH_OPTIONS[] = {
 const std::vector<std::string> WORLD_WIND_STRENGTH_CAPTIONS = captionsOf(WORLD_WIND_STRENGTH_OPTIONS);
 const std::vector<int> WORLD_WIND_STRENGTH_VALUES = valuesOf(WORLD_WIND_STRENGTH_OPTIONS);
 int WindStrengthIndex = 0;
-bool WindStrengthChanged = true;
 
 // Waves Intensity
 int WorldWavesIndex = 0;
-bool WorldWavesChanged = true;
 
 // Lightning Intensity
 const Option<int> WORLD_LIGHTNING_INTENSITY_OPTIONS[] = {
@@ -178,7 +157,6 @@ const Option<int> WORLD_LIGHTNING_INTENSITY_OPTIONS[] = {
 const std::vector<std::string> WORLD_LIGHTNING_INTENSITY_CAPTIONS = captionsOf(WORLD_LIGHTNING_INTENSITY_OPTIONS);
 const std::vector<int> WORLD_LIGHTNING_INTENSITY_VALUES = valuesOf(WORLD_LIGHTNING_INTENSITY_OPTIONS);
 int featureLightIntensityIndex = 0;
-bool featureLightIntensityChanged = true;
 
 // Train Speed
 const Option<float> WORLD_TRAIN_SPEED_OPTIONS[] = {
@@ -196,7 +174,6 @@ const Option<float> WORLD_TRAIN_SPEED_OPTIONS[] = {
 const std::vector<std::string> WORLD_TRAIN_SPEED_CAPTIONS = captionsOf(WORLD_TRAIN_SPEED_OPTIONS);
 const std::vector<float> WORLD_TRAIN_SPEED_VALUES = valuesOf(WORLD_TRAIN_SPEED_OPTIONS);
 int TrainSpeedIndex = 0;
-bool TrainSpeedChanged = true;
 
 // No Freeroam Activities
 const Option<int> WORLD_FREEROAM_ACTIVITIES_OPTIONS[] = {
@@ -216,7 +193,6 @@ const Option<int> WORLD_FREEROAM_ACTIVITIES_OPTIONS[] = {
 const std::vector<std::string> WORLD_FREEROAM_ACTIVITIES_CAPTIONS = captionsOf(WORLD_FREEROAM_ACTIVITIES_OPTIONS);
 const std::vector<int> WORLD_FREEROAM_ACTIVITIES_VALUES = valuesOf(WORLD_FREEROAM_ACTIVITIES_OPTIONS);
 int featureFreeroamActivitiesIndex = 0;
-bool featureFreeroamActivitiesChanged = true;
 
 // Change Weather
 const Option<int> MISC_WEATHER_CHANGE_OPTIONS[] = {
@@ -232,15 +208,12 @@ const Option<int> MISC_WEATHER_CHANGE_OPTIONS[] = {
 const std::vector<std::string> MISC_WEATHER_CHANGE_CAPTIONS = captionsOf(MISC_WEATHER_CHANGE_OPTIONS);
 const std::vector<int> MISC_WEATHER_CHANGE_VALUES = valuesOf(MISC_WEATHER_CHANGE_OPTIONS);
 int WeatherChangeIndex = 0;
-bool WeatherChangeChanged = true;
 
 const std::vector<std::string> MISC_WEATHER_METHOD_CAPTIONS{ "Random Weather", "Mixed Weather", "Custom Order" };
 int WeatherMethodIndexN = 0;
-bool WeatherMethodChanged = true;
 
 // Gravity Level
 int featureGravityLevelIndex = 0;
-bool featureGravityLevelChanged = true;
 
 void map_size_hotkey() {
 	RadarMapIndexN = RadarMapIndexN + 1;
@@ -259,7 +232,7 @@ void process_world_weathersettings_menu() {
 	
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WorldMenu.FreezeWeather", "Freeze Weather");
-	toggleItem->toggleValue = &featureWeatherFreeze;
+	toggleItem->toggleValue = &featureWeatherFreeze.enabled;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(&MISC_WEATHER_CHANGE_CAPTIONS, onchange_weather_change_index);
@@ -276,8 +249,8 @@ void process_world_weathersettings_menu() {
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WorldMenu.HeavySnow", "Heavy Snow");
-	toggleItem->toggleValue = &featureSnow;
-	toggleItem->toggleValueUpdated = &featureSnowUpdated;
+	toggleItem->toggleValue = &featureSnow.enabled;
+	toggleItem->toggleValueUpdated = &featureSnow.updated;
 	menuItems.push_back(toggleItem);
 
 	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_world_reducedgrip_snowing_c_index);
@@ -477,62 +450,50 @@ void process_clouds_menu()
 
 void onchange_world_reducedgrip_snowing_c_index(int value, SelectFromListMenuItem* source) {
 	RadarReducedGripSnowingCustomIndex = value;
-	RadarReducedGripSnowingChanged = true;
 }
 
 void onchange_world_reducedgrip_raining_c_index(int value, SelectFromListMenuItem* source) {
 	RadarReducedGripRainingCustomIndex = value;
-	RadarReducedGripRainingChanged = true;
 }
 
 void onchange_world_radar_map_index(int value, SelectFromListMenuItem* source){
 	RadarMapIndexN = value;
-	RadarMapChanged = true;
 }
 
 void onchange_world_waves_index(int value, SelectFromListMenuItem* source) {
 	WorldWavesIndex = value;
-	WorldWavesChanged = true;
 }
 
 void onchange_lightning_intensity_index(int value, SelectFromListMenuItem* source) {
 	featureLightIntensityIndex = value;
-	featureLightIntensityChanged = true;
 }
 
 void onchange_world_wind_strength_index(int value, SelectFromListMenuItem* source){
 	WindStrengthIndex = value;
-	WindStrengthChanged = true;
 }
 
 void onchange_freeroam_activities_index(int value, SelectFromListMenuItem* source) {
 	featureFreeroamActivitiesIndex = value;
-	featureFreeroamActivitiesChanged = true;
 }
 
 void onchange_world_train_speed_index(int value, SelectFromListMenuItem* source) {
 	TrainSpeedIndex = value;
-	TrainSpeedChanged = true;
 }
 
 void onchange_cop_blips_perm_index(int value, SelectFromListMenuItem* source) {
 	CopBlipPermIndex = value;
-	CopBlipPermChanged = true;
 }
 
 void onchange_gravity_level_index(int value, SelectFromListMenuItem* source) {
 	featureGravityLevelIndex = value;
-	featureGravityLevelChanged = true;
 }
 
 void onchange_weather_change_index(int value, SelectFromListMenuItem* source) {
 	WeatherChangeIndex = value;
-	WeatherChangeChanged = true;
 }
 
 void onchange_weather_method_index(int value, SelectFromListMenuItem* source) {
 	WeatherMethodIndexN = value;
-	WeatherMethodChanged = true;
 }
 
 bool onconfirm_world_menu(MenuItem<int> choice)
@@ -555,7 +516,7 @@ bool onconfirm_world_menu(MenuItem<int> choice)
 		process_clouds_menu();
 		break;
 	case 2:
-		// featureWorldRandomCops being set in update_features
+		// featureWorldRandomCops.enabled being set in update_features
 		break;
 	}
 	return false;
@@ -614,8 +575,8 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.NoTraffic", "No Traffic");
 	togItem->value = 1;
-	togItem->toggleValue = &featureWorldNoTraffic;
-	togItem->toggleValueUpdated = &featureWorldNoTrafficUpdated;
+	togItem->toggleValue = &featureWorldNoTraffic.enabled;
+	togItem->toggleValueUpdated = &featureWorldNoTraffic.updated;
 	menuItems.push_back(togItem);
 	
 	togItem = new ToggleMenuItem<int>();
@@ -633,13 +594,13 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.NoFireDepartmentDispatch", "No Fire Department Dispatch");
 	togItem->value = 1;
-	togItem->toggleValue = &featureWorldNoFireTruck;
+	togItem->toggleValue = &featureWorldNoFireTruck.enabled;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.NoAmbulanceDepartmentDispatch", "No Ambulance Department Dispatch");
 	togItem->value = 1;
-	togItem->toggleValue = &featureWorldNoAmbulance;
+	togItem->toggleValue = &featureWorldNoAmbulance.enabled;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -657,15 +618,15 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.RandomCops", "Random Cops");
 	togItem->value = 2;
-	togItem->toggleValue = &featureWorldRandomCops;
-	togItem->toggleValueUpdated = &featureWorldRandomCopsUpdated;
+	togItem->toggleValue = &featureWorldRandomCops.enabled;
+	togItem->toggleValueUpdated = &featureWorldRandomCops.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.RandomTrains", "Random Trains");
 	togItem->value = 3;
-	togItem->toggleValue = &featureWorldRandomTrains;
-	togItem->toggleValueUpdated = &featureWorldRandomTrainsUpdated;
+	togItem->toggleValue = &featureWorldRandomTrains.enabled;
+	togItem->toggleValueUpdated = &featureWorldRandomTrains.updated;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(&WORLD_TRAIN_SPEED_CAPTIONS, onchange_world_train_speed_index);
@@ -677,15 +638,15 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.RandomBoats", "Random Boats");
 	togItem->value = 4;
-	togItem->toggleValue = &featureWorldRandomBoats;
-	togItem->toggleValueUpdated = &featureWorldRandomBoatsUpdated;
+	togItem->toggleValue = &featureWorldRandomBoats.enabled;
+	togItem->toggleValueUpdated = &featureWorldRandomBoats.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.GarbageTrucks", "Garbage Trucks");
 	togItem->value = 5;
-	togItem->toggleValue = &featureWorldGarbageTrucks;
-	togItem->toggleValueUpdated = &featureWorldGarbageTrucksUpdated;
+	togItem->toggleValue = &featureWorldGarbageTrucks.enabled;
+	togItem->toggleValueUpdated = &featureWorldGarbageTrucks.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -697,8 +658,8 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.Blackout", "Blackout");
 	togItem->value = 6;
-	togItem->toggleValue = &featureBlackout;
-	togItem->toggleValueUpdated = &featureBlackoutUpdated;
+	togItem->toggleValue = &featureBlackout.enabled;
+	togItem->toggleValueUpdated = &featureBlackout.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -716,22 +677,22 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.ShowFortZancudoOnMap", "Show Fort Zancudo On Map");
 	togItem->value = 1;
-	togItem->toggleValue = &featureZancudoMap;
-	togItem->toggleValueUpdated = &featureZancudoMapUpdated;
+	togItem->toggleValue = &featureZancudoMap.enabled;
+	togItem->toggleValueUpdated = &featureZancudoMap.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.ShowBolingbrokePenitentiaryOnMap", "Show Bolingbroke Penitentiary On Map");
 	togItem->value = 1;
-	togItem->toggleValue = &featurePenitentiaryMap;
-	togItem->toggleValueUpdated = &featurePenitentiaryMapUpdated;
+	togItem->toggleValue = &featurePenitentiaryMap.enabled;
+	togItem->toggleValueUpdated = &featurePenitentiaryMap.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.ShowCayoPericoIslandOnMap", "Show Cayo Perico Island On Map");
 	togItem->value = 1;
-	togItem->toggleValue = &featureCayoPericoMap;
-	togItem->toggleValueUpdated = &featureCayoPericoMapUpdated;
+	togItem->toggleValue = &featureCayoPericoMap.enabled;
+	togItem->toggleValueUpdated = &featureCayoPericoMap.updated;
 	menuItems.push_back(togItem);
 
 	listItem = new SelectFromListMenuItem(&WORLD_RADAR_MAP_CAPTIONS, onchange_world_radar_map_index);
@@ -743,8 +704,8 @@ void process_world_menu()
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.NoMinimapRotation", "No Minimap Rotation");
 	togItem->value = 1;
-	togItem->toggleValue = &featureNoMinimapRot;
-	togItem->toggleValueUpdated = &featureNoMinimapRotUpdated;
+	togItem->toggleValue = &featureNoMinimapRot.enabled;
+	togItem->toggleValueUpdated = &featureNoMinimapRot.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -792,49 +753,49 @@ void reset_world_globals()
 	lastClouds.clear();
 	lastCloudsName.clear();
 
-	featureWeatherFreeze =
+	featureWeatherFreeze.enabled =
 	featureCloudsFreeze =
 	featureWorldNoPeds = false;
-	featureWorldNoTraffic = false;
+	featureWorldNoTraffic.enabled = false;
 	featureNoPlanesHelis = false;
 	featureNoAnimals = false;
 
-	featureWorldNoFireTruck = false;
-	featureWorldNoAmbulance = false;
+	featureWorldNoFireTruck.enabled = false;
+	featureWorldNoAmbulance.enabled = false;
 
-	featureNoMinimapRot = false;
+	featureNoMinimapRot.enabled = false;
 	featureNoWaypoint = false;
 	featureNoGameHintCameraLocking = false;
 	featureNoPoliceBlips = false;
 	featureFullMap = false;
-	featurePenitentiaryMap = false;
-	featureCayoPericoMap = false;
-	featureZancudoMap = false;
+	featurePenitentiaryMap.enabled = false;
+	featureCayoPericoMap.enabled = false;
+	featureZancudoMap.enabled = false;
 	featureBusLight = false;
 	featureAcidWater = false;
 	featureAcidRain = false;
 	featureReducedGripVehiclesIfSnow = false;
-	featureBlackout = false;
+	featureBlackout.enabled = false;
 	featureHeadlightsBlackout = false;
-	featureSnow = false;
-	featureMPMap = false;
-	featurePenitentiaryMapUpdated = false;
-	featureCayoPericoMapUpdated = false;
+	featureSnow.enabled = false;
+	featureMPMap.enabled = false;
+	featurePenitentiaryMap.updated = false;
+	featureCayoPericoMap.updated = false;
 
-	featureWorldRandomCops =
-	featureWorldRandomTrains =
-	featureWorldRandomBoats =
-	featureWorldGarbageTrucks =
-	featureWorldNoTrafficUpdated = 
-	featureZancudoMapUpdated =
-	featureWorldGarbageTrucksUpdated =
-	featureWorldRandomBoatsUpdated =
-	featureWorldRandomCopsUpdated =
-	featureWorldRandomTrainsUpdated =
-	featureBlackoutUpdated =
-	featureSnowUpdated =
-	featureNoMinimapRotUpdated =
-	featureMPMapUpdated = true;
+	featureWorldRandomCops.enabled =
+	featureWorldRandomTrains.enabled =
+	featureWorldRandomBoats.enabled =
+	featureWorldGarbageTrucks.enabled =
+	featureWorldNoTraffic.updated =
+	featureZancudoMap.updated =
+	featureWorldGarbageTrucks.updated =
+	featureWorldRandomBoats.updated =
+	featureWorldRandomCops.updated =
+	featureWorldRandomTrains.updated =
+	featureBlackout.updated =
+	featureSnow.updated =
+	featureNoMinimapRot.updated =
+	featureMPMap.updated = true;
 }
 
 void update_world_features()
@@ -848,36 +809,36 @@ void update_world_features()
 		GAMEPLAY::SET_GRAVITY_LEVEL(0);
 	}
 
-	if (featureBlackoutUpdated)
+	if (featureBlackout.updated)
 	{
-		GRAPHICS::_SET_BLACKOUT(featureBlackout);
-		featureBlackoutUpdated = false;
+		GRAPHICS::_SET_BLACKOUT(featureBlackout.enabled);
+		featureBlackout.updated = false;
 	}
 
-	if (featureWorldRandomCopsUpdated)
+	if (featureWorldRandomCops.updated)
 	{
-		PED::SET_CREATE_RANDOM_COPS(featureWorldRandomCops);
-		PED::SET_CREATE_RANDOM_COPS_ON_SCENARIOS(featureWorldRandomCops);
-		PED::SET_CREATE_RANDOM_COPS_NOT_ON_SCENARIOS(featureWorldRandomCops);
-		featureWorldRandomCopsUpdated = false;
+		PED::SET_CREATE_RANDOM_COPS(featureWorldRandomCops.enabled);
+		PED::SET_CREATE_RANDOM_COPS_ON_SCENARIOS(featureWorldRandomCops.enabled);
+		PED::SET_CREATE_RANDOM_COPS_NOT_ON_SCENARIOS(featureWorldRandomCops.enabled);
+		featureWorldRandomCops.updated = false;
 	}
 
-	if (featureWorldRandomTrainsUpdated)
+	if (featureWorldRandomTrains.updated)
 	{
-		VEHICLE::SET_RANDOM_TRAINS(featureWorldRandomTrains);
-		featureWorldRandomTrainsUpdated = false;
+		VEHICLE::SET_RANDOM_TRAINS(featureWorldRandomTrains.enabled);
+		featureWorldRandomTrains.updated = false;
 	}
 
-	if (featureWorldRandomBoatsUpdated)
+	if (featureWorldRandomBoats.updated)
 	{
-		VEHICLE::SET_RANDOM_BOATS(featureWorldRandomBoats);
-		featureWorldRandomBoatsUpdated = false;
+		VEHICLE::SET_RANDOM_BOATS(featureWorldRandomBoats.enabled);
+		featureWorldRandomBoats.updated = false;
 	}
 
-	if (featureWorldGarbageTrucksUpdated)
+	if (featureWorldGarbageTrucks.updated)
 	{
-		VEHICLE::SET_GARBAGE_TRUCKS(featureWorldGarbageTrucks);
-		featureWorldGarbageTrucksUpdated = false;
+		VEHICLE::SET_GARBAGE_TRUCKS(featureWorldGarbageTrucks.enabled);
+		featureWorldGarbageTrucks.updated = false;
 	}
 
 	if (featureWorldNoPeds)
@@ -922,31 +883,31 @@ void update_world_features()
 	}
 	
 	// Show Bolingbroke Penitentiary On Map & Show Cayo Perico Island On Map
-	if (featurePenitentiaryMap || featureCayoPericoMap) {
+	if (featurePenitentiaryMap.enabled || featureCayoPericoMap.enabled) {
 		Vector3 coords_me = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
 		if (INTERIOR::_ARE_COORDS_COLLIDING_WITH_EXTERIOR(coords_me.x, coords_me.y, coords_me.z)) {
-			if (featurePenitentiaryMap) UI::SET_RADAR_AS_INTERIOR_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("V_FakePrison"), 1700, 2580, 0, 0);
-			if (featureCayoPericoMap) UI::SET_RADAR_AS_INTERIOR_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("h4_fake_islandx"), 4700.0f, -5145.0, 0, 0); // THANKS TO SJAAK327 FOR THE CODE
+			if (featurePenitentiaryMap.enabled) UI::SET_RADAR_AS_INTERIOR_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("V_FakePrison"), 1700, 2580, 0, 0);
+			if (featureCayoPericoMap.enabled) UI::SET_RADAR_AS_INTERIOR_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("h4_fake_islandx"), 4700.0f, -5145.0, 0, 0); // THANKS TO SJAAK327 FOR THE CODE
 			UI::SET_RADAR_AS_EXTERIOR_THIS_FRAME();
 		}
 	}
-	if (featurePenitentiaryMapUpdated) {
-		featureCayoPericoMap = false;
-		featurePenitentiaryMapUpdated = false;
+	if (featurePenitentiaryMap.updated) {
+		featureCayoPericoMap.enabled = false;
+		featurePenitentiaryMap.updated = false;
 	}
-	if (featureCayoPericoMapUpdated) {
-		featurePenitentiaryMap = false;
-		featureCayoPericoMapUpdated = false;
+	if (featureCayoPericoMap.updated) {
+		featurePenitentiaryMap.enabled = false;
+		featureCayoPericoMap.updated = false;
 	}
 
 	// Show Fort Zancudo On Map
-	if (featureZancudoMap && featureZancudoMapUpdated == true) {
+	if (featureZancudoMap.enabled && featureZancudoMap.updated == true) {
 		UI::SET_MINIMAP_COMPONENT(15, true, -1);
-		featureZancudoMapUpdated = false;
+		featureZancudoMap.updated = false;
 	}
-	if (!featureZancudoMap) {
+	if (!featureZancudoMap.enabled) {
 		UI::SET_MINIMAP_COMPONENT(15, false, -1);
-		featureZancudoMapUpdated = true;
+		featureZancudoMap.updated = true;
 	}
 	
 	// Change Weather
@@ -958,7 +919,7 @@ void update_world_features()
 		GAMEPLAY::SET_WEATHER_TYPE_NOW("CLEAR");
 		change_w_e = false;
 	}
-	if (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] > 0 && !featureWeatherFreeze) {
+	if (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] > 0 && !featureWeatherFreeze.enabled) {
 		change_w_e = true;
 
 		w_secs_passed = clock() / CLOCKS_PER_SEC;
@@ -1178,13 +1139,13 @@ void update_world_features()
 	}
 
 	// Waves Intensity
-	if (featureSnow) {
+	if (featureSnow.enabled) {
 		winter_water_tick = winter_water_tick + 1;
 		if (winter_water_tick < 7000) GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(3.0f); // 10000
 		if (winter_water_tick > 6999 && winter_water_tick < 7300) GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(0.0f); // 9999 10300
 		if (winter_water_tick > 7299) winter_water_tick = 0; // 10299
 	}
-	if ((WORLD_WAVES_VALUES[WorldWavesIndex] != -2 && !featureSnow && winter_water_tick > 0) || wavesstrength_toggle == false) { // WORLD_WAVES_VALUES[WorldWavesIndex] == -1
+	if ((WORLD_WAVES_VALUES[WorldWavesIndex] != -2 && !featureSnow.enabled && winter_water_tick > 0) || wavesstrength_toggle == false) { // WORLD_WAVES_VALUES[WorldWavesIndex] == -1
 		GAMEPLAY::WATER_OVERRIDE_SET_STRENGTH(0.0f);
 		WATER::_RESET_WAVES_INTENSITY();
 		winter_water_tick = 0;
@@ -1332,7 +1293,7 @@ void update_world_features()
 				reduced_grip_e = true;
 			}
 			// Reduced Grip If Snowing (Vehicles & Protagonist)
-			if (VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripSnowingCustomIndex] > 0 && featureSnow) {
+			if (VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripSnowingCustomIndex] > 0 && featureSnow.enabled) {
 				float slippery_randomize = -1;
 				Vector3 coords_slip = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
 				Vector3 coords_slip_ped = ENTITY::GET_ENTITY_COORDS(bus_veh[i], true);
@@ -1388,7 +1349,7 @@ void update_world_features()
 				}
 			}
 			// DISABLED Reduced Grip If Snowing || DISABLED Slippery When Wet || DISABLED NPC Vehicles Reduced Grip
-			if ((VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripSnowingCustomIndex] > 0 && !featureSnow && no_grip_snowing_e == true) || (VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripSnowingCustomIndex] == 0 && featureSnow && no_grip_snowing_e == true) ||
+			if ((VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripSnowingCustomIndex] > 0 && !featureSnow.enabled && no_grip_snowing_e == true) || (VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripSnowingCustomIndex] == 0 && featureSnow.enabled && no_grip_snowing_e == true) ||
 				(VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripRainingCustomIndex] > 0 && GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() != 1420204096 && GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() != 3061285535 &&
 				GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() != 1840358669 && GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() != 3373937154 && no_grip_when_wet_e == true) || 
 				(VEH_TURN_SIGNALS_ACCELERATION_VALUES[RadarReducedGripRainingCustomIndex] == 0 && no_grip_when_wet_e == true) || (!featureNPCReducedGripVehicles && reduced_grip_e == true)) {
@@ -1412,7 +1373,7 @@ void update_world_features()
 				if (lightsAutoOn && !highbeamsAutoOn && bus_veh[i] != veh_mycurrveh) VEHICLE::SET_VEHICLE_FULLBEAM(bus_veh[i], 1);
 			}
 			// Headlights During Blackout
-			if (featureHeadlightsBlackout && featureBlackout && VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(bus_veh[i])) {
+			if (featureHeadlightsBlackout && featureBlackout.enabled && VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(bus_veh[i])) {
 				Vehicle vehpolicelights = bus_veh[i];
 				bool autolights_state = VEHICLE::GET_VEHICLE_LIGHTS_STATE(vehpolicelights, &lightsBAutoOn, &highbeamsBAutoOn);
 				int bone_cruiser_index = ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(vehpolicelights, "headlight_l");
@@ -1770,45 +1731,45 @@ void update_world_features()
 	if (windstrength_changed != WORLD_WIND_STRENGTH_VALUES[WindStrengthIndex]) windstrength_toggle = false;
 
 	// No Minimap Rotation
-	if (featureNoMinimapRot) {
+	if (featureNoMinimapRot.enabled) {
 		UI::LOCK_MINIMAP_ANGLE(0);
-		featureNoMinimapRotUpdated = true;
+		featureNoMinimapRot.updated = true;
 	}
-	if (!featureNoMinimapRot && featureNoMinimapRotUpdated == true) {
+	if (!featureNoMinimapRot.enabled && featureNoMinimapRot.updated == true) {
 		UI::UNLOCK_MINIMAP_ANGLE();
-		featureNoMinimapRotUpdated = false;
+		featureNoMinimapRot.updated = false;
 	}
 
 	// No Fire Department Dispatch
-	if (featureWorldNoFireTruck) {
+	if (featureWorldNoFireTruck.enabled) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(3, false);
-		featureWorldNoFireTruckUpdated = true;
+		featureWorldNoFireTruck.updated = true;
 	}
-	else if (featureWorldNoFireTruckUpdated == true) {
+	else if (featureWorldNoFireTruck.updated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(3, true);
-		featureWorldNoFireTruckUpdated = false;
+		featureWorldNoFireTruck.updated = false;
 	}
 
 	// No Ambulance Department Dispatch
-	if (featureWorldNoAmbulance) {
+	if (featureWorldNoAmbulance.enabled) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(5, false);
-		featureWorldNoAmbulanceUpdated = true;
+		featureWorldNoAmbulance.updated = true;
 	}
-	else if (featureWorldNoAmbulanceUpdated == true) {
+	else if (featureWorldNoAmbulance.updated == true) {
 		GAMEPLAY::ENABLE_DISPATCH_SERVICE(5, true);
-		featureWorldNoAmbulanceUpdated = false;
+		featureWorldNoAmbulance.updated = false;
 	}
 
 	// No Waypoint
 	if (featureNoWaypoint) UI::CLEAR_GPS_PLAYER_WAYPOINT();
 
 	// No Traffic
-	if (featureWorldNoTrafficUpdated)
+	if (featureWorldNoTraffic.updated)
 	{
-		VEHICLE::_DISPLAY_DISTANT_VEHICLES(!featureWorldNoTraffic);
-		GRAPHICS::DISABLE_VEHICLE_DISTANTLIGHTS(featureWorldNoTraffic);
+		VEHICLE::_DISPLAY_DISTANT_VEHICLES(!featureWorldNoTraffic.enabled);
+		GRAPHICS::DISABLE_VEHICLE_DISTANTLIGHTS(featureWorldNoTraffic.enabled);
 
-		if (featureWorldNoTraffic)
+		if (featureWorldNoTraffic.enabled)
 		{
 			Vector3 v3 = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), 1);
 			GAMEPLAY::CLEAR_AREA_OF_VEHICLES(v3.x, v3.y, v3.z, 1000.0, 0, 0, 0, 0, 0);
@@ -1822,9 +1783,9 @@ void update_world_features()
 			VEHICLE::SET_ALL_LOW_PRIORITY_VEHICLE_GENERATORS_ACTIVE(true);
 		}
 
-		featureWorldNoTrafficUpdated = false;
+		featureWorldNoTraffic.updated = false;
 	}
-	else if (featureWorldNoTraffic)// && get_frame_number() % 100 == 0)
+	else if (featureWorldNoTraffic.enabled)// && get_frame_number() % 100 == 0)
 	{
 		if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0))
 		{
@@ -1870,10 +1831,10 @@ void update_world_features()
 	}
 
 	// Random Trains
-	if (!featureWorldRandomTrains) VEHICLE::DELETE_ALL_TRAINS();
+	if (!featureWorldRandomTrains.enabled) VEHICLE::DELETE_ALL_TRAINS();
 	
 	// Freeze Weather
-	if (featureWeatherFreeze && featureWeatherFreezeUpdated == false) {
+	if (featureWeatherFreeze.enabled && featureWeatherFreeze.updated == false) {
 		freeze_counter = freeze_counter + 0.05;
 		GAMEPLAY::CLEAR_OVERRIDE_WEATHER();
 		GAMEPLAY::CLEAR_WEATHER_TYPE_PERSIST();
@@ -1885,20 +1846,20 @@ void update_world_features()
 			if (WORLD_LIGHTNING_INTENSITY_VALUES[featureLightIntensityIndex] > -2 && GAMEPLAY::GET_PREV_WEATHER_TYPE_HASH_NAME() == 3373937154) GRAPHICS::_SET_CLOUD_HAT_TRANSITION("Stormy 01", 0.3);
 			GAMEPLAY::SET_WEATHER_TYPE_NOW_PERSIST((char*)lastWeather.c_str());
 		}
-		if (freeze_counter > 0.30) featureWeatherFreezeUpdated = true;
+		if (freeze_counter > 0.30) featureWeatherFreeze.updated = true;
 	}
-	if (featureWeatherFreeze && !lastWeather.empty() && featureWeatherFreezeUpdated == true) {
+	if (featureWeatherFreeze.enabled && !lastWeather.empty() && featureWeatherFreeze.updated == true) {
 		GAMEPLAY::SET_WEATHER_TYPE_NOW_PERSIST((char*)lastWeather.c_str());
 		freeze_counter = 0.0;
 	}
-	if (featureWeatherFreeze && (DLC2::GET_IS_LOADING_SCREEN_ACTIVE() || (time_since_d > -1 && time_since_d < 2000))) featureWeatherFreezeUpdated = false;
-	if (!featureWeatherFreeze && featureWeatherFreezeUpdated == true) {
+	if (featureWeatherFreeze.enabled && (DLC2::GET_IS_LOADING_SCREEN_ACTIVE() || (time_since_d > -1 && time_since_d < 2000))) featureWeatherFreeze.updated = false;
+	if (!featureWeatherFreeze.enabled && featureWeatherFreeze.updated == true) {
 		GAMEPLAY::CLEAR_OVERRIDE_WEATHER();
 		GAMEPLAY::CLEAR_WEATHER_TYPE_PERSIST();
 		if (screenfltr == "DEFAULT" || screenfltr == "") GRAPHICS::CLEAR_TIMECYCLE_MODIFIER();
 		GRAPHICS::_CLEAR_CLOUD_HAT();
 		GAMEPLAY::SET_WEATHER_TYPE_NOW("CLEAR");
-		featureWeatherFreezeUpdated = false;
+		featureWeatherFreeze.updated = false;
 		freeze_counter = 0.0;
 	}
 
@@ -1918,11 +1879,11 @@ void update_world_features()
 	}
 
 	// Heavy Snow
-	if (featureSnowUpdated)
+	if (featureSnow.updated)
 	{
-		if (featureSnow)
+		if (featureSnow.enabled)
 		{
-			EnableSnow(featureSnow);
+			EnableSnow(&featureSnow.enabled);
 			EnableTracks(true, true, true, true);
 			// THANKS TO ALTSIERRA117 FOR THE ORIGINAL CODE
 			STREAMING::REQUEST_NAMED_PTFX_ASSET("core_snow");
@@ -1932,64 +1893,64 @@ void update_world_features()
 		}
 		else
 		{
-			EnableSnow(featureSnow);
+			EnableSnow(&featureSnow.enabled);
 			EnableTracks(false, false, false, false);
 
 			STREAMING::_REMOVE_NAMED_PTFX_ASSET("core_snow");
 		}
-		featureSnowUpdated = false;
+		featureSnow.updated = false;
 	}
 	
-	if (featureMPMap) {
-		if (featureMPMapUpdated == true && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if (featureMPMap.enabled) {
+		if (featureMPMap.updated == true && GAMEPLAY::GET_MISSION_FLAG() == 0) {
 			MPMapCounter = MPMapCounter + 1;
 			if (MPMapCounter > 200) {
 				DLC2::_LOAD_MP_DLC_MAPS();
 				set_status_text(tr("WorldMenu.MPMapsEnabled", "MP Maps enabled"));
-				featureMPMapUpdated = false;
+				featureMPMap.updated = false;
 				MPMapCounter = 0;
 			}
 		}
-		if (featureMPMapUpdated == false && GAMEPLAY::GET_MISSION_FLAG() == 1) featureMPMapUpdated = true; // (GAMEPLAY::GET_MISSION_FLAG() == 1 || DLC2::GET_IS_LOADING_SCREEN_ACTIVE())
+		if (featureMPMap.updated == false && GAMEPLAY::GET_MISSION_FLAG() == 1) featureMPMap.updated = true; // (GAMEPLAY::GET_MISSION_FLAG() == 1 || DLC2::GET_IS_LOADING_SCREEN_ACTIVE())
 	}
-	if (!featureMPMap && featureMPMapUpdated == false) {
+	if (!featureMPMap.enabled && featureMPMap.updated == false) {
 		DLC2::_LOAD_SP_DLC_MAPS();
-		featureMPMapUpdated = true;
+		featureMPMap.updated = true;
 		MPMapCounter = 0;
 	}
 }
 
 void add_world_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results)
 {
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldRandomCops", &featureWorldRandomCops, &featureWorldRandomCopsUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldRandomTrains", &featureWorldRandomTrains, &featureWorldRandomTrainsUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldRandomBoats", &featureWorldRandomBoats, &featureWorldRandomBoatsUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldGarbageTrucks", &featureWorldGarbageTrucks, &featureWorldGarbageTrucksUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWeatherFreeze", &featureWeatherFreeze });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldRandomCops", &featureWorldRandomCops.enabled, &featureWorldRandomCops.updated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldRandomTrains", &featureWorldRandomTrains.enabled, &featureWorldRandomTrains.updated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldRandomBoats", &featureWorldRandomBoats.enabled, &featureWorldRandomBoats.updated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldGarbageTrucks", &featureWorldGarbageTrucks.enabled, &featureWorldGarbageTrucks.updated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWeatherFreeze", &featureWeatherFreeze.enabled });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureCloudsFreeze", &featureCloudsFreeze });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureBlackout", &featureBlackout, &featureBlackoutUpdated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureBlackout", &featureBlackout.enabled, &featureBlackout.updated });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureHeadlightsBlackout", &featureHeadlightsBlackout });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureRestrictedZones", &featureRestrictedZones });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoPeds", &featureWorldNoPeds }); 
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoFireTruck", &featureWorldNoFireTruck });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoAmbulance", &featureWorldNoAmbulance });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoTraffic", &featureWorldNoTraffic, &featureWorldNoTrafficUpdated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoFireTruck", &featureWorldNoFireTruck.enabled });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoAmbulance", &featureWorldNoAmbulance.enabled });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureWorldNoTraffic", &featureWorldNoTraffic.enabled, &featureWorldNoTraffic.updated });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureNoPlanesHelis", &featureNoPlanesHelis });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureNoAnimals", &featureNoAnimals });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureNoMinimapRot", &featureNoMinimapRot });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureNoMinimapRot", &featureNoMinimapRot.enabled });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureNoWaypoint", &featureNoWaypoint });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureNoGameHintCameraLocking", &featureNoGameHintCameraLocking });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureNoPoliceBlips", &featureNoPoliceBlips }); 
 	results->push_back(FeatureEnabledLocalDefinition{ "featureFullMap", &featureFullMap }); 
-	results->push_back(FeatureEnabledLocalDefinition{ "featurePenitentiaryMap", &featurePenitentiaryMap }); 
-	results->push_back(FeatureEnabledLocalDefinition{ "featureCayoPericoMap", &featureCayoPericoMap });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureZancudoMap", &featureZancudoMap, &featureZancudoMapUpdated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featurePenitentiaryMap", &featurePenitentiaryMap.enabled }); 
+	results->push_back(FeatureEnabledLocalDefinition{ "featureCayoPericoMap", &featureCayoPericoMap.enabled });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureZancudoMap", &featureZancudoMap.enabled, &featureZancudoMap.updated });
 	results->push_back(FeatureEnabledLocalDefinition{ "featureBusLight", &featureBusLight }); 
 	results->push_back(FeatureEnabledLocalDefinition{ "featureAcidWater", &featureAcidWater }); 
 	results->push_back(FeatureEnabledLocalDefinition{ "featureAcidRain", &featureAcidRain }); 
 	results->push_back(FeatureEnabledLocalDefinition{ "featureReducedGripVehiclesIfSnow", &featureReducedGripVehiclesIfSnow }); 
-	results->push_back(FeatureEnabledLocalDefinition{ "featureSnow", &featureSnow, &featureSnowUpdated });
-	results->push_back(FeatureEnabledLocalDefinition{ "featureMPMap", &featureMPMap });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureSnow", &featureSnow.enabled, &featureSnow.updated });
+	results->push_back(FeatureEnabledLocalDefinition{ "featureMPMap", &featureMPMap.enabled });
 }
 
 void add_world_generic_settings(std::vector<StringPairSettingDBRow>* settings)
@@ -2169,7 +2130,11 @@ void EnableTracks(bool tracksVehicle = false, bool tracksPeds = false, bool deep
 	*(uint8_t *)(pedTrackTypes + 1) = deepTracksPed ? 0x13 : 0x14;
 }
 
-void EnableSnow(bool featureSnow) {
+// snowEnabled is an in/out parameter: on the "couldn't find the memory pattern for this
+// GTA version" failure paths, it's set back to false so the caller (and the menu toggle
+// it's bound to) find out enabling snow silently failed, instead of the toggle staying
+// stuck showing "on" while nothing actually happened.
+void EnableSnow(bool* snowEnabled) {
 
 	eGameVersion version = getGameVersion();
 
@@ -2178,9 +2143,9 @@ void EnableSnow(bool featureSnow) {
 	static uint8_t original1[14] = { 0 };
 	static uint8_t original2[15] = { 0 };
 
-	if (featureSnow)
+	if (*snowEnabled)
 	{
-		//VER_1_0_3095_0_ 
+		//VER_1_0_3095_0_
 		if (version >= 85)
 		{
 			GRAPHICS::_FORCE_GROUND_SNOW_PASS(TRUE);
@@ -2202,7 +2167,7 @@ void EnableSnow(bool featureSnow) {
 					if (!addr4)
 					{
 						set_status_text(tr("WorldMenu.RError1CannotEnableSnowOnThisVersionOfGT", "~r~ Error (1): Cannot enable Snow on this version of GTA V"));
-						featureSnow = false;
+						*snowEnabled = false;
 						return;
 					}
 					else
@@ -2223,7 +2188,7 @@ void EnableSnow(bool featureSnow) {
 				if (!addr5)
 				{
 					set_status_text(tr("WorldMenu.RError2CannotEnableSnowOnThisVersionOfGT", "~r~ Error (2): Cannot enable Snow on this version of GTA V"));
-					featureSnow = false;
+					*snowEnabled = false;
 					return;
 				}
 				else

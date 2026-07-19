@@ -17,6 +17,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\io.h"
 #include "..\io\config_io.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "..\debug\debuglog.h"
 #include "..\storage\database.h"
 /* From Zorg93's "EnableMPCars" code */

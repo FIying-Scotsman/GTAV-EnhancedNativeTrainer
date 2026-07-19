@@ -113,17 +113,11 @@ bool cop_hit_you = false;
 int SinceCopHit_secs_curr = 0;
 int CopHit_seconds = 0;
 int SpeedingCityIndex = 3;
-bool SpeedingCity_Changed = true;
 int SpeedingSpeedwayIndex = 5;
-bool SpeedingSpeedway_Changed = true;
 int FineSizeIndex = 1;
-bool FineSize_Changed = true;
 int DetectionRangeIndex = 3;
-bool DetectionRange_Changed = true;
 int PirsuitRangeIndexN = 4;
-bool PirsuitRange_Changed = true;
 int StarsPunishIndex = 1;
-bool StarsPunish_Changed = true;
 bool cop_close_stop = false;
 
 int tempfined_x = -1;
@@ -135,9 +129,7 @@ std::vector<int> CLOTHES_BODY_CRIME;
 bool featurePlayerMostWanted = false;
 bool featurePlayerNoSwitch = true;
 int current_player_mostwanted = 1;
-bool current_player_mostwanted_Changed;
 int mostwanted_level_enable = 1;
-bool mostwanted_level_enable_Changed;
 Player temp = -1;
 //
 

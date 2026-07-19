@@ -4,6 +4,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
+#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
+
 #include "config_io.h"
 #include "keyboard.h"
 #include "..\debug\debuglog.h"
