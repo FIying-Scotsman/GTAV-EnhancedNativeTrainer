@@ -15,6 +15,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <fstream>
 
 #include "keyboard.h"
+#include "..\common\controller_bind.h"
 
 class KeyConfig{
 	public:
@@ -135,4 +136,4 @@ inline TrainerConfig* get_config(){
 	return config;
 }
 
-extern std::map<std::string, std::pair<int, int>> controller_binds;
+extern std::map<std::string, ControllerBind> controller_binds;

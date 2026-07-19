@@ -153,6 +153,8 @@ void Traffic_switching();
 
 bool is_jellman_scenery_enabled();
 
+extern bool featureControllerIgnoreInTrainer;
+
 extern bool radio_v_checked;
 extern bool featureRealisticRadioVolume;
 extern std::string screenfltr;

@@ -8,6 +8,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "propplacement.h"
 #include "..\io\keyboard.h"
 #include "..\io\config_io.h"
+#include "..\io\controller.h"
 #include "..\utils.h"
 #include "script.h"
 
@@ -385,12 +386,12 @@ void prop_placement()
 
 	KeyInputConfig* keyConfig = get_config()->get_key_config();
 
-	bool moveUpKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_UP) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_OBJECTPLACER_UP"].first);
-	bool moveDownKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_DOWN) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_OBJECTPLACER_DOWN"].first);
-	bool moveForwardKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_FORWARD) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_OBJECTPLACER_FORWARD"].first);
-	bool moveBackKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_BACK) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_OBJECTPLACER_BACK"].first);
-	bool rotateLeftKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_ROTATE_LEFT) || CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_OBJECTPLACER_ROTATE_LEFT"].first);
-	bool rotateRightKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_ROTATE_RIGHT) || CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_OBJECTPLACER_ROTATE_RIGHT"].first);
+	bool moveUpKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_UP) || is_bind_just_pressed("KEY_OBJECTPLACER_UP");
+	bool moveDownKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_DOWN) || is_bind_just_pressed("KEY_OBJECTPLACER_DOWN");
+	bool moveForwardKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_FORWARD) || is_bind_just_pressed("KEY_OBJECTPLACER_FORWARD");
+	bool moveBackKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_BACK) || is_bind_just_pressed("KEY_OBJECTPLACER_BACK");
+	bool rotateLeftKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_ROTATE_LEFT) || is_bind_pressed("KEY_OBJECTPLACER_ROTATE_LEFT");
+	bool rotateRightKey = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_ROTATE_RIGHT) || is_bind_pressed("KEY_OBJECTPLACER_ROTATE_RIGHT");
 
 	bool secondaryMove = IsKeyDown(KeyConfig::KEY_OBJECTPLACER_ALT_MOVE);
 
@@ -400,7 +401,7 @@ void prop_placement()
 
 	ENTITY::SET_ENTITY_VELOCITY(currentProp.instance, 0.0f, 0.0f, 0.0f);
 
-	if (CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, controller_binds["KEY_MENU_SELECT"].first))
+	if (is_bind_disabled_just_pressed("KEY_MENU_SELECT"))
 	{
 		pp_travel_speed++;
 		if (pp_travel_speed >= MOVE_SPEED_COUNTS)
@@ -424,12 +425,12 @@ void prop_placement()
 		}
 	}
 
-	if (IsKeyJustUp(KeyConfig::KEY_OBJECTPLACER_FREEZE_TIME) || CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, controller_binds["KEY_OBJECTPLACER_FREEZE_TIME"].first))
+	if (IsKeyJustUp(KeyConfig::KEY_OBJECTPLACER_FREEZE_TIME) || is_bind_disabled_just_pressed("KEY_OBJECTPLACER_FREEZE_TIME"))
 	{
 		pp_frozen_time = !pp_frozen_time;
 	}
 
-	if (IsKeyJustUp(KeyConfig::KEY_OBJECTPLACER_FREEZE_POSITION) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_OBJECTPLACER_FREEZE_POSITION"].first))
+	if (IsKeyJustUp(KeyConfig::KEY_OBJECTPLACER_FREEZE_POSITION) || is_bind_just_pressed("KEY_OBJECTPLACER_FREEZE_POSITION"))
 	{
 		currentProp.isImmovable = !currentProp.isImmovable;
 	}

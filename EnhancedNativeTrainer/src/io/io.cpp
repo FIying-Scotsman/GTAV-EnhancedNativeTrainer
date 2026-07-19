@@ -22,11 +22,7 @@ bool gameInputBlockedByUs = false;
 
 bool trainer_switch_pressed()
 {
-	/*std::stringstream ss;
-	ss << "Map first: " << controller_binds["KEY_TOGGLE_MAIN_MENU"].first << " Map second: " << controller_binds["KEY_TOGGLE_MAIN_MENU"].second;
-	set_status_text_centre_screen(ss.str());*/
-
-	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_TOGGLE_MAIN_MENU"].first) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_TOGGLE_MAIN_MENU"].second)); //INPUT_FRONTEND_RB + INPUT_ENTER (Y)
+	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU) || (is_bind_pressed("KEY_TOGGLE_MAIN_MENU") && is_bind_just_pressed("KEY_TOGGLE_MAIN_MENU", 2)); //INPUT_FRONTEND_RB + INPUT_ENTER (Y)
 	if (result)
 	{
 		//avoid repeat of key press
@@ -68,7 +64,7 @@ bool get_key_pressed(int nVirtKey)
 
 bool airbrake_switch_pressed()
 {
-	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_AIRBRAKE) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_TOGGLE_AIRBRAKE"].first) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_TOGGLE_AIRBRAKE"].second)); //INPUT_FRONTEND_ACCEPT (A) + INPUT_FRONTEND_RB (RB)
+	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_AIRBRAKE) || (is_bind_pressed("KEY_TOGGLE_AIRBRAKE") && is_bind_just_pressed("KEY_TOGGLE_AIRBRAKE", 2)); //INPUT_FRONTEND_ACCEPT (A) + INPUT_FRONTEND_RB (RB)
 	if (result)
 	{
 		//avoid repeat of key press

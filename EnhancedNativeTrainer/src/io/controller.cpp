@@ -3,9 +3,54 @@
 #include "..\debug\debuglog.h"
 #include "..\io\controller.h"
 
+extern bool featureControllerIgnoreInTrainer;
+
 bool isUsingController()
 {
 	return !CONTROLS::_IS_INPUT_DISABLED(2);
+}
+
+// Resolves a bind name/slot to its eButton ID, or CONTROLLER_BUTTON_NONE if
+// unbound or if the global controller-disable toggle is active - the single
+// choke point every is_bind_* helper below funnels through.
+static int resolve_bind_button(const std::string& bindName, int slot)
+{
+	if (featureControllerIgnoreInTrainer) return CONTROLLER_BUTTON_NONE;
+
+	auto it = controller_binds.find(bindName);
+	if (it == controller_binds.end()) return CONTROLLER_BUTTON_NONE;
+
+	return slot == 2 ? it->second.secondary : it->second.primary;
+}
+
+bool is_bind_pressed(const std::string& bindName, int slot)
+{
+	int btn = resolve_bind_button(bindName, slot);
+	return btn != CONTROLLER_BUTTON_NONE && CONTROLS::IS_CONTROL_PRESSED(2, btn);
+}
+
+bool is_bind_just_pressed(const std::string& bindName, int slot)
+{
+	int btn = resolve_bind_button(bindName, slot);
+	return btn != CONTROLLER_BUTTON_NONE && CONTROLS::IS_CONTROL_JUST_PRESSED(2, btn);
+}
+
+bool is_bind_disabled_pressed(const std::string& bindName, int slot)
+{
+	int btn = resolve_bind_button(bindName, slot);
+	return btn != CONTROLLER_BUTTON_NONE && CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, btn);
+}
+
+bool is_bind_disabled_just_pressed(const std::string& bindName, int slot)
+{
+	int btn = resolve_bind_button(bindName, slot);
+	return btn != CONTROLLER_BUTTON_NONE && CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, btn);
+}
+
+bool is_bind_disabled_just_released(const std::string& bindName, int slot)
+{
+	int btn = resolve_bind_button(bindName, slot);
+	return btn != CONTROLLER_BUTTON_NONE && CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, btn);
 }
 
 void disableControls()

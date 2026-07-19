@@ -18,6 +18,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "script.h"
 #include "..\ui_support\menu_functions.h"
 #include "..\io\config_io.h"
+#include "..\io\controller.h"
 #include "..\debug\debuglog.h"
 #include "area_effect.h"
 #include <fstream>
@@ -2979,8 +2980,8 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 
 	// Speed Boost
 	if (bPlayerExists && speedBoostIndex > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		bool bUp = IsKeyDown(KeyConfig::KEY_VEH_BOOST) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_VEH_BOOST"].first) && CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_VEH_BOOST"].second));
-		bool bDown = IsKeyDown(KeyConfig::KEY_VEH_STOP) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_VEH_STOP"].first) && CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_VEH_STOP"].second));
+		bool bUp = IsKeyDown(KeyConfig::KEY_VEH_BOOST) || (is_bind_pressed("KEY_VEH_BOOST") && is_bind_pressed("KEY_VEH_BOOST", 2));
+		bool bDown = IsKeyDown(KeyConfig::KEY_VEH_STOP) || (is_bind_pressed("KEY_VEH_STOP") && is_bind_pressed("KEY_VEH_STOP", 2));
 
 		if (bUp || bDown){
 			if (bUp){
@@ -3552,9 +3553,9 @@ void update_vehicle_features(BOOL bPlayerExists, Ped playerPed){
 		Vehicle vehturn = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
 		int vehturnspeed = ENTITY::GET_ENTITY_SPEED(vehturn);
 		int steer_turn = CONTROLS::GET_CONTROL_VALUE(0, 9);
-		bool leftKey = IsKeyJustUp(KeyConfig::KEY_VEH_LEFTBLINK) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_VEH_LEFTBLINK"].first); // left key - CONTROLLER_BTN_TRIGGER_L
-		bool rightKey = IsKeyJustUp(KeyConfig::KEY_VEH_RIGHTBLINK) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_VEH_RIGHTBLINK"].first); // right key - CONTROLLER_BTN_TRIGGER_R
-		bool emergencyKey = IsKeyJustUp(KeyConfig::KEY_VEH_EMERGENCYBLINK) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_VEH_EMERGENCYBLINK"].first); // emergency signal key - CONTROLLER_BTN_B
+		bool leftKey = IsKeyJustUp(KeyConfig::KEY_VEH_LEFTBLINK) || is_bind_just_pressed("KEY_VEH_LEFTBLINK"); // left key - CONTROLLER_BTN_TRIGGER_L
+		bool rightKey = IsKeyJustUp(KeyConfig::KEY_VEH_RIGHTBLINK) || is_bind_just_pressed("KEY_VEH_RIGHTBLINK"); // right key - CONTROLLER_BTN_TRIGGER_R
+		bool emergencyKey = IsKeyJustUp(KeyConfig::KEY_VEH_EMERGENCYBLINK) || is_bind_just_pressed("KEY_VEH_EMERGENCYBLINK"); // emergency signal key - CONTROLLER_BTN_B
 
 		bool b_pressed = false;
 		if (IsKeyDown(VK_LBUTTON) || IsKeyDown(VK_RBUTTON)) b_pressed = true;

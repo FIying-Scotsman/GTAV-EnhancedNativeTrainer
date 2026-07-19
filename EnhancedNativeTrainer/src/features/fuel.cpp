@@ -15,6 +15,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "script.h"
 #include "..\ui_support\menu_functions.h"
 #include "..\io\config_io.h"
+#include "..\io\controller.h"
 #include "..\debug\debuglog.h"
 #include "area_effect.h"
 #include <fstream>
@@ -164,9 +165,9 @@ void fuel()
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 		
 		//bool refill_button = IsKeyDown(VK_LBUTTON); // REFUEL KEY FOR JERRY CAN
-		bool startrefillKey = IsKeyDown(KeyConfig::KEY_VEH_STARTREFUELING) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, controller_binds["KEY_VEH_STARTREFUELING"].first); // REFUEL KEY GAS STATION 
-		bool stoprefillKey = IsKeyDown(KeyConfig::KEY_VEH_STOPREFUELING) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, controller_binds["KEY_VEH_STOPREFUELING"].first); // STOP REFUELING GAS STATION
-		bool canrefillKey = IsKeyDown(KeyConfig::KEY_VEH_CANREFUELING) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, controller_binds["KEY_VEH_CANREFUELING"].first); // FUEL CAN REFUEL
+		bool startrefillKey = IsKeyDown(KeyConfig::KEY_VEH_STARTREFUELING) || is_bind_disabled_pressed("KEY_VEH_STARTREFUELING"); // REFUEL KEY GAS STATION 
+		bool stoprefillKey = IsKeyDown(KeyConfig::KEY_VEH_STOPREFUELING) || is_bind_disabled_pressed("KEY_VEH_STOPREFUELING"); // STOP REFUELING GAS STATION
+		bool canrefillKey = IsKeyDown(KeyConfig::KEY_VEH_CANREFUELING) || is_bind_disabled_pressed("KEY_VEH_CANREFUELING"); // FUEL CAN REFUEL
 
 		float fuel_bar_x = -1;
 		float fuel_bar_y = -1;
@@ -218,7 +219,7 @@ void fuel()
 
 		if (FUEL_COLOURS_R_VALUES[FuelBackground_Opacity_IndexN] < 2) fuelbar_edge_opacity = 0;
 
-		if (IsKeyDown(KeyConfig::KEY_MENU_LEFT) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, controller_binds["KEY_MENU_LEFT"].first) || IsKeyDown(KeyConfig::KEY_MENU_RIGHT) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, controller_binds["KEY_MENU_RIGHT"].first)) {
+		if (IsKeyDown(KeyConfig::KEY_MENU_LEFT) || is_bind_disabled_pressed("KEY_MENU_LEFT") || IsKeyDown(KeyConfig::KEY_MENU_RIGHT) || is_bind_disabled_pressed("KEY_MENU_RIGHT")) {
 			if (!BLIPTABLE.empty()) {
 				for (int i = 0; i < BLIPTABLE.size(); i++) {
 					if (UI::DOES_BLIP_EXIST(BLIPTABLE[i])) {

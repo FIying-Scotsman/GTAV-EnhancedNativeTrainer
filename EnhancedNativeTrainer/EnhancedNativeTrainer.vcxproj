@@ -39,6 +39,7 @@
     </ClCompile>
     <ClCompile Include="src\io\translation.cpp" />
     <ClCompile Include="src\io\controller.cpp" />
+    <ClCompile Include="src\io\controller_buttons.cpp" />
     <ClCompile Include="src\rage_thread\rage_thread.cpp" />
     <ClCompile Include="src\storage\database.cpp" />
     <ClCompile Include="src\debug\debuglog.cpp" />
@@ -70,6 +71,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\common\controller_bind.h" />
     <ClInclude Include="src\common\option_table.h" />
     <ClInclude Include="src\common\vectorHelper.h" />
     <ClInclude Include="src\datasets\data_props.h" />
@@ -98,6 +100,7 @@
     <ClInclude Include="src\io\config_io.h" />
     <ClInclude Include="src\io\translation.h" />
     <ClInclude Include="src\io\controller.h" />
+    <ClInclude Include="src\io\controller_buttons.h" />
     <ClInclude Include="src\features\misc.h" />
     <ClInclude Include="src\joaat.hpp" />
     <ClInclude Include="src\rage_thread\rage_thread.h" />

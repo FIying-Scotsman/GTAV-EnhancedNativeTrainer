@@ -16,6 +16,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\ui_support\menu_functions.h"
 #include "weapons.h"
 #include "..\io\config_io.h"
+#include "..\io\controller.h"
 #include <ctime>
 
 int activeLineIndexWeapon = 0;
@@ -1708,7 +1709,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		bool bSelect = IsKeyDown(KeyConfig::KEY_VEH_ROCKETS) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_VEH_ROCKETS"].first) && CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_VEH_ROCKETS"].second)) || (CONTROLS::IS_CONTROL_PRESSED(2, 69) && !CONTROLS::IS_CONTROL_PRESSED(2, 70));
+		bool bSelect = IsKeyDown(KeyConfig::KEY_VEH_ROCKETS) || (is_bind_pressed("KEY_VEH_ROCKETS") && is_bind_pressed("KEY_VEH_ROCKETS", 2)) || (CONTROLS::IS_CONTROL_PRESSED(2, 69) && !CONTROLS::IS_CONTROL_PRESSED(2, 70));
 
 		if (bSelect && featureWeaponVehShootLastTime + 150 < GetTickCount() && PLAYER::IS_PLAYER_CONTROL_ON(player)) { // 150
 			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);

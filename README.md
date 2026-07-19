@@ -17,6 +17,7 @@ Feel free to raise [issues](https://github.com/FIying-Scotsman/GTAV-EnhancedNati
 ### For players
 
 - **[Translations](translation.md)** — how the `translation.ini` file works, how to translate the trainer's menus into another language, and notes on non-ASCII/character-encoding support.
+- **[Controller Binds](controller-binds.md)** — how to rebind controller actions in `ent-config.xml`, and whether older configs with plain numeric button IDs still work.
 
 ### For contributors
 

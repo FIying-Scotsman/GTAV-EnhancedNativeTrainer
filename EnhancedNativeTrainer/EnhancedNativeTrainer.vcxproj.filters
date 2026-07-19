@@ -136,6 +136,9 @@
     <ClCompile Include="src\io\controller.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
+    <ClCompile Include="src\io\controller_buttons.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
     <ClCompile Include="src\rage_thread\rage_thread.cpp">
       <Filter>src\scripts</Filter>
     </ClCompile>
@@ -234,6 +237,9 @@
     <ClInclude Include="src\common\option_table.h">
       <Filter>inc\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\controller_bind.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
     <ClInclude Include="src\ui_support\entcolor.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
@@ -287,6 +293,9 @@
     </ClInclude>
     <ClInclude Include="src\features\enginedegrade.h" />
     <ClInclude Include="src\io\controller.h">
+      <Filter>inc\io</Filter>
+    </ClInclude>
+    <ClInclude Include="src\io\controller_buttons.h">
       <Filter>inc\io</Filter>
     </ClInclude>
     <ClInclude Include="src\joaat.hpp">
