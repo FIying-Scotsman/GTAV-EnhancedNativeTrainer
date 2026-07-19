@@ -1211,6 +1211,16 @@ bool draw_generic_menu(MenuParameters<T> params){
 				periodic_feature_call();
 			}
 
+			// This inner loop redraws for up to waitTime ms (many real frames)
+			// without looping back to the menu_per_frame_call() above it - any
+			// single-frame native driven from that hook (e.g. the weapon
+			// preview's light/spin/visibility reassertion) would otherwise
+			// only run on the first of those frames and drop out for the rest,
+			// which is visible as a flicker.
+			if(menu_per_frame_call != NULL){
+				menu_per_frame_call();
+			}
+
 			WAIT(0);
 		}
 		while(GetTickCount() < maxTickCount);
@@ -1383,6 +1393,13 @@ bool draw_generic_menu(MenuParameters<T> params){
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do{
 			make_periodic_feature_call();
+			// The menu hasn't actually returned to its caller yet, so anything
+			// driven from menu_per_frame_call (e.g. the weapon preview's
+			// light/spin/hide reassertion) still needs to run here too - same
+			// reasoning as the redraw loop above.
+			if(menu_per_frame_call != NULL){
+				menu_per_frame_call();
+			}
 			WAIT(0);
 		}
 		while(GetTickCount() < maxTickCount);

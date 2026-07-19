@@ -17,10 +17,12 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "weapons.h"
 #include "..\io\config_io.h"
 #include "..\io\controller.h"
+#include "..\io\io.h"
 #include <ctime>
 #include <algorithm>
 #include <set>
 #include <sstream>
+#include <map>
 #include <cstring>
 
 int activeLineIndexWeapon = 0;
@@ -620,20 +622,299 @@ int get_current_revolver_appearance(){
 	return 0;
 }
 
-// MK2_WEAPONS and MK2_WEAPONS_LIVERY_COMP (weapons.h) are parallel arrays - the
-// camo component at MK2_WEAPONS_LIVERY_COMP[i] is the one that applies to
-// MK2_WEAPONS[i]. Returns false for anything that isn't an MK2 weapon.
-bool get_mk2_camo_component(Hash weaponHash, char** outCompHash){
-	for(int i = 0; i < MK2_WEAPONS.size(); i++){
-		if(weaponHash == MISC::GET_HASH_KEY(MK2_WEAPONS.at(i))){
-			*outCompHash = MK2_WEAPONS_LIVERY_COMP.at(i);
+// MK2 weapons can take any one of several mutually-exclusive camo attachments
+// (COMPONENT_*_MK2_CAMO, _02, _03, ... _IND_01, and _SLIDE variants for weapons
+// that have one) - there's no single fixed "the" camo component per weapon, so
+// scan the weapon's own component list (VOV_WEAPONMOD_VALUES[moddableIndex]) for
+// whichever "_CAMO" variant the player actually has equipped right now.
+bool get_equipped_camo_component(Ped playerPed, Hash weaponHash, const std::vector<std::string> &components, char** outCompHash){
+	for(int i = 0; i < components.size(); i++){
+		const std::string &componentName = components.at(i);
+		if(componentName.find("_CAMO") == std::string::npos) continue;
+
+		char *compChar = (char*) componentName.c_str();
+		if(WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weaponHash, MISC::GET_HASH_KEY(compChar))){
+			*outCompHash = compChar;
 			return true;
 		}
 	}
 	return false;
 }
 
-bool process_individual_weapon_menu(int weaponIndex){
+// "Enhanced Customisation" - an opt-in live preview of the weapon being
+// customized, shown under its own camera the same way the in-game weapon shop
+// previews a weapon before you buy it. Scoped to a single
+// process_individual_weapon_menu call: created on entry, torn down on exit.
+// Tint/component changes made anywhere in that menu tree are mirrored onto
+// previewWeaponObject alongside the existing ped-facing calls.
+bool featureEnhancedWeaponCustomisation = false;
+Object previewWeaponObject = 0;
+Cam previewWeaponCam = 0;
+
+void update_weapon_preview(){
+	// Block discrete/digital movement (keyboard WASD, D-pad-as-movement) every
+	// frame - these need re-asserting each tick, unlike SET_PLAYER_CONTROL.
+	// Blocks the analogue stick too (not just keyboard/D-pad-as-movement) so a
+	// controller player can't wander into an NPC or traffic while previewing.
+	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_LEFT, TRUE);
+	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_RIGHT, TRUE);
+	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_UP, TRUE);
+	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_DOWN, TRUE);
+	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_LR, TRUE);
+	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_UD, TRUE);
+
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	ENTITY::SET_ENTITY_VISIBLE(playerPed, FALSE, FALSE);
+	WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(playerPed, TRUE);
+
+	if(!ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) return;
+
+	// Slow showcase spin - cosmetic only, tune in-game.
+	Vector3 rot = ENTITY::GET_ENTITY_ROTATION(previewWeaponObject, 2);
+	ENTITY::SET_ENTITY_ROTATION(previewWeaponObject, rot.x, rot.y, rot.z + 0.6f, 2, TRUE);
+
+	// A script light so the weapon stays clearly visible regardless of time of
+	// day or ambient lighting - has to be redrawn every frame like the other
+	// GRAPHICS::DRAW_* natives.
+	Vector3 weaponCoords = ENTITY::GET_ENTITY_COORDS(previewWeaponObject, TRUE);
+	GRAPHICS::DRAW_LIGHT_WITH_RANGE(weaponCoords.x, weaponCoords.y, weaponCoords.z + 1.0f, 255, 255, 255, 3.0f, 8.0f);
+}
+
+// Defined later in this file, alongside refresh_weapon_preview_object.
+void apply_weapon_preview_components(Hash weaponHash, int moddableIndex);
+
+void start_weapon_preview(Hash weaponHash, int moddableIndex){
+	if(!featureEnhancedWeaponCustomisation) return;
+
+	// Guard against being called again before a previous session's cleanup ran
+	// (e.g. the "Equip" toggle re-entering process_individual_weapon_menu via
+	// its redraw loop) - without this, the old camera handle gets silently
+	// overwritten below and leaked: orphaned, possibly still active, and never
+	// destroyed, which is how the camera got stuck rendering a weapon that had
+	// already been deleted.
+	if(CAMERA::DOES_CAM_EXIST(previewWeaponCam)){
+		CAMERA::RENDER_SCRIPT_CAMS(FALSE, FALSE, 0, TRUE, FALSE, 0);
+		CAMERA::DETACH_CAM(previewWeaponCam);
+		CAMERA::SET_CAM_ACTIVE(previewWeaponCam, FALSE);
+		CAMERA::DESTROY_CAM(previewWeaponCam, TRUE);
+		previewWeaponCam = 0;
+	}
+	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)){
+		OBJECT::DELETE_OBJECT(&previewWeaponObject);
+	}
+
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	// Hide the player too - the camera sits behind/beside the player to frame
+	// the floating weapon, so the player model can otherwise be in shot even
+	// with movement blocked (see update_weapon_preview). A full
+	// setGameInputToEnabled(false) was tried first but risked getting a player
+	// stuck unable to back out of the menu, so this is purely cosmetic.
+	// The held weapon renders independently of the ped's own visibility flag,
+	// so it needs hiding separately. Both are also re-asserted every frame in
+	// update_weapon_preview() - HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE doesn't
+	// reliably stick from a single call here.
+	ENTITY::SET_ENTITY_VISIBLE(playerPed, FALSE, FALSE);
+	WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(playerPed, TRUE);
+
+	// Starting offsets only - not visually tuned yet, see plan notes.
+	Vector3 weaponPos = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.4f, 1.0f, 0.3f);
+	Vector3 camPos = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, -0.3f, -0.3f, 0.6f);
+
+	// Lifting the scene a few metres up clears typical street-level obstacles
+	// (cars, peds, small props) that were causing the camera to clip into
+	// nearby geometry and render blank until backing out and moving away -
+	// without going so high that ambient lighting becomes unpredictable (open
+	// sky at night, etc). See update_weapon_preview for the light that keeps
+	// the weapon visible regardless of time of day/surroundings.
+	weaponPos.z += 5.0f;
+	camPos.z += 5.0f;
+
+	// CREATE_WEAPON_OBJECT can silently produce an object with no visible
+	// model if the weapon's own asset isn't streamed in yet (same class of
+	// issue as the per-component streaming below) - this is why the preview
+	// sometimes needed reopening a few times before the gun actually showed.
+	if(!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponHash)){
+		WEAPON::REQUEST_WEAPON_ASSET(weaponHash, 31, 0);
+		int attempts = 0;
+		while(!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponHash) && attempts < 100){
+			update_weapon_preview();
+			WAIT(0);
+			attempts++;
+		}
+	}
+
+	previewWeaponObject = WEAPON::CREATE_WEAPON_OBJECT(weaponHash, 1, weaponPos.x, weaponPos.y, weaponPos.z, TRUE, 1.0f, 0, 0, 0);
+	ENTITY::SET_ENTITY_COLLISION(previewWeaponObject, FALSE, FALSE);
+	ENTITY::FREEZE_ENTITY_POSITION(previewWeaponObject, TRUE);
+	// Weapons spawn pointing at/away from the camera by default - rotate so it
+	// displays side-on (horizontal to the player) instead.
+	ENTITY::SET_ENTITY_HEADING(previewWeaponObject, ENTITY::GET_ENTITY_HEADING(playerPed) + 90.0f);
+	apply_weapon_preview_components(weaponHash, moddableIndex);
+
+	previewWeaponCam = CAMERA::CREATE_CAM("DEFAULT_SCRIPTED_CAMERA", TRUE);
+	CAMERA::SET_CAM_COORD(previewWeaponCam, camPos.x, camPos.y, camPos.z);
+	CAMERA::POINT_CAM_AT_ENTITY(previewWeaponCam, previewWeaponObject, 0.0f, 0.0f, 0.0f, TRUE);
+	CAMERA::SET_CAM_ACTIVE(previewWeaponCam, TRUE);
+	CAMERA::RENDER_SCRIPT_CAMS(TRUE, FALSE, 0, TRUE, FALSE, 0);
+
+	set_menu_per_frame_call(update_weapon_preview);
+}
+
+void stop_weapon_preview(){
+	clear_menu_per_frame_call();
+
+	// If a redraw is about to happen (e.g. a camo toggle rebuilding the whole
+	// page), start_weapon_preview() is about to run again immediately and will
+	// re-hide the player/weapon anyway - restoring visibility here first would
+	// just cause a visible flash between the restore and the re-hide.
+	if(!redrawWeaponMenuAfterEquipChange){
+		ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), TRUE, FALSE);
+		WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(PLAYER::PLAYER_PED_ID(), FALSE);
+	}
+
+	if(CAMERA::DOES_CAM_EXIST(previewWeaponCam)){
+		CAMERA::RENDER_SCRIPT_CAMS(FALSE, FALSE, 0, TRUE, FALSE, 0);
+		CAMERA::DETACH_CAM(previewWeaponCam);
+		CAMERA::SET_CAM_ACTIVE(previewWeaponCam, FALSE);
+		CAMERA::DESTROY_CAM(previewWeaponCam, TRUE);
+	}
+	previewWeaponCam = 0;
+
+	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)){
+		OBJECT::DELETE_OBJECT(&previewWeaponObject);
+	}
+}
+
+// Applies every component the ped currently has equipped for weaponHash (plus
+// current tint) onto the already-existing previewWeaponObject. Doesn't touch
+// the object's lifecycle or the camera - called by both start_weapon_preview
+// (fresh object) and refresh_weapon_preview_object (recreated object) right
+// after they create it.
+void apply_weapon_preview_components(Hash weaponHash, int moddableIndex){
+	if(!ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) return;
+
+	if(moddableIndex != -1){
+		for(const std::string &compName : VOV_WEAPONMOD_VALUES[moddableIndex]){
+			Hash compHash = MISC::GET_HASH_KEY((char*)compName.c_str());
+			if(!WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(equip_ped, weaponHash, compHash)) continue;
+
+			// The ped-attach path streams a component's model in automatically;
+			// a bare script-created object doesn't, which is why some
+			// components silently failed to render - request it explicitly and
+			// give it a bounded wait rather than assume it's already resident.
+			Hash compModel = WEAPON::GET_WEAPON_COMPONENT_TYPE_MODEL(compHash);
+			if(compModel != 0 && !STREAMING::HAS_MODEL_LOADED(compModel)){
+				STREAMING::REQUEST_MODEL(compModel);
+				int attempts = 0;
+				while(!STREAMING::HAS_MODEL_LOADED(compModel) && attempts < 50){
+					// This wait happens outside draw_generic_menu's own loop
+					// (called synchronously from a menu item's onConfirm), so
+					// nothing re-asserts the preview's per-frame state
+					// (light/spin/player-hide) unless done explicitly here -
+					// that gap was the flicker on component apply.
+					update_weapon_preview();
+					WAIT(0);
+					attempts++;
+				}
+			}
+
+			WEAPON::GIVE_WEAPON_COMPONENT_TO_WEAPON_OBJECT(previewWeaponObject, compHash);
+		}
+	}
+
+	WEAPON::SET_WEAPON_OBJECT_TINT_INDEX(previewWeaponObject, WEAPON::GET_PED_WEAPON_TINT_INDEX(equip_ped, weaponHash));
+}
+
+// Attachment components don't visually refresh on the preview object when
+// given incrementally to an object that's already spawned and rendering
+// (unlike SET_WEAPON_OBJECT_TINT_INDEX, which is just a material property and
+// applies immediately either way) - rebuilding the object from scratch is the
+// reliable way to get a new attachment to actually render. Only the preview
+// object is recreated here, not the whole menu page/camera - most mod toggles
+// don't trigger a page redraw (see set_weaponmod_equipped), so this is what
+// keeps the preview in sync for those.
+void refresh_weapon_preview_object(Hash weaponHash, int moddableIndex){
+	if(!ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) return;
+
+	Vector3 pos = ENTITY::GET_ENTITY_COORDS(previewWeaponObject, TRUE);
+	OBJECT::DELETE_OBJECT(&previewWeaponObject);
+
+	// See start_weapon_preview - same asset-streaming guard, cheap no-op here
+	// since the weapon itself hasn't changed, just defensive against the
+	// asset somehow not being resident anymore.
+	if(!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponHash)){
+		WEAPON::REQUEST_WEAPON_ASSET(weaponHash, 31, 0);
+		int attempts = 0;
+		while(!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponHash) && attempts < 100){
+			update_weapon_preview();
+			WAIT(0);
+			attempts++;
+		}
+	}
+
+	previewWeaponObject = WEAPON::CREATE_WEAPON_OBJECT(weaponHash, 1, pos.x, pos.y, pos.z, TRUE, 1.0f, 0, 0, 0);
+	ENTITY::SET_ENTITY_COLLISION(previewWeaponObject, FALSE, FALSE);
+	ENTITY::FREEZE_ENTITY_POSITION(previewWeaponObject, TRUE);
+	ENTITY::SET_ENTITY_HEADING(previewWeaponObject, ENTITY::GET_ENTITY_HEADING(PLAYER::PLAYER_PED_ID()) + 90.0f);
+
+	apply_weapon_preview_components(weaponHash, moddableIndex);
+
+	// The camera was pointed at the old (now-deleted) object handle.
+	if(CAMERA::DOES_CAM_EXIST(previewWeaponCam)){
+		CAMERA::POINT_CAM_AT_ENTITY(previewWeaponCam, previewWeaponObject, 0.0f, 0.0f, 0.0f, TRUE);
+	}
+}
+
+// Weapon components cached once at load, the same way PopulateVehicleModelsArray
+// caches vehicle models - real names and hashes sourced straight from the
+// game's own metadata instead of the hand-transcribed WCT_* static tables,
+// which can be (and have been) wrong. Keyed by weapon hash. Weapons not
+// covered by this cache (empty entry, or no entry at all) fall back to the
+// original static-table-driven mod list in process_individual_weapon_menu, so
+// gaps in native coverage degrade gracefully instead of breaking anything.
+struct WeaponComponentEntry {
+	Hash hash;
+	std::string caption;
+};
+std::map<Hash, std::vector<WeaponComponentEntry>> g_weaponComponents;
+
+void PopulateWeaponComponentsArray(){
+	g_weaponComponents.clear();
+
+	int numDlcWeapons = EXTRAMETADATA::GET_NUM_DLC_WEAPONS();
+	for(int i = 0; i < numDlcWeapons; i++){
+		DlcWeaponData weaponData{};
+		if(!EXTRAMETADATA::GET_DLC_WEAPON_DATA(i, (Any*)&weaponData)) continue;
+		if(weaponData.weaponHash == 0) continue;
+		if(g_weaponComponents.count(weaponData.weaponHash) > 0) continue; // Rockstar's own list contains duplicates
+
+		std::vector<WeaponComponentEntry> components;
+		int numComponents = EXTRAMETADATA::GET_NUM_DLC_WEAPON_COMPONENTS(i);
+		for(int j = 0; j < numComponents; j++){
+			DlcWeaponComponentData compData{};
+			if(!EXTRAMETADATA::GET_DLC_WEAPON_COMPONENT_DATA(i, j, (Any*)&compData)) continue;
+			if(compData.componentHash == 0) continue;
+
+			std::string label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)compData.nameLabel);
+			if(label.empty()){
+				size_t rawLen = strnlen(compData.nameLabel, sizeof(compData.nameLabel));
+				if(rawLen > 0) label = std::string(compData.nameLabel, rawLen);
+			}
+			if(!label.empty()) components.push_back(WeaponComponentEntry{ compData.componentHash, label });
+		}
+
+		if(!components.empty()) g_weaponComponents[weaponData.weaponHash] = components;
+
+		// Yield once per weapon rather than hammering the native dispatch with
+		// thousands of unyielded calls across every weapon's every component -
+		// that stalled the game badly enough to freeze rendering (screen went
+		// black while audio kept playing).
+		WAIT(0);
+	}
+}
+
+bool process_individual_weapon_menu(int weaponIndex, int* selectionIndexPtr){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	
 	lastSelectedWeapon = weaponIndex;
@@ -658,13 +939,17 @@ bool process_individual_weapon_menu(int weaponIndex){
 	WEAPON::SET_CURRENT_PED_WEAPON(playerPed, thisWeaponHash, true);
 
 	FunctionDrivenToggleMenuItem<int> *equipItem = new FunctionDrivenToggleMenuItem<int>();
-	equipItem->caption = tr("WeaponMenu.EquipPrefix", "Equip ") + label_caption + tr("WeaponMenu.QuestionSuffix", "?");
+	equipItem->caption = tr("WeaponMenu.EquipPrefix", "Equip") + " " + label_caption + tr("WeaponMenu.QuestionSuffix", "?");
 	equipItem->value = 1;
 	equipItem->getter_call = is_weapon_equipped;
 	equipItem->setter_call = set_weapon_equipped;
 	equipItem->extra_arguments.push_back(lastSelectedWeaponCategory);
 	equipItem->extra_arguments.push_back(weaponIndex);
 	menuItems.push_back(equipItem);
+
+	// Hoisted out of the isEquipped block below so it's still in scope for the
+	// start_weapon_preview call at the end of this function.
+	int moddableIndex = -1;
 
 	if(isEquipped){
 
@@ -690,7 +975,6 @@ bool process_individual_weapon_menu(int weaponIndex){
 			menuItems.push_back(fillAmmoItem);
 		}
 
-		int moddableIndex = -1;
 		for(int i = 0; i < WEAPONTYPES_MOD.size(); i++){
 			if(weaponValue.compare(WEAPONTYPES_MOD.at(i)) == 0){
 				moddableIndex = i;
@@ -698,12 +982,102 @@ bool process_individual_weapon_menu(int weaponIndex){
 			}
 		}
 
+		// Tints are pushed right after Equip/Ammo (before the mod-attachment
+		// list, which can run long) so they're easy to find without paging
+		// through every clip/scope/muzzle option first.
+		int tintableIndex = -1;
+		for(int i = 0; i < WEAPONTYPES_TINT.size(); i++){
+			if(weaponValue.compare(WEAPONTYPES_TINT.at(i)) == 0){
+				tintableIndex = i;
+				break;
+			}
+		}
+
+		if(tintableIndex != -1){
+			MenuItem<int> *tintItem = new MenuItem<int>();
+			tintItem->caption = tr("WeaponMenu.WeaponTints", "Weapon Tints");
+			tintItem->value = 4;
+			tintItem->isLeaf = false;
+			tintItem->onConfirmFunction = onconfirm_open_tint_menu;
+			menuItems.push_back(tintItem);
+
+			// Camo pattern selection lives next to the other tint-related
+			// options rather than buried in the general attachment list, since
+			// it's conceptually the same kind of choice (what the weapon looks
+			// like) - only shown for weapons that actually have camo variants.
+			if(moddableIndex != -1){
+				bool hasCamoOptions = false;
+				for(const std::string &componentName : VOV_WEAPONMOD_VALUES[moddableIndex]){
+					if(componentName.find("_CAMO") != std::string::npos){
+						hasCamoOptions = true;
+						break;
+					}
+				}
+
+				if(hasCamoOptions){
+					MenuItem<int> *camoItem = new MenuItem<int>();
+					camoItem->caption = tr("WeaponMenu.WeaponCamo", "Weapon Camo");
+					camoItem->value = 6;
+					camoItem->isLeaf = false;
+					camoItem->onConfirmFunction = onconfirm_open_weapon_camo_menu;
+					menuItems.push_back(camoItem);
+				}
+			}
+
+			// Only MK2 weapons that already have a camo component attached
+			// support a separate livery/camo colour - anything else leaves this
+			// entry hidden rather than showing a menu with nothing in it.
+			char* camoCompHash = nullptr;
+			if(moddableIndex != -1 && get_equipped_camo_component(playerPed, thisWeaponHash, VOV_WEAPONMOD_VALUES[moddableIndex], &camoCompHash)){
+				currWeaponCompHash = camoCompHash;
+
+				MenuItem<int> *LiveryTintItem = new MenuItem<int>();
+				LiveryTintItem->caption = tr("WeaponMenu.WeaponLiveryColours", "Weapon Livery Colours");
+				LiveryTintItem->value = 5;
+				LiveryTintItem->isLeaf = false;
+				LiveryTintItem->onConfirmFunction = onconfirm_open_tint_menu_colour;
+				menuItems.push_back(LiveryTintItem);
+			}
+		}
+
+		// Equip/unequip always goes through the original static-table-driven path
+		// (is_weaponmod_equipped/set_weaponmod_equipped) - the dynamic cache
+		// (g_weaponComponents) caused real regressions when used to drive
+		// equipping (components toggling "on" without rendering, mods reverting
+		// on exit) for weapons that already had static coverage, so it's no
+		// longer used here. Caption text still prefers the live-resolved name
+        // where the cache has one, since that part was safe and fixed a genuine
+		// duplicate-caption bug - it just never changes which component gets
+		// given/removed.
 		if(moddableIndex != -1){
 			std::vector<std::string> modCaptions = VOV_WEAPONMOD_CAPTIONS[moddableIndex];
+			auto dynamicComponents = g_weaponComponents.find(thisWeaponHash);
 			for(int i = 0; i < modCaptions.size(); i++){
+				// Camo patterns get their own "Weapon Camo" submenu under Tints
+				// instead of appearing here alongside clips/scopes/muzzles.
+				if(VOV_WEAPONMOD_VALUES[moddableIndex].at(i).find("_CAMO") != std::string::npos) continue;
+
 				FunctionDrivenToggleMenuItem<int> *item = new FunctionDrivenToggleMenuItem<int>();
-				std::string label_caption = modCaptions.at(i);
-				item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&label_caption[0]);
+
+				std::string liveCaption;
+				if(dynamicComponents != g_weaponComponents.end()){
+					std::string componentName = VOV_WEAPONMOD_VALUES[moddableIndex].at(i);
+					Hash componentHash = MISC::GET_HASH_KEY((char*)componentName.c_str());
+					for(const WeaponComponentEntry &component : dynamicComponents->second){
+						if(component.hash == componentHash){
+							liveCaption = component.caption;
+							break;
+						}
+					}
+				}
+
+				if(!liveCaption.empty()){
+					item->caption = liveCaption;
+				} else {
+					std::string label_caption = modCaptions.at(i);
+					item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&label_caption[0]);
+				}
+
 				item->getter_call = is_weaponmod_equipped;
 				item->setter_call = set_weaponmod_equipped;
 				item->extra_arguments.push_back(lastSelectedWeaponCategory);
@@ -737,53 +1111,34 @@ bool process_individual_weapon_menu(int weaponIndex){
 			listItem->value = get_current_revolver_appearance();
 			menuItems.push_back(listItem);
 		}
-
-		int tintableIndex = -1;
-		for(int i = 0; i < WEAPONTYPES_TINT.size(); i++){
-			if(weaponValue.compare(WEAPONTYPES_TINT.at(i)) == 0){
-				tintableIndex = i;
-				break;
-			}
-		}
-
-		if(tintableIndex != -1){
-			MenuItem<int> *tintItem = new MenuItem<int>();
-			tintItem->caption = tr("WeaponMenu.WeaponTints", "Weapon Tints");
-			tintItem->value = 4;
-			tintItem->isLeaf = false;
-			tintItem->onConfirmFunction = onconfirm_open_tint_menu;
-			menuItems.push_back(tintItem);
-
-			// Only MK2 weapons that already have their camo component attached
-			// support a separate livery/camo colour - anything else leaves this
-			// entry hidden rather than showing a menu with nothing in it.
-			char* camoCompHash = nullptr;
-			if(get_mk2_camo_component(thisWeaponHash, &camoCompHash) && WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, thisWeaponHash, MISC::GET_HASH_KEY(camoCompHash))){
-				currWeaponCompHash = camoCompHash;
-
-				MenuItem<int> *LiveryTintItem = new MenuItem<int>();
-				LiveryTintItem->caption = tr("WeaponMenu.WeaponLiveryColours", "Weapon Livery Colours");
-				LiveryTintItem->value = 5;
-				LiveryTintItem->isLeaf = false;
-				LiveryTintItem->onConfirmFunction = onconfirm_open_tint_menu_colour;
-				menuItems.push_back(LiveryTintItem);
-			}
-		}
 	}
 
-	draw_generic_menu<int>(menuItems, 0, label_caption, NULL, NULL, NULL, weapon_reequip_interrupt);
+	start_weapon_preview(thisWeaponHash, moddableIndex);
+	draw_generic_menu<int>(menuItems, selectionIndexPtr, label_caption, NULL, NULL, NULL, weapon_reequip_interrupt);
+	stop_weapon_preview();
 
 	return false;
 }
 
 bool weapon_reequip_interrupt(){
-	return redrawWeaponMenuAfterEquipChange;
+	// Also fires when the whole menu is closed via the trainer toggle key
+	// (not just backing out normally) - draw_generic_menu doesn't return on
+	// its own in that case, it just spins waiting for the menu to reopen, so
+	// without this the preview cam/object were never torn down and stayed
+	// stuck rendering until the menu was reopened and backed out of properly.
+	return redrawWeaponMenuAfterEquipChange || !is_menu_showing();
 }
 
 bool onconfirm_weapon_in_category(MenuItem<int> choice){
+	// Owned here rather than inside process_individual_weapon_menu so it
+	// starts fresh (top of the list) whenever a weapon's page is opened, but
+	// survives the redraw loop below - so applying a mod/tint doesn't bump the
+	// highlight back to the top of a potentially long list.
+	int selectionIndex = 0;
+
 	do{
 		redrawWeaponMenuAfterEquipChange = false;
-		process_individual_weapon_menu(choice.value);
+		process_individual_weapon_menu(choice.value, &selectionIndex);
 	}
 	while(redrawWeaponMenuAfterEquipChange);
 
@@ -909,7 +1264,7 @@ bool process_individual_addon_weapon_menu(int index){
 	std::vector<MenuItem<int>*> menuItems;
 
 	MenuItem<int> *equipItem = new MenuItem<int>();
-	equipItem->caption = tr("WeaponMenu.EquipPrefix", "Equip ") + weapon.caption + tr("WeaponMenu.QuestionSuffix", "?");
+	equipItem->caption = tr("WeaponMenu.EquipPrefix", "Equip") + " " + weapon.caption + tr("WeaponMenu.QuestionSuffix", "?");
 	equipItem->value = 0;
 	equipItem->isLeaf = true;
 	equipItem->onConfirmFunction = onconfirm_equip_addon_weapon;
@@ -941,6 +1296,7 @@ bool process_individual_addon_weapon_menu(int index){
 bool onconfirm_addon_weapon_in_category(MenuItem<int> choice){
 	if(choice.value == -1){
 		PopulateAddonWeaponsArray();
+		PopulateWeaponComponentsArray();
 		set_status_text(tr("WeaponMenu.AddonWeaponsRescanned", "Addon weapons rescanned"));
 		return false;
 	}
@@ -1420,160 +1776,189 @@ bool process_weapon_save_slot_menu(int slot)
 }
 // end of save weapon
 
-bool onconfirm_weapon_menu(MenuItem<int> choice){
-	// common variables
+void onconfirm_give_all_weapons(MenuItem<int> choice){
+	give_all_weapons_hotkey();
+}
+
+void onconfirm_remove_all_weapons(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	WEAPON::REMOVE_ALL_PED_WEAPONS(playerPed, false);
+	set_status_text(tr("WeaponMenu.AllWeaponsRemoved", "All weapons removed"));
+}
+
+void onconfirm_add_all_weapon_attachments(MenuItem<int> choice){
+	add_all_weapons_attachments(PLAYER::PLAYER_PED_ID());
+}
+
+void onconfirm_remove_all_attachments_and_tints(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	for(int a = 0; a < WEAPONTYPES_MOD.size(); a++){
+		for(int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++){
+			char *weaponName = (char *) WEAPONTYPES_MOD.at(a).c_str(), *compName = (char *) VOV_WEAPONMOD_VALUES[a].at(b).c_str();
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
+			Hash compHash = MISC::GET_HASH_KEY(compName);
+			if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
+				break;
+			}
+
+			if(strcmp(weaponName, "WEAPON_REVOLVER") == 0){
+				break;
+			}
+			if(strcmp(weaponName, "WEAPON_SWITCHBLADE") == 0){
+				break;
+			}
+
+			if(!WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weaponHash, compHash)){
+				continue;
+			}
+
+			WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, MISC::GET_HASH_KEY(weaponName), MISC::GET_HASH_KEY(compName));
+		}
+	}
+
+	for(int a = 0; a < WEAPONTYPES_TINT.size(); a++){
+		char *weaponName = (char *) WEAPONTYPES_TINT.at(a).c_str();
+		Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
+		if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
+			continue;
+		}
+
+		WEAPON::SET_PED_WEAPON_TINT_INDEX(playerPed, weaponHash, VALUES_TINT.at(0));
+	}
+
+	set_status_text(tr("WeaponMenu.AllWeaponAttachmentsAndTintsRemovedFromE", "All weapon attachments and tints removed from existing weapons"));
+}
+
+void onconfirm_saved_weapons_menu(MenuItem<int> choice){
+	process_saveweapon_menu();
+}
+
+void onconfirm_fill_all_ammo(MenuItem<int> choice){
 	Player player = PLAYER::PLAYER_ID();
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	
-	switch(activeLineIndexWeapon){
-		case 0:
-			give_all_weapons_hotkey();
-			break;
-		case 2:
-			WEAPON::REMOVE_ALL_PED_WEAPONS(playerPed, false);
-			set_status_text(tr("WeaponMenu.AllWeaponsRemoved", "All weapons removed"));
-			break;
-		case 3:
-			add_all_weapons_attachments(playerPed);
-			break;
-		case 5:
-			for(int a = 0; a < WEAPONTYPES_MOD.size(); a++){
-				for(int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++){
-					char *weaponName = (char *) WEAPONTYPES_MOD.at(a).c_str(), *compName = (char *) VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-					Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
-					Hash compHash = MISC::GET_HASH_KEY(compName);
-					if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
-						break;
-					}
 
-					if(strcmp(weaponName, "WEAPON_REVOLVER") == 0){
-						break;
-					}
-					if(strcmp(weaponName, "WEAPON_SWITCHBLADE") == 0){
-						break;
-					}
-
-					if(!WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weaponHash, compHash)){
-						continue;
-					}
-
-					WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, MISC::GET_HASH_KEY(weaponName), MISC::GET_HASH_KEY(compName));
-				}
+	for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
+		for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
+			char *weaponName = (char*) VOV_WEAPON_VALUES[a].at(b).c_str();
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
+			if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, FALSE)){
+				WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 10000, false, false);
 			}
-
-			for(int a = 0; a < WEAPONTYPES_TINT.size(); a++){
-				char *weaponName = (char *) WEAPONTYPES_TINT.at(a).c_str();
-				Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
-				if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
-					continue;
-				}
-
-				WEAPON::SET_PED_WEAPON_TINT_INDEX(playerPed, weaponHash, VALUES_TINT.at(0));
-			}
-
-			set_status_text(tr("WeaponMenu.AllWeaponAttachmentsAndTintsRemovedFromE", "All weapon attachments and tints removed from existing weapons"));
-			break;
-		case 6:
-			if (process_saveweapon_menu()) return false;
-			break;
-		case 8:
-			for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
-				for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
-					char *weaponName = (char*) VOV_WEAPON_VALUES[a].at(b).c_str();
-					Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
-					if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, FALSE)){
-						WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 10000, false, false);
-					}
-				}
-			}
-
-			if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, PARACHUTE_ID, FALSE)){
-				PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
-			}
-
-			set_status_text(tr("WeaponMenu.AllAmmoFilled", "All ammo filled"));
-			break;
-		case 9:
-			for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
-				for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
-					char *weaponName = (char *) VOV_WEAPON_VALUES[a].at(b).c_str();
-					WEAPON::SET_PED_AMMO(playerPed, MISC::GET_HASH_KEY(weaponName), 0, FALSE);
-				}
-			}
-
-			// parachute
-			WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
-
-			set_status_text(tr("WeaponMenu.AllAmmoRemoved", "All ammo removed"));
-			break;
-		case 10:
-			process_weaponlist_menu();
-			break;
-		case 11:
-		{
-			keyboard_on_screen_already = true;
-			set_curr_message(tr("WeaponMenu.EnterWeaponModelNameEGWeaponMicrosmg", "Enter weapon model name (e.g. weapon_microsmg):")); // equip a weapon
-			std::string result = show_keyboard("Enter Name Manually", (char *) lastCustomWeapon.c_str());
-			if(!result.empty()){
-				result = trim(result);
-				lastCustomWeapon = result;
-				Hash weaponHash = MISC::GET_HASH_KEY((char *) result.c_str());
-				std::string message;
-				if(WEAPON::IS_WEAPON_VALID(weaponHash)){
-					WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 250, false, false);
-					message = result + tr("WeaponMenu.AddedSuffix", " added");
-				}
-				else{
-					message = tr("WeaponMenu.CouldntFindWeaponPrefix", "~r~Error: Couldn't find weapon \"") + result + tr("WeaponMenu.CouldntFindWeaponSuffix", "\"");
-				}
-				set_status_text(message);
-			}
-			break;
 		}
-		case 17:
-			WEAPON::GIVE_WEAPON_TO_PED(playerPed, PARACHUTE_ID, 1, false, false);
-			PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
-
-			set_status_text(tr("WeaponMenu.ParachuteAdded", "Parachute added"));
-			break;
-		case 18:
-			WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
-
-			set_status_text(tr("WeaponMenu.ParachuteRemoved", "Parachute removed"));
-			break;
-		case 27:
-			process_copweapon_menu();
-			break;
-		case 28:
-			process_pedagainstweapons_menu();
-			break;
-		case 41: // menu item position, not a sequential .value - see "Aimbot ESP" in process_weapon_menu()
-			if (AIMBOT_INCLUDED) process_aimbot_esp_menu();
-			break;
-		case 42: // menu item position, not a sequential .value - see "Addon Weapons" in process_weapon_menu()
-			process_addon_weapons_menu();
-			break;
-	default:
-		break;
 	}
-	return false;
+
+	if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, PARACHUTE_ID, FALSE)){
+		PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
+	}
+
+	set_status_text(tr("WeaponMenu.AllAmmoFilled", "All ammo filled"));
+}
+
+void onconfirm_remove_all_ammo(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
+		for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
+			char *weaponName = (char *) VOV_WEAPON_VALUES[a].at(b).c_str();
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
+			// SET_PED_AMMO only clears the reserve pool, not whatever's
+			// currently loaded in the clip - leaving ammo loaded against a
+			// zeroed reserve is what made the ped try (and fail) to reload.
+			// Also clear the clip directly and the MK2 ammo-type pool (see
+			// set_weapon_equipped/fill_weapon_ammo for the same fix).
+			WEAPON::SET_PED_AMMO(playerPed, weaponHash, 0, FALSE);
+			WEAPON::SET_AMMO_IN_CLIP(playerPed, weaponHash, 0);
+			Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weaponHash);
+			WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, 0);
+		}
+	}
+
+	// parachute
+	WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
+
+	set_status_text(tr("WeaponMenu.AllAmmoRemoved", "All ammo removed"));
+}
+
+void onconfirm_individual_weapons_menu(MenuItem<int> choice){
+	process_weaponlist_menu();
+}
+
+void onconfirm_enter_name_manually(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	keyboard_on_screen_already = true;
+	set_curr_message(tr("WeaponMenu.EnterWeaponModelNameEGWeaponMicrosmg", "Enter weapon model name (e.g. weapon_microsmg):")); // equip a weapon
+	std::string result = show_keyboard("Enter Name Manually", (char *) lastCustomWeapon.c_str());
+	if(!result.empty()){
+		result = trim(result);
+		lastCustomWeapon = result;
+		Hash weaponHash = MISC::GET_HASH_KEY((char *) result.c_str());
+		std::string message;
+		if(WEAPON::IS_WEAPON_VALID(weaponHash)){
+			WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 250, false, false);
+			message = result + tr("WeaponMenu.AddedSuffix", " added");
+		}
+		else{
+			message = tr("WeaponMenu.CouldntFindWeaponPrefix", "~r~Error: Couldn't find weapon \"") + result + tr("WeaponMenu.CouldntFindWeaponSuffix", "\"");
+		}
+		set_status_text(message);
+	}
+}
+
+void onconfirm_add_parachute(MenuItem<int> choice){
+	Player player = PLAYER::PLAYER_ID();
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	WEAPON::GIVE_WEAPON_TO_PED(playerPed, PARACHUTE_ID, 1, false, false);
+	PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
+
+	set_status_text(tr("WeaponMenu.ParachuteAdded", "Parachute added"));
+}
+
+void onconfirm_remove_parachute(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+
+	WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, PARACHUTE_ID);
+
+	set_status_text(tr("WeaponMenu.ParachuteRemoved", "Parachute removed"));
+}
+
+void onconfirm_cop_weapons_menu(MenuItem<int> choice){
+	process_copweapon_menu();
+}
+
+void onconfirm_peds_dont_like_weapons_menu(MenuItem<int> choice){
+	process_pedagainstweapons_menu();
+}
+
+void onconfirm_aimbot_esp_item(MenuItem<int> choice){
+	if (AIMBOT_INCLUDED) process_aimbot_esp_menu();
+}
+
+void onconfirm_addon_weapons_menu_item(MenuItem<int> choice){
+	process_addon_weapons_menu();
 }
 
 bool process_weapon_menu(){
 	int i = 0;
 
 	const std::string caption = "Weapon Options";
-	
+
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem* listItem;
+	ToggleMenuItem<int>* toggleItem;
+
+	// --- Acquisition: getting/equipping weapons - the most common actions ---
 
 	MenuItem<int> *item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.GiveAllWeapons", "Give All Weapons");
 	item->value = i++;
 	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_give_all_weapons;
 	menuItems.push_back(item);
 
-	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
+	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WeaponMenu.GiveAllWeaponsAutomatically", "Give All Weapons Automatically");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureGiveAllWeapons;
@@ -1581,34 +1966,38 @@ bool process_weapon_menu(){
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.IndividualWeapons", "Individual Weapons");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_individual_weapons_menu;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.AddonWeapons", "Addon Weapons");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_addon_weapons_menu_item;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.EnterNameManually", "Enter Name Manually");
+	item->value = i++;
+	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_enter_name_manually;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.RemoveAllWeapons", "Remove All Weapons");
 	item->value = i++;
 	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.AddAllWeaponAttachments", "Add All Weapon Attachments");
-	item->value = i++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.AddAllWeaponAttachmentsAutomatically", "Add All Weapon Attachments Automatically");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureAddAllWeaponsAttachments;
-	toggleItem->toggleValueUpdated = NULL;
-	menuItems.push_back(toggleItem);
-
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.RemoveAllWeaponAttachmentsAndTints", "Remove All Weapon Attachments and Tints");
-	item->value = i++;
-	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_remove_all_weapons;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.SavedWeapons", "Saved Weapons");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_saved_weapons_menu;
 	menuItems.push_back(item);
 
 	listItem = new SelectFromListMenuItem(&WEAPONS_SAVED_LOAD_CAPTIONS, onchange_weapon_load_saved_modifier);
@@ -1617,35 +2006,21 @@ bool process_weapon_menu(){
 	listItem->value = WeaponsSavedLoad;
 	menuItems.push_back(listItem);
 
+	// --- Ammo ---
+
 	item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.FillAllAmmo", "Fill All Ammo");
 	item->value = i++;
 	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_fill_all_ammo;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.RemoveAllAmmo", "Remove All Ammo");
 	item->value = i++;
 	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_remove_all_ammo;
 	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.IndividualWeapons", "Individual Weapons");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.EnterNameManually", "Enter Name Manually");
-	item->value = i++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	listItem = new SelectFromListMenuItem(&WEAP_DMG_CAPTIONS, onchange_weap_dmg_modifier);
-	listItem->wrap = false;
-	listItem->caption = tr("WeaponMenu.WeaponDamageModifier", "Weapon Damage Modifier");
-	listItem->value = weapDmgModIndex;
-	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WeaponMenu.InfiniteAmmo", "Infinite Ammo");
@@ -1661,29 +2036,50 @@ bool process_weapon_menu(){
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(&WEAPONS_NORETICLE_CAPTIONS, onchange_weapon_no_reticle_modifier);
-	listItem->wrap = false;
-	listItem->caption = tr("WeaponMenu.NoReticle", "No Reticle");
-	listItem->value = WeaponsNoReticle;
-	menuItems.push_back(listItem);
-	
+	// --- Attachments & customisation ---
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.AddAllWeaponAttachments", "Add All Weapon Attachments");
+	item->value = i++;
+	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_add_all_weapon_attachments;
+	menuItems.push_back(item);
+
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.LoseWeaponsOnArrestDeath", "Lose Weapons On Arrest/Death");
+	toggleItem->caption = tr("WeaponMenu.AddAllWeaponAttachmentsAutomatically", "Add All Weapon Attachments Automatically");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureCopTakeWeapon;
+	toggleItem->toggleValue = &featureAddAllWeaponsAttachments;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.RemoveAllWeaponAttachmentsAndTints", "Remove All Weapon Attachments and Tints");
+	item->value = i++;
+	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_remove_all_attachments_and_tints;
+	menuItems.push_back(item);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("WeaponMenu.WeaponPreview", "Weapon Preview");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureEnhancedWeaponCustomisation;
+	toggleItem->toggleValueUpdated = NULL;
+	menuItems.push_back(toggleItem);
+
+	// --- Parachute ---
 
 	item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.AddParachute", "Add Parachute");
 	item->value = i++;
 	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_add_parachute;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("WeaponMenu.RemoveParachute", "Remove Parachute");
 	item->value = i++;
 	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_remove_parachute;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
@@ -1699,6 +2095,38 @@ bool process_weapon_menu(){
 	toggleItem->toggleValue = &featureWeaponNoParachutes.enabled;
 	toggleItem->toggleValueUpdated = &featureWeaponNoParachutes.updated;
 	menuItems.push_back(toggleItem);
+
+	// --- Firing / combat behaviour ---
+
+	listItem = new SelectFromListMenuItem(&WEAP_DMG_CAPTIONS, onchange_weap_dmg_modifier);
+	listItem->wrap = false;
+	listItem->caption = tr("WeaponMenu.WeaponDamageModifier", "Weapon Damage Modifier");
+	listItem->value = weapDmgModIndex;
+	menuItems.push_back(listItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("WeaponMenu.RapidFire", "Rapid Fire");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureRapidFire;
+	menuItems.push_back(toggleItem);
+
+	listItem = new SelectFromListMenuItem(&WEAPONS_RAPIDFIRE_CAPTIONS, onchange_weapons_rapidfire_modifier);
+	listItem->wrap = false;
+	listItem->caption = tr("WeaponMenu.RapidFireSpeed", "Rapid Fire Speed");
+	listItem->value = RapidFireIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(&WEAPONS_FIREMODE_CAPTIONS, onchange_weapons_firemode_modifier);
+	listItem->wrap = false;
+	listItem->caption = tr("WeaponMenu.FireMode", "Fire Mode");
+	listItem->value = WeaponsFireModeIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(&WEAPONS_NORETICLE_CAPTIONS, onchange_weapon_no_reticle_modifier);
+	listItem->wrap = false;
+	listItem->caption = tr("WeaponMenu.NoReticle", "No Reticle");
+	listItem->value = WeaponsNoReticle;
+	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WeaponMenu.FireAmmo", "Fire Ammo");
@@ -1735,23 +2163,11 @@ bool process_weapon_menu(){
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(&WEAPONS_VEHICLE_CAPTIONS, onchange_vehicle_weapon_modifier);
-	listItem->wrap = false;
-	listItem->caption = tr("WeaponMenu.VehicleWeapon", "Vehicle Weapon");
-	listItem->value = VehCurrWeaponIndex;
-	menuItems.push_back(listItem);
-
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.CopWeapons", "Cop Weapons");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.PedsDonTLikeWeapons", "Peds Don't Like Weapons");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("WeaponMenu.DropWeaponWhenEmpty", "Drop Weapon When Empty");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureDropWeaponOutAmmo;
+	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("WeaponMenu.GravityGun", "Gravity Gun");
@@ -1760,28 +2176,13 @@ bool process_weapon_menu(){
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(&WEAPONS_SNIPERVISION_CAPTIONS, onchange_sniper_vision_modifier);
-	listItem->wrap = false;
-	listItem->caption = tr("WeaponMenu.ToggleVisionForSniperRifles", "Toggle Vision For Sniper Rifles");
-	listItem->value = SniperVisionIndex;
-	menuItems.push_back(listItem);
+	// --- Safety / NPC behaviour ---
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.FriendlyFire", "Friendly Fire");
+	toggleItem->caption = tr("WeaponMenu.LoseWeaponsOnArrestDeath", "Lose Weapons On Arrest/Death");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureFriendlyFire;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.DropWeaponIfHandShot", "Drop Weapon If Hand Shot");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureDropWeapon;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.ShootToDisarmNPCs", "Shoot To Disarm NPCs");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureCanDisarmNPC;
+	toggleItem->toggleValue = &featureCopTakeWeapon;
+	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
@@ -1791,28 +2192,44 @@ bool process_weapon_menu(){
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.RapidFire", "Rapid Fire");
+	toggleItem->caption = tr("WeaponMenu.DropWeaponIfHandShot", "Drop Weapon If Hand Shot");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureRapidFire;
+	toggleItem->toggleValue = &featureDropWeapon;
 	menuItems.push_back(toggleItem);
-
-	listItem = new SelectFromListMenuItem(&WEAPONS_RAPIDFIRE_CAPTIONS, onchange_weapons_rapidfire_modifier);
-	listItem->wrap = false;
-	listItem->caption = tr("WeaponMenu.RapidFireSpeed", "Rapid Fire Speed");
-	listItem->value = RapidFireIndex;
-	menuItems.push_back(listItem);
-
-	listItem = new SelectFromListMenuItem(&WEAPONS_FIREMODE_CAPTIONS, onchange_weapons_firemode_modifier);
-	listItem->wrap = false;
-	listItem->caption = tr("WeaponMenu.FireMode", "Fire Mode");
-	listItem->value = WeaponsFireModeIndex;
-	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("WeaponMenu.DropWeaponWhenEmpty", "Drop Weapon When Empty");
+	toggleItem->caption = tr("WeaponMenu.FriendlyFire", "Friendly Fire");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureDropWeaponOutAmmo;
+	toggleItem->toggleValue = &featureFriendlyFire;
 	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("WeaponMenu.ShootToDisarmNPCs", "Shoot To Disarm NPCs");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureCanDisarmNPC;
+	menuItems.push_back(toggleItem);
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.CopWeapons", "Cop Weapons");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_cop_weapons_menu;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = tr("WeaponMenu.PedsDonTLikeWeapons", "Peds Don't Like Weapons");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_peds_dont_like_weapons_menu;
+	menuItems.push_back(item);
+
+	// --- Vision / visual ---
+
+	listItem = new SelectFromListMenuItem(&WEAPONS_SNIPERVISION_CAPTIONS, onchange_sniper_vision_modifier);
+	listItem->wrap = false;
+	listItem->caption = tr("WeaponMenu.ToggleVisionForSniperRifles", "Toggle Vision For Sniper Rifles");
+	listItem->value = SniperVisionIndex;
+	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_weap_strobe_index);
 	listItem->wrap = false;
@@ -1826,21 +2243,24 @@ bool process_weapon_menu(){
 	listItem->value = WeapFlashDistIndex;
 	menuItems.push_back(listItem);
 
+	// --- Vehicle ---
+
+	listItem = new SelectFromListMenuItem(&WEAPONS_VEHICLE_CAPTIONS, onchange_vehicle_weapon_modifier);
+	listItem->wrap = false;
+	listItem->caption = tr("WeaponMenu.VehicleWeapon", "Vehicle Weapon");
+	listItem->value = VehCurrWeaponIndex;
+	menuItems.push_back(listItem);
+
 	if (AIMBOT_INCLUDED) {
 		item = new MenuItem<int>();
 		item->caption = tr("WeaponMenu.AimbotESP", "Aimbot ESP");
 		item->value = i++;
 		item->isLeaf = false;
+		item->onConfirmFunction = onconfirm_aimbot_esp_item;
 		menuItems.push_back(item);
 	}
 
-	item = new MenuItem<int>();
-	item->caption = tr("WeaponMenu.AddonWeapons", "Addon Weapons");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
-
-	return draw_generic_menu<int>(menuItems, &activeLineIndexWeapon, caption, onconfirm_weapon_menu, NULL, NULL);
+	return draw_generic_menu<int>(menuItems, &activeLineIndexWeapon, caption, NULL, NULL, NULL);
 }
 
 void reset_weapon_globals(){
@@ -2883,11 +3303,21 @@ void set_weapon_equipped(bool equipped, std::vector<int> extras){
 
 		//fill the clip and one spare
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
-		WEAPON::SET_PED_AMMO(playerPed, weapHash, maxClipAmmo, FALSE);
+		// MK2 weapons draw ammo from a pool keyed by the currently-equipped
+		// clip's ammo type (FMJ/AP/Incendiary/etc, not just the weapon itself)
+		// - the plain weapon-hash-keyed SET_PED_AMMO doesn't reach that pool,
+		// which is why MK2 weapons equipped with 0 ammo.
+		Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
+		WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxClipAmmo);
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
 	}
 	else{
 		WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, MISC::GET_HASH_KEY(weaponChar));
+	}
+
+	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)){
+		ENTITY::SET_ENTITY_VISIBLE(playerPed, FALSE, FALSE);
+		WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(playerPed, TRUE);
 	}
 
 	redrawWeaponMenuAfterEquipChange = true;
@@ -2936,6 +3366,40 @@ void set_weaponmod_equipped(bool equipped, std::vector<int> extras){
 		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(playerPed, weapHash, componentHash);
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
+
+		// MK2 weapons draw ammo from a pool keyed by the currently-equipped
+		// clip's ammo type (see set_weapon_equipped/fill_weapon_ammo) -
+		// switching to a clip whose ammo type the player has never had
+		// defaults that reserve pool to 0, leaving nothing to reload with
+		// once the single clip just filled above runs out. Top it up
+		// whenever the newly-equipped component is a clip.
+		if(componentName.find("_CLIP_") != std::string::npos){
+			Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
+			int maxTypeAmmo = 0;
+			WEAPON::GET_MAX_AMMO_BY_TYPE(playerPed, ammoType, &maxTypeAmmo);
+			WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxTypeAmmo);
+		}
+	}
+
+	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)){
+		refresh_weapon_preview_object(weapHash, extras.at(2));
+
+		// GIVE/REMOVE_WEAPON_COMPONENT_FROM_PED appears to reset the ped's
+		// hide-for-cutscene state as a side effect - re-assert immediately
+		// (same script tick, before this frame renders) rather than waiting for
+		// the next per-frame reassertion in update_weapon_preview, which was
+		// one frame too late and caused a visible flash of the real weapon.
+		ENTITY::SET_ENTITY_VISIBLE(playerPed, FALSE, FALSE);
+		WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(playerPed, TRUE);
+	}
+
+	// Only camo toggles need a full page rebuild - they can change whether
+	// "Weapon Livery Colours" should be shown, so this makes that show up
+	// without needing to back all the way out first. Every other mod would
+	// just cause the whole page (and preview) to flash and rebuild for no
+	// reason, which is what refresh_weapon_preview_object above is for.
+	if(componentName.find("_CAMO") != std::string::npos){
+		redrawWeaponMenuAfterEquipChange = true;
 	}
 }
 
@@ -2971,7 +3435,10 @@ void fill_weapon_ammo(MenuItem<int> choice){
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
 
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
-	WEAPON::SET_PED_AMMO(playerPed, weapHash, maxAmmo, FALSE);
+	// See set_weapon_equipped - MK2 weapons need their ammo set via the
+	// currently-equipped clip's ammo type, not the plain weapon hash.
+	Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
+	WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxAmmo);
 
 	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }
@@ -3005,6 +3472,7 @@ bool onconfirm_weapon_mod_menu_tint(MenuItem<int> choice){
 	int weapHash = MISC::GET_HASH_KEY((char*) weaponName.c_str());
 
 	WEAPON::SET_PED_WEAPON_TINT_INDEX(playerPed, weapHash, choice.value);
+	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) WEAPON::SET_WEAPON_OBJECT_TINT_INDEX(previewWeaponObject, choice.value);
 
 	return true;
 }
@@ -3042,6 +3510,48 @@ void onconfirm_open_tint_menu(MenuItem<int> choice) {
 	draw_generic_menu<int>(menuItems, &tintSelection, tr("WeaponMenu.SelectWeaponTint", "Select Weapon Tint"), onconfirm_weapon_mod_menu_tint, onhighlight_weapon_mod_menu_tint, NULL);
 }
 
+// Camo pattern selection, broken out from the general attachment list into its
+// own submenu under Tints since it's the same kind of choice (what the weapon
+// looks like) rather than a functional attachment - uses the exact same
+// static-table-driven equip mechanism as the general mod list, just filtered
+// to "_CAMO" component names and reachable from a different menu.
+void onconfirm_open_weapon_camo_menu(MenuItem<int> choice) {
+	int category = (equip_ped == PLAYER::PLAYER_PED_ID()) ? lastSelectedWeaponCategory : lastSelectedBodWeaponCategory;
+	int weaponIndex = (equip_ped == PLAYER::PLAYER_PED_ID()) ? lastSelectedWeapon : lastSelectedBodWeapon;
+	std::string weaponValue = VOV_WEAPON_VALUES[category].at(weaponIndex);
+
+	int moddableIndex = -1;
+	for(int i = 0; i < WEAPONTYPES_MOD.size(); i++){
+		if(weaponValue.compare(WEAPONTYPES_MOD.at(i)) == 0){
+			moddableIndex = i;
+			break;
+		}
+	}
+	if(moddableIndex == -1) return;
+
+	std::vector<std::string> modCaptions = VOV_WEAPONMOD_CAPTIONS[moddableIndex];
+	std::vector<std::string> modValues = VOV_WEAPONMOD_VALUES[moddableIndex];
+	std::vector<MenuItem<int>*> menuItems;
+
+	for(int i = 0; i < modValues.size(); i++){
+		if(modValues.at(i).find("_CAMO") == std::string::npos) continue;
+
+		FunctionDrivenToggleMenuItem<int> *item = new FunctionDrivenToggleMenuItem<int>();
+		std::string label_caption = modCaptions.at(i);
+		item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&label_caption[0]);
+		item->getter_call = is_weaponmod_equipped;
+		item->setter_call = set_weaponmod_equipped;
+		item->extra_arguments.push_back(category);
+		item->extra_arguments.push_back(weaponIndex);
+		item->extra_arguments.push_back(moddableIndex);
+		item->extra_arguments.push_back(i);
+		menuItems.push_back(item);
+	}
+
+	int selectionIndex = 0;
+	draw_generic_menu<int>(menuItems, &selectionIndex, tr("WeaponMenu.WeaponCamo", "Weapon Camo"), NULL, NULL, NULL);
+}
+
 void onhighlight_weapon_mod_menu_tint_colour(MenuItem<int> choice) {
 	onconfirm_weapon_mod_menu_tint_colour(choice);
 }
@@ -3054,6 +3564,7 @@ bool onconfirm_weapon_mod_menu_tint_colour(MenuItem<int> choice) {
 	int weapHash = MISC::GET_HASH_KEY((char*)weaponName.c_str());
 
 	WEAPON::SET_PED_WEAPON_COMPONENT_TINT_INDEX(playerPed, weapHash, MISC::GET_HASH_KEY(currWeaponCompHash), choice.value);
+	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) WEAPON::SET_WEAPON_OBJECT_COMPONENT_TINT_INDEX(previewWeaponObject, MISC::GET_HASH_KEY(currWeaponCompHash), choice.value);
 
 	return true;
 }
@@ -3085,6 +3596,7 @@ void add_weapon_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* 
 	results->push_back(FeatureEnabledLocalDefinition{"featureWeaponNoReload", &featureWeaponNoReload});
 	results->push_back(FeatureEnabledLocalDefinition{"featureCopTakeWeapon", &featureCopTakeWeapon });
 	results->push_back(FeatureEnabledLocalDefinition{"featureGravityGun", &featureGravityGun});
+	results->push_back(FeatureEnabledLocalDefinition{"featureEnhancedWeaponCustomisation", &featureEnhancedWeaponCustomisation});
 	results->push_back(FeatureEnabledLocalDefinition{"featureFriendlyFire", &featureFriendlyFire});
 	results->push_back(FeatureEnabledLocalDefinition{"featureRapidFire", &featureRapidFire});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDropWeapon", &featureDropWeapon});
