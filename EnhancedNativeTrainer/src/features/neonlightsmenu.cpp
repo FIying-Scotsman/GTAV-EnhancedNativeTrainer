@@ -17,7 +17,7 @@ int menuIndex = 0;
 void apply_neon_colors(int colorIndex){
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()); // Get current vehicle
 	NeonLightsColor whichcolor = NEON_COLORS[colorIndex];
-	VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, whichcolor.rVal, whichcolor.gVal, whichcolor.bVal);
+	VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, whichcolor.rVal, whichcolor.gVal, whichcolor.bVal);
 }
 
 void onhighlight_neon_lights_selection(MenuItem<int> choice){
@@ -40,7 +40,7 @@ bool is_neonLights(std::vector<int> extras){
 	int loc = extras.at(0);
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 
-	if(VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, loc)){
+	if(VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, loc)){
 		return true; // return as soon as we detect at least a single neon light enabled
 	}
 
@@ -60,16 +60,16 @@ void set_neonLights(bool applied, std::vector<int> extras){
 
 	if(applied) // Turn on the neon lights
 	{
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, loc, true);
-		VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &rCol, &gCol, &bCol);
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, loc, true);
+		VEHICLE::GET_VEHICLE_NEON_COLOUR(veh, &rCol, &gCol, &bCol);
 		if(!rCol && !gCol && !bCol){
 			NeonLightsColor col = NEON_COLORS.at(0);
-			VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, col.rVal, col.gVal, col.bVal);
+			VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, col.rVal, col.gVal, col.bVal);
 		}
 	}
 	else{
 		// Turn off the lights
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, loc, false);
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, loc, false);
 	}
 }
 
@@ -95,7 +95,7 @@ bool process_neon_colour_menu(){
 
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 	int r = 0, g = 0, b = 0;
-	VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &r, &g, &b);
+	VEHICLE::GET_VEHICLE_NEON_COLOUR(veh, &r, &g, &b);
 
 	for(int i = 0; i < NEON_COLORS.size(); i++){
 		NeonLightsColor thisCol = NEON_COLORS[i];
@@ -128,22 +128,22 @@ bool onconfirm_neon_menu(MenuItem<int> choice){
 		int r = 0, g = 0, b = 0;
 
 		for(int loc = 0; loc <= 3; loc++){
-			if(VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, loc)){
+			if(VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, loc)){
 				anyEnabled = true;
 				break;
 			}
 		}
 		for(int loc = 0; loc <= 3; loc++){
 			if(r == 0 && g == 0 && b == 0){
-				VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &r, &g, &b);
+				VEHICLE::GET_VEHICLE_NEON_COLOUR(veh, &r, &g, &b);
 			}
-			VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, loc, !anyEnabled);
+			VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, loc, !anyEnabled);
 		}
 
 		//if they have no colour, set the default
 		if(!anyEnabled && r == 0 && g == 0 && b == 0){
 			NeonLightsColor col = NEON_COLORS.at(0);
-			VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, col.rVal, col.gVal, col.bVal);
+			VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, col.rVal, col.gVal, col.bVal);
 		}
 	}
 	else if(choice.value == -2){
@@ -183,7 +183,7 @@ bool process_neon_lights_menu(){
 	}
 
 	MenuItem<int> *chooseColourAll = new MenuItem<int>();
-	chooseColourAll->caption = UI::_GET_LABEL_TEXT("CMOD_NEON_1");
+	chooseColourAll->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_NEON_1");
 	//chooseColourAll->caption = "Choose Colour";
 	chooseColourAll->value = -2;
 	chooseColourAll->isLeaf = false;

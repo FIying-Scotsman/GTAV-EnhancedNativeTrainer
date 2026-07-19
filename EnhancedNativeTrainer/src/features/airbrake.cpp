@@ -39,7 +39,7 @@ bool airbrakeStatusTextGxtEntry;
 
 void exit_airbrake_menu_if_showing()
 {
-	ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), true);
+	ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), true, FALSE);
 	if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)){
 		ENTITY::SET_ENTITY_COLLISION(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()), 1, 1);
 	}
@@ -88,14 +88,14 @@ void process_airbrake_menu()
 		make_periodic_feature_call();
 
 		//Disable airbrake on death
-		if (ENTITY::IS_ENTITY_DEAD(playerPed))
+		if (ENTITY::IS_ENTITY_DEAD(playerPed, FALSE))
 		{
 			exitFlag = true;
 		}
 		else if (airbrake_switch_pressed())
 		{
 			menu_beep();
-			ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), true);
+			ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), true, FALSE);
 			ENTITY::FREEZE_ENTITY_POSITION(PLAYER::PLAYER_PED_ID(), false);
 			ENTITY::FREEZE_ENTITY_POSITION(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()), false);
 			if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)) {
@@ -125,7 +125,7 @@ void process_airbrake_menu()
 
 	if (!inVehicle)
 	{
-		AI::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
+		TASK::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
 	}
 
 	exitFlag = false;
@@ -150,30 +150,30 @@ void update_airbrake_text()
 
 			numActualLines++;
 
-			UI::SET_TEXT_FONT(0);
-			UI::SET_TEXT_SCALE(0.3, 0.3);
+			HUD::SET_TEXT_FONT(0);
+			HUD::SET_TEXT_SCALE(0.3, 0.3);
 			if (i == 0 || i == 9 || i == 15 || i == 19)
 			{
-				UI::SET_TEXT_OUTLINE();
-				UI::SET_TEXT_COLOUR(255, 180, 0, 255);
+				HUD::SET_TEXT_OUTLINE();
+				HUD::SET_TEXT_COLOUR(255, 180, 0, 255);
 			}
 			else
 			{
-				UI::SET_TEXT_COLOUR(255, 255, 255, 255);
+				HUD::SET_TEXT_COLOUR(255, 255, 255, 255);
 			}
-			UI::SET_TEXT_WRAP(0.0, 1.0);
-			UI::SET_TEXT_DROPSHADOW(1, 1, 1, 1, 1);
-			UI::SET_TEXT_EDGE(1, 0, 0, 0, 305);
+			HUD::SET_TEXT_WRAP(0.0, 1.0);
+			HUD::SET_TEXT_DROPSHADOW(1, 1, 1, 1, 1);
+			HUD::SET_TEXT_EDGE(1, 0, 0, 0, 305);
 			if (airbrakeStatusTextGxtEntry)
 			{
-				UI::_SET_TEXT_ENTRY((char *)airbrakeStatusLines[i].c_str());
+				HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT((char *)airbrakeStatusLines[i].c_str());
 			}
 			else
 			{
-				UI::_SET_TEXT_ENTRY("STRING");
-				UI::_ADD_TEXT_COMPONENT_STRING((char *)airbrakeStatusLines[i].c_str());
+				HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+				HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *)airbrakeStatusLines[i].c_str());
 			}
-			UI::_DRAW_TEXT(0.01, textY);
+			HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.01, textY, 0);
 
 			textY += 0.025f;
 		}
@@ -288,7 +288,7 @@ void airbrake(bool inVehicle)
 	
 	if (!inVehicle)
 	{
-		AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), AIRBRAKE_ANIM_A, AIRBRAKE_ANIM_B, 8.0f, 0.0f, -1, 9, 0, 0, 0, 0);
+		TASK::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), AIRBRAKE_ANIM_A, AIRBRAKE_ANIM_B, 8.0f, 0.0f, -1, 9, 0, 0, 0, 0);
 	}
 	
 	if (IsKeyJustUp(KeyConfig::KEY_AIRBRAKE_SPEED) || is_bind_disabled_just_pressed("KEY_AIRBRAKE_SPEED")) //CONTROLLER_BTN_A
@@ -305,7 +305,7 @@ void airbrake(bool inVehicle)
 		frozen_time = !frozen_time;
 	}
 
-	if (IsKeyJustUp(KeyConfig::KEY_AIRBRAKE_HELP) || CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_SELECT))
+	if (IsKeyJustUp(KeyConfig::KEY_AIRBRAKE_HELP) || PAD::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_SELECT))
 	{
 		help_showing = !help_showing;
 	}
@@ -436,7 +436,7 @@ void airbrake(bool inVehicle)
 	}
 
 	if (mouse_view_control && !frozen_time) {
-		Vector3 CamRot = CAM::GET_GAMEPLAY_CAM_ROT(2);
+		Vector3 CamRot = CAMERA::GET_GAMEPLAY_CAM_ROT(2);
 		int p_force = forwardPush * 5; // 5;
 		if (ENTITY::IS_ENTITY_IN_WATER(playerPed) && !PED::IS_PED_SWIMMING_UNDER_WATER(playerPed)) p_force = forwardPush * 124;
 		float rad = 2 * 3.14 * (CamRot.z / 360);
@@ -457,14 +457,14 @@ void airbrake(bool inVehicle)
 		if (moveForwardKey && !(rotateLeftKey) && !(rotateRightKey)) {
 			ENTITY::FREEZE_ENTITY_POSITION(target, false);
 			ENTITY::APPLY_FORCE_TO_ENTITY(target, 1, v_x, v_y, v_z, 0, 0, 0, true, false, true, true, true, true);
-			curLocation = CAM::GET_GAMEPLAY_CAM_COORD();
-			curHeading = CAM::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
+			curLocation = CAMERA::GET_GAMEPLAY_CAM_COORD();
+			curHeading = CAMERA::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
 		}
 		if (moveBackKey && !(rotateLeftKey) && !(rotateRightKey)) {
 			ENTITY::FREEZE_ENTITY_POSITION(target, false);
 			ENTITY::APPLY_FORCE_TO_ENTITY(target, 1, -v_x, -v_y, -v_z, 0, 0, 0, true, false, true, true, true, true);
-			curLocation = CAM::GET_GAMEPLAY_CAM_COORD();
-			curHeading = CAM::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
+			curLocation = CAMERA::GET_GAMEPLAY_CAM_COORD();
+			curHeading = CAMERA::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
 		}
 		if (rotateLeftKey && !(moveUpKey) && !(moveForwardKey) && !(moveBackKey)) {
 			curLocation.x += (forwardPush * sin(degToRad(CamRot.z + 90)) * -1.0f);
@@ -483,8 +483,8 @@ void airbrake(bool inVehicle)
 			if (ENTITY::IS_ENTITY_IN_WATER(playerPed) && !PED::IS_PED_SWIMMING_UNDER_WATER(playerPed)) p_force = forwardPush * 124;
 			ENTITY::FREEZE_ENTITY_POSITION(target, false);
 			ENTITY::APPLY_FORCE_TO_ENTITY(target, 1, 0, 0, p_force, 0, 0, 0, true, false, true, true, true, true);
-			curLocation = CAM::GET_GAMEPLAY_CAM_COORD();
-			curHeading = CAM::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
+			curLocation = CAMERA::GET_GAMEPLAY_CAM_COORD();
+			curHeading = CAMERA::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
 		}
 		if (moveDownKey) { // Z
 			if (travelSpeed == 0) p_force = forwardPush * 10;
@@ -493,8 +493,8 @@ void airbrake(bool inVehicle)
 			if (ENTITY::IS_ENTITY_IN_WATER(playerPed) && !PED::IS_PED_SWIMMING_UNDER_WATER(playerPed)) p_force = forwardPush * 124;
 			ENTITY::FREEZE_ENTITY_POSITION(target, false);
 			ENTITY::APPLY_FORCE_TO_ENTITY(target, 1, 0, 0, -p_force, 0, 0, 0, true, false, true, true, true, true);
-			curLocation = CAM::GET_GAMEPLAY_CAM_COORD();
-			curHeading = CAM::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
+			curLocation = CAMERA::GET_GAMEPLAY_CAM_COORD();
+			curHeading = CAMERA::GET_GAMEPLAY_CAM_RELATIVE_HEADING();
 		}
 	}
 }

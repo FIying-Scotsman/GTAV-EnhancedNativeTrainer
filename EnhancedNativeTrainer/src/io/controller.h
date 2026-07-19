@@ -10,7 +10,7 @@ void disableControls();
 
 // Centralized controller-bind lookups. Every consumer of controller_binds
 // should go through these instead of reading controller_binds[...] and
-// calling a CONTROLS:: native directly - this is the one place that guards
+// calling a PAD:: native directly - this is the one place that guards
 // against an unbound (CONTROLLER_BUTTON_NONE) slot and honors the global
 // "ignore controller input in trainer" toggle. `slot` selects the bind's
 // primary (1, default) or secondary (2) button.

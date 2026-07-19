@@ -94,7 +94,7 @@ void manage_prop_set()
 */
 bool get_ground_height_at_position(Vector3 coords, float* result)
 {
-	return GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(coords.x, coords.y, coords.z, result) == 1;
+	return MISC::GET_GROUND_Z_FOR_3D_COORD(coords.x, coords.y, coords.z, result, FALSE, FALSE) == 1;
 }
 
 void do_spawn_model_by_player(Hash propHash, char* model, std::string title, bool silent)
@@ -123,7 +123,7 @@ void do_spawn_model_by_player(Hash propHash, char* model, std::string title, boo
 
 	Vector3 minDimens;
 	Vector3 maxDimens;
-	GAMEPLAY::GET_MODEL_DIMENSIONS(propHash, &minDimens, &maxDimens);
+	MISC::GET_MODEL_DIMENSIONS(propHash, &minDimens, &maxDimens);
 	spawnOffY = max(3.5f, 2.0f + 0.5f * (maxDimens.y - minDimens.y));
 	spawnOffZ = 0.0f;
 
@@ -178,7 +178,7 @@ void do_spawn_model(Hash propHash, char* model, std::string title, SimpleVector3
 		return;
 	}
 
-	Object obj = OBJECT::CREATE_OBJECT_NO_OFFSET(propHash, coords->x, coords->y, coords->z, creationParam1, creationParam2, creationParam3);
+	Object obj = OBJECT::CREATE_OBJECT_NO_OFFSET(propHash, coords->x, coords->y, coords->z, creationParam1, creationParam2, creationParam3, 0);
 
 	if (ENTITY::DOES_ENTITY_EXIST(obj))
 	{
@@ -200,12 +200,12 @@ void do_spawn_model(Hash propHash, char* model, std::string title, SimpleVector3
 
 		if (invincible)
 		{
-			//ENTITY::SET_ENTITY_INVINCIBLE(obj, TRUE);
+			//ENTITY::SET_ENTITY_INVINCIBLE(obj, TRUE, FALSE);
 			//ENTITY::SET_ENTITY_PROOFS(obj, 1, 1, 1, 1, 1, 1, 1, 1);
 			ENTITY::SET_ENTITY_CAN_BE_DAMAGED(obj, FALSE);
 		}
 
-		ENTITY::SET_ENTITY_LOAD_COLLISION_FLAG(obj, true);
+		ENTITY::SET_ENTITY_LOAD_COLLISION_FLAG(obj, true, 0);
 
 		ENTITY::SET_ENTITY_ALPHA(obj, alpha, false);
 
@@ -242,7 +242,7 @@ void do_spawn_model(Hash propHash, char* model, std::string title, SimpleVector3
 
 void do_spawn_model_by_player(PropInfo prop, bool silent)
 {
-	Hash propHash = GAMEPLAY::GET_HASH_KEY((char *)prop.model);
+	Hash propHash = MISC::GET_HASH_KEY((char *)prop.model);
 
 	if (!STREAMING::IS_MODEL_IN_CDIMAGE(propHash) || !STREAMING::IS_MODEL_VALID(propHash))
 	{
@@ -353,7 +353,7 @@ bool onconfirm_prop_category(MenuItem<int> choice)
 		{
 			result = trim(result);
 			lastCustomPropSpawn = result;
-			Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
+			Hash hash = MISC::GET_HASH_KEY((char*)result.c_str());
 			if (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash))
 			{
 				set_status_text(tr("PropsMenu.CouldntFindModelPrefix", "Couldn't find model '") + result + tr("PropsMenu.CouldntFindModelSuffix", "'"));
@@ -361,7 +361,7 @@ bool onconfirm_prop_category(MenuItem<int> choice)
 			}
 			else
 			{
-				do_spawn_model_by_player(GAMEPLAY::GET_HASH_KEY((char*)result.c_str()), (char*)result.c_str(), result, false);
+				do_spawn_model_by_player(MISC::GET_HASH_KEY((char*)result.c_str()), (char*)result.c_str(), result, false);
 			}
 		}
 		return false;
@@ -717,7 +717,7 @@ bool prop_spawned_instances_menu()
 		clear_menu_per_frame_call();
 		if (!lastHighlightedProp.isEmpty() && ENTITY::DOES_ENTITY_EXIST(lastHighlightedProp.instance))
 		{
-			ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE);
+			ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE, FALSE);
 		}
 
 		WAIT(0);
@@ -731,7 +731,7 @@ void onhighlight_prop_instance_menu(MenuItem<int> choice)
 {
 	if (!lastHighlightedProp.isEmpty() && ENTITY::DOES_ENTITY_EXIST(lastHighlightedProp.instance))
 	{
-		ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE);
+		ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE, FALSE);
 	}
 
 	SpawnedPropInstance prop = get_prop_at_index(choice.value);
@@ -749,7 +749,7 @@ bool onconfirm_prop_instance_menu(MenuItem<int> choice)
 	clear_menu_per_frame_call();
 	if (!lastHighlightedProp.isEmpty() && ENTITY::DOES_ENTITY_EXIST(lastHighlightedProp.instance))
 	{
-		ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE);
+		ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE, FALSE);
 	}
 	prop_spawned_single_instance_menu(choice.value);
 	set_menu_per_frame_call(flash_prop_callback);
@@ -796,7 +796,7 @@ void set_prop_invincible(bool applied, std::vector<int> extras)
 		return;
 	}
 
-	//ENTITY::SET_ENTITY_INVINCIBLE(prop.instance, applied);
+	//ENTITY::SET_ENTITY_INVINCIBLE(prop.instance, applied, FALSE);
 	ENTITY::SET_ENTITY_CAN_BE_DAMAGED(prop.instance, !applied);
 	//ENTITY::SET_ENTITY_PROOFS(prop.instance, applied, applied, applied, applied, applied, applied, applied, applied);
 
@@ -859,7 +859,7 @@ void set_prop_on_fire(bool applied, std::vector<int> extras)
 		bool isInvinc = prop.isInvincible;
 		//ENTITY::SET_ENTITY_PROOFS(prop.instance, isInvinc, false, isInvinc, isInvinc, isInvinc, isInvinc, isInvinc, isInvinc);
 		Vector3 curLocation = ENTITY::GET_ENTITY_COORDS(prop.instance, 0);
-		FIRE::ADD_EXPLOSION(curLocation.x, curLocation.y, curLocation.z, 14, 3.0f, true, false, 0); //starts gas fire
+		FIRE::ADD_EXPLOSION(curLocation.x, curLocation.y, curLocation.z, 14, 3.0f, true, false, 0, FALSE); //starts gas fire
 	}
 	else
 	{
@@ -963,16 +963,16 @@ void teleport_to_last_prop()
 	Hash playerModel = ENTITY::GET_ENTITY_MODEL(playerPed);
 
 	Vector3 minDimens, maxDimens;
-	GAMEPLAY::GET_MODEL_DIMENSIONS(objModel, &minDimens, &maxDimens);
+	MISC::GET_MODEL_DIMENSIONS(objModel, &minDimens, &maxDimens);
 	coords.y -= max(3.5f, 2.0f + 0.5f * (maxDimens.y - minDimens.y));
 
 	float newZ;
-	if (GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(coords.x, coords.y, coords.z + 3.0f, &newZ))
+	if (MISC::GET_GROUND_Z_FOR_3D_COORD(coords.x, coords.y, coords.z + 3.0f, &newZ, FALSE, FALSE))
 	{
 		coords.z = newZ;
 	}
 
-	GAMEPLAY::GET_MODEL_DIMENSIONS(playerModel, &minDimens, &maxDimens);
+	MISC::GET_MODEL_DIMENSIONS(playerModel, &minDimens, &maxDimens);
 	coords.z += ((maxDimens.z - minDimens.z) / 2.0f);
 	if (minDimens.z < 0)
 	{
@@ -993,7 +993,7 @@ void explode_last_prop(int explosionID)
 		explosionID = 0; //default
 	}
 	Vector3 position = ENTITY::GET_ENTITY_COORDS(prop.instance, TRUE);
-	FIRE::ADD_EXPLOSION(position.x, position.y, position.z, explosionID, 3.0f, true, false, 0);
+	FIRE::ADD_EXPLOSION(position.x, position.y, position.z, explosionID, 3.0f, true, false, 0, FALSE);
 }
 
 bool onconfirm_prop_single_instance_menu(MenuItem<int> choice)
@@ -1042,11 +1042,11 @@ void flash_prop_callback()
 		int frame = get_frame_number() % 30;
 		if (frame == 0)
 		{
-			ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, FALSE);
+			ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, FALSE, FALSE);
 		}
 		else if (frame == 10)
 		{
-			ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE);
+			ENTITY::SET_ENTITY_VISIBLE(lastHighlightedProp.instance, TRUE, FALSE);
 		}
 	}
 }

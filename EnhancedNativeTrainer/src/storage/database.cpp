@@ -1292,7 +1292,7 @@ bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 
 
 		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_LIVERY(veh));
 
-		char* plateText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
+		const char* plateText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
 		sqlite3_bind_text(stmt, index++, plateText, strlen(plateText), 0);
 
 		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh));
@@ -1317,15 +1317,15 @@ bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 
 		sqlite3_bind_double(stmt, index++, VEHICLE::GET_VEHICLE_ENVEFF_SCALE(veh));
 
 		int neonR, neonG, neonB;
-		VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &neonR, &neonG, &neonB);
+		VEHICLE::GET_VEHICLE_NEON_COLOUR(veh, &neonR, &neonG, &neonB);
 		sqlite3_bind_int(stmt, index++, neonR);
 		sqlite3_bind_int(stmt, index++, neonG);
 		sqlite3_bind_int(stmt, index++, neonB);
 
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 0));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 1));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 2));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 3));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 0));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 1));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 2));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 3));
 
 		int tyreSmokeR, tyreSmokeG, tyreSmokeB;
 		VEHICLE::GET_VEHICLE_TYRE_SMOKE_COLOR(veh, &tyreSmokeR, &tyreSmokeG, &tyreSmokeB);
@@ -1338,8 +1338,8 @@ bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 
 		//dashColour INTEGER,
 		//interiorColour INTEGER
 		int dashCol, interiorCol;
-		VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &dashCol);
-		VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &interiorCol);
+		VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &dashCol);
+		VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &interiorCol);
 		sqlite3_bind_int(stmt, index++, dashCol);
 		sqlite3_bind_int(stmt, index++, interiorCol);
 
@@ -1348,7 +1348,7 @@ bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 
 		current_picked_engine_sound = "";
 
 		int xenonColour = -1;
-		if (getGameVersion() > 45) xenonColour = VEHICLE::GET_VEHICLE_XENON_COLOUR(veh);
+		if (getGameVersion() > 45) xenonColour = VEHICLE::GET_VEHICLE_XENON_LIGHT_COLOR_INDEX(veh);
 		sqlite3_bind_int(stmt, index++, xenonColour);
 
 		int powerMultiplier = -1;
@@ -1434,7 +1434,7 @@ void ENTDatabase::save_skin_props(Ped ped, sqlite3_int64 rowID)
 		std::stringstream ss;
 		ss << "INSERT OR REPLACE INTO ENT_SKIN_PROPS VALUES (?, ?, ?, ?, ?)";
 
-		int drawable = PED::GET_PED_PROP_INDEX(ped, i);
+		int drawable = PED::GET_PED_PROP_INDEX(ped, i, 0);
 		int texture = PED::GET_PED_PROP_TEXTURE_INDEX(ped, i);
 
 		sqlite3_stmt *stmt;
@@ -1645,7 +1645,7 @@ void ENTDatabase::save_bod_skin_props(Ped ped, sqlite3_int64 rowID)
 		std::stringstream ss;
 		ss << "INSERT OR REPLACE INTO ENT_BOD_SKIN_PROPS VALUES (?, ?, ?, ?, ?)";
 
-		int drawable = PED::GET_PED_PROP_INDEX(ped, i);
+		int drawable = PED::GET_PED_PROP_INDEX(ped, i, 0);
 		int texture = PED::GET_PED_PROP_TEXTURE_INDEX(ped, i);
 
 		sqlite3_stmt *stmt;
@@ -1757,7 +1757,7 @@ bool ENTDatabase::save_bod_skin(Ped ped, std::string saveName, sqlite3_int64 slo
 	for (int a = 0; a < WEAPONTYPES_MOD.size(); a++) {
 		for (int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++) {
 			char* weaponName = (char*)WEAPONTYPES_MOD.at(a).c_str(), * compName = (char*)VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName), compHash = GAMEPLAY::GET_HASH_KEY(compName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName), compHash = MISC::GET_HASH_KEY(compName);
 
 			if (weaponHash == WEAPON::GET_SELECTED_PED_WEAPON(ped)) {
 				if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(ped, weaponHash, compHash)) {
@@ -1972,7 +1972,7 @@ bool ENTDatabase::save_weapon(Ped ped, std::string saveName, sqlite3_int64 slot)
 	for (int a = 0; a < WEAPONTYPES_MOD.size(); a++) {
 		for (int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++) {
 			char* weaponName = (char*)WEAPONTYPES_MOD.at(a).c_str(), * compName = (char*)VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName), compHash = GAMEPLAY::GET_HASH_KEY(compName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName), compHash = MISC::GET_HASH_KEY(compName);
 
 			if (weaponHash == WEAPON::GET_SELECTED_PED_WEAPON(PLAYER::PLAYER_PED_ID())) {
 				if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(PLAYER::PLAYER_PED_ID(), weaponHash, compHash)) {
@@ -3695,7 +3695,7 @@ bool ENTDatabase::save_tracked_vehicle(Vehicle veh, std::string saveName, sqlite
 
 		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_LIVERY(veh));
 
-		char* plateText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
+		const char* plateText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
 		sqlite3_bind_text(stmt, index++, plateText, strlen(plateText), 0);
 
 		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh));
@@ -3720,15 +3720,15 @@ bool ENTDatabase::save_tracked_vehicle(Vehicle veh, std::string saveName, sqlite
 		sqlite3_bind_double(stmt, index++, VEHICLE::GET_VEHICLE_ENVEFF_SCALE(veh));
 
 		int neonR, neonG, neonB;
-		VEHICLE::_GET_VEHICLE_NEON_LIGHTS_COLOUR(veh, &neonR, &neonG, &neonB);
+		VEHICLE::GET_VEHICLE_NEON_COLOUR(veh, &neonR, &neonG, &neonB);
 		sqlite3_bind_int(stmt, index++, neonR);
 		sqlite3_bind_int(stmt, index++, neonG);
 		sqlite3_bind_int(stmt, index++, neonB);
 
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 0));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 1));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 2));
-		sqlite3_bind_int(stmt, index++, VEHICLE::_IS_VEHICLE_NEON_LIGHT_ENABLED(veh, 3));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 0));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 1));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 2));
+		sqlite3_bind_int(stmt, index++, VEHICLE::GET_VEHICLE_NEON_ENABLED(veh, 3));
 
 		int tyreSmokeR, tyreSmokeG, tyreSmokeB;
 		VEHICLE::GET_VEHICLE_TYRE_SMOKE_COLOR(veh, &tyreSmokeR, &tyreSmokeG, &tyreSmokeB);
@@ -3741,8 +3741,8 @@ bool ENTDatabase::save_tracked_vehicle(Vehicle veh, std::string saveName, sqlite
 		/*dashColour INTEGER,
 		interiorColour INTEGER*/
 		int dashCol, interiorCol;
-		VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &dashCol);
-		VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &interiorCol);
+		VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &dashCol);
+		VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &interiorCol);
 		sqlite3_bind_int(stmt, index++, dashCol);
 		sqlite3_bind_int(stmt, index++, interiorCol);
 
@@ -3757,7 +3757,7 @@ bool ENTDatabase::save_tracked_vehicle(Vehicle veh, std::string saveName, sqlite
 		current_picked_engine_sound = "";
 
 		int xenonColour = -1;
-		if (getGameVersion() > 45) xenonColour = VEHICLE::GET_VEHICLE_XENON_COLOUR(veh);
+		if (getGameVersion() > 45) xenonColour = VEHICLE::GET_VEHICLE_XENON_LIGHT_COLOR_INDEX(veh);
 		sqlite3_bind_int(stmt, index++, xenonColour);
 
 		int cor_x, cor_y, cor_z;

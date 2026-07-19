@@ -85,36 +85,36 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 
 	// text upper part
 	if(title){
-		UI::SET_TEXT_FONT(fontHeader);
+		HUD::SET_TEXT_FONT(fontHeader);
 	}
 	else{
-		UI::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_FONT(fontItem);
 	}
-	UI::SET_TEXT_SCALE(0.0, text_scale);
+	HUD::SET_TEXT_SCALE(0.0, text_scale);
 	if(active){
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 	}
 	else if(title){
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[0].rgba[0], ENTColor::colsMenu[0].rgba[1], ENTColor::colsMenu[0].rgba[2], ENTColor::colsMenu[0].rgba[3]);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[0].rgba[0], ENTColor::colsMenu[0].rgba[1], ENTColor::colsMenu[0].rgba[2], ENTColor::colsMenu[0].rgba[3]);
 	}
 	else{
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 	}
-	UI::SET_TEXT_CENTRE(0);
+	HUD::SET_TEXT_CENTRE(0);
 
 	if(outline){
-		UI::SET_TEXT_OUTLINE();
+		HUD::SET_TEXT_OUTLINE();
 	}
 
 	if(dropShadow){
-		UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+		HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 	}
 
-	UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	UI::_SET_TEXT_ENTRY("STRING");
-	UI::_ADD_TEXT_COMPONENT_STRING((LPSTR) caption.c_str());
+	HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+	HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+	HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((LPSTR) caption.c_str());
 
-	UI::_DRAW_TEXT(textLeftScaled, lineTopScaled + (0.5f * (lineHeightScaled - textHeightScaled)));
+	HUD::END_TEXT_COMMAND_DISPLAY_TEXT(textLeftScaled, lineTopScaled + (0.5f * (lineHeightScaled - textHeightScaled)), 0);
 
 	// rect
 	if(active){
@@ -133,13 +133,13 @@ void draw_menu_line(std::string caption, float lineWidth, float lineHeight, floa
 
 void draw_rect(float A_0, float A_1, float A_2, float A_3, int A_4, int A_5, int A_6, int A_7){
 	//this craziness is required - X and Y are strange
-	GRAPHICS::DRAW_RECT((A_0 + (A_2 * 0.5f)), (A_1 + (A_3 * 0.5f)), A_2, A_3, A_4, A_5, A_6, A_7);
+	GRAPHICS::DRAW_RECT((A_0 + (A_2 * 0.5f)), (A_1 + (A_3 * 0.5f)), A_2, A_3, A_4, A_5, A_6, A_7, FALSE);
 }
 
 void set_status_text(std::string str, bool isGxtEntry){
-	UI::_SET_NOTIFICATION_TEXT_ENTRY((isGxtEntry ? &str[0u] : "STRING"));
-	UI::_ADD_TEXT_COMPONENT_STRING(&str[0u]);
-	UI::_DRAW_NOTIFICATION(FALSE, FALSE); // _DRAW_NOTIFICATION(BOOL blink, BOOL p1)
+	HUD::BEGIN_TEXT_COMMAND_THEFEED_POST((isGxtEntry ? &str[0u] : "STRING"));
+	HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME(&str[0u]);
+	HUD::END_TEXT_COMMAND_THEFEED_POST_TICKER(FALSE, FALSE); // _DRAW_NOTIFICATION(BOOL blink, BOOL p1)
 }
 
 void set_status_text_centre_screen(std::string str, DWORD time, bool isGxtEntry){
@@ -150,21 +150,21 @@ void set_status_text_centre_screen(std::string str, DWORD time, bool isGxtEntry)
 
 void update_centre_screen_status_text(){
 	if(GetTickCount() < centreScreenStatusTextDrawTicksMax){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.55, 0.55);
-		UI::SET_TEXT_COLOUR(255, 255, 255, 255);
-		UI::SET_TEXT_WRAP(0.0, 1.0);
-		UI::SET_TEXT_CENTRE(1);
-		UI::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
-		UI::SET_TEXT_EDGE(1, 0, 0, 0, 205);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.55, 0.55);
+		HUD::SET_TEXT_COLOUR(255, 255, 255, 255);
+		HUD::SET_TEXT_WRAP(0.0, 1.0);
+		HUD::SET_TEXT_CENTRE(1);
+		HUD::SET_TEXT_DROPSHADOW(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_EDGE(1, 0, 0, 0, 205);
 		if(centreScreenStatusTextGxtEntry){
-			UI::_SET_TEXT_ENTRY((char *) centreScreenStatusText.c_str());
+			HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT((char *) centreScreenStatusText.c_str());
 		}
 		else{
-			UI::_SET_TEXT_ENTRY("STRING");
-			UI::_ADD_TEXT_COMPONENT_STRING((char *) centreScreenStatusText.c_str());
+			HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+			HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) centreScreenStatusText.c_str());
 		}
-		UI::_DRAW_TEXT(0.5, 0.5);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.5, 0.5, 0);
 	}
 }
 
@@ -247,28 +247,28 @@ std::string show_keyboard(char* title_id, char* prepopulated_text){
 
 	/*
 	Any x;
-	GAMEPLAY::START_SAVE_DATA(&x, 1, 1);
-	GAMEPLAY::REGISTER_TEXT_LABEL_TO_SAVE(&x, "XYZ123");
-	GAMEPLAY::STOP_SAVE_DATA();
+	MISC::START_SAVE_DATA(&x, 1, 1);
+	MISC::REGISTER_TEXT_LABEL_TO_SAVE(&x, "XYZ123");
+	MISC::STOP_SAVE_DATA();
 	*/
 
-	GAMEPLAY::DISPLAY_ONSCREEN_KEYBOARD(
+	MISC::DISPLAY_ONSCREEN_KEYBOARD(
 		true,
 		(title_id == NULL ? "HUD_TITLE" : title_id),
 		"",
 		(prepopulated_text == NULL ? "" : prepopulated_text),
 		"", "", "", 64);
 
-	while(GAMEPLAY::UPDATE_ONSCREEN_KEYBOARD() == 0){
+	while(MISC::UPDATE_ONSCREEN_KEYBOARD() == 0){
 		make_periodic_feature_call();
 		WAIT(0);
 	}
 
-	if(!GAMEPLAY::GET_ONSCREEN_KEYBOARD_RESULT()){
+	if(!MISC::GET_ONSCREEN_KEYBOARD_RESULT()){
 		return std::string("");
 	}
 	else{
-		return std::string(GAMEPLAY::GET_ONSCREEN_KEYBOARD_RESULT());
+		return std::string(MISC::GET_ONSCREEN_KEYBOARD_RESULT());
 	}
 }
 
@@ -443,7 +443,7 @@ std::string SelectFromListMenuItem::getCurrentCaption(){
 void draw_ingame_sprite(MenuItemImage *image, float x, float y, int w, int h){
 	int screenX = 0;
 	int screenY = 0;
-	GRAPHICS::_GET_SCREEN_ACTIVE_RESOLUTION(&screenX, &screenY);
+	GRAPHICS::GET_ACTUAL_SCREEN_RESOLUTION(&screenX, &screenY);
 
 	float onePixelW = (float) 1 / screenX;
 	float onePixelH = (float) 1 / screenY;
@@ -461,7 +461,7 @@ void draw_ingame_sprite(MenuItemImage *image, float x, float y, int w, int h){
 			  ENTColor::colsMenu[11].rgba[0], ENTColor::colsMenu[11].rgba[1], ENTColor::colsMenu[11].rgba[2], ENTColor::colsMenu[11].rgba[3]);
 
 	if(image->is_local()){
-		float screencorrection = GRAPHICS::_GET_SCREEN_ASPECT_RATIO(FALSE);
+		float screencorrection = GRAPHICS::GET_ASPECT_RATIO(FALSE);
 
 		drawTexture(image->localID, 0, -9999, 100, sprW, sprH / screencorrection, 0.0f, 0.0f, x, y, 0.0f, screencorrection, 1.0f, 1.0f, 1.0f, 1.0f);
 	}
@@ -471,6 +471,6 @@ void draw_ingame_sprite(MenuItemImage *image, float x, float y, int w, int h){
 		if(!GRAPHICS::HAS_STREAMED_TEXTURE_DICT_LOADED(image->dict)){
 			return;
 		}
-		GRAPHICS::DRAW_SPRITE(image->dict, image->name, sprXPos, sprYPos, sprW, sprH, 0, 255, 255, 255, 255);
+		GRAPHICS::DRAW_SPRITE(image->dict, image->name, sprXPos, sprYPos, sprW, sprH, 0, 255, 255, 255, 255, FALSE, 0);
 	}
 }

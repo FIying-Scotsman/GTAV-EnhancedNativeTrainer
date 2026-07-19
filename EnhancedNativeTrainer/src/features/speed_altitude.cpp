@@ -89,10 +89,10 @@ void update_speed_text(int speed, Vector3 player_coords)
 	int numActualLines = 0;
 	for (int i = 0; i < numLines; i++) {
 		numActualLines++;
-		UI::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM((char *)speedometerStatusLines[i].c_str());
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY((char *)speedometerStatusLines[i].c_str());
 		text_parameters(size / 10, size / 10, col2_R, col2_G, col2_B, 255);
-		UI::END_TEXT_COMMAND_DISPLAY_TEXT(textX, textY);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(textX, textY, 0);
 		textY += 0.025f;
 	}
 
@@ -113,7 +113,7 @@ void update_speed_text(int speed, Vector3 player_coords)
 		float rectWidthScaled = (230 / (float)screen_w) / 2;
 		float rectHeightScaled = (0 + (1 * 18)) / (float)screen_h;
 		int rect_col[4] = { 0, 0, 0, 255 }; // 128, 128, 128, 75
-		GRAPHICS::DRAW_RECT(rectXScaled, rectYScaled, rectWidthScaled, rectHeightScaled, rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
+		GRAPHICS::DRAW_RECT(rectXScaled, rectYScaled, rectWidthScaled, rectHeightScaled, rect_col[0], rect_col[1], rect_col[2], rect_col[3], FALSE);
 
 		if (featureAltitude) {
 			if (NPC_RAGDOLL_VALUES[SpeedPositionIndexN] == 0) { //Bottom Right
@@ -131,7 +131,7 @@ void update_speed_text(int speed, Vector3 player_coords)
 			float rectWidthScaled = (230 / (float)screen_w) / 2;
 			float rectHeightScaled = (0 + (1 * 18)) / (float)screen_h;
 			int rect_col[4] = { 0, 0, 0, 255 }; // 128, 128, 128, 75
-			GRAPHICS::DRAW_RECT(rectXScaled, rectYScaled, rectWidthScaled, rectHeightScaled, rect_col[0], rect_col[1], rect_col[2], rect_col[3]);
+			GRAPHICS::DRAW_RECT(rectXScaled, rectYScaled, rectWidthScaled, rectHeightScaled, rect_col[0], rect_col[1], rect_col[2], rect_col[3], FALSE);
 		}
 	}
 }

@@ -417,7 +417,7 @@ void play_cutscene(std::string curr_c) {
 	strcpy(cstr, curr_c.c_str());
 
 	CUTSCENE::REQUEST_CUTSCENE(cstr, 8);
-	while (!CUTSCENE::HAS_CUTSCENE_LOADED() && !CONTROLS::IS_CONTROL_PRESSED(2, 22)) {
+	while (!CUTSCENE::HAS_CUTSCENE_LOADED() && !PAD::IS_CONTROL_PRESSED(2, 22)) {
 		make_periodic_feature_call();
 		WAIT(0);
 	}
@@ -426,7 +426,7 @@ void play_cutscene(std::string curr_c) {
 		manual_cutscene = true;
 		CUTSCENE::SET_CUTSCENE_FADE_VALUES(0, 0, 0, 0);
 		CUTSCENE::START_CUTSCENE(0);
-		CAM::SET_WIDESCREEN_BORDERS(0, 0);
+		CAMERA::SET_WIDESCREEN_BORDERS(0, 0);
 		delete[] cstr;
 	}
 }
@@ -434,14 +434,14 @@ void play_cutscene(std::string curr_c) {
 void stop_cutscene() {
 	OBJECT::DELETE_OBJECT(&xaxis);
 	OBJECT::DELETE_OBJECT(&zaxis);
-	if (CAM::DOES_CAM_EXIST(CutCam)) {
-		CAM::RENDER_SCRIPT_CAMS(false, false, 1, false, false);
-		CAM::DESTROY_CAM(CutCam, true);
+	if (CAMERA::DOES_CAM_EXIST(CutCam)) {
+		CAMERA::RENDER_SCRIPT_CAMS(false, false, 1, false, false, 0);
+		CAMERA::DESTROY_CAM(CutCam, true);
 	}
-	CAM::DO_SCREEN_FADE_IN(0);
+	CAMERA::DO_SCREEN_FADE_IN(0);
 	CUTSCENE::STOP_CUTSCENE_IMMEDIATELY();
 	CUTSCENE::REMOVE_CUTSCENE();
-	CAM::DO_SCREEN_FADE_IN(0);
+	CAMERA::DO_SCREEN_FADE_IN(0);
 	curr_cut_ped_me = -1;
 	my_first_coords = -1;
 	curr_cut_ped = -1;
@@ -590,7 +590,7 @@ void process_misc_musicevent_menu() {
 
 void process_misc_freezeradio_menu(){ 
 	std::vector<MenuItem<int> *> menuItems;
-	int const stations = AUDIO::_MAX_RADIO_STATION_INDEX();
+	int const stations = AUDIO::GET_NUM_UNLOCKED_RADIO_STATIONS();
 
 	MenuItem<int> *item = new MenuItem<int>();
 	item->caption = tr("MiscMenu.None", "None");
@@ -1151,7 +1151,7 @@ void reset_misc_globals(){
 void update_misc_features(BOOL playerExists, Ped playerPed){
 	// Radio Off
 	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) radio_pressed = false;
-	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && CONTROLS::IS_CONTROL_PRESSED(2, 85)) {
+	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && PAD::IS_CONTROL_PRESSED(2, 85)) {
 		radio_pressed = true;
 		AUDIO::SET_VEHICLE_RADIO_ENABLED(PED::GET_VEHICLE_PED_IS_USING(playerPed), true);
 		AUDIO::SET_USER_RADIO_CONTROL_ENABLED(true);
@@ -1205,7 +1205,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	// No 'Mission Passed' Message
 	if (featureNoComleteMessage) {
 		if (!SCRIPT::HAS_SCRIPT_LOADED("family3") && !SCRIPT::HAS_SCRIPT_LOADED("jewelry_heist") && !SCRIPT::HAS_SCRIPT_LOADED("family5") && !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp") && !SCRIPT::HAS_SCRIPT_LOADED("family6"))
-			GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("mission_stat_watcher");
+			MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("mission_stat_watcher");
 	}
 
 	// Radio Boost
@@ -1218,21 +1218,21 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	// Consistent Radio Volume
 	if (featureRealisticRadioVolume && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && radio_v_checked == false) {
 		Vehicle cur_v = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-		if (VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(1) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
-		if (VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(1) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
-		//if ((VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(cur_v)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(cur_v))) && CAM::_0xEE778F8C7E1142E2(2) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
-		//if ((VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(cur_v)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(cur_v))) && CAM::_0xEE778F8C7E1142E2(2) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
-		if (VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(3) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
-		if (VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(3) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
-		if (VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(4) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
-		if (VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(4) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
-		if ((ENTITY::GET_ENTITY_MODEL(cur_v) == GAMEPLAY::GET_HASH_KEY("SUBMERSIBLE") || ENTITY::GET_ENTITY_MODEL(cur_v) == GAMEPLAY::GET_HASH_KEY("SUBMERSIBLE2")) && CAM::_0xEE778F8C7E1142E2(5) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
-		if ((ENTITY::GET_ENTITY_MODEL(cur_v) == GAMEPLAY::GET_HASH_KEY("SUBMERSIBLE") || ENTITY::GET_ENTITY_MODEL(cur_v) == GAMEPLAY::GET_HASH_KEY("SUBMERSIBLE2")) && CAM::_0xEE778F8C7E1142E2(5) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
-		if (VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(6) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
-		if (VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(6) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
+		if (VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(1) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
+		if (VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(1) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
+		//if ((VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(cur_v)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(cur_v))) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(2) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
+		//if ((VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(cur_v)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(cur_v))) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(2) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
+		if (VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(3) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
+		if (VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(3) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
+		if (VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(4) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
+		if (VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(4) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
+		if ((ENTITY::GET_ENTITY_MODEL(cur_v) == MISC::GET_HASH_KEY("SUBMERSIBLE") || ENTITY::GET_ENTITY_MODEL(cur_v) == MISC::GET_HASH_KEY("SUBMERSIBLE2")) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(5) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
+		if ((ENTITY::GET_ENTITY_MODEL(cur_v) == MISC::GET_HASH_KEY("SUBMERSIBLE") || ENTITY::GET_ENTITY_MODEL(cur_v) == MISC::GET_HASH_KEY("SUBMERSIBLE2")) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(5) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
+		if (VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(6) != 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(false);
+		if (VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(6) == 4) AUDIO::SET_FRONTEND_RADIO_ACTIVE(true);
 		radio_v_checked = true;
 	}
-	if (featureRealisticRadioVolume && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && CONTROLS::IS_CONTROL_JUST_RELEASED(2, 0)) {
+	if (featureRealisticRadioVolume && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && PAD::IS_CONTROL_JUST_RELEASED(2, 0)) {
 		WAIT(100);
 		radio_v_checked = false;
 	}
@@ -1252,7 +1252,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		}
 		if ((MISC_RADIO_SWITCHING_VALUES[RadioSwitchingIndex] == 1 && (is_hotkey_held_veh_radio_skip() || skip_track_pressed == true)) || (MISC_RADIO_SWITCHING_VALUES[RadioSwitchingIndex] > 1 && r_seconds > MISC_RADIO_SWITCHING_VALUES[RadioSwitchingIndex])) {
 			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-			int const stations = AUDIO::_MAX_RADIO_STATION_INDEX();
+			int const stations = AUDIO::GET_NUM_UNLOCKED_RADIO_STATIONS();
 			int random_station = (rand() % stations + 0);
 			AUDIO::SET_RADIO_TO_STATION_INDEX(random_station); //AUDIO::SET_VEH_RADIO_STATION(veh, AUDIO::GET_RADIO_STATION_NAME(random_station));
 			r_seconds = 0;
@@ -1265,7 +1265,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		//Vehicle playerVeh = PED::GET_VEHICLE_PED_IS_IN(playerPed, 1);
 		//Vector3 coords_radio = ENTITY::GET_ENTITY_COORDS(playerVeh, 1);
 		//Vector3 coords_radio_2 = ENTITY::GET_ENTITY_COORDS(playerPed, 1);
-		if (/*(*/PED::IS_PED_IN_ANY_POLICE_VEHICLE(playerPed)/* || (GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(coords_radio.x, coords_radio.y, coords_radio.z, coords_radio_2.x, coords_radio_2.y, coords_radio_2.z, false) < 15 && police_radio_check))*/ 
+		if (/*(*/PED::IS_PED_IN_ANY_POLICE_VEHICLE(playerPed)/* || (MISC::GET_DISTANCE_BETWEEN_COORDS(coords_radio.x, coords_radio.y, coords_radio.z, coords_radio_2.x, coords_radio_2.y, coords_radio_2.z, false) < 15 && police_radio_check))*/ 
 			&& VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(playerVeh)) {
 			//police_radio_check = true;
 			AUDIO::SET_VEHICLE_RADIO_ENABLED(playerVeh, true);
@@ -1301,108 +1301,108 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			case 19: //weapon wheel
 				continue;
 			}
-			UI::HIDE_HUD_COMPONENT_THIS_FRAME(i);
+			HUD::HIDE_HUD_COMPONENT_THIS_FRAME(i);
 		}
 
-		UI::DISPLAY_RADAR(false);
+		HUD::DISPLAY_RADAR(false);
 		featureMiscHideHud.updated = false;
 	}
 	else if (/*(*/featureMiscHideHud.updated/* && !featureMiscHideENTHud) || (featureMiscHideENTHud && menu_showing == false)*/){
-		UI::DISPLAY_RADAR(true);
+		HUD::DISPLAY_RADAR(true);
 		featureMiscHideHud.updated = false;
 	}
 	
 	// Show Hud If Phone In Hand
 	if (featurePhoneShowHud) {
 		if (!phone_toggle) {
-			UI::DISPLAY_RADAR(false);
+			HUD::DISPLAY_RADAR(false);
 			featureMiscHideHud.updated = false;
 		}
 		
 		if (PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed)) {
-			UI::DISPLAY_RADAR(true);
+			HUD::DISPLAY_RADAR(true);
 			phone_toggle = true;
 		}
 	
 		if (!PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed)) {
-			UI::DISPLAY_RADAR(false);
+			HUD::DISPLAY_RADAR(false);
 			phone_toggle = false;
 		}
 	}
 	else if (!featureMiscHideHud.enabled && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) {
-		UI::DISPLAY_RADAR(true);
+		HUD::DISPLAY_RADAR(true);
 		phone_toggle = false;
 	}
 	
 	// Show Hud In Vehicle Only
 	if (featureInVehicleNoHud) {
 		if (!phone_toggle_vehicle && !featurePhoneShowHud) {
-			UI::DISPLAY_RADAR(false);
+			HUD::DISPLAY_RADAR(false);
 			featureMiscHideHud.updated = false;
 		}
 
 		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 1)) {
-			UI::DISPLAY_RADAR(true);
+			HUD::DISPLAY_RADAR(true);
 			phone_toggle_vehicle = true;
 		}
 
 		if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 1) && !featurePhoneShowHud) {
-			UI::DISPLAY_RADAR(false);
+			HUD::DISPLAY_RADAR(false);
 			phone_toggle_vehicle = false;
 		}
 	}
 	else if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) {
-		UI::DISPLAY_RADAR(true);
+		HUD::DISPLAY_RADAR(true);
 		phone_toggle_vehicle = false;
 	}
 	
 	// Show Hud If Marker Set Only
 	if (featureMarkerHud) {
 		if (!phone_toggle_vehicle && !featurePhoneShowHud && !featureInVehicleNoHud) {
-			UI::DISPLAY_RADAR(false);
+			HUD::DISPLAY_RADAR(false);
 			featureMiscHideHud.updated = false;
 		}
 		bool blipFound = false;
-		int blipIterator = UI::_GET_BLIP_INFO_ID_ITERATOR(); // search for marker blip
-		for (Blip i = UI::GET_FIRST_BLIP_INFO_ID(blipIterator); UI::DOES_BLIP_EXIST(i) != 0; i = UI::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
-			if (UI::GET_BLIP_INFO_ID_TYPE(i) == 4) {
+		int blipIterator = HUD::GET_WAYPOINT_BLIP_ENUM_ID(); // search for marker blip
+		for (Blip i = HUD::GET_FIRST_BLIP_INFO_ID(blipIterator); HUD::DOES_BLIP_EXIST(i) != 0; i = HUD::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
+			if (HUD::GET_BLIP_INFO_ID_TYPE(i) == 4) {
 				blipFound = true;
 				break;
 			}
 		}
 		if (blipFound) {
-			UI::DISPLAY_RADAR(true);
+			HUD::DISPLAY_RADAR(true);
 			phone_toggle_vehicle = true;
 		}
 		if (!blipFound && !featurePhoneShowHud && !featureInVehicleNoHud) {
-			UI::DISPLAY_RADAR(false);
+			HUD::DISPLAY_RADAR(false);
 			phone_toggle_vehicle = false;
 		}
 	}
 	else if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureInVehicleNoHud/* && !featureMiscHideENTHud*/) {
-		UI::DISPLAY_RADAR(true);
+		HUD::DISPLAY_RADAR(true);
 		phone_toggle_vehicle = false;
 	}
 
 	// Disable Recording
 	if (featureDisableRecording) {
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 170, 1); // SaveReplayClip
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 288, 1); // ReplayStartStopRecording
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 289, 1); // ReplayStartStopRecordingSecondary
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 302, 1); // ReplayRecord
+		PAD::DISABLE_CONTROL_ACTION(2, 170, 1); // SaveReplayClip
+		PAD::DISABLE_CONTROL_ACTION(2, 288, 1); // ReplayStartStopRecording
+		PAD::DISABLE_CONTROL_ACTION(2, 289, 1); // ReplayStartStopRecordingSecondary
+		PAD::DISABLE_CONTROL_ACTION(2, 302, 1); // ReplayRecord
 	}
 
 	// No Notifications
-	if (featureNoNotifications) UI::THEFEED_HIDE_THIS_FRAME();
+	if (featureNoNotifications) HUD::THEFEED_HIDE_THIS_FRAME();
 
 	// Default Phone
 	if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] > -1) {
 		if (PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed) && phone_toggle_defaultphone == false) {
-			MOBILE::CREATE_MOBILE_PHONE(MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex]);
+			GTA::CREATE_MOBILE_PHONE(MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex]);
 			phone_toggle_defaultphone = true;
 		}
 		if (!PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed) && phone_toggle_defaultphone == true) {
-			MOBILE::DESTROY_MOBILE_PHONE();
+			GTA::DESTROY_MOBILE_PHONE();
 			phone_toggle_defaultphone = false;
 		}
 	}
@@ -1439,46 +1439,46 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 
 		if ((PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1) && (VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(veh)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(veh)))) && PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed)) { // PED::IS_PED_ON_ANY_BIKE(playerPed)
 			
-			if (featureNoPhoneOnHUD && CAM::_0xEE778F8C7E1142E2(2) == 4/* && PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1)*/) {
-				if (PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != GAMEPLAY::GET_HASH_KEY("VERUS") && PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != GAMEPLAY::GET_HASH_KEY("SEASHARK") &&
-					PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != GAMEPLAY::GET_HASH_KEY("SEASHARK2") && PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != GAMEPLAY::GET_HASH_KEY("SEASHARK3")) MOBILE::SET_MOBILE_PHONE_POSITION(10000, 10000, 10000);
+			if (featureNoPhoneOnHUD && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(2) == 4/* && PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1)*/) {
+				if (PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != MISC::GET_HASH_KEY("VERUS") && PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != MISC::GET_HASH_KEY("SEASHARK") &&
+					PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != MISC::GET_HASH_KEY("SEASHARK2") && PED::GET_VEHICLE_PED_IS_IN(playerPed, 1) != MISC::GET_HASH_KEY("SEASHARK3")) GTA::SET_MOBILE_PHONE_POSITION(10000, 10000, 10000);
 			}
 			
 			Hash temp_Hash = -1;
 			Vector3 temp_pos = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 			
-			if (STREAMING::HAS_ANIM_DICT_LOADED(anim_dict) && p_exist == false && CONTROLS::GET_CONTROL_VALUE(0, 9) == 127) { // 127 means wheel's not turned
+			if (STREAMING::HAS_ANIM_DICT_LOADED(anim_dict) && p_exist == false && PAD::GET_CONTROL_VALUE(0, 9) == 127) { // 127 means wheel's not turned
 				WAIT(0);
-				AI::TASK_PLAY_ANIM(playerPed, anim_dict, animation_of_d, 8.0, 0.0, -1, 9, 0, 0, 0, 0);
+				TASK::TASK_PLAY_ANIM(playerPed, anim_dict, animation_of_d, 8.0, 0.0, -1, 9, 0, 0, 0, 0);
 				if (!ENTITY::DOES_ENTITY_EXIST(temp_obj)) {
-					if (PED::GET_PED_TYPE(playerPed) == 0 && (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3)) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_phone_ing"); // michael
-						if (PED::GET_PED_TYPE(playerPed) == 1 && (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3)) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_phone_ing_03"); // franklin
+					if (PED::GET_PED_TYPE(playerPed) == 0 && (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3)) temp_Hash = MISC::GET_HASH_KEY("prop_phone_ing"); // michael
+						if (PED::GET_PED_TYPE(playerPed) == 1 && (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3)) temp_Hash = MISC::GET_HASH_KEY("prop_phone_ing_03"); // franklin
 						if ((PED::GET_PED_TYPE(playerPed) == 2 || PED::GET_PED_TYPE(playerPed) == 3) && (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3))
-							temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_phone_ing_02"); // trevor
+							temp_Hash = MISC::GET_HASH_KEY("prop_phone_ing_02"); // trevor
 						if (PED::GET_PED_TYPE(playerPed) != 0 && PED::GET_PED_TYPE(playerPed) != 1 && PED::GET_PED_TYPE(playerPed) != 2 && PED::GET_PED_TYPE(playerPed) != 3 &&
-							(MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3)) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_prologue_phone");
-						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 0) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_phone_ing");
-						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 1) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_phone_ing_02");
-						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 2) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_phone_ing_03");
-						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 4) temp_Hash = GAMEPLAY::GET_HASH_KEY("prop_prologue_phone");
+							(MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == -1 || MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 3)) temp_Hash = MISC::GET_HASH_KEY("prop_prologue_phone");
+						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 0) temp_Hash = MISC::GET_HASH_KEY("prop_phone_ing");
+						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 1) temp_Hash = MISC::GET_HASH_KEY("prop_phone_ing_02");
+						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 2) temp_Hash = MISC::GET_HASH_KEY("prop_phone_ing_03");
+						if (MISC_PHONE_DEFAULT_VALUES[PhoneDefaultIndex] == 4) temp_Hash = MISC::GET_HASH_KEY("prop_prologue_phone");
 						temp_obj = OBJECT::CREATE_OBJECT(temp_Hash, temp_pos.x, temp_pos.y, temp_pos.z, 1, true, 1);
 						int PlayerIndex1 = PED::GET_PED_BONE_INDEX(playerPed, 0x6f06);
-						ENTITY::ATTACH_ENTITY_TO_ENTITY(temp_obj, playerPed, PlayerIndex1, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
+						ENTITY::ATTACH_ENTITY_TO_ENTITY(temp_obj, playerPed, PlayerIndex1, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
 				}
 				p_exist = true;
 			}
 
-			if (CONTROLS::IS_CONTROL_RELEASED(2, 71) && CONTROLS::IS_CONTROL_RELEASED(2, 72) && accel == true) { // accelerate/brake
-				AI::STOP_ANIM_TASK(playerPed, anim_dict, animation_of_d, 1.0);
-				CONTROLS::DISABLE_CONTROL_ACTION(2, 71, 1);
-				CONTROLS::DISABLE_CONTROL_ACTION(2, 72, 1);
+			if (PAD::IS_CONTROL_RELEASED(2, 71) && PAD::IS_CONTROL_RELEASED(2, 72) && accel == true) { // accelerate/brake
+				TASK::STOP_ANIM_TASK(playerPed, anim_dict, animation_of_d, 1.0);
+				PAD::DISABLE_CONTROL_ACTION(2, 71, 1);
+				PAD::DISABLE_CONTROL_ACTION(2, 72, 1);
 				accel = false;
 				p_exist = false;
 			}
-			if (CONTROLS::IS_CONTROL_RELEASED(2, 63) && CONTROLS::IS_CONTROL_RELEASED(2, 64)) VEHICLE::_SET_BIKE_LEAN_ANGLE(PED::GET_VEHICLE_PED_IS_USING(playerPed), 0, 0); //  && CONTROLS::IS_CONTROL_PRESSED(2, 71)
-			if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, 75) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 72) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 63) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 64) ||
-				(CONTROLS::IS_CONTROL_JUST_PRESSED(2, 71) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 62) && veh_s.x < 2 && veh_s.y < 2)) { // exit/brake/left/right/accelerate/down
-				AI::STOP_ANIM_TASK(playerPed, anim_dict, animation_of_d, 1.0);
+			if (PAD::IS_CONTROL_RELEASED(2, 63) && PAD::IS_CONTROL_RELEASED(2, 64)) VEHICLE::SET_BIKE_ON_STAND(PED::GET_VEHICLE_PED_IS_USING(playerPed), 0, 0); //  && PAD::IS_CONTROL_PRESSED(2, 71)
+			if (PAD::IS_CONTROL_JUST_PRESSED(2, 75) || PAD::IS_CONTROL_JUST_PRESSED(2, 72) || PAD::IS_CONTROL_JUST_PRESSED(2, 63) || PAD::IS_CONTROL_JUST_PRESSED(2, 64) ||
+				(PAD::IS_CONTROL_JUST_PRESSED(2, 71) || PAD::IS_CONTROL_JUST_PRESSED(2, 62) && veh_s.x < 2 && veh_s.y < 2)) { // exit/brake/left/right/accelerate/down
+				TASK::STOP_ANIM_TASK(playerPed, anim_dict, animation_of_d, 1.0);
 				accel = true;
 				p_exist = false;
 			}
@@ -1487,7 +1487,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		if ((PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1) && ((VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(veh)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(veh))) && !PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed) && STREAMING::HAS_ANIM_DICT_LOADED(anim_dict))) ||
 			(!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1) && STREAMING::HAS_ANIM_DICT_LOADED(anim_dict))) {
 			OBJECT::DELETE_OBJECT(&temp_obj);
-			AI::STOP_ANIM_TASK(playerPed, anim_dict, animation_of_d, 1.0);
+			TASK::STOP_ANIM_TASK(playerPed, anim_dict, animation_of_d, 1.0);
 			//STREAMING::REMOVE_ANIM_DICT(anim_dict);
 			//STREAMING::REMOVE_ANIM_DICT(animation_of_d);
 			accel = false;
@@ -1506,24 +1506,24 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			VEHICLE::SET_VEHICLE_DOORS_LOCKED(veh_l, 4);
 		}
 		featureLockVehicleDoors.updated = true;
-		PED::SET_PED_CAN_BE_DRAGGED_OUT(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_l, -1), false);
+		PED::SET_PED_CAN_BE_DRAGGED_OUT(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_l, -1, FALSE), false);
 	}
 	if (!featureLockVehicleDoors.enabled && featureLockVehicleDoors.updated == true) {
 		VEHICLE::SET_VEHICLE_DOORS_LOCKED(veh_l, 0);
-		PED::SET_PED_CAN_BE_DRAGGED_OUT(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_l, -1), true);
+		PED::SET_PED_CAN_BE_DRAGGED_OUT(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_l, -1, FALSE), true);
 
 		featureLockVehicleDoors.updated = false;
 	}
 
 	// Dynamic Health Bar
-	if (featureDynamicHealthBar && ENTITY::DOES_ENTITY_EXIST(playerPed) && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && !DLC2::GET_IS_LOADING_SCREEN_ACTIVE() && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS() && dynamic_loading == true && apply_pressed == false) {
+	if (featureDynamicHealthBar && ENTITY::DOES_ENTITY_EXIST(playerPed) && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && !DLC::GET_IS_LOADING_SCREEN_ACTIVE() && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS() && dynamic_loading == true && apply_pressed == false) {
 		temp_h = ENTITY::GET_ENTITY_HEALTH(PLAYER::PLAYER_PED_ID()) - 100;
 		temp_h_d = floor(ENTITY::GET_ENTITY_HEALTH(PLAYER::PLAYER_PED_ID()) / 100);
 		oldplayerPed = playerPed;
 		dynamic_loading = false;
 	}
-	if (featureDynamicHealthBar && !CUTSCENE::IS_CUTSCENE_PLAYING() && ENTITY::DOES_ENTITY_EXIST(playerPed) && !DLC2::GET_IS_LOADING_SCREEN_ACTIVE() && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) {
-		if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) UI::DISPLAY_RADAR(false); // There is no need to hide HUD if it's already hidden
+	if (featureDynamicHealthBar && !CUTSCENE::IS_CUTSCENE_PLAYING() && ENTITY::DOES_ENTITY_EXIST(playerPed) && !DLC::GET_IS_LOADING_SCREEN_ACTIVE() && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) {
+		if (!featureMiscHideHud.enabled && !featurePhoneShowHud && !featureInVehicleNoHud && !featureMarkerHud/* && !featureMiscHideENTHud*/) HUD::DISPLAY_RADAR(false); // There is no need to hide HUD if it's already hidden
 		//auto addr = getScriptHandleBaseAddress(playerPed);
 		//float health = (*(float *)(addr + 0x280)) - 100;
 		float health = ENTITY::GET_ENTITY_HEALTH(playerPed) - 100;
@@ -1552,58 +1552,58 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			}
 			// health
 			if (health < (temp_h / 5)) {
-				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.017, 41, 86, 40, 110);
-				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 41, 56, 40, 245); // 220, 20, 20, 245 // 55
+				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.017, 41, 86, 40, 110, FALSE);
+				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 41, 56, 40, 245, FALSE); // 220, 20, 20, 245 // 55
 				if ((health_bar_x + ((health / temp_h_d) / (temp_h / temp_h_d / 0.070))) > 0.015)
-					GRAPHICS::DRAW_RECT(health_bar_x + 0.00 + ((health / temp_h_d) / (temp_h / temp_h_d / 0.035)), health_bar_y + 0.01, ((health / temp_h_d) / (temp_h / temp_h_d / 0.070)), 0.009, 220, 20, 20, 255);
+					GRAPHICS::DRAW_RECT(health_bar_x + 0.00 + ((health / temp_h_d) / (temp_h / temp_h_d / 0.035)), health_bar_y + 0.01, ((health / temp_h_d) / (temp_h / temp_h_d / 0.070)), 0.009, 220, 20, 20, 255, FALSE);
 			}
 			else {
-				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.017, 41, 86, 40, 110);
-				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 41, 56, 40, 245); // 75
+				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.017, 41, 86, 40, 110, FALSE);
+				GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 41, 56, 40, 245, FALSE); // 75
 				if (((health / temp_h_d) / (temp_h / temp_h_d / 0.070)) < 0.070)
-					GRAPHICS::DRAW_RECT(health_bar_x + 0.00 + ((health / temp_h_d) / (temp_h / temp_h_d / 0.035)), health_bar_y + 0.01, ((health / temp_h_d) / (temp_h / temp_h_d / 0.070)), 0.009, 78, 150, 77, 255);
-				else GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 78, 150, 77, 255);
+					GRAPHICS::DRAW_RECT(health_bar_x + 0.00 + ((health / temp_h_d) / (temp_h / temp_h_d / 0.035)), health_bar_y + 0.01, ((health / temp_h_d) / (temp_h / temp_h_d / 0.070)), 0.009, 78, 150, 77, 255, FALSE);
+				else GRAPHICS::DRAW_RECT(health_bar_x + 0.035, health_bar_y + 0.01, 0.070, 0.009, 78, 150, 77, 255, FALSE);
 			}
 
-			GRAPHICS::DRAW_RECT(health_bar_x + 0.071, health_bar_y + 0.01, 0.001, 0.009, 255, 170, 110, 255); // vertical bar // 0.017
+			GRAPHICS::DRAW_RECT(health_bar_x + 0.071, health_bar_y + 0.01, 0.001, 0.009, 255, 170, 110, 255, FALSE); // vertical bar // 0.017
 
 			// armor
-			GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.017, 38, 85, 87, 110); // health_bar_x + 0.0880 // 0.036
-			GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.009, 39, 55, 56, 245); // 90
-			if ((playerArmour / 2935) < 0.035) GRAPHICS::DRAW_RECT(health_bar_x + 0.0715 + (playerArmour / 5871), health_bar_y + 0.01, (playerArmour / 2935), 0.009, 62, 129, 164, 255);
-			else GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.009, 62, 129, 164, 255);
+			GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.017, 38, 85, 87, 110, FALSE); // health_bar_x + 0.0880 // 0.036
+			GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.009, 39, 55, 56, 245, FALSE); // 90
+			if ((playerArmour / 2935) < 0.035) GRAPHICS::DRAW_RECT(health_bar_x + 0.0715 + (playerArmour / 5871), health_bar_y + 0.01, (playerArmour / 2935), 0.009, 62, 129, 164, 255, FALSE);
+			else GRAPHICS::DRAW_RECT(health_bar_x + 0.0885, health_bar_y + 0.01, 0.034, 0.009, 62, 129, 164, 255, FALSE);
 		}
 	}
 
 	// Default Menu Tab
 	if (MISC_DEF_MANUTAB_VALUES[DefMenuTabIndex] > -2 && PLAYER::IS_PLAYER_CONTROL_ON(PLAYER::PLAYER_ID()) == 1 && !CUTSCENE::IS_CUTSCENE_PLAYING() && keyboard_on_screen_already == false) {
-		int GetHash = GAMEPLAY::GET_HASH_KEY("FE_MENU_VERSION_SP_PAUSE");
-		if (IsKeyDown(VK_ESCAPE)/*CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE_ALTERNATE)*/ || CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE)/* || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 199) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 200)*/) {
-			UI::ACTIVATE_FRONTEND_MENU(GetHash, featureGamePause, MISC_DEF_MANUTAB_VALUES[DefMenuTabIndex]);
+		int GetHash = MISC::GET_HASH_KEY("FE_MENU_VERSION_SP_PAUSE");
+		if (IsKeyDown(VK_ESCAPE)/*PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE_ALTERNATE)*/ || PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE)/* || PAD::IS_CONTROL_JUST_PRESSED(2, 199) || PAD::IS_CONTROL_JUST_PRESSED(2, 200)*/) {
+			HUD::ACTIVATE_FRONTEND_MENU(GetHash, featureGamePause, MISC_DEF_MANUTAB_VALUES[DefMenuTabIndex]);
 			AUDIO::SET_AUDIO_FLAG("PlayMenuMusic", true);
 		} else AUDIO::SET_AUDIO_FLAG("PlayMenuMusic", false);
 	} 
 	
 	// No Scripted Blur & Slowdown
 	if (!featurenowheelblurslow) no_blur_initialized = false;
-	if (featurenowheelblurslow && (CONTROLS::IS_CONTROL_PRESSED(2, 37) || CONTROLS::IS_CONTROL_PRESSED(2, 85) || CONTROLS::IS_CONTROL_PRESSED(2, 19))) { // Weapon/Radio/Character Wheels
+	if (featurenowheelblurslow && (PAD::IS_CONTROL_PRESSED(2, 37) || PAD::IS_CONTROL_PRESSED(2, 85) || PAD::IS_CONTROL_PRESSED(2, 19))) { // Weapon/Radio/Character Wheels
 		if (no_blur_initialized == false) {
 			initialize();
 			no_blur_initialized = true;
 		}
-		GAMEPLAY::SET_TIME_SCALE(1.0f);
-		GRAPHICS::_STOP_ALL_SCREEN_EFFECTS();
+		MISC::SET_TIME_SCALE(1.0f);
+		GRAPHICS::ANIMPOSTFX_STOP_ALL();
 	}
 
 	// No Phone && Disable Phone If Menu Open
 	if (featureDisablePhone || (featureDisablePhoneMenu && menu_showing == true)) {
-		if (PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed)) CONTROLS::_SET_CONTROL_NORMAL(0, 177, 1);
-		GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
+		if (PED::IS_PED_RUNNING_MOBILE_PHONE_TASK(playerPed)) PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 177, 1);
+		MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
 		no_phone = true;
 	}
 	if ((!featureDisablePhone && no_phone == true && !featureDisablePhoneMenu) || (featureDisablePhoneMenu && menu_showing == false && !featureDisablePhone && no_phone == true) || (!featureDisablePhoneMenu && no_phone == true && !featureDisablePhone)) {
 		SCRIPT::REQUEST_SCRIPT("cellphone_controller");
-		SYSTEM::START_NEW_SCRIPT("cellphone_controller", 1424);
+		BUILTIN::START_NEW_SCRIPT("cellphone_controller", 1424);
 		no_phone = false;
 	}
 
@@ -1650,14 +1650,14 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 				STATS::STAT_GET_INT(SP0_TOTAL_CASH, &outValue_your_phone_bill, -1);
 				statHash_all_your_money = SP0_TOTAL_CASH;
 				if (outValue_your_phone_bill < 1) {
-					MOBILE::DESTROY_MOBILE_PHONE();
-					CONTROLS::DISABLE_CONTROL_ACTION(2, 27, 1);
-					GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
+					GTA::DESTROY_MOBILE_PHONE();
+					PAD::DISABLE_CONTROL_ACTION(2, 27, 1);
+					MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
 					bill_no_phone = true;
 				}
 				else if (bill_no_phone == true) {
 					SCRIPT::REQUEST_SCRIPT("cellphone_controller");
-					SYSTEM::START_NEW_SCRIPT("cellphone_controller", 1424);
+					BUILTIN::START_NEW_SCRIPT("cellphone_controller", 1424);
 					bill_no_phone = false;
 				}
 			}
@@ -1665,14 +1665,14 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 				STATS::STAT_GET_INT(SP1_TOTAL_CASH, &outValue_your_phone_bill, -1);
 				statHash_all_your_money = SP1_TOTAL_CASH;
 				if (outValue_your_phone_bill < 1) {
-					MOBILE::DESTROY_MOBILE_PHONE();
-					CONTROLS::DISABLE_CONTROL_ACTION(2, 27, 1);
-					GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
+					GTA::DESTROY_MOBILE_PHONE();
+					PAD::DISABLE_CONTROL_ACTION(2, 27, 1);
+					MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
 					bill_no_phone = true;
 				}
 				else if (bill_no_phone == true) {
 					SCRIPT::REQUEST_SCRIPT("cellphone_controller");
-					SYSTEM::START_NEW_SCRIPT("cellphone_controller", 1424);
+					BUILTIN::START_NEW_SCRIPT("cellphone_controller", 1424);
 					bill_no_phone = false;
 				}
 			}
@@ -1680,51 +1680,51 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 				STATS::STAT_GET_INT(SP2_TOTAL_CASH, &outValue_your_phone_bill, -1);
 				statHash_all_your_money = SP2_TOTAL_CASH;
 				if (outValue_your_phone_bill < 1) {
-					MOBILE::DESTROY_MOBILE_PHONE();
-					CONTROLS::DISABLE_CONTROL_ACTION(2, 27, 1);
-					GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
+					GTA::DESTROY_MOBILE_PHONE();
+					PAD::DISABLE_CONTROL_ACTION(2, 27, 1);
+					MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("cellphone_controller");
 					bill_no_phone = true;
 				}
 				else if (bill_no_phone == true) {
 					SCRIPT::REQUEST_SCRIPT("cellphone_controller");
-					SYSTEM::START_NEW_SCRIPT("cellphone_controller", 1424);
+					BUILTIN::START_NEW_SCRIPT("cellphone_controller", 1424);
 					bill_no_phone = false;
 				}
 			}
 		}
 		if ((!featureZeroBalance && bill_no_phone == true) || (featureZeroBalance && SCRIPT::HAS_SCRIPT_LOADED("prologue1") && bill_no_phone == true)) {
 			SCRIPT::REQUEST_SCRIPT("cellphone_controller");
-			SYSTEM::START_NEW_SCRIPT("cellphone_controller", 1424);
+			BUILTIN::START_NEW_SCRIPT("cellphone_controller", 1424);
 			bill_no_phone = false;
 		}
 	}
 	
 	// First Person Stunt Jump Camera
 	if (featureFirstPersonStuntJumpCamera) {
-		if (GAMEPLAY::IS_STUNT_JUMP_IN_PROGRESS()) {
+		if (MISC::IS_STUNT_JUMP_IN_PROGRESS()) {
 			Vector3 playerPosition = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 			Vector3 curRotation = ENTITY::GET_ENTITY_ROTATION(PED::GET_VEHICLE_PED_IS_USING(playerPed), 2);
-			if (!CAM::DOES_CAM_EXIST(StuntCam)) {
-				StuntCam = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x, playerPosition.y, playerPosition.z, curRotation.x, curRotation.y, curRotation.z, 50.0, true, 2);
+			if (!CAMERA::DOES_CAM_EXIST(StuntCam)) {
+				StuntCam = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x, playerPosition.y, playerPosition.z, curRotation.x, curRotation.y, curRotation.z, 50.0, true, 2);
 
-				if (!PED::IS_PED_ON_ANY_BIKE(playerPed)) CAM::ATTACH_CAM_TO_PED_BONE(StuntCam, playerPed, 31086, 0, -0.15, 0.05, 1); 
-				if (PED::IS_PED_ON_ANY_BIKE(playerPed)) CAM::ATTACH_CAM_TO_PED_BONE(StuntCam, playerPed, 31086, 0, -0.15, -0.10, 1); 
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(StuntCam, 1.0);
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(StuntCam, 1.0);
-				CAM::_SET_CAM_DOF_FOCUS_DISTANCE_BIAS(StuntCam, 1.0);
-				CAM::RENDER_SCRIPT_CAMS(true, false, 0, true, true);
-				CAM::SET_CAM_ACTIVE(StuntCam, true);
-				CAM::SET_CAM_NEAR_CLIP(StuntCam, .329);
+				if (!PED::IS_PED_ON_ANY_BIKE(playerPed)) CAMERA::ATTACH_CAM_TO_PED_BONE(StuntCam, playerPed, 31086, 0, -0.15, 0.05, 1); 
+				if (PED::IS_PED_ON_ANY_BIKE(playerPed)) CAMERA::ATTACH_CAM_TO_PED_BONE(StuntCam, playerPed, 31086, 0, -0.15, -0.10, 1); 
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(StuntCam, 1.0);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(StuntCam, 1.0);
+				CAMERA::SET_CAM_DOF_FOCUS_DISTANCE_BIAS(StuntCam, 1.0);
+				CAMERA::RENDER_SCRIPT_CAMS(true, false, 0, true, true, 0);
+				CAMERA::SET_CAM_ACTIVE(StuntCam, true);
+				CAMERA::SET_CAM_NEAR_CLIP(StuntCam, .329);
 			}
-			CAM::SET_CAM_ROT(StuntCam, curRotation.x, curRotation.y, curRotation.z, 2);
+			CAMERA::SET_CAM_ROT(StuntCam, curRotation.x, curRotation.y, curRotation.z, 2);
 		}
 
-		if (!GAMEPLAY::IS_STUNT_JUMP_IN_PROGRESS() && CAM::DOES_CAM_EXIST(StuntCam)) {
+		if (!MISC::IS_STUNT_JUMP_IN_PROGRESS() && CAMERA::DOES_CAM_EXIST(StuntCam)) {
 			ENTITY::SET_ENTITY_COLLISION(PLAYER::PLAYER_PED_ID(), 1, 1);
-			CAM::RENDER_SCRIPT_CAMS(false, false, 0, false, false);
-			CAM::DETACH_CAM(StuntCam);
-			CAM::SET_CAM_ACTIVE(StuntCam, false);
-			CAM::DESTROY_CAM(StuntCam, true);
+			CAMERA::RENDER_SCRIPT_CAMS(false, false, 0, false, false, 0);
+			CAMERA::DETACH_CAM(StuntCam);
+			CAMERA::SET_CAM_ACTIVE(StuntCam, false);
+			CAMERA::DESTROY_CAM(StuntCam, true);
 		}
 	}
 		
@@ -1733,15 +1733,15 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		con_disabled = true;
 	}
 	else { 
-		if (con_disabled == true && manual_cutscene == true && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+		if (con_disabled == true && manual_cutscene == true && MISC::GET_MISSION_FLAG() == 0) {
 			con_disabled = false;
 			manual_cutscene = false;
 		}
 		OBJECT::DELETE_OBJECT(&xaxis);
 		OBJECT::DELETE_OBJECT(&zaxis);
-		if (CAM::DOES_CAM_EXIST(CutCam)) {
-			CAM::RENDER_SCRIPT_CAMS(false, false, 1, false, false);
-			CAM::DESTROY_CAM(CutCam, true);
+		if (CAMERA::DOES_CAM_EXIST(CutCam)) {
+			CAMERA::RENDER_SCRIPT_CAMS(false, false, 1, false, false, 0);
+			CAMERA::DESTROY_CAM(CutCam, true);
 		}
 		curr_cut_ped_me = -1;
 		my_first_coords = -1;
@@ -1751,36 +1751,36 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		switched_c = -1;
 	}
 	if (cutscene_is_playing == true && CUTSCENE::IS_CUTSCENE_PLAYING()) cutscene_being_watched = true;
-	if (cutscene_being_watched == true && (!CUTSCENE::IS_CUTSCENE_PLAYING() || ((CUTSCENE::GET_CUTSCENE_TOTAL_DURATION() - CUTSCENE::GET_CUTSCENE_TIME() < 3000) && CAM::IS_SCREEN_FADING_OUT() && manual_cutscene == true))) { // && CUTSCENE::HAS_CUTSCENE_FINISHED()
+	if (cutscene_being_watched == true && (!CUTSCENE::IS_CUTSCENE_PLAYING() || ((CUTSCENE::GET_CUTSCENE_TOTAL_DURATION() - CUTSCENE::GET_CUTSCENE_TIME() < 3000) && CAMERA::IS_SCREEN_FADING_OUT() && manual_cutscene == true))) { // && CUTSCENE::HAS_CUTSCENE_FINISHED()
 		if (manual_cutscene == true) {
-			CAM::DO_SCREEN_FADE_IN(0);
+			CAMERA::DO_SCREEN_FADE_IN(0);
 			CUTSCENE::STOP_CUTSCENE_IMMEDIATELY();
 			CUTSCENE::REMOVE_CUTSCENE();
-			CAM::DO_SCREEN_FADE_IN(0);
+			CAMERA::DO_SCREEN_FADE_IN(0);
 		}
 		cutscene_is_playing = false;
 		cutscene_being_watched = false;
 	}
 	if (CUTSCENE::IS_CUTSCENE_PLAYING()) cutscene_is_playing = true;
-	if (CUTSCENE::IS_CUTSCENE_PLAYING() && manual_cutscene == true && CONTROLS::IS_CONTROL_JUST_PRESSED(2, 22)) stop_cutscene();
+	if (CUTSCENE::IS_CUTSCENE_PLAYING() && manual_cutscene == true && PAD::IS_CONTROL_JUST_PRESSED(2, 22)) stop_cutscene();
 
 	// First Person Cutscene Camera 
 	if (featureFirstPersonCutscene) {
 		if (CUTSCENE::IS_CUTSCENE_PLAYING()) {
 			Vector3 Pedrotation = ENTITY::GET_ENTITY_ROTATION(curr_cut_ped, 2);
 			int PlayerIndex = PED::GET_PED_BONE_INDEX(curr_cut_ped, 8433);
-			int PedHash = GAMEPLAY::GET_HASH_KEY("bot_01b_bit_03"); // prop_wardrobe_door_01
+			int PedHash = MISC::GET_HASH_KEY("bot_01b_bit_03"); // prop_wardrobe_door_01
 			Vector3 Ped1Coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(curr_cut_ped, 0.0f, 1.0f, 0.0f);
 			Vector3 Ped2Coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(curr_cut_ped, 0.0f, 2.0f, 0.0f);
 			
-			if (!CAM::DOES_CAM_EXIST(CutCam)) { 
+			if (!CAMERA::DOES_CAM_EXIST(CutCam)) { 
 				const int US_ARR_PED_SIZE = 1024;
 				Ped us_ped[US_ARR_PED_SIZE];
 				int found_ped = worldGetAllPeds(us_ped, US_ARR_PED_SIZE);
 				for (int i = 0; i < found_ped; i++) {
-					if (ENTITY::IS_ENTITY_ON_SCREEN(us_ped[i]) && (ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_zero") ||
-						ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_one") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_two") ||
-						ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"mp_f_freemode_01") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"mp_m_freemode_01")) && found_ped_in_cutscene == false &&
+					if (ENTITY::IS_ENTITY_ON_SCREEN(us_ped[i]) && (ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_zero") ||
+						ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_one") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_two") ||
+						ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"mp_f_freemode_01") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"mp_m_freemode_01")) && found_ped_in_cutscene == false &&
 						ENTITY::IS_ENTITY_VISIBLE(us_ped[i]) && switched_c != us_ped[i] && PED::GET_PED_TYPE(us_ped[i]) != 28) {
 						curr_cut_ped_me = us_ped[i];
 						my_first_coords = us_ped[i];
@@ -1789,21 +1789,21 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 						Ped2Coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(curr_cut_ped_me, 0.0f, 2.0f, 0.0f);
 						xaxis = OBJECT::CREATE_OBJECT(PedHash, Ped1Coords.x, Ped1Coords.y, Ped1Coords.z, 1, true, 1);
 						zaxis = OBJECT::CREATE_OBJECT(PedHash, Ped2Coords.x, Ped2Coords.y, Ped2Coords.z, 1, true, 1);
-						ENTITY::SET_ENTITY_VISIBLE(xaxis, false);
-						ENTITY::SET_ENTITY_VISIBLE(zaxis, false);
+						ENTITY::SET_ENTITY_VISIBLE(xaxis, false, FALSE);
+						ENTITY::SET_ENTITY_VISIBLE(zaxis, false, FALSE);
 						ENTITY::SET_ENTITY_COLLISION(xaxis, false, true);
 						ENTITY::SET_ENTITY_COLLISION(zaxis, false, true);
-						ENTITY::ATTACH_ENTITY_TO_ENTITY(xaxis, curr_cut_ped_me, PlayerIndex, 0.0f, 0.0f, -0.1f, 105.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
-						ENTITY::ATTACH_ENTITY_TO_ENTITY(zaxis, curr_cut_ped_me, PlayerIndex, 0.0f, 0.08f, -0.1f, 50.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
+						ENTITY::ATTACH_ENTITY_TO_ENTITY(xaxis, curr_cut_ped_me, PlayerIndex, 0.0f, 0.0f, -0.1f, 105.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
+						ENTITY::ATTACH_ENTITY_TO_ENTITY(zaxis, curr_cut_ped_me, PlayerIndex, 0.0f, 0.08f, -0.1f, 50.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
 
 						Vector3 coordsPed = ENTITY::GET_ENTITY_COORDS(curr_cut_ped_me, true);
-						CutCam = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", coordsPed.x, coordsPed.y, coordsPed.z, Pedrotation.x, Pedrotation.y, Pedrotation.z, 50.0, true, 2);
-						CAM::ATTACH_CAM_TO_ENTITY(CutCam, zaxis, 0, 0, 0, true);
-						CAM::SET_CAM_NEAR_CLIP(CutCam, .229); // 329
+						CutCam = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", coordsPed.x, coordsPed.y, coordsPed.z, Pedrotation.x, Pedrotation.y, Pedrotation.z, 50.0, true, 2);
+						CAMERA::ATTACH_CAM_TO_ENTITY(CutCam, zaxis, 0, 0, 0, true);
+						CAMERA::SET_CAM_NEAR_CLIP(CutCam, .229); // 329
 					}
 				}
 			}
-			if (CAM::DOES_CAM_EXIST(CutCam)) {
+			if (CAMERA::DOES_CAM_EXIST(CutCam)) {
 				if (cutscene_being_watched == true && found_ped_in_cutscene == false) {
 					const int US_ARR_PED_SIZE = 1024;
 					Ped us_ped[US_ARR_PED_SIZE];
@@ -1811,7 +1811,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 					for (int i = 0; i < found_ped; i++) {
 						Vector3 coordsme = ENTITY::GET_ENTITY_COORDS(my_first_coords, true);
 						Vector3 coordsPed_temp = ENTITY::GET_ENTITY_COORDS(us_ped[i], true);
-						float dist_t = SYSTEM::VDIST(coordsme.x, coordsme.y, coordsme.z, coordsPed_temp.x, coordsPed_temp.y, coordsPed_temp.z);
+						float dist_t = BUILTIN::VDIST(coordsme.x, coordsme.y, coordsme.z, coordsPed_temp.x, coordsPed_temp.y, coordsPed_temp.z);
 						if (dist_t < 10) { // 20 
 							if (ENTITY::IS_ENTITY_ON_SCREEN(us_ped[i]) && found_ped_in_cutscene == false &&
 								ENTITY::IS_ENTITY_VISIBLE(us_ped[i]) && switched_c != us_ped[i] && PED::GET_PED_TYPE(us_ped[i]) != 28) { 
@@ -1820,34 +1820,34 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 								OBJECT::DELETE_OBJECT(&xaxis);
 								OBJECT::DELETE_OBJECT(&zaxis);
 
-								CAM::RENDER_SCRIPT_CAMS(false, false, 1, false, false);
-								CAM::DESTROY_CAM(CutCam, true);
+								CAMERA::RENDER_SCRIPT_CAMS(false, false, 1, false, false, 0);
+								CAMERA::DESTROY_CAM(CutCam, true);
 								
-								if (ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_zero") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_one") ||
-									ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_two")) PlayerIndex = PED::GET_PED_BONE_INDEX(curr_cut_ped, 8433);
+								if (ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_zero") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_one") ||
+									ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_two")) PlayerIndex = PED::GET_PED_BONE_INDEX(curr_cut_ped, 8433);
 								else PlayerIndex = PED::GET_PED_BONE_INDEX(curr_cut_ped, 31086); // 8433
 								Ped1Coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(curr_cut_ped, 0.0f, 1.0f, 0.0f);
 								Ped2Coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(curr_cut_ped, 0.0f, 2.0f, 0.0f);
 								xaxis = OBJECT::CREATE_OBJECT(PedHash, Ped1Coords.x, Ped1Coords.y, Ped1Coords.z, 1, true, 1);
 								zaxis = OBJECT::CREATE_OBJECT(PedHash, Ped2Coords.x, Ped2Coords.y, Ped2Coords.z, 1, true, 1);
-								ENTITY::SET_ENTITY_VISIBLE(xaxis, false);
-								ENTITY::SET_ENTITY_VISIBLE(zaxis, false);
+								ENTITY::SET_ENTITY_VISIBLE(xaxis, false, FALSE);
+								ENTITY::SET_ENTITY_VISIBLE(zaxis, false, FALSE);
 								ENTITY::SET_ENTITY_COLLISION(xaxis, false, true);
 								ENTITY::SET_ENTITY_COLLISION(zaxis, false, true);
-								if (ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_zero") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_one") ||
-									ENTITY::GET_ENTITY_MODEL(us_ped[i]) == GAMEPLAY::GET_HASH_KEY((char *)"player_two")) {
-									ENTITY::ATTACH_ENTITY_TO_ENTITY(xaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.0f, -0.1f, 105.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
-									ENTITY::ATTACH_ENTITY_TO_ENTITY(zaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.08f, -0.1f, 50.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
+								if (ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_zero") || ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_one") ||
+									ENTITY::GET_ENTITY_MODEL(us_ped[i]) == MISC::GET_HASH_KEY((char *)"player_two")) {
+									ENTITY::ATTACH_ENTITY_TO_ENTITY(xaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.0f, -0.1f, 105.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
+									ENTITY::ATTACH_ENTITY_TO_ENTITY(zaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.08f, -0.1f, 50.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
 								}
 								else {
-									ENTITY::ATTACH_ENTITY_TO_ENTITY(xaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.0f, -0.1f, 105.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
-									ENTITY::ATTACH_ENTITY_TO_ENTITY(zaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.08f, -0.1f, 0.0f, 0.0f, 0.0f, false, false, false, true, 0, true);
+									ENTITY::ATTACH_ENTITY_TO_ENTITY(xaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.0f, -0.1f, 105.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
+									ENTITY::ATTACH_ENTITY_TO_ENTITY(zaxis, curr_cut_ped, PlayerIndex, 0.0f, 0.08f, -0.1f, 0.0f, 0.0f, 0.0f, false, false, false, true, 0, true, 0);
 								}
 
 								Vector3 coordsPed = ENTITY::GET_ENTITY_COORDS(curr_cut_ped, true);
-								CutCam = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", coordsPed.x, coordsPed.y, coordsPed.z, Pedrotation.x, Pedrotation.y, Pedrotation.z, 50.0, true, 2);
-								CAM::ATTACH_CAM_TO_ENTITY(CutCam, zaxis, 0, 0, 0, true);
-								CAM::SET_CAM_NEAR_CLIP(CutCam, .229); // 329
+								CutCam = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", coordsPed.x, coordsPed.y, coordsPed.z, Pedrotation.x, Pedrotation.y, Pedrotation.z, 50.0, true, 2);
+								CAMERA::ATTACH_CAM_TO_ENTITY(CutCam, zaxis, 0, 0, 0, true);
+								CAMERA::SET_CAM_NEAR_CLIP(CutCam, .229); // 329
 								curr_cut_ped_me = -1;
 								switched_c = curr_cut_ped;
 								found_ped_in_cutscene = true;
@@ -1858,24 +1858,24 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 				if (!ENTITY::DOES_ENTITY_EXIST(curr_cut_ped)) {
 					OBJECT::DELETE_OBJECT(&xaxis);
 					OBJECT::DELETE_OBJECT(&zaxis);
-					if (CAM::DOES_CAM_EXIST(CutCam)) {
-						CAM::RENDER_SCRIPT_CAMS(false, false, 1, false, false);
-						CAM::DESTROY_CAM(CutCam, true);
+					if (CAMERA::DOES_CAM_EXIST(CutCam)) {
+						CAMERA::RENDER_SCRIPT_CAMS(false, false, 1, false, false, 0);
+						CAMERA::DESTROY_CAM(CutCam, true);
 					}
 					found_ped_in_cutscene = false;
 					switched_c = -1;
 				}
-				if (CAM::DOES_CAM_EXIST(CutCam)) {
-					CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(CutCam, 1.0);
-					CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(CutCam, 1.0);
-					CAM::_SET_CAM_DOF_FOCUS_DISTANCE_BIAS(CutCam, 1.0);
-					CAM::RENDER_SCRIPT_CAMS(true, false, 1, false, false);
+				if (CAMERA::DOES_CAM_EXIST(CutCam)) {
+					CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(CutCam, 1.0);
+					CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(CutCam, 1.0);
+					CAMERA::SET_CAM_DOF_FOCUS_DISTANCE_BIAS(CutCam, 1.0);
+					CAMERA::RENDER_SCRIPT_CAMS(true, false, 1, false, false, 0);
 
-					CAM::STOP_CUTSCENE_CAM_SHAKING();
+					CAMERA::BYPASS_CUTSCENE_CAM_RENDERING_THIS_UPDATE();
 					CUTSCENE::CAN_SET_EXIT_STATE_FOR_CAMERA(1);
 					Vector3 Ped1rotation = ENTITY::GET_ENTITY_ROTATION(xaxis, 2);
 					Vector3 Ped2rotation = ENTITY::GET_ENTITY_ROTATION(zaxis, 2);
-					CAM::SET_CAM_ROT(CutCam, Ped1rotation.x, Pedrotation.y, Ped2rotation.z, 2);
+					CAMERA::SET_CAM_ROT(CutCam, Ped1rotation.x, Pedrotation.y, Ped2rotation.z, 2);
 				}
 			}
 		} // end of if (CUTSCENE::IS_CUTSCENE_PLAYING())
@@ -1886,9 +1886,9 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 			}
 			OBJECT::DELETE_OBJECT(&xaxis);
 			OBJECT::DELETE_OBJECT(&zaxis);
-			if (CAM::DOES_CAM_EXIST(CutCam)) {
-				CAM::RENDER_SCRIPT_CAMS(false, false, 1, false, false);
-				CAM::DESTROY_CAM(CutCam, true);
+			if (CAMERA::DOES_CAM_EXIST(CutCam)) {
+				CAMERA::RENDER_SCRIPT_CAMS(false, false, 1, false, false, 0);
+				CAMERA::DESTROY_CAM(CutCam, true);
 			}
 			found_ped_in_cutscene = false;
 			switched_c = -1;
@@ -1897,16 +1897,16 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 	else {
 		OBJECT::DELETE_OBJECT(&xaxis);
 		OBJECT::DELETE_OBJECT(&zaxis);
-		if (CAM::DOES_CAM_EXIST(CutCam)) {
-			CAM::RENDER_SCRIPT_CAMS(false, false, 1, false, false);
-			CAM::DESTROY_CAM(CutCam, true);
+		if (CAMERA::DOES_CAM_EXIST(CutCam)) {
+			CAMERA::RENDER_SCRIPT_CAMS(false, false, 1, false, false, 0);
+			CAMERA::DESTROY_CAM(CutCam, true);
 		}
 		found_ped_in_cutscene = false;
 		switched_c = -1;
 	}
 
 	// No Stunt Jumps
-	if (featureNoStuntJumps && GAMEPLAY::IS_STUNT_JUMP_IN_PROGRESS()) GAMEPLAY::CANCEL_STUNT_JUMP();
+	if (featureNoStuntJumps && MISC::IS_STUNT_JUMP_IN_PROGRESS()) MISC::CANCEL_STUNT_JUMP();
 
 	// FPS Counter
 	if (featureShowFPS)	{
@@ -1925,22 +1925,22 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		}
 			
 		sprintf(fps_to_show_char_modifiable, "%d", fps);
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(fps_to_show_char_modifiable);
-		UI::_DRAW_TEXT(0.003, 0.135);
-		GRAPHICS::DRAW_RECT(0.0, 0.15, 0.05, 0.03, 10, 10, 10, 100);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(fps_to_show_char_modifiable);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.135, 0);
+		GRAPHICS::DRAW_RECT(0.0, 0.15, 0.05, 0.03, 10, 10, 10, 100, FALSE);
 	}
 	
 	// Hide Player Info In Pause Menu
-	if (featureHidePlayerInfo) UI::_SET_DIRECTOR_MODE(true);
-	else UI::_SET_DIRECTOR_MODE(false);
+	if (featureHidePlayerInfo) HUD::SET_PLAYER_IS_IN_DIRECTOR_MODE(true);
+	else HUD::SET_PLAYER_IS_IN_DIRECTOR_MODE(false);
 		
 	//Enable's 1.44's new radio station. Credit goes to Sjaak for finding this!
 	if (featureEnableMissingRadioStation)
@@ -1955,8 +1955,8 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 				{
 					for (int i = 0; i < 100; i++)
 					{
-						char* radio_station = AUDIO::GET_RADIO_STATION_NAME(i);
-						UNK3::_LOCK_RADIO_STATION(radio_station, 0);
+						const char* radio_station = AUDIO::GET_RADIO_STATION_NAME(i);
+						AUDIO::LOCK_RADIO_STATION(radio_station, 0);
 					}
 					WAIT(1000);
 					iterated_radio_stations = true;
@@ -1980,7 +1980,7 @@ void update_misc_features(BOOL playerExists, Ped playerPed){
 		GRAPHICS::SET_TIMECYCLE_MODIFIER_STRENGTH(1.0f);
 		sfilter_enabled = true;
 	}
-	if (DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) sfilter_enabled = false;
+	if (DLC::GET_IS_LOADING_SCREEN_ACTIVE()) sfilter_enabled = false;
 	
 }
 

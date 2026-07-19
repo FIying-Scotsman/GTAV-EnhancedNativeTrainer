@@ -55,124 +55,124 @@ const char* getLocalisedModCategory(int modType)
 	Hash model = ENTITY::GET_ENTITY_MODEL(veh);
 
 	std::string space = " ";
-	std::string combined_name = UI::_GET_LABEL_TEXT("CMM_MOD_G3") + space + UI::_GET_LABEL_TEXT("VEUI_AUD_TIT");
+	std::string combined_name = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_G3") + space + HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("VEUI_AUD_TIT");
 	
 	switch (modType)
 	{
 	case MOD_HOOD:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_HOD");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_HOD");
 	case MOD_ARMOR:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_ARM");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_ARM");
 	case MOD_BRAKES:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_BRA");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_BRA");
 	case MOD_ENGINE:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_ENG");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_ENG");
 	case MOD_SUSPENSION:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_SUS");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_SUS");
 	case MOD_TRANSMISSION:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_TRN");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_TRN");
 	case MOD_HORNS:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_HRN");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_HRN");
 	case MOD_FRONTWHEELS:
 		if (!VEHICLE::IS_THIS_MODEL_A_BIKE(model) && VEHICLE::IS_THIS_MODEL_A_BICYCLE(model))
-			return UI::_GET_LABEL_TEXT("CMOD_MOD_WHEM");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_WHEM");
 		else
-			return UI::_GET_LABEL_TEXT("CMOD_WHE0_0");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_WHE0_0");
 	case MOD_REARWHEELS:
-		return UI::_GET_LABEL_TEXT("CMOD_WHE0_1");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_WHE0_1");
 		//Bennys
 	case MOD_PLATEHOLDER:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S0");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S0");
 	case MOD_VANITYPLATE:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S1");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S1");
 	case MOD_TRIMDESIGN:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S2b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S2b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S2");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S2");
 	case MOD_ORNAMENTS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S3");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S3");
 	case MOD_DASHBOARD:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S4");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S4");
 	case MOD_DIAL:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S5");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S5");
 	case MOD_DOORSPEAKERS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S6");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S6");
 	case MOD_SEATS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S7");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S7");
 	case MOD_STEERINGWHEEL:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S8");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S8");
 	case MOD_SHIFTERLEVER:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S9");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S9");
 	case MOD_PLAQUES:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S10");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S10");
 	case MOD_SPEAKERS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S11");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S11");
 	case MOD_TRUNK:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S12");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S12");
 	case MOD_HYDRAULICS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S13");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S13");
 	case MOD_ENGINECOVER:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S14");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S14");
 	case MOD_ENGINEFILTER:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S15b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S15b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S15");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S15");
 	case MOD_STRUTS:
 		if (model == 0xEE6024BC /*Sultan RS*/ || model == 0x25C5AF13) /*Banshee 2*/
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S16b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S16b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S16");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S16");
 	case MOD_ARCHCOVER:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S17b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S17b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S17");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S17");
 	case MOD_AERIAL:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S18b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S18b");
 		else if (model == 0xDC19D101) //Btye 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S18c");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S18c");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S18");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S18");
 	case MOD_TRIM:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19b");
 		else if (model == 0xDC19D101) //Byte 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19c");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19c");
 		else if (model == 0xCA62927A) //Virgo 2
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19d");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19d");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19");
 	case MOD_TANK:
 		if (model == 0x42BC5E19) //Slamvan 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S27");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S27");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S20");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S20");
 	case MOD_DOORSEXTRA:
 		if (model == 0xDC19D101) //Byte 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S21b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S21b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S21");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S21");
 	case MOD_UNKNOWN_47:
 		if (model == 0x42BC5E19) //Slamvan 3
-			return UI::_GET_LABEL_TEXT("SLVAN3_RDOOR");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("SLVAN3_RDOOR");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S22");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S22");
 	case MOD_LIVERY:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S23");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S23");
 	case SPECIAL_ID_FOR_WHEEL_CATEGORY:
 		return "Wheel Category";
 	case SPECIAL_ID_FOR_WHEEL_SELECTION:
 		return "Wheel Choice";
 	case SPECIAL_ID_FOR_WINDOW_TINT:
-		return UI::_GET_LABEL_TEXT("CMOD_GLD2_2");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_2");
 	case SPECIAL_ID_FOR_LICENSE_PLATES:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_PLA");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_PLA");
 	case SPECIAL_ID_FOR_ENGINE_SOUND:
 	{
-		//std::string label = std::string(UI::_GET_LABEL_TEXT("CMM_MOD_G3")) + " " + std::string(UI::_GET_LABEL_TEXT("VEUI_AUD_TIT"));
+		//std::string label = std::string(HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_G3")) + " " + std::string(HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("VEUI_AUD_TIT"));
 		//return &label[0];
 		return "Engine Sound";
 	}
@@ -183,7 +183,7 @@ const char* getLocalisedModCategory(int modType)
 		if (name == nullptr)
 			return "";
 		if (strstr(name, "_"))
-			return UI::_GET_LABEL_TEXT(name);
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(name);
 		return name;
 	}
 }
@@ -202,7 +202,7 @@ std::string geSpecialItemTitle(int category, int index){
 
 	case SPECIAL_ID_FOR_WINDOW_TINT:
 		std::string engine_label = "CMOD_WIN_" + std::to_string(index);
-		return UI::_GET_LABEL_TEXT(&engine_label[0]);
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&engine_label[0]);
 	}
 	return std::string();
 }
@@ -269,7 +269,7 @@ std::string getHornTitle(int index){
 		return "Unknown Horn";
 	}
 	else{
-		char* label = UI::_GET_LABEL_TEXT(v_3);
+		const char* label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(v_3);
 		if (label == NULL){
 			return "Unknown Horn";
 		}
@@ -331,7 +331,7 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 
 	if (index == -1){
 		if (category == 16){
-			std::string armour_label = UI::_GET_LABEL_TEXT("CMOD_GLD2_0");
+			std::string armour_label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_0");
 			modItemNameStr ="No " + armour_label;
 		}
 		else {
@@ -343,7 +343,7 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 		//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 		int index_modified = index + 1;
 		std::string engine_label = "CMOD_ENG_" + std::to_string(index_modified + 1);
-		modItemNameStr = UI::_GET_LABEL_TEXT(&engine_label[0]);
+		modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&engine_label[0]);
 	}
 	else if (category == 12 || category == 13 || category == 52) //brakes, trans or aircraft handling
 	{
@@ -351,17 +351,17 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 			//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 			int index_modified = index + 1;
 			std::string brakes_label = "CMOD_BRA_" + std::to_string(index_modified + 1);
-			modItemNameStr = UI::_GET_LABEL_TEXT(&brakes_label[0]);
+			modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&brakes_label[0]);
 		}
 		else if (category == 52)
 		{
-			modItemNameStr = UI::_GET_LABEL_TEXT("CMOD_MOD_HAN");
+			modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_HAN");
 		}
 		else{
 			//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 			int index_modified = index + 1;
 			std::string transmission_label = "CMOD_GBX_" + std::to_string(index_modified + 1);
-			modItemNameStr = UI::_GET_LABEL_TEXT(&transmission_label[0]);
+			modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&transmission_label[0]);
 		}
 		//modItemNameStr = ss.str();
 	}
@@ -374,17 +374,17 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 		//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 		int index_modified = index + 1;
 		std::string suspension_label = "CMOD_SUS_" + std::to_string(index_modified + 1);
-		modItemNameStr = UI::_GET_LABEL_TEXT(&suspension_label[0]);
+		modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&suspension_label[0]);
 	}
 	else if (category == 16) //Armor
 	{
-		modItemNameStr = std::to_string((index + 1) * 20) + "% " + UI::_GET_LABEL_TEXT("CMOD_GLD2_0");
+		modItemNameStr = std::to_string((index + 1) * 20) + "% " + HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_0");
 	}
 	else{ 
-		char* modItemNameChr = VEHICLE::GET_MOD_TEXT_LABEL(veh, category, index);
+		const char* modItemNameChr = VEHICLE::GET_MOD_TEXT_LABEL(veh, category, index);
 		bool foundName = false;
 		if (modItemNameChr != NULL && strlen(modItemNameChr) > 0){
-			char* modItemNameTxt = UI::_GET_LABEL_TEXT(modItemNameChr);
+			const char* modItemNameTxt = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(modItemNameChr);
 			if (modItemNameTxt != NULL){
 				modItemNameStr = std::string(modItemNameTxt);
 				foundName = true;
@@ -410,7 +410,7 @@ void addClanLogoToVehicle(Vehicle vehicle, Ped ped){
 		int alpha = 200;
 		if (modelHash == VEHICLE_WINDSOR)
 			alpha = 255;
-		GRAPHICS::_ADD_CLAN_DECAL_TO_VEHICLE(vehicle, ped, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(vehicle, "chassis_dummy"), x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z, scale, 0, alpha);
+		GRAPHICS::ADD_VEHICLE_CREW_EMBLEM(vehicle, ped, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(vehicle, "chassis_dummy"), x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z, scale, 0, alpha);
 	}
 }
 
@@ -455,7 +455,7 @@ bool process_vehmod_wheel_selection(){
 	std::vector<MenuItem<int> *> menuItems;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = UI::_GET_LABEL_TEXT("CMOD_WHE_B_0");
+	item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_WHE_B_0");
 	item->value = -1;
 	menuItems.push_back(item);
 
@@ -465,8 +465,8 @@ bool process_vehmod_wheel_selection(){
 
 	for (int a = 0; a < VEHICLE::GET_NUM_VEHICLE_MODS(veh, 23); a++) {
 		item = new MenuItem<int>();
-		//item->caption = UI::_GET_LABEL_TEXT(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
-		if (UI::DOES_TEXT_LABEL_EXIST(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a))) item->caption = UI::_GET_LABEL_TEXT(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
+		//item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
+		if (HUD::DOES_TEXT_LABEL_EXIST(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a))) item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
 		else item->caption = VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a);
 		item->value = a;
 
@@ -601,7 +601,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		strcpy(currSound, ENGINE_SOUND[choice.value].c_str());
 		current_picked_engine_sound = ENGINE_SOUND[choice.value];
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
-		AUDIO::_SET_VEHICLE_AUDIO(veh, currSound);
+		AUDIO::FORCE_USE_AUDIO_GAME_OBJECT(veh, currSound);
 		if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
 		set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		delete currSound;
@@ -776,7 +776,7 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 			current_picked_engine_sound = ENGINE_SOUND[rand_sound];
 			char *keyboardInput = (char*)current_picked_engine_sound.c_str();
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
-			AUDIO::_SET_VEHICLE_AUDIO(veh, keyboardInput);
+			AUDIO::FORCE_USE_AUDIO_GAME_OBJECT(veh, keyboardInput);
 			if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
 			set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		}
@@ -784,7 +784,7 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 			current_picked_engine_sound = result;
 			char* keyboardInput = (char*)result.c_str();
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
-			AUDIO::_SET_VEHICLE_AUDIO(veh, keyboardInput);
+			AUDIO::FORCE_USE_AUDIO_GAME_OBJECT(veh, keyboardInput);
 			if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
 			set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		}
@@ -1014,9 +1014,9 @@ bool process_vehmod_menu(){
 		return false;
 	}
 
-	if (!UI::HAS_THIS_ADDITIONAL_TEXT_LOADED("MOD_MNU", 10)) {
-		UI::CLEAR_ADDITIONAL_TEXT(10, true);
-		UI::REQUEST_ADDITIONAL_TEXT("MOD_MNU", 10);
+	if (!HUD::HAS_THIS_ADDITIONAL_TEXT_LOADED("MOD_MNU", 10)) {
+		HUD::CLEAR_ADDITIONAL_TEXT(10, true);
+		HUD::REQUEST_ADDITIONAL_TEXT("MOD_MNU", 10);
 		WAIT(0);
 	}
 
@@ -1066,7 +1066,7 @@ bool process_vehmod_menu(){
 
 		if (!isWeird && !isAircraft){
 			MenuItem<int> *item6 = new MenuItem<int>();
-			item6->caption = UI::_GET_LABEL_TEXT("CANDC_COLOR");
+			item6->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CANDC_COLOR");
 			item6->value = -6;
 			item6->isLeaf = false;
 			menuItems.push_back(item6);
@@ -1136,7 +1136,7 @@ bool process_vehmod_menu(){
 
 	if (isCar || isBike){
 		MenuItem<int> * item = new MenuItem<int>();
-		item->caption = UI::_GET_LABEL_TEXT("PIM_PVEO_004");
+		item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("PIM_PVEO_004");
 		item->value = SPECIAL_ID_FOR_NEON_LIGHTS;
 		item->isLeaf = false;
 		menuItems.push_back(item);
@@ -1164,7 +1164,7 @@ bool process_vehmod_menu(){
 
 	if (!isWeird){ //if(!isWeird && !isAircraft){
 		toggleItem = new FunctionDrivenToggleMenuItem<int>();
-		toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_MOD_TUR");
+		toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_TUR");
 		toggleItem->getter_call = is_turbocharged;
 		toggleItem->setter_call = set_turbocharged;
 		toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
@@ -1172,21 +1172,21 @@ bool process_vehmod_menu(){
 
 		if (!isWeird && !isAircraft) {
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_LGT_1");
+			toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_LGT_1");
 			toggleItem->getter_call = is_xenon_headlights;
 			toggleItem->setter_call = set_xenon_headlights;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 			menuItems.push_back(toggleItem);
 
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_GLD2_1");
+			toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_1");
 			toggleItem->getter_call = is_bulletproof_tyres;
 			toggleItem->setter_call = set_bulletproof_tyres;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 			menuItems.push_back(toggleItem);
 
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_TYR_1");
+			toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_TYR_1");
 			toggleItem->getter_call = is_custom_tyres;
 			toggleItem->setter_call = set_custom_tyres;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
@@ -1230,7 +1230,7 @@ void set_plate_text(){ // MenuItem<int> choice
 	keyboard_on_screen_already = true;
 	char* existingText = "";
 	set_curr_message(tr("VehModMenu.EnterPlateTextTypeRandomForRandomText", "Enter plate text (type 'random' for random text):")); // set plate text
-	if (result != "random" && result != "Random" && result != "RANDOM") existingText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
+	if (result != "random" && result != "Random" && result != "RANDOM") existingText = const_cast<char*>(VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh));
 	if (result == "random" || result == "Random" || result == "RANDOM") existingText = (char*)result.c_str();
 	result = show_keyboard("Enter Name Manually", existingText); // CMOD_MOD_18_D
 	if (!result.empty()){
@@ -1238,7 +1238,7 @@ void set_plate_text(){ // MenuItem<int> choice
 		if (result == "random" || result == "Random" || result == "RANDOM") {
 			set_status_text(tr("VehModMenu.PressJumpToCancel", "Press jump to cancel"));
 			std::string random_t = "AAAAAAAA";
-			while (CONTROLS::IS_CONTROL_RELEASED(2, 22)/* && !IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE) && !CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_CANCEL)*/) { // jump
+			while (PAD::IS_CONTROL_RELEASED(2, 22)/* && !IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE) && !PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && PAD::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_CANCEL)*/) { // jump
 				for (int aa = 0; aa < 9; aa++) {
 					VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT(veh, (char*)random_t.c_str());
 					//WAIT(100);
@@ -1322,12 +1322,12 @@ void set_xenon_headlights(bool applied, std::vector<int> extras){
 
 bool is_low_grip_tyres(std::vector<int> extras) {
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	return VEHICLE::_GET_VEHICLE_HAS_LOW_GRIP_TYRES(veh) ? true : false;
+	return VEHICLE::GET_DRIFT_TYRES_SET(veh) ? true : false;
 }
 
 void set_low_grip_tyres (bool applied, std::vector<int> extras) {
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	VEHICLE::_SET_VEHICLE_HAS_LOW_GRIP_TYRES(veh, applied); //Slicks
+	VEHICLE::SET_DRIFT_TYRES(veh, applied); //Slicks
 }
 
 bool vehicle_menu_interrupt(){
@@ -1372,14 +1372,14 @@ void randomize_vehicle_upgrades(Vehicle veh) {
 	VEHICLE::SET_VEHICLE_WINDOW_TINT(veh, rand_tint);
 	for (int a = 0; a < 4; a++) {
 		int rand_toggle = (rand() % 1 + 0);
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, a, rand_toggle);
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, a, rand_toggle);
 	}
 	int temp_colour = rand() % 12 + 0;
 	NeonLightsColor npc_whichcolor = NEON_COLORS[temp_colour];
 	
-	VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, npc_whichcolor.rVal, npc_whichcolor.gVal, npc_whichcolor.bVal);
+	VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, npc_whichcolor.rVal, npc_whichcolor.gVal, npc_whichcolor.bVal);
 	for (int loc = 0; loc <= 3; loc++) {
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, loc, true); //int rand_toggle = (rand() % 1 + 0); // rand_toggle
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, loc, true); //int rand_toggle = (rand() % 1 + 0); // rand_toggle
 	}
 
 	for (int a = 0; a < 16; a++) {
@@ -1396,7 +1396,7 @@ void randomize_vehicle_upgrades(Vehicle veh) {
 	if (getGameVersion() > 45) {
 		int rand_xenon = (rand() % 13 + 0);
 		XenonColour whichcolor = XENON_COLOURS[rand_xenon];
-		VEHICLE::SET_VEHICLE_XENON_COLOUR(veh, whichcolor.colour);
+		VEHICLE::SET_VEHICLE_XENON_LIGHT_COLOR_INDEX(veh, whichcolor.colour);
 		VEHICLE::TOGGLE_VEHICLE_MOD(veh, 22, true); // rand_toggle
 	}
 	VEHICLE::SET_VEHICLE_TYRES_CAN_BURST(veh, rand_toggle); //Bulletproof Tires
@@ -1446,9 +1446,9 @@ void fully_tune_vehicle(Vehicle veh, bool optics){
 		VEHICLE::SET_VEHICLE_EXTRA_COLOURS(veh, (rand() % 160 + 1), (rand() % 160 + 1));
 
 		for (int a = 0; a < 4; a++){
-			VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, a, true);
+			VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, a, true);
 		}
-		VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, 255, 255, 255);
+		VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, 255, 255, 255);
 
 		apply_dash_colors(68);
 		apply_trim_colors(68);
@@ -1503,7 +1503,7 @@ void reset_vehicle(Vehicle veh){
 	//write_text_to_log_file("reset_vehicle(): vehicle colors complete");
 
 	for (int a = 0; a < 4; a++){
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, a, false);
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, a, false);
 	}
 	apply_neon_colors(12);
 	//write_text_to_log_file("reset_vehicle(): neon colors complete");

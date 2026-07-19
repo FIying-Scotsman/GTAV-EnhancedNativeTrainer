@@ -167,7 +167,7 @@ const std::vector<PaintColor> PAINTS_ALL{
 };
 
 void apply_dash_colors(int colorIndex){
-	VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()), PAINTS_ALL.at(colorIndex).colorIndex);
+	VEHICLE::SET_VEHICLE_EXTRA_COLOUR_6(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()), PAINTS_ALL.at(colorIndex).colorIndex);
 }
 
 void onhighlight_dash_colour_selection(MenuItem<int> choice){
@@ -189,7 +189,7 @@ bool process_dash_colour_menu(){
 	MenuItem<int> *item;
 	int colIndex = 0, currDashCol;
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &currDashCol);
+	VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &currDashCol);
 
 	for(int a = 0; a < PAINTS_ALL.size(); a++){
 		PaintColor b = PAINTS_ALL.at(a);
@@ -208,7 +208,7 @@ bool process_dash_colour_menu(){
 }
 
 void apply_trim_colors(int colorIndex){
-	VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()), PAINTS_ALL.at(colorIndex).colorIndex);
+	VEHICLE::SET_VEHICLE_EXTRA_COLOUR_5(PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()), PAINTS_ALL.at(colorIndex).colorIndex);
 }
 
 void onhighlight_trim_colour_selection(MenuItem<int> choice){
@@ -230,7 +230,7 @@ bool process_trim_colour_menu(){
 	MenuItem<int> *item;
 	int colIndex = 0, currTrimCol;
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &currTrimCol);
+	VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &currTrimCol);
 
 	for(int a = 0; a < PAINTS_ALL.size(); a++){
 		PaintColor b = PAINTS_ALL.at(a);

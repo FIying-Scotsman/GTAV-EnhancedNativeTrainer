@@ -419,10 +419,10 @@ private:
 			VEHICLE::SET_VEHICLE_EXTRA_COLOURS(veh, pearl, colorindex);
 			break;
 		case 5:
-			VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(veh, colorindex);
+			VEHICLE::SET_VEHICLE_EXTRA_COLOUR_5(veh, colorindex);
 			break;
 		case 6:
-			VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(veh, colorindex);
+			VEHICLE::SET_VEHICLE_EXTRA_COLOUR_6(veh, colorindex);
 			break;
 		}
 	}
@@ -450,7 +450,7 @@ class LifeItem: public MenuItem<T>{
 	virtual bool onConfirm(){
 		switch(lifeType){
 			case HEALTH:
-				ENTITY::SET_ENTITY_HEALTH(PLAYER::PLAYER_PED_ID(), life);
+				ENTITY::SET_ENTITY_HEALTH(PLAYER::PLAYER_PED_ID(), life, 0, 0);
 				set_status_text("Current health modified");
 				break;
 			case MAXHEALTH:
@@ -620,27 +620,27 @@ inline void draw_menu_header_line(std::string caption, float lineWidth, float li
 	// this is how it's done in original scripts
 
 	// text upper part
-	UI::SET_TEXT_FONT(fontHeader);
-	UI::SET_TEXT_SCALE(0.0, text_scale);
-	UI::SET_TEXT_COLOUR(ENTColor::colsMenu[0].rgba[0], ENTColor::colsMenu[0].rgba[1], ENTColor::colsMenu[0].rgba[2], ENTColor::colsMenu[0].rgba[3]);
-	UI::SET_TEXT_CENTRE(0);
+	HUD::SET_TEXT_FONT(fontHeader);
+	HUD::SET_TEXT_SCALE(0.0, text_scale);
+	HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[0].rgba[0], ENTColor::colsMenu[0].rgba[1], ENTColor::colsMenu[0].rgba[2], ENTColor::colsMenu[0].rgba[3]);
+	HUD::SET_TEXT_CENTRE(0);
 
 	if(outline){
-		UI::SET_TEXT_OUTLINE();
+		HUD::SET_TEXT_OUTLINE();
 	}
 
 	if(dropShadow){
-		UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+		HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 	}
 
-	UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	UI::_SET_TEXT_ENTRY("STRING");
-	UI::_ADD_TEXT_COMPONENT_STRING((LPSTR) caption.c_str());
+	HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+	HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+	HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((LPSTR) caption.c_str());
 
 	float textY = lineTopScaled + (0.5f * (lineHeightScaled - textHeightScaled));
 	float leftMarginScaled = textLeftScaled - lineLeftScaled;
 
-	UI::_DRAW_TEXT(textLeftScaled, textY);
+	HUD::END_TEXT_COMMAND_DISPLAY_TEXT(textLeftScaled, textY, 0);
 
 	// rect
 	draw_rect(lineLeftScaled, lineTopScaled, lineWidthScaled, lineHeightScaled,
@@ -650,26 +650,26 @@ inline void draw_menu_header_line(std::string caption, float lineWidth, float li
 	if(pageCount > 1){
 		std::string pageIndicator = " ~HUD_COLOUR_MENU_YELLOW~" + std::to_string(curPage) + tr("Common.PageOfPage", "~HUD_COLOUR_GREYLIGHT~ of ~HUD_COLOUR_MENU_YELLOW~") + std::to_string(pageCount);
 
-		UI::SET_TEXT_FONT(fontHeader);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
-		//UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]); just in case this is ever made to be customizable, I'll leave this here
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_FONT(fontHeader);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
+		//HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]); just in case this is ever made to be customizable, I'll leave this here
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if(dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) pageIndicator.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) pageIndicator.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 }
 
@@ -708,31 +708,31 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 	// this is how it's done in original scripts
 
 	// text upper part
-	UI::SET_TEXT_FONT(fontItem);
-	UI::SET_TEXT_SCALE(0.0, text_scale);
+	HUD::SET_TEXT_FONT(fontItem);
+	HUD::SET_TEXT_SCALE(0.0, text_scale);
 	if(active){
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 	}
 	else{
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 	}
-	UI::SET_TEXT_CENTRE(0);
+	HUD::SET_TEXT_CENTRE(0);
 
 	if(outline){
-		UI::SET_TEXT_OUTLINE();
+		HUD::SET_TEXT_OUTLINE();
 	}
 
 	if(dropShadow){
-		UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+		HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 	}
 
-	UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-	UI::_SET_TEXT_ENTRY("STRING");
-	UI::_ADD_TEXT_COMPONENT_STRING((LPSTR) item->caption.c_str());
+	HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+	HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+	HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((LPSTR) item->caption.c_str());
 
 	float textY = lineTopScaled + (0.5f * (lineHeightScaled - textHeightScaled));
 
-	UI::_DRAW_TEXT(textLeftScaled, textY);
+	HUD::END_TEXT_COMMAND_DISPLAY_TEXT(textLeftScaled, textY, 0);
 
 	// rect
 	if(active){
@@ -745,28 +745,28 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 	}
 
 	if(ToggleMenuItem<T>* toggleItem = dynamic_cast<ToggleMenuItem<T>*>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 		}
-		UI::SET_TEXT_CENTRE(0);
+		HUD::SET_TEXT_CENTRE(0);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if(dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_CENTRE(1);
-		UI::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_CENTRE(1);
+		HUD::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		if(!GRAPHICS::HAS_STREAMED_TEXTURE_DICT_LOADED("cellphone_badger"))// mpleaderboard
 		{
@@ -776,36 +776,36 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		if(toggleItem->get_toggle_value() == true){
 			//leaderboard_votetick_icon
 			//(char* textureDict, char* textureName, float screenX, float screenY, float scaleX, float scaleY, float heading, int colorR, int colorG, int colorB, int colorA) 
-			GRAPHICS::DRAW_SPRITE("cellphone_badger", "t", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, 0.026, 0.034, 0, 255, 255, 255, 255);
+			GRAPHICS::DRAW_SPRITE("cellphone_badger", "t", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, 0.026, 0.034, 0, 255, 255, 255, 255, FALSE, 0);
 		}
 		else{
-			GRAPHICS::DRAW_SPRITE("cellphone_badger", "u", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, 0.026, 0.034, 0, 0, 0, 0, 255);
+			GRAPHICS::DRAW_SPRITE("cellphone_badger", "u", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, 0.026, 0.034, 0, 0, 0, 0, 255, FALSE, 0);
 		}
 
-		UI::_DRAW_TEXT(lineLeftScaled + lineWidthScaled - rightMarginScaled, textY);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(lineLeftScaled + lineWidthScaled - rightMarginScaled, textY, 0);
 	}
 	else if(CashItem<T>* cashItem = dynamic_cast<CashItem<T> *>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 		}
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if(dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		std::string commaCash = std::to_string(cashItem->GetCash() > 0 ? cashItem->GetCash() : -cashItem->GetCash());
 		int insertPosition = commaCash.length() - 3;
@@ -815,66 +815,66 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		}
 
 		std::string ssStr = "<< " + std::string(cashItem->GetCash() < 0 ? "-" : "") + "$" + commaCash + " >>";
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) ssStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 	else if (PaintColorItem<T>* colorItem = dynamic_cast<PaintColorItem<T> *>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if (active){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 		}
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if (outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if (dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		std::string ssStr = "<< " + std::to_string(colorItem->GetColor()) + " >>";
-		UI::_ADD_TEXT_COMPONENT_STRING((char *)ssStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *)ssStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 	else if (PaintIndexItem<T>* indexItem = dynamic_cast<PaintIndexItem<T> *>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if (active){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 		}
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if (outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if (dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		std::string ssStr = "<< " + std::to_string(indexItem->GetIndex()) + " >>";
-		UI::_ADD_TEXT_COMPONENT_STRING((char *)ssStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *)ssStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 	else if (SelectFromListMenuItem* selectFromListItem = dynamic_cast<SelectFromListMenuItem*>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 
 		//disable any items that aren't active
 		if(!active && selectFromListItem->locked){
@@ -882,25 +882,25 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		}
 
 		if(selectFromListItem->locked){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[6].rgba[0], ENTColor::colsMenu[6].rgba[1], ENTColor::colsMenu[6].rgba[2], ENTColor::colsMenu[6].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[6].rgba[0], ENTColor::colsMenu[6].rgba[1], ENTColor::colsMenu[6].rgba[2], ENTColor::colsMenu[6].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[7].rgba[0], ENTColor::colsMenu[7].rgba[1], ENTColor::colsMenu[7].rgba[2], ENTColor::colsMenu[7].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[7].rgba[0], ENTColor::colsMenu[7].rgba[1], ENTColor::colsMenu[7].rgba[2], ENTColor::colsMenu[7].rgba[3]);
 		}
 
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if(dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		std::string caption = selectFromListItem->getCurrentCaption();
 
@@ -908,10 +908,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		bool showRightArrow = selectFromListItem->wrap || selectFromListItem->value < selectFromListItem->captions().size() - 1;
 
 		std::string ssStr = (showLeftArrow ? "<< " : "") + caption + (showRightArrow ? " >>" : "");
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) ssStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 
-		UI::SET_TEXT_EDGE(1, 255, 215, 0, 255);
+		HUD::SET_TEXT_EDGE(1, 255, 215, 0, 255);
 
 		textY = lineTopScaled + (0.5f * (lineHeightScaled - (TEXT_HEIGHT_NONLEAF / (float) screen_h)));
 	}
@@ -919,16 +919,16 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		rightMarginScaled = 10.0f / (float) screen_w;
 		float starTextScale = 0.6f;
 
-		UI::SET_TEXT_FONT(fontWanted);
-		UI::SET_TEXT_SCALE(0.0, starTextScale);
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[8].rgba[0], ENTColor::colsMenu[8].rgba[1], ENTColor::colsMenu[8].rgba[2], ENTColor::colsMenu[8].rgba[3]);
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_FONT(fontWanted);
+		HUD::SET_TEXT_SCALE(0.0, starTextScale);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[8].rgba[0], ENTColor::colsMenu[8].rgba[1], ENTColor::colsMenu[8].rgba[2], ENTColor::colsMenu[8].rgba[3]);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
 
 		float starWidth = 19.5f / (float) screen_w;
 		textY = lineTopScaled + (0.5f * (lineHeightScaled - (TEXT_HEIGHT_WSTARS / (float) screen_h)));
@@ -937,81 +937,81 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		int i = wantedLevel;
 		std::string wantedStarsStr(wantedLevel, '*'); //Draws whatever char in here
 
-		UI::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - rightMarginScaled - (starWidth*(5 - i)));
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - rightMarginScaled - (starWidth*(5 - i)));
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) wantedStarsStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) wantedStarsStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 
-		UI::SET_TEXT_FONT(fontWanted);
-		UI::SET_TEXT_SCALE(0.0, starTextScale);
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[9].rgba[0], ENTColor::colsMenu[9].rgba[1], ENTColor::colsMenu[9].rgba[2], ENTColor::colsMenu[9].rgba[3]);
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_FONT(fontWanted);
+		HUD::SET_TEXT_SCALE(0.0, starTextScale);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[9].rgba[0], ENTColor::colsMenu[9].rgba[1], ENTColor::colsMenu[9].rgba[2], ENTColor::colsMenu[9].rgba[3]);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
 
 		std::string unwantedStarsStr(i < 5 ? 5 - i : 0, '*');
 
-		UI::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - rightMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_WRAP(0, lineLeftScaled + lineWidthScaled - rightMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) unwantedStarsStr.c_str());
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) unwantedStarsStr.c_str());
 
-		UI::_DRAW_TEXT(0, textY);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 	else if(ColorItem<T> *colorItem = dynamic_cast<ColorItem<T> *>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 		}
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if(dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		std::string ssStr = "<< " + std::to_string(colorItem->colorval) + " >>";
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) ssStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 	else if(LifeItem<T>* lifeItem = dynamic_cast<LifeItem<T> *>(item)){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, text_scale);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
 		}
 		else{
-			UI::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
 		}
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
 		if(outline){
-			UI::SET_TEXT_OUTLINE();
+			HUD::SET_TEXT_OUTLINE();
 		}
 
 		if(dropShadow){
-			UI::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
+			HUD::SET_TEXT_DROPSHADOW(5, 0, 78, 255, 255);
 		}
 
-		UI::SET_TEXT_EDGE(0, 0, 0, 0, 0);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
+		HUD::SET_TEXT_EDGE(0, 0, 0, 0, 0);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
 
 		std::string commaLife = std::to_string(lifeItem->life);
 		int insertPosition = commaLife.length() - 3;
@@ -1021,23 +1021,23 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		}
 
 		std::string ssStr = "<< " + commaLife + " >>";
-		UI::_ADD_TEXT_COMPONENT_STRING((char *) ssStr.c_str());
-		UI::_DRAW_TEXT(0, textY);
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME((char *) ssStr.c_str());
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 	else if(!item->isLeaf){
-		UI::SET_TEXT_FONT(fontItem);
-		UI::SET_TEXT_SCALE(0.0, 0.4f);
-		UI::SET_TEXT_COLOUR(ENTColor::colsMenu[10].rgba[0], ENTColor::colsMenu[10].rgba[1], ENTColor::colsMenu[10].rgba[2], ENTColor::colsMenu[10].rgba[3]);
-		UI::SET_TEXT_CENTRE(0);
+		HUD::SET_TEXT_FONT(fontItem);
+		HUD::SET_TEXT_SCALE(0.0, 0.4f);
+		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[10].rgba[0], ENTColor::colsMenu[10].rgba[1], ENTColor::colsMenu[10].rgba[2], ENTColor::colsMenu[10].rgba[3]);
+		HUD::SET_TEXT_CENTRE(0);
 
-		UI::SET_TEXT_EDGE(1, 255, 215, 0, 255);
+		HUD::SET_TEXT_EDGE(1, 255, 215, 0, 255);
 
-		UI::SET_TEXT_RIGHT_JUSTIFY(1);
-		UI::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_STRING(">>");
+		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
+		HUD::SET_TEXT_WRAP(0.0f, lineLeftScaled + lineWidthScaled - leftMarginScaled);
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_PLAYER_NAME(">>");
 		float textY = lineTopScaled + (0.5f * (lineHeightScaled - (TEXT_HEIGHT_NONLEAF / (float) screen_h)));
-		UI::_DRAW_TEXT(0, textY);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0, textY, 0);
 	}
 }
 

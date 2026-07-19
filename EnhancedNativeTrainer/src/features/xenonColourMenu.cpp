@@ -5,7 +5,7 @@
 void apply_xenon_colors(int colorIndex) {
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID()); // Get current vehicle
 	XenonColour whichcolor = XENON_COLOURS[colorIndex];
-	VEHICLE::SET_VEHICLE_XENON_COLOUR(veh, whichcolor.colour);
+	VEHICLE::SET_VEHICLE_XENON_LIGHT_COLOR_INDEX(veh, whichcolor.colour);
 	VEHICLE::TOGGLE_VEHICLE_MOD(veh, 22, 1);
 }
 

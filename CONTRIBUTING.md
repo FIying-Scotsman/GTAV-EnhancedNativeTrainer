@@ -628,6 +628,58 @@ being installed rather than carrying the whole CRT statically - see the Requirem
 anything toolset-version-specific - it's the same dependency an enormous number of other games and
 mods already require.
 
+## Updating `inc/natives.h`
+
+`inc/natives.h` is a generated file - a giant list of native function wrappers, one `invoke<>()`
+call per GTA V native, grouped into namespaces (`PLAYER::`, `VEHICLE::`, `ENTITY::`, etc.). It's
+periodically regenerated wholesale from [alloc8or's nativedb](https://alloc8or.re/gta5/nativedb/)
+rather than hand-edited. If you're refreshing it with a newer export, **two things will silently
+break the build if you just paste the new file in over the old one**:
+
+1. **Do not pick the `invoker supports Void` return-type option when exporting.** alloc8or's generator has a
+   toggle for how it types void-returning natives. If you export with plain `void`, every one of
+   those calls comes out as `invoke<void>(...)`, which does not compile against this project's
+   `invoke<>` template (`inc/nativeCaller.h`) - it does
+   `return *reinterpret_cast<R*>(nativeCall());`, and you cannot dereference a `void*`. This
+   codebase has always used a placeholder type instead: `typedef DWORD Void;` (`inc/types.h`), and
+   every native call is `invoke<Void>(...)`. Get this wrong and the build fails with hundreds of
+   `error C2672: 'invoke': no matching overloaded function found` errors, one per void native. If
+   you've already exported with the `invoker supports void` support button toggled, don't hand-fix every call site - just re-run the export
+   without the `invoker supports void` option and start over; the two outputs are otherwise identical.
+2. **Fix the `NATIVE_DECL` macro at the top of the file before compiling.** The generated file
+   defines its own inlining macro:
+
+   ```cpp
+   #ifndef NATIVE_DECL
+   #if defined(_MSC_VER)
+       #define NATIVE_DECL __forceinline
+   #elif defined(__clang__) || defined(__GNUC__)
+       #define NATIVE_DECL __attribute__((always_inline)) inline
+   #else
+       #define NATIVE_DECL inline
+   #endif
+   #endif
+   ```
+
+   On MSVC this expands to bare `__forceinline` - a strong inlining *hint*, but not `static` or
+   `inline` in the linkage sense. Since `natives.h` is a header with real function bodies, included
+   by nearly every `.cpp` file in the project, that's a guaranteed `LNK2005` ("already defined")
+   error the moment two translation units pull in the same native. Change the MSVC branch to
+   `#define NATIVE_DECL static __forceinline` (matches this project's existing convention - every
+   hand-written native wrapper before this file was generated used plain `static`) before it will
+   link. Fix the other two branches the same way for consistency, even though this project only
+   builds with MSVC.
+
+**If a fresh export also renames or reorganizes namespaces** (this has happened once already - see
+git history around the `natives_compat_shim.h` introduction for a worked example covering ~340
+renamed natives): don't rewrite every call site in one pass. Native *hashes* (the `0x...` literal
+passed to `invoke<>`) are the stable, authoritative identifier - the same hash always means the
+same game function, regardless of what either research effort decided to name it or which
+namespace they filed it under. Match old-to-new declarations **by hash**, not by name, and prefer
+adding temporary forwarding wrappers under the old namespace/name in a compatibility shim over
+touching source files - that lets the header swap and the call-site migration happen as two
+separate, independently-buildable steps instead of one large, hard-to-verify change.
+
 ## Verifying your change
 
 There's no unit test suite and no way to launch the game from a typical dev sandbox, so the bar is:

@@ -99,7 +99,7 @@ void reset_skin_globals()
 
 bool applyChosenSkin(std::string skinName)
 {
-	DWORD model = GAMEPLAY::GET_HASH_KEY((char *)skinName.c_str());
+	DWORD model = MISC::GET_HASH_KEY((char *)skinName.c_str());
 	return applyChosenSkin(model);
 }
 
@@ -258,29 +258,29 @@ void update_skin_features() {
 	if (featurenoblood) PED::CLEAR_PED_BLOOD_DAMAGE(PLAYER::PLAYER_PED_ID()); 
 
 	// Persistent Props
-	if (featurepersprops && ENTITY::IS_ENTITY_IN_WATER(PLAYER::PLAYER_PED_ID()) == 0/* && (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) > -1 || PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) > -1)*/) {
-		if ((ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) == -1) || (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) == -1)) {
+	if (featurepersprops && ENTITY::IS_ENTITY_IN_WATER(PLAYER::PLAYER_PED_ID()) == 0/* && (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) > -1 || PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) > -1)*/) {
+		if ((ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) == -1) || (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) == -1)) {
 			Vector3 me_c = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
-			GAMEPLAY::CLEAR_AREA_OF_OBJECTS(me_c.x, me_c.y, me_c.z, 1.0, 0);
+			MISC::CLEAR_AREA_OF_OBJECTS(me_c.x, me_c.y, me_c.z, 1.0, 0);
 		}
-		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) > -1) ped_prop_idx_0 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0);
-		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) > -1) ped_prop_idx_1 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1);
-		if (ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, ped_prop_idx_0, 0, 0);
-		if (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, ped_prop_idx_1, 0, 0);
+		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) > -1) ped_prop_idx_0 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0);
+		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) > -1) ped_prop_idx_1 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0);
+		if (ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, ped_prop_idx_0, 0, 0, 0);
+		if (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, ped_prop_idx_1, 0, 0, 0);
 		
 		if (choicevalue == -1 && skinPropsCategoryValueC == 0) {
 			ped_prop_idx_0 = -1;
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0, 0);
 		}
 		if (choicevalue == -1 && skinPropsCategoryValueC == 1) {
 			ped_prop_idx_1 = -1;
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1, 0);
 		}
 		if (clear_props_m == -1) {
 			ped_prop_idx_0 = -1;
 			ped_prop_idx_1 = -1;
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0);
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0, 0);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1, 0);
 			clear_props_m = -2;
 		}
 	}
@@ -300,7 +300,7 @@ void update_skin_features() {
 				if (!savedSkins.empty()) {
 					Hash model = -1;
 					if (reset_skin == false) {
-						GAMEPLAY::_RESET_LOCALPLAYER_STATE();
+						MISC::FORCE_GAME_STATE_PLAYING();
 						reset_skin = true;
 						model = 1;
 					}
@@ -321,9 +321,9 @@ void update_skin_features() {
 								for each (SavedSkinComponentDBRow * comp in savedSkin->components) {
 									PED::SET_PED_COMPONENT_VARIATION(ped, comp->slotID, comp->drawable, comp->texture, 0);
 								}
-								PED::CLEAR_ALL_PED_PROPS(ped);
+								PED::CLEAR_ALL_PED_PROPS(ped, 0);
 								for each (SavedSkinPropDBRow * prop in savedSkin->props) {
-									PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0);
+									PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0, 0);
 								}
 								for (std::vector<SavedSkinDBRow*>::iterator it = savedSkins.begin(); it != savedSkins.end(); ++it) {
 									delete (*it);
@@ -343,7 +343,7 @@ void update_skin_features() {
 
 		if (PLAYER::PLAYER_PED_ID() != oldplayerSkin) auto_skin = false;
 		if ((time_since_d > -1 && time_since_d < 2000) || (player_died == true && !featureNoAutoRespawn)) auto_skin = false;
-		if (DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) auto_skin = false;
+		if (DLC::GET_IS_LOADING_SCREEN_ACTIVE()) auto_skin = false;
 
 	} // end of featureautoskin
 }
@@ -709,7 +709,7 @@ bool onconfirm_skinchanger_category_menu(MenuItem<int> choice)
 			{
 				result = trim(result);
 				lastCustomSkinSpawn = result;
-				Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
+				Hash hash = MISC::GET_HASH_KEY((char*)result.c_str());
 				if (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash))
 				{
 					set_status_text(tr("SkinsMenu.CouldntFindModelPrefix", "Couldn't find model '") + result + tr("SkinsMenu.CouldntFindModelSuffix", "'"));
@@ -748,25 +748,25 @@ bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 			set_status_text(tr("SkinsMenu.UsingDefaultModelSkin", "Using default model skin"));
 			break;
 		case 5:
-			PED::CLEAR_ALL_PED_PROPS(playerPed);
+			PED::CLEAR_ALL_PED_PROPS(playerPed, 0);
 			clear_props_m = -1;
 			ped_prop_idx = -1;
 			break;
 		case 6:
-			PED::CLEAR_ALL_PED_PROPS(playerPed);
+			PED::CLEAR_ALL_PED_PROPS(playerPed, 0);
 			PED::SET_PED_RANDOM_COMPONENT_VARIATION(playerPed, true);
 			PED::SET_PED_RANDOM_PROPS(playerPed);
 			break;
 		case 7:
-			PED::CLEAR_ALL_PED_PROPS(playerPed);
+			PED::CLEAR_ALL_PED_PROPS(playerPed, 0);
 			PED::SET_PED_RANDOM_PROPS(playerPed);
 			break;
 		case 8:
 			if (helmet_on == false) {
 				Hash model = -1;
-				if (PED::GET_PED_TYPE(playerPed) == 0) model = GAMEPLAY::GET_HASH_KEY("player_zero");
-				if (PED::GET_PED_TYPE(playerPed) == 1) model = GAMEPLAY::GET_HASH_KEY("player_one");
-				if (PED::GET_PED_TYPE(playerPed) == 2 || PED::GET_PED_TYPE(playerPed) == 3) model = GAMEPLAY::GET_HASH_KEY("player_two");
+				if (PED::GET_PED_TYPE(playerPed) == 0) model = MISC::GET_HASH_KEY("player_zero");
+				if (PED::GET_PED_TYPE(playerPed) == 1) model = MISC::GET_HASH_KEY("player_one");
+				if (PED::GET_PED_TYPE(playerPed) == 2 || PED::GET_PED_TYPE(playerPed) == 3) model = MISC::GET_HASH_KEY("player_two");
 				applyChosenSkin(model);
 				helmet_on = true;
 			}
@@ -922,7 +922,7 @@ bool onconfirm_props_texture_menu(MenuItem<int> choice)
 void onhighlight_props_texture_menu(MenuItem<int> choice)
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, skinPropsDrawablePosition[skinPropsCategoryValue]-1, choice.value, 0);
+	PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, skinPropsDrawablePosition[skinPropsCategoryValue]-1, choice.value, 0, 0);
 }
 
 bool process_prop_texture_menu()
@@ -970,13 +970,13 @@ void onhighlight_props_drawable_menu(MenuItem<int> choice)
 	skinPropsDrawablePosition[skinPropsCategoryValue] = choice.currentMenuIndex;
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int currentProp = PED::GET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue);
+	int currentProp = PED::GET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, 0);
 	if (currentProp != choice.value) //if the selected drawable is not what we have now
 	{
-		PED::CLEAR_PED_PROP(playerPed, skinPropsCategoryValue);
+		PED::CLEAR_PED_PROP(playerPed, skinPropsCategoryValue, 0);
 		if (choice.value != -1)
 		{
-			PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, choice.value, 0, 0);
+			PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, choice.value, 0, 0, 0);
 		}
 	}
 
@@ -1253,10 +1253,10 @@ bool spawn_saved_skin(int slot, std::string caption)
 		PED::SET_PED_COMPONENT_VARIATION( ped, comp->slotID, comp->drawable, comp->texture, 0);
 	}
 
-	PED::CLEAR_ALL_PED_PROPS(ped);
+	PED::CLEAR_ALL_PED_PROPS(ped, 0);
 	for each (SavedSkinPropDBRow *prop in savedSkin->props)
 	{
-		PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0);
+		PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0, 0);
 	}
 
 	for (std::vector<SavedSkinDBRow*>::iterator it = savedSkins.begin(); it != savedSkins.end(); ++it)

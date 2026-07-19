@@ -393,7 +393,7 @@ void check_player_model(){
 	int playerSlot = 0;
 
 	for each (char* model  in player_models){
-		if(GAMEPLAY::GET_HASH_KEY(model) == playerModel){
+		if(MISC::GET_HASH_KEY(model) == playerModel){
 			last_player_slot_seen = playerSlot;
 			found = true;
 			break;
@@ -403,7 +403,7 @@ void check_player_model(){
 
 	if(!found && NETWORK::NETWORK_IS_GAME_IN_PROGRESS()){
 		for each (char* model  in mplayer_models){
-			if(GAMEPLAY::GET_HASH_KEY(model) == playerModel){
+			if(MISC::GET_HASH_KEY(model) == playerModel){
 				last_player_slot_seen = playerSlot;
 				found = true;
 				break;
@@ -412,18 +412,18 @@ void check_player_model(){
 		}
 	}
 
-	if (!ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) CoordsWhereDied = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
+	if (!ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) CoordsWhereDied = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
 
 	if (MISC_TRAINERCONTROL_VALUES[ResetSkinOnDeathIdx] == 0 && manual_pressed == true) {
-		if ((ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && (!featureRespawnsWhereDied || detained == true || alert_level > 0)) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
+		if ((ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && (!featureRespawnsWhereDied || detained == true || alert_level > 0)) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
 			if (!found) {
 				float temp_dist = 20000.0;
-				float d_temp1 = SYSTEM::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 338.409, -1396.54, 32.5092);
-				float d_temp2 = SYSTEM::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 363.229, -583.42, 28.6848);
-				float d_temp3 = SYSTEM::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, -451.687, -345.756, 34.5016);
-				float d_temp4 = SYSTEM::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 1105.7, -1533.99, 34.8937);
-				float d_temp5 = SYSTEM::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 1841.54, 3669.09, 33.68);
-				float d_temp6 = SYSTEM::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, -240.879, 6324.1, 32.4261);
+				float d_temp1 = BUILTIN::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 338.409, -1396.54, 32.5092);
+				float d_temp2 = BUILTIN::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 363.229, -583.42, 28.6848);
+				float d_temp3 = BUILTIN::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, -451.687, -345.756, 34.5016);
+				float d_temp4 = BUILTIN::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 1105.7, -1533.99, 34.8937);
+				float d_temp5 = BUILTIN::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 1841.54, 3669.09, 33.68);
+				float d_temp6 = BUILTIN::VDIST(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, -240.879, 6324.1, 32.4261);
 
 				if (temp_dist > d_temp1) {
 					temp_dist = d_temp1;
@@ -464,18 +464,18 @@ void check_player_model(){
 				
 				player_died = true;
 				player_d_armour = true;
-				CAM::DO_SCREEN_FADE_OUT(500);
+				CAMERA::DO_SCREEN_FADE_OUT(500);
 				WAIT(1000);
-				GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN(true);
-				GAMEPLAY::IGNORE_NEXT_RESTART(true);
-				GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
-				GAMEPLAY::_RESET_LOCALPLAYER_STATE();
-				NETWORK::NETWORK_RESURRECT_LOCAL_PLAYER(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 0, false, false);
+				MISC::PAUSE_DEATH_ARREST_RESTART(true);
+				MISC::IGNORE_NEXT_RESTART(true);
+				MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
+				MISC::FORCE_GAME_STATE_PLAYING();
+				NETWORK::NETWORK_RESURRECT_LOCAL_PLAYER(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 0, false, false, FALSE, 0, 0);
 				PLAYER::RESET_PLAYER_ARREST_STATE(PLAYER::PLAYER_PED_ID());
 				PED::RESET_PED_MOVEMENT_CLIPSET(PLAYER::PLAYER_PED_ID(), 1.0f);
 				WAIT(1000);
-				CAM::DO_SCREEN_FADE_IN(500);
-				GAMEPLAY::SET_TIME_SCALE(1.0f);
+				CAMERA::DO_SCREEN_FADE_IN(500);
+				MISC::SET_TIME_SCALE(1.0f);
 			}
 		}
 	}
@@ -513,10 +513,10 @@ void ingnition_anim() {
 		while (!STREAMING::HAS_ANIM_DICT_LOADED(i_anim_dict)) WAIT(0);
 	}
 	if (STREAMING::HAS_ANIM_DICT_LOADED(i_anim_dict)) {
-		float anim_tmp = ENTITY::_GET_ENTITY_ANIM_DURATION(i_anim_dict, animation_of_i);
-		AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), i_anim_dict, animation_of_i, 16.0, 3.0, -1, 0, 0, 0, 0, 0); // 8.0 1.5
+		float anim_tmp = ENTITY::GET_ANIM_DURATION(i_anim_dict, animation_of_i);
+		TASK::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), i_anim_dict, animation_of_i, 16.0, 3.0, -1, 0, 0, 0, 0, 0); // 8.0 1.5
 		WAIT(anim_tmp * 499); // 499
-		AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), i_anim_dict, animation_of_i, 1.0);
+		TASK::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), i_anim_dict, animation_of_i, 1.0);
 	}
 }
 
@@ -528,7 +528,7 @@ void engineonoff_switching() {
 		veh_engine = temp_vehicle;
 	}
 	WAIT(70);
-	if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && entered_first_time == false && CONTROLS::IS_CONTROL_RELEASED(2, 71)) ingnition_anim();
+	if (PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && entered_first_time == false && PAD::IS_CONTROL_RELEASED(2, 71)) ingnition_anim();
 	entered_first_time = false;
 
 	if (VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(veh_engine)) engine_running = true;
@@ -565,15 +565,15 @@ void engine_kill(){
 }
 
 void text_parameters(float s_x, float s_y, int c_r, int c_g, int c_b, int alpha) {
-	UI::SET_TEXT_FONT(0);
-	UI::SET_TEXT_SCALE(s_x, s_y);
-	UI::SET_TEXT_WRAP(0.0, 1.0);
-	UI::SET_TEXT_COLOUR(c_r, c_g, c_b, alpha);
-	UI::SET_TEXT_CENTRE(0);
-	UI::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
-	UI::SET_TEXT_EDGE(100, 100, 100, 100, 205);
-	UI::SET_TEXT_LEADING(1);
-	UI::SET_TEXT_OUTLINE();
+	HUD::SET_TEXT_FONT(0);
+	HUD::SET_TEXT_SCALE(s_x, s_y);
+	HUD::SET_TEXT_WRAP(0.0, 1.0);
+	HUD::SET_TEXT_COLOUR(c_r, c_g, c_b, alpha);
+	HUD::SET_TEXT_CENTRE(0);
+	HUD::SET_TEXT_DROPSHADOW(20, 20, 20, 20, 20);
+	HUD::SET_TEXT_EDGE(100, 100, 100, 100, 205);
+	HUD::SET_TEXT_LEADING(1);
+	HUD::SET_TEXT_OUTLINE();
 }
 
 // Updates all features that can be turned off by the game, being called each game frame
@@ -595,7 +595,7 @@ void update_features(){
 		onlineWarningShown = false;
 	}
 	/*
-	GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("shop_controller");
+	MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("shop_controller");
 
 	std::ostringstream ss;
 	ss << "Scripts disabled";
@@ -634,17 +634,17 @@ void update_features(){
 
 	check_for_hotkey_presses();
 
-	if (is_menu_showing() && (CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, 0) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_NEXT_CAMERA))) {
+	if (is_menu_showing() && (PAD::IS_DISABLED_CONTROL_PRESSED(2, 0) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_NEXT_CAMERA))) {
 		if (featureRealisticRadioVolume && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) radio_v_checked = false;
 		set_menu_showing(false);
 		WAIT(200);
 		set_menu_showing(true);
 	}
 
-	if (is_menu_showing() && (IsKeyDown(VK_ESCAPE) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE))) {
+	if (is_menu_showing() && (IsKeyDown(VK_ESCAPE) || PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE))) {
 		set_menu_showing(false);
 		if (MISC_DEF_MANUTAB_VALUES[DefMenuTabIndex] > -2 && PLAYER::IS_PLAYER_CONTROL_ON(PLAYER::PLAYER_ID()) == 1 && !CUTSCENE::IS_CUTSCENE_PLAYING() && keyboard_on_screen_already == false) {
-			UI::ACTIVATE_FRONTEND_MENU(GAMEPLAY::GET_HASH_KEY("FE_MENU_VERSION_SP_PAUSE"), featureGamePause, MISC_DEF_MANUTAB_VALUES[DefMenuTabIndex]);
+			HUD::ACTIVATE_FRONTEND_MENU(MISC::GET_HASH_KEY("FE_MENU_VERSION_SP_PAUSE"), featureGamePause, MISC_DEF_MANUTAB_VALUES[DefMenuTabIndex]);
 			AUDIO::SET_AUDIO_FLAG("PlayMenuMusic", true);
 		}
 		else AUDIO::SET_AUDIO_FLAG("PlayMenuMusic", false);
@@ -660,20 +660,20 @@ void update_features(){
 		enabled_map = false;
 	}
 
-	if (CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, 0) || CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_NEXT_CAMERA)) {
+	if (PAD::IS_DISABLED_CONTROL_JUST_PRESSED(2, 0) || PAD::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_NEXT_CAMERA)) {
 		if (is_in_airbrake_mode() && !airbrake_switch_pressed()) {
 			KeyConfig* key = get_config()->get_key_config()->get_key(KeyConfig::KEY_TOGGLE_AIRBRAKE);
-			CONTROLS::_SET_CONTROL_NORMAL(0, key->keyCode, 1);
+			PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, key->keyCode, 1);
 			WAIT(200);
-			CONTROLS::_SET_CONTROL_NORMAL(0, key->keyCode, 1);
+			PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, key->keyCode, 1);
 		}
 	}
 	
-	if (is_menu_showing() && (CONTROLS::IS_DISABLED_CONTROL_PRESSED(26, 0) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_LOOK_BEHIND))) {
+	if (is_menu_showing() && (PAD::IS_DISABLED_CONTROL_PRESSED(26, 0) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_LOOK_BEHIND))) {
 		set_menu_showing(false);
 		looking_behind = true;
 	}
-	if (!CONTROLS::IS_DISABLED_CONTROL_PRESSED(26, 0) && !CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_LOOK_BEHIND) && looking_behind == true) {
+	if (!PAD::IS_DISABLED_CONTROL_PRESSED(26, 0) && !PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_LOOK_BEHIND) && looking_behind == true) {
 		set_menu_showing(true);
 		looking_behind = false;
 	}
@@ -702,182 +702,182 @@ void update_features(){
 	if (featureFirstPersonDeathCamera) {
 		Vector3 playerPosition = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
 		Vector3 curRotation = ENTITY::GET_ENTITY_ROTATION(PLAYER::PLAYER_PED_ID(), 2);
-		if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
-			if (!CAM::DOES_CAM_EXIST(DeathCam)) {
-				DeathCam = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x, playerPosition.y, playerPosition.z + 0.07, curRotation.x, curRotation.y, curRotation.z, 50.0, true, 2);
-				if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) {
-					CAM::ATTACH_CAM_TO_ENTITY(DeathCam, PLAYER::PLAYER_PED_ID(), 0, 0.0, 0.07, 1);
-					CAM::POINT_CAM_AT_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 11816, 0, 0.0, 0.05, 1);
+		if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
+			if (!CAMERA::DOES_CAM_EXIST(DeathCam)) {
+				DeathCam = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x, playerPosition.y, playerPosition.z + 0.07, curRotation.x, curRotation.y, curRotation.z, 50.0, true, 2);
+				if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) {
+					CAMERA::ATTACH_CAM_TO_ENTITY(DeathCam, PLAYER::PLAYER_PED_ID(), 0, 0.0, 0.07, 1);
+					CAMERA::POINT_CAM_AT_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 11816, 0, 0.0, 0.05, 1);
 				}
 				if (PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
-					CAM::ATTACH_CAM_TO_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 31086, 0, -0.15, 0, 1);
-					CAM::POINT_CAM_AT_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 31086, 0, 0.0, 0, 1);
+					CAMERA::ATTACH_CAM_TO_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 31086, 0, -0.15, 0, 1);
+					CAMERA::POINT_CAM_AT_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 31086, 0, 0.0, 0, 1);
 				}
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(DeathCam, 1.0);
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCam, 1.0);
-				CAM::_SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCam, 1.0);
-				CAM::RENDER_SCRIPT_CAMS(true, false, 0, true, true);
-				CAM::SET_CAM_ACTIVE(DeathCam, true);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(DeathCam, 1.0);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCam, 1.0);
+				CAMERA::SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCam, 1.0);
+				CAMERA::RENDER_SCRIPT_CAMS(true, false, 0, true, true, 0);
+				CAMERA::SET_CAM_ACTIVE(DeathCam, true);
 				ENTITY::SET_ENTITY_ALPHA(PLAYER::PLAYER_PED_ID(), 0, 0);
 			}
 		}
-		if (CAM::DOES_CAM_EXIST(DeathCam)) { // camera rotation
-			Vector3 rot_cam = CAM::GET_CAM_ROT(DeathCam, 2);
-			if ((CONTROLS::IS_CONTROL_PRESSED(2, 34) || CONTROLS::IS_CONTROL_PRESSED(2, 35) || CONTROLS::IS_CONTROL_PRESSED(2, 32) || CONTROLS::IS_CONTROL_PRESSED(2, 33)) && first_person_rotate == false) {
-				CAM::DESTROY_CAM(DeathCam, true);
-				DeathCam = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x, playerPosition.y, playerPosition.z + 0.07, curRotation.x, curRotation.y, curRotation.z, 50.0, true, 2);
-				if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) CAM::ATTACH_CAM_TO_ENTITY(DeathCam, PLAYER::PLAYER_PED_ID(), 0, 0.0, 0.07, 1);
-				if (PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) CAM::ATTACH_CAM_TO_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 31086, 0, -0.15, 0, 1);
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(DeathCam, 1.0);
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCam, 1.0);
-				CAM::_SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCam, 1.0);
+		if (CAMERA::DOES_CAM_EXIST(DeathCam)) { // camera rotation
+			Vector3 rot_cam = CAMERA::GET_CAM_ROT(DeathCam, 2);
+			if ((PAD::IS_CONTROL_PRESSED(2, 34) || PAD::IS_CONTROL_PRESSED(2, 35) || PAD::IS_CONTROL_PRESSED(2, 32) || PAD::IS_CONTROL_PRESSED(2, 33)) && first_person_rotate == false) {
+				CAMERA::DESTROY_CAM(DeathCam, true);
+				DeathCam = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x, playerPosition.y, playerPosition.z + 0.07, curRotation.x, curRotation.y, curRotation.z, 50.0, true, 2);
+				if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) CAMERA::ATTACH_CAM_TO_ENTITY(DeathCam, PLAYER::PLAYER_PED_ID(), 0, 0.0, 0.07, 1);
+				if (PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) CAMERA::ATTACH_CAM_TO_PED_BONE(DeathCam, PLAYER::PLAYER_PED_ID(), 31086, 0, -0.15, 0, 1);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(DeathCam, 1.0);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCam, 1.0);
+				CAMERA::SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCam, 1.0);
 				first_person_rotate = true;
 			}
-			if (CONTROLS::IS_CONTROL_PRESSED(2, 34)) rot_cam.z = rot_cam.z + 2; // left only
-			if (CONTROLS::IS_CONTROL_PRESSED(2, 35)) rot_cam.z = rot_cam.z - 2; // right only
-			if (CONTROLS::IS_CONTROL_PRESSED(2, 32)) rot_cam.x = rot_cam.x + 2; // up only
-			if (CONTROLS::IS_CONTROL_PRESSED(2, 33)) rot_cam.x = rot_cam.x - 2; // down only
-			CAM::SET_CAM_ROT(DeathCam, rot_cam.x, rot_cam.y, rot_cam.z, 2);
+			if (PAD::IS_CONTROL_PRESSED(2, 34)) rot_cam.z = rot_cam.z + 2; // left only
+			if (PAD::IS_CONTROL_PRESSED(2, 35)) rot_cam.z = rot_cam.z - 2; // right only
+			if (PAD::IS_CONTROL_PRESSED(2, 32)) rot_cam.x = rot_cam.x + 2; // up only
+			if (PAD::IS_CONTROL_PRESSED(2, 33)) rot_cam.x = rot_cam.x - 2; // down only
+			CAMERA::SET_CAM_ROT(DeathCam, rot_cam.x, rot_cam.y, rot_cam.z, 2);
 		}
 	}
-	if ((featureFirstPersonDeathCamera && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) ||
-		(!featureFirstPersonDeathCamera && (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)))) {
-		if (CAM::DOES_CAM_EXIST(DeathCam)) {
+	if ((featureFirstPersonDeathCamera && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) ||
+		(!featureFirstPersonDeathCamera && (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)))) {
+		if (CAMERA::DOES_CAM_EXIST(DeathCam)) {
 			ENTITY::SET_ENTITY_COLLISION(PLAYER::PLAYER_PED_ID(), 1, 1);
-			CAM::RENDER_SCRIPT_CAMS(false, false, 0, false, false);
-			CAM::DETACH_CAM(DeathCam);
-			CAM::SET_CAM_ACTIVE(DeathCam, false);
-			CAM::DESTROY_CAM(DeathCam, true);
+			CAMERA::RENDER_SCRIPT_CAMS(false, false, 0, false, false, 0);
+			CAMERA::DETACH_CAM(DeathCam);
+			CAMERA::SET_CAM_ACTIVE(DeathCam, false);
+			CAMERA::DESTROY_CAM(DeathCam, true);
 			ENTITY::RESET_ENTITY_ALPHA(PLAYER::PLAYER_PED_ID());
 			first_person_rotate = false;
 		}
 	}
 
 	// Manual Respawn
-	if (featureNoAutoRespawn && GAMEPLAY::GET_MISSION_FLAG() == 0) {
-		if ((ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) && player_died == false) {
+	if (featureNoAutoRespawn && MISC::GET_MISSION_FLAG() == 0) {
+		if ((ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) && player_died == false) {
 			manual_pressed = false;
-			if (!STREAMING::HAS_MODEL_LOADED(GAMEPLAY::GET_HASH_KEY("bot_01b_bit_03"))) STREAMING::REQUEST_MODEL(GAMEPLAY::GET_HASH_KEY("bot_01b_bit_03"));
+			if (!STREAMING::HAS_MODEL_LOADED(MISC::GET_HASH_KEY("bot_01b_bit_03"))) STREAMING::REQUEST_MODEL(MISC::GET_HASH_KEY("bot_01b_bit_03"));
 			SCRIPT::SET_NO_LOADING_SCREEN(true);
-			GAMEPLAY::SET_FADE_OUT_AFTER_DEATH(false);
-			GAMEPLAY::SET_FADE_OUT_AFTER_ARREST(false);
-			GAMEPLAY::_RESET_LOCALPLAYER_STATE();
-			GAMEPLAY::IGNORE_NEXT_RESTART(true);
-			GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN(true);
-			GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
+			MISC::SET_FADE_OUT_AFTER_DEATH(false);
+			MISC::SET_FADE_OUT_AFTER_ARREST(false);
+			MISC::FORCE_GAME_STATE_PLAYING();
+			MISC::IGNORE_NEXT_RESTART(true);
+			MISC::PAUSE_DEATH_ARREST_RESTART(true);
+			MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
 			manual_instant = true;
 		}
 		// camera rotation
-		if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
+		if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
 			Vector3 playerPosition = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
-			if (!CAM::DOES_CAM_EXIST(DeathCamM) && (CONTROLS::IS_CONTROL_PRESSED(2, 34) || CONTROLS::IS_CONTROL_PRESSED(2, 35) || CONTROLS::IS_CONTROL_PRESSED(2, 32) || CONTROLS::IS_CONTROL_PRESSED(2, 33)) && first_person_rotate == false) {
-				temp_c_object = OBJECT::CREATE_OBJECT(GAMEPLAY::GET_HASH_KEY("bot_01b_bit_03"), playerPosition.x + 1, playerPosition.y + 1, playerPosition.z + 1.5, 1, true, 1);
+			if (!CAMERA::DOES_CAM_EXIST(DeathCamM) && (PAD::IS_CONTROL_PRESSED(2, 34) || PAD::IS_CONTROL_PRESSED(2, 35) || PAD::IS_CONTROL_PRESSED(2, 32) || PAD::IS_CONTROL_PRESSED(2, 33)) && first_person_rotate == false) {
+				temp_c_object = OBJECT::CREATE_OBJECT(MISC::GET_HASH_KEY("bot_01b_bit_03"), playerPosition.x + 1, playerPosition.y + 1, playerPosition.z + 1.5, 1, true, 1);
 				ENTITY::SET_ENTITY_ALPHA(temp_c_object, 0, 0);
 				ENTITY::FREEZE_ENTITY_POSITION(temp_c_object, true);
-				DeathCamM = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x + 1, playerPosition.y + 1, playerPosition.z + 1.5, 0, 0, 0, 60.0, true, 2);
-				CAM::ATTACH_CAM_TO_ENTITY(DeathCamM, temp_c_object, 0, 0.0, 0.0, 1);
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(DeathCamM, 1.0);
-				CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCamM, 1.0);
-				CAM::_SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCamM, 1.0);
-				CAM::RENDER_SCRIPT_CAMS(true, false, 0, true, true);
-				CAM::SET_CAM_ACTIVE(DeathCamM, true);
-				GAMEPLAY::SET_TIME_SCALE(1.0f);
+				DeathCamM = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x + 1, playerPosition.y + 1, playerPosition.z + 1.5, 0, 0, 0, 60.0, true, 2);
+				CAMERA::ATTACH_CAM_TO_ENTITY(DeathCamM, temp_c_object, 0, 0.0, 0.0, 1);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE_BLEND_LEVEL(DeathCamM, 1.0);
+				CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCamM, 1.0);
+				CAMERA::SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCamM, 1.0);
+				CAMERA::RENDER_SCRIPT_CAMS(true, false, 0, true, true, 0);
+				CAMERA::SET_CAM_ACTIVE(DeathCamM, true);
+				MISC::SET_TIME_SCALE(1.0f);
 			}
-			if (CAM::DOES_CAM_EXIST(DeathCamM)) { // camera rotation
-				Vector3 rot_cam = CAM::GET_CAM_ROT(DeathCamM, 2);
+			if (CAMERA::DOES_CAM_EXIST(DeathCamM)) { // camera rotation
+				Vector3 rot_cam = CAMERA::GET_CAM_ROT(DeathCamM, 2);
 				ENTITY::FREEZE_ENTITY_POSITION(temp_c_object, true);
-				if ((CONTROLS::IS_CONTROL_PRESSED(2, 34) || CONTROLS::IS_CONTROL_PRESSED(2, 35) || CONTROLS::IS_CONTROL_PRESSED(2, 32) || CONTROLS::IS_CONTROL_PRESSED(2, 33)) && first_person_rotate == false) {
-					CAM::DESTROY_CAM(DeathCamM, true);
-					DeathCamM = CAM::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x + 1, playerPosition.y + 1, playerPosition.z + 1.5, rot_cam.x, rot_cam.y, rot_cam.z, 60.0, true, 2);
-					CAM::ATTACH_CAM_TO_ENTITY(DeathCamM, temp_c_object, 0, 0.0, 0.0, 1);
-					CAM::_SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCamM, 1.0);
-					CAM::_SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCamM, 1.0);
+				if ((PAD::IS_CONTROL_PRESSED(2, 34) || PAD::IS_CONTROL_PRESSED(2, 35) || PAD::IS_CONTROL_PRESSED(2, 32) || PAD::IS_CONTROL_PRESSED(2, 33)) && first_person_rotate == false) {
+					CAMERA::DESTROY_CAM(DeathCamM, true);
+					DeathCamM = CAMERA::CREATE_CAM_WITH_PARAMS("DEFAULT_SCRIPTED_FLY_CAMERA", playerPosition.x + 1, playerPosition.y + 1, playerPosition.z + 1.5, rot_cam.x, rot_cam.y, rot_cam.z, 60.0, true, 2);
+					CAMERA::ATTACH_CAM_TO_ENTITY(DeathCamM, temp_c_object, 0, 0.0, 0.0, 1);
+					CAMERA::SET_CAM_DOF_MAX_NEAR_IN_FOCUS_DISTANCE(DeathCamM, 1.0);
+					CAMERA::SET_CAM_DOF_FOCUS_DISTANCE_BIAS(DeathCamM, 1.0);
 					first_person_rotate = true;
 				}
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 34)) rot_cam.z = rot_cam.z + 2; // left only
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 35)) rot_cam.z = rot_cam.z - 2; // right only
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 32)) rot_cam.x = rot_cam.x + 2; // up only
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 33)) rot_cam.x = rot_cam.x - 2; // down only
-				CAM::SET_CAM_ROT(DeathCamM, rot_cam.x, rot_cam.y, rot_cam.z, 2);
+				if (PAD::IS_CONTROL_PRESSED(2, 34)) rot_cam.z = rot_cam.z + 2; // left only
+				if (PAD::IS_CONTROL_PRESSED(2, 35)) rot_cam.z = rot_cam.z - 2; // right only
+				if (PAD::IS_CONTROL_PRESSED(2, 32)) rot_cam.x = rot_cam.x + 2; // up only
+				if (PAD::IS_CONTROL_PRESSED(2, 33)) rot_cam.x = rot_cam.x - 2; // down only
+				CAMERA::SET_CAM_ROT(DeathCamM, rot_cam.x, rot_cam.y, rot_cam.z, 2);
 			}
 		}
 		//
-		if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, 22)) { // 23 // CONTROLS::IS_CONTROL_JUST_PRESSED(2, 176) ||
+		if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && PAD::IS_CONTROL_JUST_PRESSED(2, 22)) { // 23 // PAD::IS_CONTROL_JUST_PRESSED(2, 176) ||
 			OBJECT::DELETE_OBJECT(&temp_c_object);
 			manual_pressed = true;
 			tick_allw = 0;
 			player_died = true;
 			player_d_armour = true;
-			GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN(false);
+			MISC::PAUSE_DEATH_ARREST_RESTART(false);
 			SCRIPT::SET_NO_LOADING_SCREEN(false);
 			PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
-			CAM::DO_SCREEN_FADE_OUT(500); // 4000
+			CAMERA::DO_SCREEN_FADE_OUT(500); // 4000
 			WAIT(1000);
-			GRAPHICS::_STOP_ALL_SCREEN_EFFECTS();
-			CONTROLS::_SET_CONTROL_NORMAL(0, 22, 1);
-			GAMEPLAY::SET_TIME_SCALE(1.0f);
+			GRAPHICS::ANIMPOSTFX_STOP_ALL();
+			PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 22, 1);
+			MISC::SET_TIME_SCALE(1.0f);
 			manual_instant = false;
 			dynamic_loading = true;
 		}
-		if ((PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 0)) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, 22)) { // CONTROLS::IS_CONTROL_JUST_PRESSED(2, 176) || 
+		if ((PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 0)) && PAD::IS_CONTROL_JUST_PRESSED(2, 22)) { // PAD::IS_CONTROL_JUST_PRESSED(2, 176) || 
 			OBJECT::DELETE_OBJECT(&temp_c_object);
 			manual_pressed = true;
 			tick_allw = 0;
-			CAM::DO_SCREEN_FADE_OUT(500);
+			CAMERA::DO_SCREEN_FADE_OUT(500);
 			WAIT(1000);
-			GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN(true);
-			GAMEPLAY::IGNORE_NEXT_RESTART(true);
-			GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
-			GRAPHICS::_STOP_ALL_SCREEN_EFFECTS();
-			GAMEPLAY::_RESET_LOCALPLAYER_STATE();
+			MISC::PAUSE_DEATH_ARREST_RESTART(true);
+			MISC::IGNORE_NEXT_RESTART(true);
+			MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
+			GRAPHICS::ANIMPOSTFX_STOP_ALL();
+			MISC::FORCE_GAME_STATE_PLAYING();
 			Vector3 ped_me = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
 			BOOL onGround = false;
 			Vector3 CoordsWhereDied = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
-			PATHFIND::GET_SAFE_COORD_FOR_PED(ped_me.x, ped_me.y, ped_me.z, onGround, &CoordsWhereDied, 16);
-			NETWORK::NETWORK_RESURRECT_LOCAL_PLAYER(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 0, false, false);
+			PATH::GET_SAFE_COORD_FOR_PED(ped_me.x, ped_me.y, ped_me.z, onGround, &CoordsWhereDied, 16);
+			NETWORK::NETWORK_RESURRECT_LOCAL_PLAYER(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 0, false, false, FALSE, 0, 0);
 			PLAYER::RESET_PLAYER_ARREST_STATE(PLAYER::PLAYER_PED_ID());
 			PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
 			WAIT(1000);
-			CAM::DO_SCREEN_FADE_IN(500);
-			GAMEPLAY::SET_TIME_SCALE(1.0f);
+			CAMERA::DO_SCREEN_FADE_IN(500);
+			MISC::SET_TIME_SCALE(1.0f);
 			manual_instant = false;
 		}
-		if (!ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
+		if (!ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1)) {
 			if (detained == false && alert_level == 0) player_died = false;
-			if (CAM::DOES_CAM_EXIST(DeathCamM)) {
+			if (CAMERA::DOES_CAM_EXIST(DeathCamM)) {
 				ENTITY::SET_ENTITY_COLLISION(PLAYER::PLAYER_PED_ID(), 1, 1);
-				CAM::RENDER_SCRIPT_CAMS(false, false, 0, false, false);
-				CAM::DETACH_CAM(DeathCamM);
-				CAM::SET_CAM_ACTIVE(DeathCamM, false);
-				CAM::DESTROY_CAM(DeathCamM, true);
+				CAMERA::RENDER_SCRIPT_CAMS(false, false, 0, false, false, 0);
+				CAMERA::DETACH_CAM(DeathCamM);
+				CAMERA::SET_CAM_ACTIVE(DeathCamM, false);
+				CAMERA::DESTROY_CAM(DeathCamM, true);
 				ENTITY::SET_ENTITY_ALPHA(PLAYER::PLAYER_PED_ID(), 255, 0);
 				first_person_rotate = false;
-				GAMEPLAY::SET_TIME_SCALE(1.0f);
+				MISC::SET_TIME_SCALE(1.0f);
 			}
 		}
 	}
 		
 	// Instant Respawn On Death/Arrest
-	if (featureRespawnsWhereDied && GAMEPLAY::GET_MISSION_FLAG() == 0 && manual_instant == false && detained == false && alert_level == 0) {
-		if (ENTITY::IS_ENTITY_DEAD(playerPed) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 0)) {
+	if (featureRespawnsWhereDied && MISC::GET_MISSION_FLAG() == 0 && manual_instant == false && detained == false && alert_level == 0) {
+		if (ENTITY::IS_ENTITY_DEAD(playerPed, FALSE) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 0)) {
 			player_died = true;
 			player_d_armour = true;
-			CAM::DO_SCREEN_FADE_OUT(500);
+			CAMERA::DO_SCREEN_FADE_OUT(500);
 			WAIT(1000);
-			GAMEPLAY::_DISABLE_AUTOMATIC_RESPAWN(true);
-			GAMEPLAY::IGNORE_NEXT_RESTART(true);
-			GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
-			GAMEPLAY::_RESET_LOCALPLAYER_STATE();
+			MISC::PAUSE_DEATH_ARREST_RESTART(true);
+			MISC::IGNORE_NEXT_RESTART(true);
+			MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("respawn_controller");
+			MISC::FORCE_GAME_STATE_PLAYING();
 			Vector3 ped_me = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 			BOOL onGround = false;
 			Vector3 CoordsWhereDied = ENTITY::GET_ENTITY_COORDS(playerPed, true);
-			PATHFIND::GET_SAFE_COORD_FOR_PED(ped_me.x, ped_me.y, ped_me.z, onGround, &CoordsWhereDied, 16);
-			NETWORK::NETWORK_RESURRECT_LOCAL_PLAYER(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 0, false, false);
+			PATH::GET_SAFE_COORD_FOR_PED(ped_me.x, ped_me.y, ped_me.z, onGround, &CoordsWhereDied, 16);
+			NETWORK::NETWORK_RESURRECT_LOCAL_PLAYER(CoordsWhereDied.x, CoordsWhereDied.y, CoordsWhereDied.z, 0, false, false, FALSE, 0, 0);
 			PLAYER::RESET_PLAYER_ARREST_STATE(playerPed);
 			PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
 			WAIT(1000);
-			CAM::DO_SCREEN_FADE_IN(500);
-			GAMEPLAY::SET_TIME_SCALE(1.0f);
+			CAMERA::DO_SCREEN_FADE_IN(500);
+			MISC::SET_TIME_SCALE(1.0f);
 		}
 	}
 
@@ -944,7 +944,7 @@ void update_features(){
 		if (PED::IS_PED_FALLING(playerPed) || PED::IS_PED_IN_PARACHUTE_FREE_FALL(playerPed)) falling_down = true;
 		if (falling_down) PLAYER::SET_PLAYER_INVINCIBLE(player, TRUE);
 		if (!PED::IS_PED_FALLING(playerPed) && !PED::IS_PED_IN_PARACHUTE_FREE_FALL(playerPed) && falling_down) {
-			if (!PED::IS_PED_RAGDOLL(playerPed) && (CONTROLS::IS_CONTROL_PRESSED(2, 32) || CONTROLS::IS_CONTROL_PRESSED(2, 33) || CONTROLS::IS_CONTROL_PRESSED(2, 34) || CONTROLS::IS_CONTROL_PRESSED(2, 35))) {
+			if (!PED::IS_PED_RAGDOLL(playerPed) && (PAD::IS_CONTROL_PRESSED(2, 32) || PAD::IS_CONTROL_PRESSED(2, 33) || PAD::IS_CONTROL_PRESSED(2, 34) || PAD::IS_CONTROL_PRESSED(2, 35))) {
 				falling_down = false;
 				PLAYER::SET_PLAYER_INVINCIBLE(player, FALSE);
 			}
@@ -953,16 +953,16 @@ void update_features(){
 
 	// enable default weapon
 	if (def_w == false) {
-		CONTROLS::_SET_CONTROL_NORMAL(0, 159, 1); // 160
+		PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 159, 1); // 160
 		WAIT(10);
-		CONTROLS::_SET_CONTROL_NORMAL(0, 157, 1);
+		PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 157, 1);
 		def_w = true;
 	}
 
 	// Get time since last death/arrest
-	if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) time_since_d = -1;
+	if (ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) time_since_d = -1;
 	if (PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 0)) time_since_a = -1;
-	if (time_since_d < 7000 && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) time_since_d = PLAYER::GET_TIME_SINCE_LAST_DEATH();
+	if (time_since_d < 7000 && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) time_since_d = PLAYER::GET_TIME_SINCE_LAST_DEATH();
 	if (time_since_a < 7000 && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 0)) time_since_a = PLAYER::GET_TIME_SINCE_LAST_ARREST();
 
 	// Disable Ignition
@@ -980,7 +980,7 @@ void update_features(){
 			}
 			veh_engine_t = true;
 		}
-		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && !VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(PED::GET_VEHICLE_PED_IS_USING(playerPed)) && CONTROLS::IS_CONTROL_PRESSED(2, 71)) {
+		if (PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && !VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(PED::GET_VEHICLE_PED_IS_USING(playerPed)) && PAD::IS_CONTROL_PRESSED(2, 71)) {
 			engine_running = false;
 			engineonoff_switching();
 		}
@@ -1006,44 +1006,44 @@ void update_features(){
 	
 	// No Police Helicopters
 	if (featureWantedLevelNoPHeli.enabled) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(2, false);
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(12, false);
+		MISC::ENABLE_DISPATCH_SERVICE(2, false);
+		MISC::ENABLE_DISPATCH_SERVICE(12, false);
 		featureWantedLevelNoPHeli.updated = true;
 	}
 	else if (featureWantedLevelNoPHeli.updated == true) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(2, true);
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(12, true);
+		MISC::ENABLE_DISPATCH_SERVICE(2, true);
+		MISC::ENABLE_DISPATCH_SERVICE(12, true);
 		featureWantedLevelNoPHeli.updated = false;
 	}
 
 	// No Road Blocks
 	if (featureWantedNoPRoadB.enabled) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(8, false);
+		MISC::ENABLE_DISPATCH_SERVICE(8, false);
 		featureWantedNoPRoadB.updated = true;
 	}
 	else if (featureWantedNoPRoadB.updated == true) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(8, true);
+		MISC::ENABLE_DISPATCH_SERVICE(8, true);
 		featureWantedNoPRoadB.updated = false;
 	}
 
 	// No Police Boats
 	if (featureWantedLevelNoPBoats.enabled) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(13, false);
+		MISC::ENABLE_DISPATCH_SERVICE(13, false);
 		featureWantedLevelNoPBoats.updated = true;
 	}
 	else if (featureWantedLevelNoPBoats.updated == true) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(13, true);
+		MISC::ENABLE_DISPATCH_SERVICE(13, true);
 		featureWantedLevelNoPBoats.updated = false;
 	}
 
 	// No SWAT Vehicles
 	if (featureWantedLevelNoSWATVehicles.enabled) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(4, false);
+		MISC::ENABLE_DISPATCH_SERVICE(4, false);
 		featureWantedLevelNoSWATVehicles.updated = true;
 
 	}
 	else if (featureWantedLevelNoSWATVehicles.updated == true) {
-		GAMEPLAY::ENABLE_DISPATCH_SERVICE(4, true);
+		MISC::ENABLE_DISPATCH_SERVICE(4, true);
 		featureWantedLevelNoSWATVehicles.updated = false;
 	}
 
@@ -1058,11 +1058,11 @@ void update_features(){
 			if ((PED::GET_PED_TYPE(copram[i]) == 6 || PED::GET_PED_TYPE(copram[i]) == 27 || PED::GET_PED_TYPE(copram[i]) == 29) && copram[i] != playerPed) {
 				Vector3 cop_cor = ENTITY::GET_ENTITY_COORDS(copram[i], true);
 				//float cop_speed = ENTITY::GET_ENTITY_SPEED(PED::GET_VEHICLE_PED_IS_USING(copram[i]));
-				float dist_diff_c_m = SYSTEM::VDIST(my_cor.x, my_cor.y, my_cor.z, cop_cor.x, cop_cor.y, cop_cor.z);
+				float dist_diff_c_m = BUILTIN::VDIST(my_cor.x, my_cor.y, my_cor.z, cop_cor.x, cop_cor.y, cop_cor.z);
 				if (dist_diff_c_m < 30) { // 50 //  && cop_speed > my_speed
-					//AI::TASK_VEHICLE_TEMP_ACTION(copram[i], PED::GET_VEHICLE_PED_IS_USING(copram[i]), 27, 1); // 100
-					AI::SET_DRIVE_TASK_CRUISE_SPEED(copram[i], my_speed);
-					AI::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(copram[i], 10.0f); // 30
+					//TASK::TASK_VEHICLE_TEMP_ACTION(copram[i], PED::GET_VEHICLE_PED_IS_USING(copram[i]), 27, 1); // 100
+					TASK::SET_DRIVE_TASK_CRUISE_SPEED(copram[i], my_speed);
+					TASK::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(copram[i], 10.0f); // 30
 					PED::SET_DRIVER_AGGRESSIVENESS(copram[i], 0.0f);
 				}
 			}
@@ -1070,7 +1070,7 @@ void update_features(){
 	}
 
 	// No Whistling For Taxi
-	if (NoTaxiWhistling && PLAYER::IS_PLAYER_CONTROL_ON(PLAYER::PLAYER_ID()) && !UI::IS_HELP_MESSAGE_BEING_DISPLAYED() && GAMEPLAY::GET_MISSION_FLAG() == 0) CONTROLS::DISABLE_CONTROL_ACTION(2, 51, 1);
+	if (NoTaxiWhistling && PLAYER::IS_PLAYER_CONTROL_ON(PLAYER::PLAYER_ID()) && !HUD::IS_HELP_MESSAGE_BEING_DISPLAYED() && MISC::GET_MISSION_FLAG() == 0) PAD::DISABLE_CONTROL_ACTION(2, 51, 1);
 		
 	// Levitation
 	if (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] < 1) lev_message = false;
@@ -1091,34 +1091,34 @@ void update_features(){
 			if (tempgot_x < 0) tempgot_x = (tempgot_x * -1);
 			if (tempgot_y < 0) tempgot_y = (tempgot_y * -1);
 			if (tempgot_z < 0) tempgot_z = (tempgot_z * -1);
-			ROPE::ACTIVATE_PHYSICS(surr_p_peds[i]);
+			PHYSICS::ACTIVATE_PHYSICS(surr_p_peds[i]);
 			if (surr_p_peds[i] != playerPed && !PED::IS_PED_IN_ANY_VEHICLE(surr_p_peds[i], 0)) { 
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 22) && tempgot_x < VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] && tempgot_y < VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex]) {
+				if (PAD::IS_CONTROL_PRESSED(2, 22) && tempgot_x < VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] && tempgot_y < VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex]) {
 					PED::SET_PED_CAN_RAGDOLL(surr_p_peds[i], true);
 					PED::SET_PED_CAN_RAGDOLL_FROM_PLAYER_IMPACT(surr_p_peds[i], true);
 					PED::SET_PED_RAGDOLL_FORCE_FALL(surr_p_peds[i]);
 					STREAMING::REQUEST_ANIM_DICT("dead@fall");
 					while (!STREAMING::HAS_ANIM_DICT_LOADED("dead@fall")) WAIT(0);
 					if (!ENTITY::IS_ENTITY_PLAYING_ANIM(surr_p_peds[i], "dead@fall", "dead_fall_down", 3)) {
-						AI::TASK_PLAY_ANIM(surr_p_peds[i], "dead@fall", "dead_fall_down", 8.0, 0.0, -1, 9, 0, 0, 0, 0);
+						TASK::TASK_PLAY_ANIM(surr_p_peds[i], "dead@fall", "dead_fall_down", 8.0, 0.0, -1, 9, 0, 0, 0, 0);
 						PED::SET_PED_TO_RAGDOLL(surr_p_peds[i], 1, 1, 1, 1, 1, 1);
 					}
 					if (tempgot_z < VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex]) ENTITY::APPLY_FORCE_TO_ENTITY(surr_p_peds[i], 1, 0, 0, 0.6, 0, 0, 0, true, false, true, true, true, true); // 20
 				}
-				if (CONTROLS::IS_CONTROL_PRESSED(2, 22) && (tempgot_x > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1) || tempgot_y > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1)) && tempgot_z > 5) {
+				if (PAD::IS_CONTROL_PRESSED(2, 22) && (tempgot_x > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1) || tempgot_y > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1)) && tempgot_z > 5) {
 					Vector3 curPLocation = ENTITY::GET_ENTITY_COORDS(surr_p_peds[i], 0);
 					ENTITY::SET_ENTITY_COORDS_NO_OFFSET(surr_p_peds[i], curPLocation.x, curPLocation.y, curPLocation.z - 1, 1, 1, 1);
 				}
-				if (CONTROLS::IS_CONTROL_RELEASED(2, 22) || tempgot_x > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1) || tempgot_y > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1)) {
+				if (PAD::IS_CONTROL_RELEASED(2, 22) || tempgot_x > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1) || tempgot_y > (VEH_TURN_SIGNALS_ANGLE_VALUES[LevitationIndex] - 1)) {
 					if (ENTITY::IS_ENTITY_PLAYING_ANIM(surr_p_peds[i], "dead@fall", "dead_fall_down", 3)) {
 						Vector3 curPLocation = ENTITY::GET_ENTITY_COORDS(surr_p_peds[i], 0);
 						ENTITY::SET_ENTITY_COORDS_NO_OFFSET(surr_p_peds[i], curPLocation.x, curPLocation.y, curPLocation.z, 1, 1, 1);
-						AI::STOP_ANIM_TASK(surr_p_peds[i], "dead@fall", "dead_fall_down", 1.0);
+						TASK::STOP_ANIM_TASK(surr_p_peds[i], "dead@fall", "dead_fall_down", 1.0);
 					}
 				}
 			}
 		} // end of int (peds)
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 22)) {
+		if (PAD::IS_CONTROL_PRESSED(2, 22)) {
 			Object surr_objects[arrSize_punch];
 			int count_surr_o = worldGetAllObjects(surr_objects, arrSize_punch);
 			for (int i = 0; i < count_surr_o; i++) {
@@ -1150,7 +1150,7 @@ void update_features(){
 
 	// Hancock Mode
 	if (PLAYER_MOVEMENT_VALUES[current_player_jumpfly.value] > 0.00 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, 1)) {
-		Vector3 CamRot = CAM::GET_GAMEPLAY_CAM_ROT(2);
+		Vector3 CamRot = CAMERA::GET_GAMEPLAY_CAM_ROT(2);
 		float p_force = PLAYER_MOVEMENT_VALUES[current_player_jumpfly.value];
 		float rad = 2 * 3.14 * (CamRot.z / 360);
 		float v_x = -(sin(rad) * p_force * 10);
@@ -1158,7 +1158,7 @@ void update_features(){
 		float v_z = p_force * (CamRot.x * 0.2);
 		Vector3 curLocation = ENTITY::GET_ENTITY_COORDS(playerPed, 0);
 		if (ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3)) ENTITY::SET_ENTITY_ROTATION(PLAYER::PLAYER_PED_ID(), CamRot.x, CamRot.y, CamRot.z, 1, true);
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 22)) {
+		if (PAD::IS_CONTROL_PRESSED(2, 22)) {
 			jumpfly_secs_passed = clock() / CLOCKS_PER_SEC;
 			if (((clock() / (CLOCKS_PER_SEC / 1000)) - jumpfly_secs_curr) != 0) {
 				jumpfly_tick = jumpfly_tick + 1;
@@ -1166,30 +1166,30 @@ void update_features(){
 			}
 			if (jumpfly_tick > 5) {
 				if (!ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3)) {
-					AI::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
-					AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 8.0, 0.0, -1, 9, 0, 0, 0, 0); // free_idle
+					TASK::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
+					TASK::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 8.0, 0.0, -1, 9, 0, 0, 0, 0); // free_idle
 				}
 				ENTITY::APPLY_FORCE_TO_ENTITY(PLAYER::PLAYER_PED_ID(), 1, 0, 0, p_force, 0, 0, 0, true, false, true, true, true, true);
 			}
 			if (ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3)) skydiving = true;
 		}
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 32) && skydiving == true) { // MoveUpOnly
+		if (PAD::IS_CONTROL_PRESSED(2, 32) && skydiving == true) { // MoveUpOnly
 			if (!ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3)) {
-				AI::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
-				AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 8.0, 0.0, -1, 9, 0, 0, 0, 0); // free_idle
+				TASK::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
+				TASK::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 8.0, 0.0, -1, 9, 0, 0, 0, 0); // free_idle
 			}
 			ENTITY::SET_ENTITY_ROTATION(PLAYER::PLAYER_PED_ID(), CamRot.x, CamRot.y, CamRot.z, 1, true);
 			ENTITY::APPLY_FORCE_TO_ENTITY(PLAYER::PLAYER_PED_ID(), 1, v_x / 8, v_y / 8, v_z / 8, 0, 0, 0, true, false, true, true, true, true);
 		}
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 33) && skydiving == true) { // MoveDownOnly
+		if (PAD::IS_CONTROL_PRESSED(2, 33) && skydiving == true) { // MoveDownOnly
 			jumpfly_secs_passed = clock() / CLOCKS_PER_SEC;
 			if (((clock() / (CLOCKS_PER_SEC / 1000)) - jumpfly_secs_curr) != 0) {
 				jumpfly_tick = jumpfly_tick + 1;
 				jumpfly_secs_curr = jumpfly_secs_passed;
 			}
 			if (!ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3)) {
-				AI::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
-				AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 8.0, 0.0, -1, 9, 0, 0, 0, 0); // free_idle
+				TASK::CLEAR_PED_TASKS_IMMEDIATELY(PLAYER::PLAYER_PED_ID());
+				TASK::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 8.0, 0.0, -1, 9, 0, 0, 0, 0); // free_idle
 			}
 			ENTITY::SET_ENTITY_ROTATION(PLAYER::PLAYER_PED_ID(), CamRot.x, CamRot.y, CamRot.z, 1, true);
 			if (jumpfly_tick < 30) ENTITY::FREEZE_ENTITY_POSITION(PLAYER::PLAYER_PED_ID(), false); 
@@ -1198,31 +1198,31 @@ void update_features(){
 				ENTITY::APPLY_FORCE_TO_ENTITY(PLAYER::PLAYER_PED_ID(), 1, -(v_x / 8), -(v_y / 8), -(v_z / 8), 0, 0, 0, true, false, true, true, true, true);
 			}
 		}
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 34) && skydiving == true) { // MoveLeftOnly
+		if (PAD::IS_CONTROL_PRESSED(2, 34) && skydiving == true) { // MoveLeftOnly
 			curLocation.x += ((PLAYER_MOVEMENT_VALUES[current_player_jumpfly.value] / 2) * sin(degToRad(CamRot.z + 90)) * -1.0f);
 			curLocation.y += ((PLAYER_MOVEMENT_VALUES[current_player_jumpfly.value] / 2) * cos(degToRad(CamRot.z + 90)));
 			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, curLocation.x, curLocation.y, curLocation.z, 1, 1, 1);
 		}
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 35) && skydiving == true) { // MoveRightOnly
+		if (PAD::IS_CONTROL_PRESSED(2, 35) && skydiving == true) { // MoveRightOnly
 			curLocation.x += ((PLAYER_MOVEMENT_VALUES[current_player_jumpfly.value] / 2) * sin(degToRad(CamRot.z - 90)) * -1.0f);
 			curLocation.y += ((PLAYER_MOVEMENT_VALUES[current_player_jumpfly.value] / 2) * cos(degToRad(CamRot.z - 90)));
 			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(playerPed, curLocation.x, curLocation.y, curLocation.z, 1, 1, 1);
 		}
-		if (CONTROLS::IS_CONTROL_RELEASED(2, 33) && CONTROLS::IS_CONTROL_RELEASED(2, 22)) { // MoveDownOnly && Jump
+		if (PAD::IS_CONTROL_RELEASED(2, 33) && PAD::IS_CONTROL_RELEASED(2, 22)) { // MoveDownOnly && Jump
 			ENTITY::FREEZE_ENTITY_POSITION(PLAYER::PLAYER_PED_ID(), false);
 			jumpfly_tick = 0; 
 		}
 		if (ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(PLAYER::PLAYER_PED_ID())) { 
-			AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3);
+			TASK::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3);
 			if (skydiving == true) {
-				AI::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "move_strafe@roll_fps", "combatroll_fwd_p1_00", 8.0, 0.0, -1, 9, 0, 0, 0, 0);
+				TASK::TASK_PLAY_ANIM(PLAYER::PLAYER_PED_ID(), "move_strafe@roll_fps", "combatroll_fwd_p1_00", 8.0, 0.0, -1, 9, 0, 0, 0, 0);
 				WAIT(400);
 			}
 			skydiving = false;
 		}
 		if (skydiving == false) {
-			AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3);
-			AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), "move_strafe@roll_fps", "combatroll_fwd_p1_00", 3); 
+			TASK::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3);
+			TASK::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), "move_strafe@roll_fps", "combatroll_fwd_p1_00", 3); 
 		}
 		if (ENTITY::IS_ENTITY_PLAYING_ANIM(PLAYER::PLAYER_PED_ID(), "skydive@base", "free_idle", 3)) skydiving = true;
 		else skydiving = false;
@@ -1232,10 +1232,10 @@ void update_features(){
 	// Player Can Be Headshot
 	if (featurePlayerCanBeHeadshot && !featurePlayerInvincible.enabled) {
 		Vector3 coords_bullet_p = PED::GET_PED_BONE_COORDS(playerPed, 31086, 0, 0, 0); // head bone
-		if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_bullet_p.x, coords_bullet_p.y, coords_bullet_p.z, 0.1, 0, 0)) {
+		if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_bullet_p.x, coords_bullet_p.y, coords_bullet_p.z, 0.1, 0, 0)) {
 			PED::CLEAR_PED_LAST_DAMAGE_BONE(playerPed);
 			ENTITY::CLEAR_ENTITY_LAST_DAMAGE_ENTITY(playerPed);
-			ENTITY::SET_ENTITY_HEALTH(PLAYER::PLAYER_PED_ID(), 0);
+			ENTITY::SET_ENTITY_HEALTH(PLAYER::PLAYER_PED_ID(), 0, 0, 0);
 		}
 	}
 
@@ -1258,8 +1258,8 @@ void update_features(){
 				Vector3 coords_calf_l = PED::GET_PED_BONE_COORDS(playerPed, 63931, 0, 0, 0); // left calf
 				Vector3 coords_calf_r = PED::GET_PED_BONE_COORDS(playerPed, 36864, 0, 0, 0); // right calf
 			Vector3 coords_pelvis = PED::GET_PED_BONE_COORDS(playerPed, 11816, 0, 0, 0); // pelvis
-			if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && (GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_calf_l.x, coords_calf_l.y, coords_calf_l.z, 0.4, 0, 0) ||
-				GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_calf_r.x, coords_calf_r.y, coords_calf_r.z, 0.4, 0, 0) || GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_pelvis.x, coords_pelvis.y, coords_pelvis.z, 0.2, 0, 0))) {
+			if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && (MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_calf_l.x, coords_calf_l.y, coords_calf_l.z, 0.4, 0, 0) ||
+				MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_calf_r.x, coords_calf_r.y, coords_calf_r.z, 0.4, 0, 0) || MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_pelvis.x, coords_pelvis.y, coords_pelvis.z, 0.2, 0, 0))) {
 				been_injured = true;
 			}
 			if (NPC_RAGDOLL_VALUES[current_limp_if_injured.value] == 1 && ((!featurePlayerLife.enabled && curr_health < 80) || (featurePlayerLife.enabled && curr_health < ((80.0 / 100.0) * curr_set_h)) ||
@@ -1272,8 +1272,8 @@ void update_features(){
 				injured_drunk = true;
 			}
 			if (((!featurePlayerLife.enabled && curr_health < 30) ||
-				(featurePlayerLife.enabled && curr_health < ((30.0 / 100.0) * curr_set_h))) && !ENTITY::IS_ENTITY_DEAD(playerPed)) CONTROLS::DISABLE_CONTROL_ACTION(2, 22, 1); // jump
-			if ((!featurePlayerLife.enabled && curr_health < 50) || (featurePlayerLife.enabled && curr_health < ((50.0 / 100.0) * curr_set_h)) || been_injured == true) CONTROLS::DISABLE_CONTROL_ACTION(2, 21, 1); // sprint
+				(featurePlayerLife.enabled && curr_health < ((30.0 / 100.0) * curr_set_h))) && !ENTITY::IS_ENTITY_DEAD(playerPed, FALSE)) PAD::DISABLE_CONTROL_ACTION(2, 22, 1); // jump
+			if ((!featurePlayerLife.enabled && curr_health < 50) || (featurePlayerLife.enabled && curr_health < ((50.0 / 100.0) * curr_set_h)) || been_injured == true) PAD::DISABLE_CONTROL_ACTION(2, 21, 1); // sprint
 			if ((!featurePlayerLife.enabled && curr_health > 79) || (featurePlayerLife.enabled && curr_health > ((80.0 / 100.0) * curr_set_h) - 1) || (time_since_d > 100 && time_since_d < 5000) ||
 				(time_since_a > 100 && time_since_a < 5000) || (injured_drunk == true && NPC_RAGDOLL_VALUES[current_limp_if_injured.value] != 2) || player_died == true) {
 				PED::CLEAR_PED_LAST_DAMAGE_BONE(playerPed);
@@ -1287,9 +1287,9 @@ void update_features(){
 		if (VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured.value] > 0 && enable_camera_injured == false) {
 			if ((!featurePlayerLife.enabled && curr_health < 80) || (featurePlayerLife.enabled && curr_health < ((80.0 / 100.0) * curr_set_h))) {
 				float tmp_v = VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured.value];
-				CAM::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", tmp_v / 3);
+				CAMERA::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", tmp_v / 3);
 			}
-			if ((!featurePlayerLife.enabled && curr_health > 79) || (featurePlayerLife.enabled && curr_health > ((80.0 / 100.0) * curr_set_h) - 1)) CAM::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", 0.0f);
+			if ((!featurePlayerLife.enabled && curr_health > 79) || (featurePlayerLife.enabled && curr_health > ((80.0 / 100.0) * curr_set_h) - 1)) CAMERA::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", 0.0f);
 			enable_camera_injured = true;
 			curr_cam = VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_injured.value];
 			curr_hlth = curr_health;
@@ -1297,9 +1297,9 @@ void update_features(){
 	}
 
 	// Can Run In Apartments
-	if (featurePlayerRunApartments && GAMEPLAY::GET_MISSION_FLAG() == 0 && !UI::IS_HELP_MESSAGE_BEING_DISPLAYED()) {
+	if (featurePlayerRunApartments && MISC::GET_MISSION_FLAG() == 0 && !HUD::IS_HELP_MESSAGE_BEING_DISPLAYED()) {
 		int curr_int = INTERIOR::GET_INTERIOR_AT_COORDS(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z);
-		if (!INTERIOR::_ARE_COORDS_COLLIDING_WITH_EXTERIOR(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z) &&
+		if (!INTERIOR::IS_COLLISION_MARKED_OUTSIDE(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z) &&
 			(curr_int == 206849 || curr_int == 166657 || curr_int == 166401 || curr_int == 115458 || curr_int == 114946 || curr_int == 171777 || curr_int == 197121 || curr_int == 197889 || curr_int == 4866 || curr_int == 36866)) {
 			iaminside = true;
 			if (!ENTITY::IS_ENTITY_IN_AREA(playerPed, -802.346,	171.234, 70.8347, -799.234, 174.817, 74.8347, 1, 1, 1) &&
@@ -1317,13 +1317,13 @@ void update_features(){
 				}
 				
 				if (we_have_troubles == false) {
-					GAMEPLAY::CLEAR_AREA_OF_COPS(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z, 20, 0);
+					MISC::CLEAR_AREA_OF_COPS(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z, 20, 0);
 					PLAYER::SET_POLICE_IGNORE_PLAYER(PLAYER::PLAYER_ID(), true);
-					UI::HIDE_HUD_COMPONENT_THIS_FRAME(1);
+					HUD::HIDE_HUD_COMPONENT_THIS_FRAME(1);
 				}
 				else {
 					PLAYER::SET_POLICE_IGNORE_PLAYER(PLAYER::PLAYER_ID(), false);
-					UI::SHOW_HUD_COMPONENT_THIS_FRAME(1);
+					HUD::SHOW_HUD_COMPONENT_THIS_FRAME(1);
 				}
 			}
 			else if (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < 2 && we_have_troubles == false) { // leaving the house
@@ -1354,10 +1354,10 @@ void update_features(){
 	////////////////////////////////////// PLAYER DATA ////////////////////////////////////////////////
 	if ((bPlayerExists && featurePlayerLife.enabled && featurePlayerLife.updated) || (bPlayerExists && featurePlayerLife.enabled && PLAYER_ARMOR_VALUES[current_player_stats.value] > -1 && featurePlayerStatsUpdated) || apply_pressed == true || player_d_armour == true) {
 		if (!STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) { 
-			if ((featurePlayerLife.updated && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) || (player_d_armour == true && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()))) {
+			if ((featurePlayerLife.updated && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) || (player_d_armour == true && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE))) {
 				if (PLAYER_HEALTH_VALUES[current_player_health.value] > 0) {
 					PED::SET_PED_MAX_HEALTH(playerPed, PLAYER_HEALTH_VALUES[current_player_health.value]);
-					ENTITY::SET_ENTITY_HEALTH(playerPed, PLAYER_HEALTH_VALUES[current_player_health.value]);
+					ENTITY::SET_ENTITY_HEALTH(playerPed, PLAYER_HEALTH_VALUES[current_player_health.value], 0, 0);
 				}
 				if (detained == false && in_prison == false && PLAYER_ARMOR_VALUES[current_player_armor.value] > -1) {
 					PLAYER::SET_PLAYER_MAX_ARMOUR(playerPed, PLAYER_ARMOR_VALUES[current_player_armor.value]);
@@ -1368,38 +1368,38 @@ void update_features(){
 			oldplayerPed = playerPed;
 			featurePlayerLife.updated = false;
 
-			if (PLAYER_ARMOR_VALUES[current_player_stats.value] > -1 && featurePlayerStatsUpdated && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+			if (PLAYER_ARMOR_VALUES[current_player_stats.value] > -1 && featurePlayerStatsUpdated && MISC::GET_MISSION_FLAG() == 0) {
 				if (PED::GET_PED_TYPE(playerPed) == 0) {
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_SPECIAL_ABILITY_UNLOCKED"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_STAMINA"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_STRENGTH"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_LUNG_CAPACITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_WHEELIE_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_FLYING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_SHOOTING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP0_STEALTH_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_SPECIAL_ABILITY_UNLOCKED"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_STAMINA"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_STRENGTH"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_LUNG_CAPACITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_WHEELIE_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_FLYING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_SHOOTING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP0_STEALTH_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
 				}
 				if (PED::GET_PED_TYPE(playerPed) == 1) {
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_SPECIAL_ABILITY_UNLOCKED"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_STAMINA"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_STRENGTH"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_LUNG_CAPACITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_WHEELIE_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_FLYING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_SHOOTING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP1_STEALTH_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_SPECIAL_ABILITY_UNLOCKED"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_STAMINA"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_STRENGTH"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_LUNG_CAPACITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_WHEELIE_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_FLYING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_SHOOTING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP1_STEALTH_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
 				}
 				if (PED::GET_PED_TYPE(playerPed) == 2 || PED::GET_PED_TYPE(playerPed) == 3) {
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_SPECIAL_ABILITY_UNLOCKED"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_STAMINA"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_STRENGTH"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_LUNG_CAPACITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_WHEELIE_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_FLYING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_SHOOTING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
-					STATS::STAT_SET_INT(GAMEPLAY::GET_HASH_KEY("SP2_STEALTH_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_SPECIAL_ABILITY_UNLOCKED"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_STAMINA"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_STRENGTH"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_LUNG_CAPACITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_WHEELIE_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_FLYING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_SHOOTING_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
+					STATS::STAT_SET_INT(MISC::GET_HASH_KEY("SP2_STEALTH_ABILITY"), PLAYER_ARMOR_VALUES[current_player_stats.value], true);
 				}
-				GAMEPLAY::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("stats_controller");
+				MISC::TERMINATE_ALL_SCRIPTS_WITH_THIS_NAME("stats_controller");
 
 				featurePlayerStatsUpdated = false;
 			}
@@ -1415,18 +1415,18 @@ void update_features(){
 		if (detained == false && alert_level == 0) player_died = false;
 	}
 	
-	if ((playerPed != oldplayerPed) || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) { // If You Switch Character Your Health & Armor Will Be Restored
+	if ((playerPed != oldplayerPed) || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) { // If You Switch Character Your Health & Armor Will Be Restored
 		featurePlayerLife.updated = true;
 		featurePlayerStatsUpdated = true;
 		if (!featurePlayerLife.enabled) dynamic_loading = true;
 	}
 
-	if (PLAYER_ARMOR_VALUES[current_player_stats.value] > -1 && GAMEPLAY::GET_MISSION_FLAG() == 1 && !SCRIPT::HAS_SCRIPT_LOADED("stats_controller")) {
+	if (PLAYER_ARMOR_VALUES[current_player_stats.value] > -1 && MISC::GET_MISSION_FLAG() == 1 && !SCRIPT::HAS_SCRIPT_LOADED("stats_controller")) {
 		while (!SCRIPT::HAS_SCRIPT_LOADED("stats_controller")) {
 			SCRIPT::REQUEST_SCRIPT("stats_controller");
-			SYSTEM::WAIT(0);
+			BUILTIN::WAIT(0);
 		}
-		SYSTEM::START_NEW_SCRIPT("stats_controller", 1424);
+		BUILTIN::START_NEW_SCRIPT("stats_controller", 1424);
 		
 		featurePlayerStatsUpdated = true;
 	}
@@ -1434,9 +1434,9 @@ void update_features(){
 	if (featurePlayerStatsUpdated == true && !SCRIPT::HAS_SCRIPT_LOADED("stats_controller")) {
 		while (!SCRIPT::HAS_SCRIPT_LOADED("stats_controller")) {
 			SCRIPT::REQUEST_SCRIPT("stats_controller");
-			SYSTEM::WAIT(0);
+			BUILTIN::WAIT(0);
 		}
-		SYSTEM::START_NEW_SCRIPT("stats_controller", 1424);
+		BUILTIN::START_NEW_SCRIPT("stats_controller", 1424);
 	}
 	//////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1461,7 +1461,7 @@ void update_features(){
 	// Player Special Ability
 	if(featurePlayerUnlimitedAbility){
 		if(bPlayerExists){
-			PLAYER::SPECIAL_ABILITY_FILL_METER(player, 1);
+			PLAYER::SPECIAL_ABILITY_FILL_METER(player, 1, 0);
 		}
 	}
 
@@ -1483,32 +1483,32 @@ void update_features(){
 
 	// Player Fast Run 
 	if(featurePlayerFastRun){
-		if (AI::IS_PED_SPRINTING(PLAYER::PLAYER_PED_ID())) PLAYER::SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER(player, 1.49);
+		if (TASK::IS_PED_SPRINTING(PLAYER::PLAYER_PED_ID())) PLAYER::SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER(player, 1.49);
 		else PLAYER::SET_RUN_SPRINT_MULTIPLIER_FOR_PLAYER(player, 1.0);
 	}
 
 	// Player Running Speed
 	if (PLAYER_MOVEMENT_VALUES[current_player_movement.value] > 0.00) {
-		if (AI::IS_PED_SPRINTING(PLAYER::PLAYER_PED_ID())) PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, PLAYER_MOVEMENT_VALUES[current_player_movement.value]);
+		if (TASK::IS_PED_SPRINTING(PLAYER::PLAYER_PED_ID())) PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, PLAYER_MOVEMENT_VALUES[current_player_movement.value]);
 		else PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, 1.00);
-		//if (CONTROLS::IS_CONTROL_PRESSED(2, 21) && PED::IS_PED_ON_FOOT(playerPed)) PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, PLAYER_MOVEMENT_VALUES[current_player_movement.value]);
-		//if (CONTROLS::IS_CONTROL_RELEASED(2, 21) && PED::IS_PED_ON_FOOT(playerPed)) PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, 1.00);
+		//if (PAD::IS_CONTROL_PRESSED(2, 21) && PED::IS_PED_ON_FOOT(playerPed)) PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, PLAYER_MOVEMENT_VALUES[current_player_movement.value]);
+		//if (PAD::IS_CONTROL_RELEASED(2, 21) && PED::IS_PED_ON_FOOT(playerPed)) PED::SET_PED_MOVE_RATE_OVERRIDE(playerPed, 1.00);
 	}
 
 	// Player Super Jump
 	if(PLAYER_MOVEMENT_VALUES[current_player_superjump.value] > 0.00) {
 		float my_player_speed = ENTITY::GET_ENTITY_SPEED(playerPed);
 		if(bPlayerExists && my_player_speed > 1.0 && !PED::IS_PED_RAGDOLL(playerPed) && PED::IS_PED_ON_FOOT(playerPed)){
-			float CamRot = ENTITY::_GET_ENTITY_PHYSICS_HEADING(playerPed);
+			float CamRot = ENTITY::GET_ENTITY_HEADING_FROM_EULERS(playerPed);
 			int p_force = PLAYER_MOVEMENT_VALUES[current_player_superjump.value] / 3; // 2
 			float rad = 2 * 3.14 * (CamRot / 360);
 			float v_x = -(sin(rad) * p_force * 10);
 			float v_y = (cos(rad) * p_force * 10);
 			float v_z = p_force * (CamRot * 0.2);
-			if (PLAYER_MOVEMENT_VALUES[current_player_superjump.value] != 0.60) GAMEPLAY::SET_SUPER_JUMP_THIS_FRAME(player);
-			if (PLAYER_MOVEMENT_VALUES[current_player_superjump.value] != 0.60 && CONTROLS::IS_CONTROL_JUST_PRESSED(2, 22) && ENTITY::GET_ENTITY_HEIGHT_ABOVE_GROUND(playerPed) < 1.5 && PED::IS_PED_ON_FOOT(playerPed) && !AI::IS_PED_STILL(playerPed)) super_jump_no_parachute = true;
-			if ((PLAYER_MOVEMENT_VALUES[current_player_superjump.value] == 0.60 || PLAYER_MOVEMENT_VALUES[current_player_superjump.value] > 1.00) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, 22) && ENTITY::GET_ENTITY_HEIGHT_ABOVE_GROUND(playerPed) < 1.5 && 
-				PED::IS_PED_ON_FOOT(playerPed) && !AI::IS_PED_STILL(playerPed)) {
+			if (PLAYER_MOVEMENT_VALUES[current_player_superjump.value] != 0.60) MISC::SET_SUPER_JUMP_THIS_FRAME(player);
+			if (PLAYER_MOVEMENT_VALUES[current_player_superjump.value] != 0.60 && PAD::IS_CONTROL_JUST_PRESSED(2, 22) && ENTITY::GET_ENTITY_HEIGHT_ABOVE_GROUND(playerPed) < 1.5 && PED::IS_PED_ON_FOOT(playerPed) && !TASK::IS_PED_STILL(playerPed)) super_jump_no_parachute = true;
+			if ((PLAYER_MOVEMENT_VALUES[current_player_superjump.value] == 0.60 || PLAYER_MOVEMENT_VALUES[current_player_superjump.value] > 1.00) && PAD::IS_CONTROL_JUST_PRESSED(2, 22) && ENTITY::GET_ENTITY_HEIGHT_ABOVE_GROUND(playerPed) < 1.5 && 
+				PED::IS_PED_ON_FOOT(playerPed) && !TASK::IS_PED_STILL(playerPed)) {
 				super_jump_no_parachute = true;
 				if (PLAYER_MOVEMENT_VALUES[current_player_superjump.value] != 0.60) ENTITY::APPLY_FORCE_TO_ENTITY(playerPed, 3, v_x, v_y, PLAYER_MOVEMENT_VALUES[current_player_superjump.value] * 10, 0, 0, 0, true, false, true, true, true, true); // * 20
 				if (PLAYER_MOVEMENT_VALUES[current_player_superjump.value] == 0.60) ENTITY::APPLY_FORCE_TO_ENTITY(playerPed, 3, v_x, v_y, PLAYER_MOVEMENT_VALUES[current_player_superjump.value] * 30, 0, 0, 0, true, false, true, true, true, true); // * 25
@@ -1538,13 +1538,13 @@ void update_features(){
 			PED::SET_PED_CAN_RAGDOLL(playerPed, 0);
 			PED::SET_PED_CAN_RAGDOLL_FROM_PLAYER_IMPACT(playerPed, 0);
 			FIRE::STOP_ENTITY_FIRE(playerPed);
-			PED::_SET_PED_RAGDOLL_BLOCKING_FLAGS(playerPed, 1);
-			PED::_SET_PED_RAGDOLL_BLOCKING_FLAGS(playerPed, 2);
-			PED::_SET_PED_RAGDOLL_BLOCKING_FLAGS(playerPed, 4);
+			PED::SET_RAGDOLL_BLOCKING_FLAGS(playerPed, 1);
+			PED::SET_RAGDOLL_BLOCKING_FLAGS(playerPed, 2);
+			PED::SET_RAGDOLL_BLOCKING_FLAGS(playerPed, 4);
 			PED::SET_PED_CONFIG_FLAG(playerPed, 104, true);
 			PED::SET_PED_CONFIG_FLAG(playerPed, 33, false);
 			PED::SET_PED_RAGDOLL_ON_COLLISION(playerPed, false);
-			if (NPC_RAGDOLL_VALUES[current_no_ragdoll.value] == 2 && (PED::IS_PED_FALLING(playerPed) || PED::IS_PED_IN_PARACHUTE_FREE_FALL(playerPed))) AI::CLEAR_PED_TASKS_IMMEDIATELY(playerPed);
+			if (NPC_RAGDOLL_VALUES[current_no_ragdoll.value] == 2 && (PED::IS_PED_FALLING(playerPed) || PED::IS_PED_IN_PARACHUTE_FREE_FALL(playerPed))) TASK::CLEAR_PED_TASKS_IMMEDIATELY(playerPed);
 		}
 	}
 	if (NPC_RAGDOLL_VALUES[current_no_ragdoll.value] == 0) {
@@ -1575,7 +1575,7 @@ void update_features(){
 
 		if (featurePlayerInvincible.enabled) {
 			Vector3 coords_bullet = ENTITY::GET_ENTITY_COORDS(playerPed, true);
-			if (GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_bullet.x, coords_bullet.y, coords_bullet.z, 1.0, 0, 0) && !PED::IS_PED_RAGDOLL(playerPed) && PED::IS_PED_ON_FOOT(playerPed) && ragdoll_seconds == 0 &&
+			if (MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_bullet.x, coords_bullet.y, coords_bullet.z, 1.0, 0, 0) && !PED::IS_PED_RAGDOLL(playerPed) && PED::IS_PED_ON_FOOT(playerPed) && ragdoll_seconds == 0 &&
 				!PED::IS_PED_SHOOTING(playerPed)) {
 				been_damaged_by_weapon = true;
 				ENTITY::CLEAR_ENTITY_LAST_DAMAGE_ENTITY(playerPed); 
@@ -1588,8 +1588,8 @@ void update_features(){
 				int time2 = (rand() % 3000 + 0);
 				int ragdollType = (rand() % 3 + 0);
 				int ScreamType = (rand() % 8 + 5);
-				AUDIO::PLAY_PAIN(ScreamType, 0, 0);
-				AUDIO::_PLAY_AMBIENT_SPEECH1(PLAYER::PLAYER_ID(), "GENERIC_SHOCKED_HIGH", "SPEECH_PARAMS_FORCE");
+				AUDIO::PLAY_PAIN(PLAYER::PLAYER_PED_ID(), ScreamType, 0, 0);
+				AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(PLAYER::PLAYER_ID(), "GENERIC_SHOCKED_HIGH", "SPEECH_PARAMS_FORCE", 0);
 				if (PED::GET_PED_ARMOUR(playerPed) > 4 && (ragdollType == 2 || ragdollType == 3)) PED::SET_PED_TO_RAGDOLL(playerPed, time1, time2, ragdollType, true, true, false);
 				if (PED::GET_PED_ARMOUR(playerPed) < 5 || featurePlayerInvincible.enabled) PED::SET_PED_TO_RAGDOLL(playerPed, time1, time2, ragdollType, true, true, false);
 				been_damaged_by_weapon = false;
@@ -1598,7 +1598,7 @@ void update_features(){
 			if (VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_ragdoll.value] > 0) {
 				Vector3 coords_me = ENTITY::GET_ENTITY_COORDS(playerPed, true);
 				float tmp_v = VEH_TURN_SIGNALS_ACCELERATION_VALUES[feature_shake_ragdoll.value];
-				CAM::SHAKE_GAMEPLAY_CAM("SMALL_EXPLOSION_SHAKE", tmp_v / 5); // JOLT_SHAKE
+				CAMERA::SHAKE_GAMEPLAY_CAM("SMALL_EXPLOSION_SHAKE", tmp_v / 5); // JOLT_SHAKE
 				been_damaged_by_weapon = false;
 				ragdoll_task = false;
 				ragdoll_seconds = 0;
@@ -1620,15 +1620,15 @@ void update_features(){
 	}
 	 
 	// NPC Ragdoll If Shot
-	if ((NPC_RAGDOLL_VALUES[current_npc_ragdoll.value] == 1 || NPC_RAGDOLL_VALUES[current_npc_ragdoll.value] == 2) && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if ((NPC_RAGDOLL_VALUES[current_npc_ragdoll.value] == 1 || NPC_RAGDOLL_VALUES[current_npc_ragdoll.value] == 2) && MISC::GET_MISSION_FLAG() == 0) {
 		const int arrSize5 = 1024;
 		Ped NPCragdoll[arrSize5];
 		int count_NPC_ragdoll = worldGetAllPeds(NPCragdoll, arrSize5);
 
 		for (int i = 0; i < count_NPC_ragdoll; i++) {
 			if (NPC_RAGDOLL_VALUES[current_npc_ragdoll.value] == 1 && NPCragdoll[i] != playerPed) { // PED::GET_PED_TYPE(NPCragdoll[i]) != 0 && PED::GET_PED_TYPE(NPCragdoll[i]) != 1 && PED::GET_PED_TYPE(NPCragdoll[i]) != 2 && PED::GET_PED_TYPE(NPCragdoll[i]) != 3
-				if (WEAPON::HAS_PED_BEEN_DAMAGED_BY_WEAPON(NPCragdoll[i], 0, 1)) PED::_RESET_PED_RAGDOLL_BLOCKING_FLAGS(NPCragdoll[i], 1);
-				if (!WEAPON::HAS_PED_BEEN_DAMAGED_BY_WEAPON(NPCragdoll[i], 0, 1)) PED::_SET_PED_RAGDOLL_BLOCKING_FLAGS(NPCragdoll[i], 1);
+				if (WEAPON::HAS_PED_BEEN_DAMAGED_BY_WEAPON(NPCragdoll[i], 0, 1)) PED::CLEAR_RAGDOLL_BLOCKING_FLAGS(NPCragdoll[i], 1);
+				if (!WEAPON::HAS_PED_BEEN_DAMAGED_BY_WEAPON(NPCragdoll[i], 0, 1)) PED::SET_RAGDOLL_BLOCKING_FLAGS(NPCragdoll[i], 1);
 			}
 
 			if (NPC_RAGDOLL_VALUES[current_npc_ragdoll.value] == 2 && WEAPON::HAS_PED_BEEN_DAMAGED_BY_WEAPON(NPCragdoll[i], 0, 2) && !WEAPON::HAS_PED_BEEN_DAMAGED_BY_WEAPON(NPCragdoll[i], 0, 1) && !PED::IS_PED_RAGDOLL(NPCragdoll[i]) &&
@@ -1637,8 +1637,8 @@ void update_features(){
 				int time2 = (rand() % 3000 + 0);
 				int ragdollType = (rand() % 3 + 0);
 				int ScreamType = (rand() % 8 + 5);
-				AUDIO::PLAY_PAIN(ScreamType, 0, 0);
-				AUDIO::_PLAY_AMBIENT_SPEECH1(NPCragdoll[i], "GENERIC_SHOCKED_HIGH", "SPEECH_PARAMS_FORCE");
+				AUDIO::PLAY_PAIN(PLAYER::PLAYER_PED_ID(), ScreamType, 0, 0);
+				AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(NPCragdoll[i], "GENERIC_SHOCKED_HIGH", "SPEECH_PARAMS_FORCE", 0);
 				PED::SET_PED_TO_RAGDOLL(NPCragdoll[i], time1, time2, ragdollType, true, true, false);
 				PED::CLEAR_PED_LAST_DAMAGE_BONE(NPCragdoll[i]);
 				ENTITY::CLEAR_ENTITY_LAST_DAMAGE_ENTITY(NPCragdoll[i]);
@@ -1652,11 +1652,11 @@ void update_features(){
 	// No Scuba Gear Mask
 	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 1) {
 		dive_glasses = true;
-		PED::CLEAR_PED_PROP(playerPed, 1);
+		PED::CLEAR_PED_PROP(playerPed, 1, 0);
 	}
-	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 0 && PED::GET_PED_PROP_INDEX(playerPed, 1) > 0 && dive_glasses == false) ped_prop_idx = PED::GET_PED_PROP_INDEX(playerPed, 1); // PED::GET_PED_PROP_INDEX(playerPed, 1) > -1
+	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 0 && PED::GET_PED_PROP_INDEX(playerPed, 1, 0) > 0 && dive_glasses == false) ped_prop_idx = PED::GET_PED_PROP_INDEX(playerPed, 1, 0); // PED::GET_PED_PROP_INDEX(playerPed, 1, 0) > -1
 	if (featureNoScubaGearMask && ENTITY::IS_ENTITY_IN_WATER(playerPed) == 0 && dive_glasses == true) {
-		if (ped_prop_idx > 0) PED::SET_PED_PROP_INDEX(playerPed, 1, ped_prop_idx, 0, 0); // ped_prop_idx > -1
+		if (ped_prop_idx > 0) PED::SET_PED_PROP_INDEX(playerPed, 1, ped_prop_idx, 0, 0, 0); // ped_prop_idx > -1
 		dive_glasses = false;
 	}
 
@@ -1670,11 +1670,11 @@ void update_features(){
 
 	// Player Invisible && Player Invisible In Vehicle
 	if ((!featurePlayerInvisible && !featurePlayerInvisibleInVehicle && p_invisible == true) || (featurePlayerInvisibleInVehicle && !PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1) && p_invisible == true)) {
-		ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), true);
+		ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), true, FALSE);
 		p_invisible = false;
 	}
 	if(featurePlayerInvisible || (featurePlayerInvisibleInVehicle && PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 1))) {
-		ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), false);
+		ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), false, FALSE);
 		p_invisible = true;
 	}
 	
@@ -1688,11 +1688,11 @@ void update_features(){
 				WAIT(0);
 			}
 			PED::SET_PED_MOVEMENT_CLIPSET(playerPed, (char*) CLIPSET_DRUNK, 1.0f); 
-			CAM::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", 1.0f);
+			CAMERA::SHAKE_GAMEPLAY_CAM("DRUNK_SHAKE", 1.0f);
 		}
 		else{
 			PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
-			CAM::STOP_GAMEPLAY_CAM_SHAKING(true);
+			CAMERA::STOP_GAMEPLAY_CAM_SHAKING(true);
 		}
 		AUDIO::SET_PED_IS_DRUNK(playerPed, featurePlayerDrunk.enabled);
 	}
@@ -1710,14 +1710,14 @@ void update_features(){
 	}
 
 	// Disable airbrake on death
-	if(ENTITY::IS_ENTITY_DEAD(playerPed)){
+	if(ENTITY::IS_ENTITY_DEAD(playerPed, FALSE)){
 		exit_airbrake_menu_if_showing();
 	}
 
 	if (is_hotkey_held_wanted_level() && PLAYER::IS_PLAYER_CONTROL_ON(player)) {
 		PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), false);
-		UI::HIDE_HUD_COMPONENT_THIS_FRAME(19);
-		UI::HIDE_HUD_COMPONENT_THIS_FRAME(20);
+		HUD::HIDE_HUD_COMPONENT_THIS_FRAME(19);
+		HUD::HIDE_HUD_COMPONENT_THIS_FRAME(20);
 
 		PLAYER::SET_MAX_WANTED_LEVEL(5);
 		if ((GetKeyState('0') & 0x8000) || (GetKeyState(VK_NUMPAD0) & 0x8000)) {
@@ -3185,16 +3185,16 @@ void heal_player(){
 	Player player = PLAYER::PLAYER_ID();
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-	ENTITY::SET_ENTITY_HEALTH(playerPed, PED::GET_PED_MAX_HEALTH(playerPed));
+	ENTITY::SET_ENTITY_HEALTH(playerPed, PED::GET_PED_MAX_HEALTH(playerPed), 0, 0);
 	PED::SET_PED_ARMOUR(playerPed, PLAYER::GET_PLAYER_MAX_ARMOUR(player));
-	PLAYER::SPECIAL_ABILITY_FILL_METER(player, false);
+	PLAYER::SPECIAL_ABILITY_FILL_METER(player, false, 0);
 
 	PED::SET_PED_WETNESS_HEIGHT(playerPed, -2.0);
 	PED::CLEAR_PED_BLOOD_DAMAGE(playerPed);
 
 	if(PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
 		Vehicle playerVeh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-		if(ENTITY::DOES_ENTITY_EXIST(playerVeh) && !ENTITY::IS_ENTITY_DEAD(playerVeh)){
+		if(ENTITY::DOES_ENTITY_EXIST(playerVeh) && !ENTITY::IS_ENTITY_DEAD(playerVeh, FALSE)){
 			VEHICLE::SET_VEHICLE_FIXED(playerVeh);
 		}
 	}

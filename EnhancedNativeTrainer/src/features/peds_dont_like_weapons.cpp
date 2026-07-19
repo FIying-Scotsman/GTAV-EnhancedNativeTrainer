@@ -32,7 +32,7 @@ int ChanceAttackingYouIndex = 1;
 
 /////////////////////////////////// PEDS DON'T LIKE WEAPONS /////////////////////////////////////////////
 void peds_dont_like_weapons() {
-	if (featurePedAgainstWeapons && !featurePlayerInvisible && !featurePlayerIgnoredByAll && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if (featurePedAgainstWeapons && !featurePlayerInvisible && !featurePlayerIgnoredByAll && MISC::GET_MISSION_FLAG() == 0) {
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 		int ped_distance_x = 100;
 		int ped_distance_y = 100;
@@ -66,60 +66,60 @@ void peds_dont_like_weapons() {
 						&& !PLAYER::IS_PLAYER_FREE_AIMING_AT_ENTITY(playerPed, weaponhaters[i]) && weaponhaters[i] != playerPed && !PLAYER::IS_PLAYER_CONTROL_ON(weaponhaters[i]))
 					{
 						if (featureAgainstMeleeWeapons && WEAPON::IS_PED_ARMED(playerPed, 7) && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_BALL") && 
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_BALL") && 
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChanceAttackingYouIndex]) {
 								PED::SET_PED_AS_ENEMY(weaponhaters[i], true);
 								PED::REGISTER_TARGET(weaponhaters[i], playerPed);
-								AI::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
+								TASK::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
 								if (!WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) WEAPON::GIVE_WEAPON_TO_PED(weaponhaters[i], WEAPON::GET_SELECTED_PED_WEAPON(playerPed), 999, false, true);
 							}
-							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !AI::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
+							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !TASK::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 0 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 1 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 1 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 2 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 2)
 							{
 								if (weaponhaters[i] != playerPed) {
-									if (PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)) AI::CLEAR_PED_TASKS(weaponhaters[i]);
-									if (ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_tracydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_amandatownley") &&
-										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_jimmydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_denise") &&
-										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_nervousron")) {
-										AUDIO::_PLAY_AMBIENT_SPEECH1(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
-										AI::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
+									if (PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)) TASK::CLEAR_PED_TASKS(weaponhaters[i]);
+									if (ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_tracydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_amandatownley") &&
+										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_jimmydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_denise") &&
+										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_nervousron")) {
+										AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
+										TASK::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
 									}
 								}
 							}
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChancePoliceCallingIndex] && !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed) && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) {
-								AI::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
+								TASK::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
 								call_the_police = true;
 							}
 						}
 						if (!featureAgainstMeleeWeapons && WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::IS_PED_ARMED(playerPed, 6) && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_BALL") &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_BALL") &&
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChanceAttackingYouIndex]) {
 								PED::SET_PED_AS_ENEMY(weaponhaters[i], true);
 								PED::REGISTER_TARGET(weaponhaters[i], playerPed);
-								AI::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
+								TASK::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
 								if (!WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) WEAPON::GIVE_WEAPON_TO_PED(weaponhaters[i], WEAPON::GET_SELECTED_PED_WEAPON(playerPed), 999, false, true);
 							}
-							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !AI::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
+							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !TASK::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 0 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 1 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 1 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 2 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 2)
 							{
 								if (weaponhaters[i] != playerPed) {
-									if (PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)) AI::CLEAR_PED_TASKS(weaponhaters[i]);
-									if (ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_tracydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_amandatownley") &&
-										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_jimmydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_denise") &&
-										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != GAMEPLAY::GET_HASH_KEY("ig_nervousron")) {
-										AUDIO::_PLAY_AMBIENT_SPEECH1(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
-										AI::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
+									if (PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)) TASK::CLEAR_PED_TASKS(weaponhaters[i]);
+									if (ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_tracydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_amandatownley") &&
+										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_jimmydisanto") && ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_denise") &&
+										ENTITY::GET_ENTITY_MODEL(weaponhaters[i]) != MISC::GET_HASH_KEY("ig_nervousron")) {
+										AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
+										TASK::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
 									}
 								}
 							}
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChancePoliceCallingIndex] && !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed) && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) {
-								AI::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
+								TASK::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
 								call_the_police = true;
 							}
 						}
@@ -133,52 +133,52 @@ void peds_dont_like_weapons() {
 						&& !PLAYER::IS_PLAYER_FREE_AIMING_AT_ENTITY(playerPed, weaponhaters[i]) && weaponhaters[i] != playerPed && !PLAYER::IS_PLAYER_CONTROL_ON(weaponhaters[i]))
 					{
 						if (featureAgainstMeleeWeapons && WEAPON::IS_PED_ARMED(playerPed, 7) && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_BALL") &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_BALL") &&
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChanceAttackingYouIndex]) {
 								PED::SET_PED_AS_ENEMY(weaponhaters[i], true);
 								PED::REGISTER_TARGET(weaponhaters[i], playerPed);
-								AI::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
+								TASK::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
 								if (!WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) WEAPON::GIVE_WEAPON_TO_PED(weaponhaters[i], WEAPON::GET_SELECTED_PED_WEAPON(playerPed), 999, false, true);
 							}
-							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !AI::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
+							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !TASK::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 0 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 1 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 1 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 2 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 2)
 							{
 								if (weaponhaters[i] != playerPed) {
-									AI::CLEAR_PED_TASKS(weaponhaters[i]);
-									AUDIO::_PLAY_AMBIENT_SPEECH1(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
-									AI::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
+									TASK::CLEAR_PED_TASKS(weaponhaters[i]);
+									AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
+									TASK::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
 								}
 							}
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChancePoliceCallingIndex] && !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed) && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) {
-								AI::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
+								TASK::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
 								call_the_police = true;
 							}
 						}
 						if (!featureAgainstMeleeWeapons && WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::IS_PED_ARMED(playerPed, 6) && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_BALL") &&
-							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_BALL") &&
+							WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChanceAttackingYouIndex]) {
 								PED::SET_PED_AS_ENEMY(weaponhaters[i], true);
 								PED::REGISTER_TARGET(weaponhaters[i], playerPed);
-								AI::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
+								TASK::TASK_COMBAT_PED(weaponhaters[i], playerPed, 0, 16);
 								if (!WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) WEAPON::GIVE_WEAPON_TO_PED(weaponhaters[i], WEAPON::GET_SELECTED_PED_WEAPON(playerPed), 999, false, true);
 							}
-							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !AI::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
+							if (!PED::IS_PED_FLEEING(weaponhaters[i]) && !TASK::IS_PED_RUNNING(weaponhaters[i]) /*&& !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed)*/ && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7) &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 0 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 1 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 1 &&
 								PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, weaponhaters[i]) != 2 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(weaponhaters[i], playerPed) != 2)
 							{
 								if (weaponhaters[i] != playerPed) {
-									AI::CLEAR_PED_TASKS(weaponhaters[i]);
-									AUDIO::_PLAY_AMBIENT_SPEECH1(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
-									AI::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
+									TASK::CLEAR_PED_TASKS(weaponhaters[i]);
+									AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(weaponhaters[i], "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
+									TASK::TASK_SMART_FLEE_PED(weaponhaters[i], playerPed, 1000, -1, true, true);
 								}
 							}
 							if (callpolice_randomize < WEAPONS_CHANCEPOLICECALLING_VALUES[ChancePoliceCallingIndex] && !PED::IS_PED_IN_COMBAT(weaponhaters[i], playerPed) && !WEAPON::IS_PED_ARMED(weaponhaters[i], 7)) {
-								AI::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
+								TASK::TASK_USE_MOBILE_PHONE_TIMED(weaponhaters[i], 10000);
 								call_the_police = true;
 							}
 						}
@@ -195,8 +195,8 @@ void peds_dont_like_weapons() {
 							(!PED::IS_PED_IN_ANY_VEHICLE(weaponhaters[i], false) && ped_distance_x < 11 && ped_distance_y < 11 && ped_distance_z < 3))
 						{
 							if (featureAgainstMeleeWeapons && WEAPON::IS_PED_ARMED(playerPed, 7) && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) &&
-								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_BALL") &&
-								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
+								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_BALL") &&
+								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
 								if (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < 1 && !featureWantedLevelFrozen) {
 									PLAYER::SET_MAX_WANTED_LEVEL(5);
 									PLAYER::SET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID(), 1, 0);
@@ -204,8 +204,8 @@ void peds_dont_like_weapons() {
 								}
 							}
 							if (!featureAgainstMeleeWeapons && WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::IS_PED_ARMED(playerPed, 6) && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) &&
-								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_BALL") &&
-								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
+								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_SNOWBALL") && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_BALL") &&
+								WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_ACIDPACKAGE")) {
 								if (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) < 1 && !featureWantedLevelFrozen) {
 									PLAYER::SET_MAX_WANTED_LEVEL(5);
 									PLAYER::SET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID(), 1, 0);

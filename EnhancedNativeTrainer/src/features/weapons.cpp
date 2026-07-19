@@ -236,8 +236,8 @@ Vector3 add(Vector3* vectorA, Vector3* vectorB){
 }
 
 Vector3 DistanceFromCam(float distance){
-	Vector3 camPosition = CAM::GET_GAMEPLAY_CAM_COORD();
-	Vector3 rot = CAM::GET_GAMEPLAY_CAM_ROT(0);
+	Vector3 camPosition = CAMERA::GET_GAMEPLAY_CAM_COORD();
+	Vector3 rot = CAMERA::GET_GAMEPLAY_CAM_ROT(0);
 	Vector3 dir = RotationToDirection(&rot);
 
 	dir.x *= distance;
@@ -251,7 +251,7 @@ Vector3 DistanceFromCam(float distance){
 
 // Get directional offset based on distance and camera rotation
 Vector3 DirectionOffsetFromCam(float distance){
-	Vector3 rot = CAM::GET_GAMEPLAY_CAM_ROT(0);
+	Vector3 rot = CAMERA::GET_GAMEPLAY_CAM_ROT(0);
 	Vector3 dir = RotationToDirection(&rot);
 
 	dir.x *= distance;
@@ -289,13 +289,13 @@ void fire_mode_hotkey() {
 
 void onchange_knuckle_appearance(int value, SelectFromListMenuItem* source){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int weapHash = GAMEPLAY::GET_HASH_KEY("WEAPON_KNUCKLE");
+	int weapHash = MISC::GET_HASH_KEY("WEAPON_KNUCKLE");
 
 	int i = 0;
 
 	Hash hashToApply = 0;
 	for each (std::string componentName in VALUES_ATTACH_KNUCKLES){
-		DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+		DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, weapHash, componentHash);
 
@@ -313,7 +313,7 @@ void onchange_knuckle_appearance(int value, SelectFromListMenuItem* source){
 
 int get_current_knuckle_appearance(){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int weapHash = GAMEPLAY::GET_HASH_KEY("WEAPON_KNUCKLE");
+	int weapHash = MISC::GET_HASH_KEY("WEAPON_KNUCKLE");
 
 	int i = 0;
 	for each (std::string componentName in VALUES_ATTACH_KNUCKLES){
@@ -321,7 +321,7 @@ int get_current_knuckle_appearance(){
 			continue;
 		}
 
-		DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+		DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 		if(WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, componentHash)){
 			return i;
@@ -335,13 +335,13 @@ int get_current_knuckle_appearance(){
 
 void onchange_switchblade_appearance(int value, SelectFromListMenuItem* source){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int weapHash = GAMEPLAY::GET_HASH_KEY("WEAPON_SWITCHBLADE");
+	int weapHash = MISC::GET_HASH_KEY("WEAPON_SWITCHBLADE");
 
 	int i = 0;
 
 	Hash hashToApply = 0;
 	for each (std::string componentName in VALUES_ATTACH_SWITCHBLADE){
-		DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+		DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, weapHash, componentHash);
 
@@ -359,7 +359,7 @@ void onchange_switchblade_appearance(int value, SelectFromListMenuItem* source){
 
 int get_current_switchblade_appearance(){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int weapHash = GAMEPLAY::GET_HASH_KEY("WEAPON_SWITCHBLADE");
+	int weapHash = MISC::GET_HASH_KEY("WEAPON_SWITCHBLADE");
 
 	int i = 0;
 	for each (std::string componentName in VALUES_ATTACH_SWITCHBLADE){
@@ -367,7 +367,7 @@ int get_current_switchblade_appearance(){
 			continue;
 		}
 
-		DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+		DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 		if(WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, componentHash)){
 			return i;
@@ -381,13 +381,13 @@ int get_current_switchblade_appearance(){
 
 void onchange_revolver_appearance(int value, SelectFromListMenuItem* source){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int weapHash = GAMEPLAY::GET_HASH_KEY("WEAPON_REVOLVER");
+	int weapHash = MISC::GET_HASH_KEY("WEAPON_REVOLVER");
 
 	int i = 0;
 
 	Hash hashToApply = 0;
 	for each (std::string componentName in VALUES_ATTACH_REVOLVER){
-		DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+		DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, weapHash, componentHash);
 
@@ -408,7 +408,7 @@ void give_all_weapons_hotkey() {
 	for (int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
 		for (int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
 			char *weaponName = (char*)VOV_WEAPON_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 			int clipMax = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weaponHash, true); clipMax = min(clipMax, 250);
 			WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, clipMax * 2, false, false);
 		}
@@ -424,8 +424,8 @@ void add_all_weapons_attachments(Ped choice) {
 	for (int a = 0; a < WEAPONTYPES_MOD.size(); a++) {
 		for (int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++) {
 			char *weaponName = (char *)WEAPONTYPES_MOD.at(a).c_str(), *compName = (char *)VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
-			Hash compHash = GAMEPLAY::GET_HASH_KEY(compName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
+			Hash compHash = MISC::GET_HASH_KEY(compName);
 			if (!WEAPON::HAS_PED_GOT_WEAPON(choice, weaponHash, 0)) {
 				break;
 			}
@@ -475,7 +475,7 @@ void add_all_weapons_attachments(Ped choice) {
 	for (int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++) {
 		for (int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++) {
 			char* weaponName = (char*)VOV_WEAPON_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 			if (WEAPON::HAS_PED_GOT_WEAPON(choice, weaponHash, FALSE)) {
 				WEAPON::GIVE_WEAPON_TO_PED(choice, weaponHash, 10000, false, false);
 			}
@@ -517,7 +517,7 @@ void load_saved_weapons() {
 		WEAPON::GET_MAX_AMMO(playerPed, sv->weapon, &maxAmmo);
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, sv->weapon, false);
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, sv->weapon, maxClipAmmo);
-		WEAPON::SET_PED_AMMO(playerPed, sv->weapon, maxAmmo);
+		WEAPON::SET_PED_AMMO(playerPed, sv->weapon, maxAmmo, FALSE);
 
 		set_status_text(tr("WeaponMenu.SavedWeaponsEquipped", "Saved weapons equipped"));
 	}
@@ -531,7 +531,7 @@ void load_saved_weapons() {
 
 int get_current_revolver_appearance(){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int weapHash = GAMEPLAY::GET_HASH_KEY("WEAPON_REVOLVER");
+	int weapHash = MISC::GET_HASH_KEY("WEAPON_REVOLVER");
 
 	int i = 0;
 	for each (std::string componentName in VALUES_ATTACH_REVOLVER){
@@ -539,7 +539,7 @@ int get_current_revolver_appearance(){
 			continue;
 		}
 
-		DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+		DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 		if(WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, componentHash)){
 			return i;
@@ -557,7 +557,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 	lastSelectedWeapon = weaponIndex;
 
 	std::string label = VOV_WEAPON_CAPTIONS[lastSelectedWeaponCategory].at(weaponIndex);
-	std::string label_caption = UI::_GET_LABEL_TEXT(&label[0]);
+	std::string label_caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&label[0]);
 
 	if (label_caption.empty()) label_caption = label;
 
@@ -570,8 +570,8 @@ bool process_individual_weapon_menu(int weaponIndex){
 
 	std::string weaponValue = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(weaponIndex);
 	char *weaponChar = (char*) weaponValue.c_str();
-	int thisWeaponHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
-	bool isEquipped = (WEAPON::HAS_PED_GOT_WEAPON(playerPed, GAMEPLAY::GET_HASH_KEY(weaponChar), 0) ? true : false);
+	int thisWeaponHash = MISC::GET_HASH_KEY(weaponChar);
+	bool isEquipped = (WEAPON::HAS_PED_GOT_WEAPON(playerPed, MISC::GET_HASH_KEY(weaponChar), 0) ? true : false);
 
 	WEAPON::SET_CURRENT_PED_WEAPON(playerPed, thisWeaponHash, true);
 
@@ -589,7 +589,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 		std::string weaponValue = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 		char *weaponChar = (char*) weaponValue.c_str();
-		int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+		int weapHash = MISC::GET_HASH_KEY(weaponChar);
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
 
 		if(maxClipAmmo > 0){
@@ -621,7 +621,7 @@ bool process_individual_weapon_menu(int weaponIndex){
 			for(int i = 0; i < modCaptions.size(); i++){
 				FunctionDrivenToggleMenuItem<int> *item = new FunctionDrivenToggleMenuItem<int>();
 				std::string label_caption = modCaptions.at(i);
-				item->caption = UI::_GET_LABEL_TEXT(&label_caption[0]);
+				item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&label_caption[0]);
 				item->getter_call = is_weaponmod_equipped;
 				item->setter_call = set_weaponmod_equipped;
 				item->extra_arguments.push_back(lastSelectedWeaponCategory);
@@ -713,11 +713,11 @@ bool process_weapons_in_category_menu(int category){
 	for(int i = 0; i < VOV_WEAPON_CAPTIONS[category].size(); i++){
 		MenuItem<int> *item = new MenuItem<int>();
 		std::string label = VOV_WEAPON_CAPTIONS[category].at(i);
-		std::string label_caption = UI::_GET_LABEL_TEXT(&label[0]);
+		std::string label_caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&label[0]);
 		item->caption = label_caption;
 
 		const char* value = VOV_WEAPON_VALUES[category].at(i).c_str();
-		if(weaponSelectionIndex == 0 && GAMEPLAY::GET_HASH_KEY((char*) value) == current){
+		if(weaponSelectionIndex == 0 && MISC::GET_HASH_KEY((char*) value) == current){
 			weaponSelectionIndex = i;
 		}
 
@@ -751,7 +751,7 @@ bool process_weaponlist_menu(){
 		if(weaponSelectionIndex == 0){
 			for(int j = 0; j < VOV_WEAPON_VALUES[i].size(); j++){
 				const char* value = VOV_WEAPON_VALUES[i].at(j).c_str();
-				if(GAMEPLAY::GET_HASH_KEY((char*) value) == current){
+				if(MISC::GET_HASH_KEY((char*) value) == current){
 					weaponSelectionIndex = i;
 					break;
 				}
@@ -878,9 +878,9 @@ void sniper_vision_toggle()
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-	if ((WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_SNIPERRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_HEAVYSNIPER") ||
-		WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_REMOTESNIPER") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_HEAVYSNIPER_MK2") ||
-		WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_MARKSMANRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_MARKSMANRIFLE_MK2")) &&
+	if ((WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_SNIPERRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_HEAVYSNIPER") ||
+		WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_REMOTESNIPER") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_HEAVYSNIPER_MK2") ||
+		WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_MARKSMANRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_MARKSMANRIFLE_MK2")) &&
 		PED::GET_PED_CONFIG_FLAG(playerPed, 78, 1) && !PED::GET_PED_CONFIG_FLAG(playerPed, 58, 1) && !SCRIPT::HAS_SCRIPT_LOADED("carsteal2"))
 	{
 		if (WORLD_GRAVITY_LEVEL_VALUES[SniperVisionIndex] == 1) {
@@ -993,7 +993,7 @@ bool spawn_saved_weapon(int slot, std::string caption)
 	for (int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++) {
 		for (int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++) {
 			char* weaponName = (char*)VOV_WEAPON_VALUES[a].at(b).c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 			if (WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, FALSE)) {
 				WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 10000, false, false);
 			}
@@ -1005,7 +1005,7 @@ bool spawn_saved_weapon(int slot, std::string caption)
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, savedWeapon->weapon, false);
 
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, savedWeapon->weapon, maxClipAmmo);
-	WEAPON::SET_PED_AMMO(playerPed, savedWeapon->weapon, maxAmmo);
+	WEAPON::SET_PED_AMMO(playerPed, savedWeapon->weapon, maxAmmo, FALSE);
 
 	WEAPON::SET_PED_CURRENT_WEAPON_VISIBLE(playerPed, true, false, 1, 1);
 	
@@ -1023,7 +1023,7 @@ void save_current_weapon(int slot)
 	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-	if (!WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_PETROLCAN")) CONTROLS::_SET_CONTROL_NORMAL(0, 37, 1);
+	if (!WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_PETROLCAN")) PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 37, 1);
 
 	if (bPlayerExists)
 	{
@@ -1232,8 +1232,8 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			for(int a = 0; a < WEAPONTYPES_MOD.size(); a++){
 				for(int b = 0; b < VOV_WEAPONMOD_VALUES[a].size(); b++){
 					char *weaponName = (char *) WEAPONTYPES_MOD.at(a).c_str(), *compName = (char *) VOV_WEAPONMOD_VALUES[a].at(b).c_str();
-					Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
-					Hash compHash = GAMEPLAY::GET_HASH_KEY(compName);
+					Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
+					Hash compHash = MISC::GET_HASH_KEY(compName);
 					if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
 						break;
 					}
@@ -1249,13 +1249,13 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 						continue;
 					}
 
-					WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, GAMEPLAY::GET_HASH_KEY(weaponName), GAMEPLAY::GET_HASH_KEY(compName));
+					WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, MISC::GET_HASH_KEY(weaponName), MISC::GET_HASH_KEY(compName));
 				}
 			}
 
 			for(int a = 0; a < WEAPONTYPES_TINT.size(); a++){
 				char *weaponName = (char *) WEAPONTYPES_TINT.at(a).c_str();
-				Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+				Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 				if(!WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
 					continue;
 				}
@@ -1272,7 +1272,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
 				for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
 					char *weaponName = (char*) VOV_WEAPON_VALUES[a].at(b).c_str();
-					Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+					Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 					if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, FALSE)){
 						WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 10000, false, false);
 					}
@@ -1289,7 +1289,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			for(int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++){
 				for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
 					char *weaponName = (char *) VOV_WEAPON_VALUES[a].at(b).c_str();
-					WEAPON::SET_PED_AMMO(playerPed, GAMEPLAY::GET_HASH_KEY(weaponName), 0);
+					WEAPON::SET_PED_AMMO(playerPed, MISC::GET_HASH_KEY(weaponName), 0, FALSE);
 				}
 			}
 
@@ -1309,7 +1309,7 @@ bool onconfirm_weapon_menu(MenuItem<int> choice){
 			if(!result.empty()){
 				result = trim(result);
 				lastCustomWeapon = result;
-				Hash weaponHash = GAMEPLAY::GET_HASH_KEY((char *) result.c_str());
+				Hash weaponHash = MISC::GET_HASH_KEY((char *) result.c_str());
 				std::string message;
 				if(WEAPON::IS_WEAPON_VALID(weaponHash)){
 					WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 250, false, false);
@@ -1709,16 +1709,16 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		bool bSelect = IsKeyDown(KeyConfig::KEY_VEH_ROCKETS) || (is_bind_pressed("KEY_VEH_ROCKETS") && is_bind_pressed("KEY_VEH_ROCKETS", 2)) || (CONTROLS::IS_CONTROL_PRESSED(2, 69) && !CONTROLS::IS_CONTROL_PRESSED(2, 70));
+		bool bSelect = IsKeyDown(KeyConfig::KEY_VEH_ROCKETS) || (is_bind_pressed("KEY_VEH_ROCKETS") && is_bind_pressed("KEY_VEH_ROCKETS", 2)) || (PAD::IS_CONTROL_PRESSED(2, 69) && !PAD::IS_CONTROL_PRESSED(2, 70));
 
 		if (bSelect && featureWeaponVehShootLastTime + 150 < GetTickCount() && PLAYER::IS_PLAYER_CONTROL_ON(player)) { // 150
 			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 			Vector3 v0, v1;
-			GAMEPLAY::GET_MODEL_DIMENSIONS(ENTITY::GET_ENTITY_MODEL(veh), &v0, &v1);
+			MISC::GET_MODEL_DIMENSIONS(ENTITY::GET_ENTITY_MODEL(veh), &v0, &v1);
 
 			char *currWeapon_v = new char[WEAPONS_VEHICLE_CAPTIONS[VehCurrWeaponIndex].length() + 1];
 			strcpy(currWeapon_v, WEAPONS_VEHICLE_CAPTIONS[VehCurrWeaponIndex].c_str());
-			Hash weaponAssetRocket = GAMEPLAY::GET_HASH_KEY(currWeapon_v);
+			Hash weaponAssetRocket = MISC::GET_HASH_KEY(currWeapon_v);
 			if (!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponAssetRocket)) {
 				WEAPON::REQUEST_WEAPON_ASSET(weaponAssetRocket, 31, 0);
 				while (!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponAssetRocket)) {
@@ -1731,16 +1731,16 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				Vector3 coords1from = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, (v1.x + 0.25f), v1.y + 1.25f, 0.1f);
 				Vector3 coords0to = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, -v1.x, v1.y + 100.0f, 0.1f);
 				Vector3 coords1to = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, v1.x, v1.y + 100.0f, 0.1f);
-				GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords0from.x, coords0from.y, coords0from.z, coords0to.x, coords0to.y, coords0to.z, 250, 1, weaponAssetRocket, playerPed, 1, 0, -1.0);
-				GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords1from.x, coords1from.y, coords1from.z, coords1to.x, coords1to.y, coords1to.z, 250, 1, weaponAssetRocket, playerPed, 1, 0, -1.0);
+				MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords0from.x, coords0from.y, coords0from.z, coords0to.x, coords0to.y, coords0to.z, 250, 1, weaponAssetRocket, playerPed, 1, 0, -1.0);
+				MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords1from.x, coords1from.y, coords1from.z, coords1to.x, coords1to.y, coords1to.z, 250, 1, weaponAssetRocket, playerPed, 1, 0, -1.0);
 			}
 			else {
 				Vector3 coords0from = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, -(v1.x + 0.15f), -(v1.y + 0.25f), 0.1f);
 				Vector3 coords1from = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, (v1.x + 0.15f), -(v1.y + 0.25f), 0.1f);
 				Vector3 coords0to = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, -v1.x, v1.y - 10.0f, 0.1f);
 				Vector3 coords1to = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, v1.x, v1.y - 10.0f, 0.1f);
-				GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords0from.x, coords0from.y, coords0from.z, coords0to.x, coords0to.y, coords0to.z, 25, 1, weaponAssetRocket, playerPed, 1, 0, -1.0); // 250
-				GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords1from.x, coords1from.y, coords1from.z, coords1to.x, coords1to.y, coords1to.z, 25, 1, weaponAssetRocket, playerPed, 1, 0, -1.0); // 250
+				MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords0from.x, coords0from.y, coords0from.z, coords0to.x, coords0to.y, coords0to.z, 25, 1, weaponAssetRocket, playerPed, 1, 0, -1.0); // 250
+				MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords1from.x, coords1from.y, coords1from.z, coords1to.x, coords1to.y, coords1to.z, 25, 1, weaponAssetRocket, playerPed, 1, 0, -1.0); // 250
 			}
 			featureWeaponVehShootLastTime = GetTickCount();
 		}
@@ -1749,26 +1749,26 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	if (is_hotkey_held_drop_mine() && PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && PLAYER::IS_PLAYER_CONTROL_ON(player)) {
 		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 		Vector3 v0, v1;
-		GAMEPLAY::GET_MODEL_DIMENSIONS(ENTITY::GET_ENTITY_MODEL(veh), &v0, &v1);
+		MISC::GET_MODEL_DIMENSIONS(ENTITY::GET_ENTITY_MODEL(veh), &v0, &v1);
 		Vector3 coords0from = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, -(v1.x + 0.15f), -(v1.y + 0.25f), 0.1f);
 		Vector3 coords1from = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, (v1.x + 0.15f), -(v1.y + 0.25f), 0.1f);
 		Vector3 coords0to = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, -v1.x, v1.y - 10.0f, 0.1f);
 		Vector3 coords1to = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(veh, v1.x, v1.y - 10.0f, 0.1f);
 		Hash weaponAssetRocket = -1;
-		if (GetKeyState('1') & 0x8000) weaponAssetRocket = GAMEPLAY::GET_HASH_KEY("VEHICLE_WEAPON_MINE_KINETIC");
-		if (GetKeyState('2') & 0x8000) weaponAssetRocket = GAMEPLAY::GET_HASH_KEY("VEHICLE_WEAPON_MINE_SPIKE");
-		if (GetKeyState('3') & 0x8000) weaponAssetRocket = GAMEPLAY::GET_HASH_KEY("VEHICLE_WEAPON_MINE_EMP");
-		if (GetKeyState('4') & 0x8000) weaponAssetRocket = GAMEPLAY::GET_HASH_KEY("VEHICLE_WEAPON_MINE");
-		if (GetKeyState('5') & 0x8000) weaponAssetRocket = GAMEPLAY::GET_HASH_KEY("VEHICLE_WEAPON_MINE_SLICK");
-		if (GetKeyState('6') & 0x8000) weaponAssetRocket = GAMEPLAY::GET_HASH_KEY("VEHICLE_WEAPON_MINE_TAR");
+		if (GetKeyState('1') & 0x8000) weaponAssetRocket = MISC::GET_HASH_KEY("VEHICLE_WEAPON_MINE_KINETIC");
+		if (GetKeyState('2') & 0x8000) weaponAssetRocket = MISC::GET_HASH_KEY("VEHICLE_WEAPON_MINE_SPIKE");
+		if (GetKeyState('3') & 0x8000) weaponAssetRocket = MISC::GET_HASH_KEY("VEHICLE_WEAPON_MINE_EMP");
+		if (GetKeyState('4') & 0x8000) weaponAssetRocket = MISC::GET_HASH_KEY("VEHICLE_WEAPON_MINE");
+		if (GetKeyState('5') & 0x8000) weaponAssetRocket = MISC::GET_HASH_KEY("VEHICLE_WEAPON_MINE_SLICK");
+		if (GetKeyState('6') & 0x8000) weaponAssetRocket = MISC::GET_HASH_KEY("VEHICLE_WEAPON_MINE_TAR");
 
 		if (weaponAssetRocket != -1 && !WEAPON::HAS_WEAPON_ASSET_LOADED(weaponAssetRocket)) {
 			WEAPON::REQUEST_WEAPON_ASSET(weaponAssetRocket, 31, 0);
 			while (!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponAssetRocket)) WAIT(0);
 		}
 		if (featureWeaponVehShootLastTime + 75 < GetTickCount()) { // 150
-			GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords0from.x, coords0from.y, coords0from.z, coords0to.x, coords0to.y, coords0to.z, 25, 1, weaponAssetRocket, PLAYER::PLAYER_PED_ID(), 1, 0, -1.0); // 250
-			GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords1from.x, coords1from.y, coords1from.z, coords1to.x, coords1to.y, coords1to.z, 25, 1, weaponAssetRocket, PLAYER::PLAYER_PED_ID(), 1, 0, -1.0); // 250
+			MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords0from.x, coords0from.y, coords0from.z, coords0to.x, coords0to.y, coords0to.z, 25, 1, weaponAssetRocket, PLAYER::PLAYER_PED_ID(), 1, 0, -1.0); // 250
+			MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(coords1from.x, coords1from.y, coords1from.z, coords1to.x, coords1to.y, coords1to.z, 25, 1, weaponAssetRocket, PLAYER::PLAYER_PED_ID(), 1, 0, -1.0); // 250
 			featureWeaponVehShootLastTime = GetTickCount();
 		}
 	}
@@ -1776,17 +1776,17 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	// Weapon
 	if(featureWeaponFireAmmo){
 		if(bPlayerExists){
-			GAMEPLAY::SET_FIRE_AMMO_THIS_FRAME(player);
+			MISC::SET_FIRE_AMMO_THIS_FRAME(player);
 		}
 	}
 	if(featureWeaponExplosiveAmmo){
 		if(bPlayerExists){
-			GAMEPLAY::SET_EXPLOSIVE_AMMO_THIS_FRAME(player);
+			MISC::SET_EXPLOSIVE_AMMO_THIS_FRAME(player);
 		}
 	}
 	if(featureWeaponExplosiveMelee){
 		if(bPlayerExists)
-			GAMEPLAY::SET_EXPLOSIVE_MELEE_THIS_FRAME(player);
+			MISC::SET_EXPLOSIVE_MELEE_THIS_FRAME(player);
 	}
 
 	// Super Explosive Grenades && Sucking Grenades
@@ -1801,11 +1801,11 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				if ((grenade == 0x1152354B || grenade == 0x741FD3C4)) {
 					Vector3 gr_cor = ENTITY::GET_ENTITY_COORDS(objects_g[i], TRUE);
 					Vector3 me_cor = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
-					float dist = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(me_cor.x, me_cor.y, me_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
-					if (ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 10.0 && dist < 16.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 3.0, rand() % 15 == 0, false, 0.0); // rand() % 3 == 0
-					if (ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 15.0 && dist < 99.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 35.0, rand() % 15 == 0, false, 0.0); // dist < 159.0 // 15.0 
-					if (!ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 10.0 && dist < 16.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 5.0, rand() % 15 == 0, false, 0.0);
-					if (!ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 15.0 && dist < 99.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 35.0, rand() % 15 == 0, false, 0.0);
+					float dist = MISC::GET_DISTANCE_BETWEEN_COORDS(me_cor.x, me_cor.y, me_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
+					if (ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 10.0 && dist < 16.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 3.0, rand() % 15 == 0, false, 0.0, FALSE); // rand() % 3 == 0
+					if (ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 15.0 && dist < 99.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 35.0, rand() % 15 == 0, false, 0.0, FALSE); // dist < 159.0 // 15.0 
+					if (!ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 10.0 && dist < 16.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 5.0, rand() % 15 == 0, false, 0.0, FALSE);
+					if (!ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && dist > 15.0 && dist < 99.0) FIRE::ADD_EXPLOSION(gr_cor.x, gr_cor.y, gr_cor.z, ExplosionTypeGrenadeL, 35.0, rand() % 15 == 0, false, 0.0, FALSE);
 				}
 			}
 			// Sucking Grenades
@@ -1829,7 +1829,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				if (/*grenade == 0x1152354B || */grenade == 0x741FD3C4) {
 					Vector3 gr_cor = ENTITY::GET_ENTITY_COORDS(objects_g[i], TRUE);
 					Vector3 me_cor = ENTITY::GET_ENTITY_COORDS(playerPed, TRUE);
-					float dist = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(me_cor.x, me_cor.y, me_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
+					float dist = MISC::GET_DISTANCE_BETWEEN_COORDS(me_cor.x, me_cor.y, me_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
 					if (dist > 199) OBJECT::DELETE_OBJECT(&objects_g[i]);
 					if (/*ENTITY::IS_ENTITY_IN_AIR(objects_g[i]) && */dist > 1.0 && dist < 200) {
 						const int arrSize_bl = 1024;
@@ -1846,12 +1846,12 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 							else c_z = 0.5;
 							if (surr_p_peds[j] != PLAYER::PLAYER_PED_ID() && surr_p_peds[j] != objects_g[i]) {
 								if (!PED::IS_PED_RAGDOLL(surr_p_peds[j])) {
-									AI::TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(surr_p_peds[j], true);
+									TASK::TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(surr_p_peds[j], true);
 									PED::SET_PED_CAN_RAGDOLL(surr_p_peds[j], true);
 									PED::SET_PED_TO_RAGDOLL(surr_p_peds[j], 1500, 1500, 1, true, true, false);
 								}
 								ENTITY::APPLY_FORCE_TO_ENTITY(surr_p_peds[j], 1, c_x, c_y, c_z, 0, 0, 0, true, false, true, true, true, true);
-								float dist_center = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(obj_cor.x, obj_cor.y, obj_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
+								float dist_center = MISC::GET_DISTANCE_BETWEEN_COORDS(obj_cor.x, obj_cor.y, obj_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
 								if (dist_center < 95) { // 10, 15, 55
 									ENTITY::SET_ENTITY_MAX_SPEED(surr_p_peds[j], 20); // 10
 								}
@@ -1868,10 +1868,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 							else c_y = 1.5;
 							if (obj_cor.z > gr_cor.z) c_z = -0.5;
 							else c_z = 0.5;
-							if (!VEHICLE::_IS_VEHICLE_DAMAGED(surr_vehicles[j])) VEHICLE::SET_VEHICLE_DAMAGE(surr_vehicles[j], obj_cor.x, obj_cor.y, obj_cor.z, 1000, 1000, 1);
+							if (!VEHICLE::GET_DOES_VEHICLE_HAVE_DAMAGE_DECALS(surr_vehicles[j])) VEHICLE::SET_VEHICLE_DAMAGE(surr_vehicles[j], obj_cor.x, obj_cor.y, obj_cor.z, 1000, 1000, 1);
 							if (surr_vehicles[j] != PED::GET_VEHICLE_PED_IS_USING(playerPed) && surr_vehicles[j] != objects_g[i]) {
 								ENTITY::APPLY_FORCE_TO_ENTITY(surr_vehicles[j], 1, c_x, c_y, c_z, 0, 0, 0, true, false, true, true, true, true);
-								float dist_center = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(obj_cor.x, obj_cor.y, obj_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
+								float dist_center = MISC::GET_DISTANCE_BETWEEN_COORDS(obj_cor.x, obj_cor.y, obj_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
 								if (dist_center < 95) { // 10, 15, 55
 									ENTITY::SET_ENTITY_MAX_SPEED(surr_vehicles[j], 20); // 10
 								}
@@ -1890,7 +1890,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 							else c_z = 0.5;
 							if (surr_objects[j] != objects_g[i]) {
 								ENTITY::APPLY_FORCE_TO_ENTITY(surr_objects[j], 1, c_x, c_y, c_z, 0, 0, 0, true, false, true, true, true, true);
-								float dist_center = GAMEPLAY::GET_DISTANCE_BETWEEN_COORDS(obj_cor.x, obj_cor.y, obj_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
+								float dist_center = MISC::GET_DISTANCE_BETWEEN_COORDS(obj_cor.x, obj_cor.y, obj_cor.z, gr_cor.x, gr_cor.y, gr_cor.z, TRUE);
 								if (dist_center < 95) { // 10, 15, 55
 									ENTITY::SET_ENTITY_MAX_SPEED(surr_objects[j], 20); // 10
 								}
@@ -1911,13 +1911,13 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		for(int i = 0; i < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); i++){
 			for(int j = 0; j < VOV_WEAPON_VALUES[i].size(); j++){
 				char *weaponName = (char*) VOV_WEAPON_VALUES[i].at(j).c_str();
-				Hash weapon = GAMEPLAY::GET_HASH_KEY(weaponName);
+				Hash weapon = MISC::GET_HASH_KEY(weaponName);
 
 				if(WEAPON::IS_WEAPON_VALID(weapon) && WEAPON::HAS_PED_GOT_WEAPON(playerPed, weapon, 0)){
 					int ammo;
 
 					if(WEAPON::GET_MAX_AMMO(playerPed, weapon, &ammo)){
-						WEAPON::SET_PED_AMMO(playerPed, weapon, ammo);
+						WEAPON::SET_PED_AMMO(playerPed, weapon, ammo, FALSE);
 					}
 				}
 			}
@@ -1961,12 +1961,12 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	// No Reticle
 	if (NPC_RAGDOLL_VALUES[WeaponsNoReticle] > 0) {
 		Vehicle cur_v = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-		if (NPC_RAGDOLL_VALUES[WeaponsNoReticle] == 1 || (NPC_RAGDOLL_VALUES[WeaponsNoReticle] == 2 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, true) && CAM::_0xEE778F8C7E1142E2(0) == 4) ||
-			(NPC_RAGDOLL_VALUES[WeaponsNoReticle] == 2 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, true) && ((VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(1) == 4) ||
-				(VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(2) == 4) || (VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(3) == 4) ||
-			(VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(4) == 4) || 
-				((ENTITY::GET_ENTITY_MODEL(cur_v) == GAMEPLAY::GET_HASH_KEY("SUBMERSIBLE") || ENTITY::GET_ENTITY_MODEL(cur_v) == GAMEPLAY::GET_HASH_KEY("SUBMERSIBLE2")) && CAM::_0xEE778F8C7E1142E2(5) == 4) || 
-				(VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAM::_0xEE778F8C7E1142E2(6) == 4)))) {
+		if (NPC_RAGDOLL_VALUES[WeaponsNoReticle] == 1 || (NPC_RAGDOLL_VALUES[WeaponsNoReticle] == 2 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, true) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(0) == 4) ||
+			(NPC_RAGDOLL_VALUES[WeaponsNoReticle] == 2 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, true) && ((VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(1) == 4) ||
+				(VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(2) == 4) || (VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(3) == 4) ||
+			(VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(4) == 4) || 
+				((ENTITY::GET_ENTITY_MODEL(cur_v) == MISC::GET_HASH_KEY("SUBMERSIBLE") || ENTITY::GET_ENTITY_MODEL(cur_v) == MISC::GET_HASH_KEY("SUBMERSIBLE2")) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(5) == 4) || 
+				(VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(cur_v)) && CAMERA::GET_CAM_VIEW_MODE_FOR_CONTEXT(6) == 4)))) {
 			bool sniper_rifle = false;
 
 			switch (WEAPON::GET_SELECTED_PED_WEAPON(playerPed))
@@ -1980,14 +1980,14 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 					sniper_rifle = true;
 			}
 		
-			if (sniper_rifle == false) UI::HIDE_HUD_COMPONENT_THIS_FRAME(14);
+			if (sniper_rifle == false) HUD::HIDE_HUD_COMPONENT_THIS_FRAME(14);
 		}
 	}
 	
 	// Drop Weapon If Hand Shot
 	if (featureDropWeapon) {
 		Vector3 coords_myfinger_p = PED::GET_PED_BONE_COORDS(playerPed, 64016, 0, 0, 0); // right finger bone
-		if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_myfinger_p.x, coords_myfinger_p.y, coords_myfinger_p.z, 0.25, 0, 0) && WEAPON::IS_PED_ARMED(playerPed, 7)) { // 0.2
+		if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(playerPed, 0, 2) && MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_myfinger_p.x, coords_myfinger_p.y, coords_myfinger_p.z, 0.25, 0, 0) && WEAPON::IS_PED_ARMED(playerPed, 7)) { // 0.2
 			Hash curr_w = WEAPON::GET_SELECTED_PED_WEAPON(playerPed);
 			WEAPON::SET_AMMO_IN_CLIP(playerPed, curr_w, 0);
 			Vector3 p_coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(playerPed, 10.0f, 10.0f, 0.0f);
@@ -2001,7 +2001,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	}
 
 	// Drop Weapon When Empty
-	if (featureDropWeaponOutAmmo && WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::IS_PED_ARMED(playerPed, 6) && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN")) {
+	if (featureDropWeaponOutAmmo && WEAPON::IS_PED_ARMED(playerPed, 7) && WEAPON::IS_PED_ARMED(playerPed, 6) && WEAPON::GET_SELECTED_PED_WEAPON(playerPed) != MISC::GET_HASH_KEY("WEAPON_STUNGUN")) {
 		if (WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed)) == 1) temp_weapon = WEAPON::GET_SELECTED_PED_WEAPON(playerPed);
 		if (WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed)) < 1) {
 			WEAPON::SET_CURRENT_PED_WEAPON(playerPed, WEAPON::GET_SELECTED_PED_WEAPON(playerPed), true);
@@ -2031,7 +2031,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			if (featureCanDisarmNPC) {
 				if (a_npcs[i] != playerPed) {
 					Vector3 coords_finger_p = PED::GET_PED_BONE_COORDS(a_npcs[i], 64016, 0, 0, 0); // right finger bone
-					if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(a_npcs[i], 0, 2) && GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_finger_p.x, coords_finger_p.y, coords_finger_p.z, 0.5/*0.4*/, 0, 0) && WEAPON::IS_PED_ARMED(a_npcs[i], 7)) {
+					if (WEAPON::HAS_ENTITY_BEEN_DAMAGED_BY_WEAPON(a_npcs[i], 0, 2) && MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_finger_p.x, coords_finger_p.y, coords_finger_p.z, 0.5/*0.4*/, 0, 0) && WEAPON::IS_PED_ARMED(a_npcs[i], 7)) {
 						Hash curr_w = WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]);
 						if (!featurePedNoWeaponDrop) {
 							Vector3 p_coords = ENTITY::GET_OFFSET_FROM_ENTITY_GIVEN_WORLD_COORDS(a_npcs[i], 10.0f, 10.0f, 0.0f);
@@ -2053,10 +2053,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			if (featurePedNoWeaponDrop) {
 				if (!PED::IS_PED_DEAD_OR_DYING(a_npcs[i], true) && a_npcs[i] != playerPed) WEAPON::SET_PED_DROPS_WEAPONS_WHEN_DEAD(a_npcs[i], false);
 				
-				if (ENTITY::GET_ENTITY_MODEL(a_npcs[i]) == GAMEPLAY::GET_HASH_KEY((char*)"mp_f_freemode_01") || ENTITY::GET_ENTITY_MODEL(a_npcs[i]) == GAMEPLAY::GET_HASH_KEY((char*)"mp_m_freemode_01") ||
+				if (ENTITY::GET_ENTITY_MODEL(a_npcs[i]) == MISC::GET_HASH_KEY((char*)"mp_f_freemode_01") || ENTITY::GET_ENTITY_MODEL(a_npcs[i]) == MISC::GET_HASH_KEY((char*)"mp_m_freemode_01") ||
 					PED::GET_PED_TYPE(a_npcs[i]) == 6 || PED::GET_PED_TYPE(a_npcs[i]) == 27 || PED::GET_PED_TYPE(a_npcs[i]) == 29) PED::SET_PED_CONFIG_FLAG(a_npcs[i], 281, true);
 
-				if (a_npcs[i] != playerPed && (PED::IS_PED_HURT(a_npcs[i]) || PED::IS_PED_INJURED(a_npcs[i]) || AI::IS_PED_IN_WRITHE(a_npcs[i]) || PED::IS_PED_FATALLY_INJURED(a_npcs[i]))) {
+				if (a_npcs[i] != playerPed && (PED::IS_PED_HURT(a_npcs[i]) || PED::IS_PED_INJURED(a_npcs[i]) || TASK::IS_PED_IN_WRITHE(a_npcs[i]) || PED::IS_PED_FATALLY_INJURED(a_npcs[i]))) {
 					Hash curr_w = WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]);
 					Object temp_w = WEAPON::GET_WEAPON_OBJECT_FROM_PED(a_npcs[i], 1);
 					WEAPON::REMOVE_WEAPON_FROM_PED(a_npcs[i], curr_w);
@@ -2073,7 +2073,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		Hash Weapon_Type = WEAPON::GET_WEAPONTYPE_GROUP(curr_weapon);
 		char* currWeapon = new char[WEAPONS_COPARMED_CAPTIONS[CopCurrArmedIndex].length() + 1];
 		strcpy(currWeapon, WEAPONS_COPARMED_CAPTIONS[CopCurrArmedIndex].c_str());
-		Hash Cop_Weapon = GAMEPLAY::GET_HASH_KEY(currWeapon);
+		Hash Cop_Weapon = MISC::GET_HASH_KEY(currWeapon);
 		if (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) <= WEAPONS_COPALARM_VALUES[CopAlarmIndex] || WEAPONS_COPALARM_VALUES[CopAlarmIndex] > 5) {
 			const int arrSize2 = 1024;
 			Ped a_npcs[arrSize2];
@@ -2088,7 +2088,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 						if (!PED::IS_PED_DEAD_OR_DYING(a_npcs[i], true) && PED::GET_PED_TYPE(a_npcs[i]) != 6 && PED::GET_PED_TYPE(a_npcs[i]) != 27 && PED::GET_PED_TYPE(a_npcs[i]) != 29 && PED::IS_PED_SHOOTING(a_npcs[i]) &&
 							a_npcs[i] != playerPed) {
 							Vector3 coords_mebullet = ENTITY::GET_ENTITY_COORDS(playerPed, true);
-							if (WEAPON::IS_PED_ARMED(a_npcs[i], 7) && WEAPON::IS_PED_ARMED(a_npcs[i], 6) && !PED::IS_PED_SHOOTING(playerPed) && (GAMEPLAY::HAS_BULLET_IMPACTED_IN_AREA(coords_mebullet.x, coords_mebullet.y, coords_mebullet.z, 400.0, 0, 0))) {
+							if (WEAPON::IS_PED_ARMED(a_npcs[i], 7) && WEAPON::IS_PED_ARMED(a_npcs[i], 6) && !PED::IS_PED_SHOOTING(playerPed) && (MISC::HAS_BULLET_IMPACTED_IN_AREA(coords_mebullet.x, coords_mebullet.y, coords_mebullet.z, 400.0, 0, 0))) {
 								if (someonehasgunandshooting == false) {
 									shooting_criminal = a_npcs[i];
 									someonehasgunandshooting = true;
@@ -2105,10 +2105,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 							WEAPON::GIVE_WEAPON_TO_PED(a_npcs[i], Cop_Weapon, 999, false, true);
 					}
 					if (featurePlayerMelee && Weapon_Type != 3566412244 && Weapon_Type != 2685387236) {
-						if ((PED::GET_PED_TYPE(a_npcs[i]) == 6 || PED::GET_PED_TYPE(a_npcs[i]) == 27) && !PED::IS_PED_GROUP_MEMBER(a_npcs[i], myENTGroup) && WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN"))
-							WEAPON::GIVE_WEAPON_TO_PED(a_npcs[i], GAMEPLAY::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
-						if (featureArmyMelee && PED::GET_PED_TYPE(a_npcs[i]) == 29 && !PED::IS_PED_GROUP_MEMBER(a_npcs[i], myENTGroup) && WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]) == GAMEPLAY::GET_HASH_KEY("WEAPON_STUNGUN")) 
-							WEAPON::GIVE_WEAPON_TO_PED(a_npcs[i], GAMEPLAY::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
+						if ((PED::GET_PED_TYPE(a_npcs[i]) == 6 || PED::GET_PED_TYPE(a_npcs[i]) == 27) && !PED::IS_PED_GROUP_MEMBER(a_npcs[i], myENTGroup) && WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]) == MISC::GET_HASH_KEY("WEAPON_STUNGUN"))
+							WEAPON::GIVE_WEAPON_TO_PED(a_npcs[i], MISC::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
+						if (featureArmyMelee && PED::GET_PED_TYPE(a_npcs[i]) == 29 && !PED::IS_PED_GROUP_MEMBER(a_npcs[i], myENTGroup) && WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]) == MISC::GET_HASH_KEY("WEAPON_STUNGUN")) 
+							WEAPON::GIVE_WEAPON_TO_PED(a_npcs[i], MISC::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
 					}
 					if (!featurePlayerMelee && someonehasgunandshooting == false) {
 						if ((PED::GET_PED_TYPE(a_npcs[i]) == 6 || PED::GET_PED_TYPE(a_npcs[i]) == 27) && !PED::IS_PED_GROUP_MEMBER(a_npcs[i], myENTGroup) && WEAPON::GET_SELECTED_PED_WEAPON(a_npcs[i]) != Cop_Weapon) 
@@ -2118,7 +2118,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 					}
 				}
 				// arrest mode
-				if (featureDetainedIfNotMove && a_npcs[i] != PLAYER::PLAYER_PED_ID() && (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) == 1 || PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) == 2) && AI::IS_PED_STILL(PLAYER::PLAYER_PED_ID())) {
+				if (featureDetainedIfNotMove && a_npcs[i] != PLAYER::PLAYER_PED_ID() && (PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) == 1 || PLAYER::GET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID()) == 2) && TASK::IS_PED_STILL(PLAYER::PLAYER_PED_ID())) {
 					s_vacuum_secs_passed = clock() / CLOCKS_PER_SEC;
 					if (((clock() / CLOCKS_PER_SEC) - s_vacuum_secs_curr) != 0) {
 						arrest_secs = arrest_secs + 1;
@@ -2131,13 +2131,13 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 							PLAYER::SET_PLAYER_WANTED_LEVEL(PLAYER::PLAYER_ID(), 1, 0);
 							PLAYER::SET_PLAYER_WANTED_LEVEL_NOW(PLAYER::PLAYER_ID(), 0);
 							WEAPON::REMOVE_ALL_PED_WEAPONS(temp_ped, false);
-							WEAPON::GIVE_WEAPON_TO_PED(temp_ped, GAMEPLAY::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
-							AI::TASK_ARREST_PED(temp_ped, PLAYER::PLAYER_PED_ID());
+							WEAPON::GIVE_WEAPON_TO_PED(temp_ped, MISC::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
+							TASK::TASK_ARREST_PED(temp_ped, PLAYER::PLAYER_PED_ID());
 							arrest_secs = 500;
 						}
 					}
 				}
-				if (featureDetainedIfNotMove && !AI::IS_PED_STILL(PLAYER::PLAYER_PED_ID())) {
+				if (featureDetainedIfNotMove && !TASK::IS_PED_STILL(PLAYER::PLAYER_PED_ID())) {
 					arrest_secs = 0;
 					temp_ped = -1;
 				}
@@ -2166,12 +2166,12 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			p_force = std::stoll(lastPowerWeapon, &sz);
 		}
 		
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 24) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 140) || CONTROLS::IS_CONTROL_JUST_PRESSED(2, 141)) {
+		if (PAD::IS_CONTROL_PRESSED(2, 24) || PAD::IS_CONTROL_JUST_PRESSED(2, 140) || PAD::IS_CONTROL_JUST_PRESSED(2, 141)) {
 			force_nearest_ped = true;
 			if (PED::IS_PED_IN_MELEE_COMBAT(PED::GET_MELEE_TARGET_FOR_PED(playerPed))) {
 				WAIT(500);
-				AI::TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PED::GET_MELEE_TARGET_FOR_PED(playerPed), true);
-				AI::CLEAR_PED_TASKS_IMMEDIATELY(PED::GET_MELEE_TARGET_FOR_PED(playerPed));
+				TASK::TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(PED::GET_MELEE_TARGET_FOR_PED(playerPed), true);
+				TASK::CLEAR_PED_TASKS_IMMEDIATELY(PED::GET_MELEE_TARGET_FOR_PED(playerPed));
 			}
 		}
 		
@@ -2195,7 +2195,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 
 			for (int i = 0; i < count_surr_p_peds; i++) {
 				if (surr_p_peds[i] != playerPed && !PED::IS_PED_IN_MELEE_COMBAT(surr_p_peds[i])) { 
-					if (!WEAPON::IS_PED_ARMED(playerPed, 7)) AI::CLEAR_PED_SECONDARY_TASK(surr_p_peds[i]);
+					if (!WEAPON::IS_PED_ARMED(playerPed, 7)) TASK::CLEAR_PED_SECONDARY_TASK(surr_p_peds[i]);
 					if (ENTITY::HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(surr_p_peds[i], playerPed, 1)) {
 						temp_nearest_ped = surr_p_peds[i];
 					}
@@ -2224,10 +2224,10 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			PED::SET_PED_CAN_RAGDOLL(temp_nearest_ped, true);
 			PED::SET_PED_CAN_RAGDOLL_FROM_PLAYER_IMPACT(temp_nearest_ped, true);
 			PED::SET_PED_RAGDOLL_FORCE_FALL(temp_nearest_ped);
-			AI::CLEAR_PED_SECONDARY_TASK(temp_nearest_ped);
-			AI::CLEAR_PED_TASKS(temp_nearest_ped);
-			AI::TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(temp_nearest_ped, true);
-			AI::CLEAR_PED_TASKS_IMMEDIATELY(temp_nearest_ped);
+			TASK::CLEAR_PED_SECONDARY_TASK(temp_nearest_ped);
+			TASK::CLEAR_PED_TASKS(temp_nearest_ped);
+			TASK::TASK_SET_BLOCKING_OF_NON_TEMPORARY_EVENTS(temp_nearest_ped, true);
+			TASK::CLEAR_PED_TASKS_IMMEDIATELY(temp_nearest_ped);
 			ENTITY::APPLY_FORCE_TO_ENTITY(temp_nearest_ped, 1, v_x, v_y, v_z, 0, 0, 0, true, false, true, true, true, true);
 			force_nearest_ped = false;
 			PED::CLEAR_PED_LAST_DAMAGE_BONE(temp_nearest_ped);
@@ -2252,7 +2252,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	if (featureCopTakeWeapon) {
 		if ((time_since_d > 100 && time_since_d < 5000) || (time_since_a > 100 && time_since_a < 5000) || PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1) || player_died == true) {
 			WEAPON::REMOVE_ALL_PED_WEAPONS(playerPed, false);
-			if (!ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1) && detained == false) player_died = false;
+			if (!ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && !PLAYER::IS_PLAYER_BEING_ARRESTED(PLAYER::PLAYER_ID(), 1) && detained == false) player_died = false;
 		}
 	}
 
@@ -2265,7 +2265,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				w_tick_secs_curr = w_tick_secs_passed;
 			}
 		}
-		if (tick_allw > 50 && PlayerUpdated_w && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) {
+		if (tick_allw > 50 && PlayerUpdated_w && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) {
 			WAIT(200);
 			give_all_weapons_hotkey();
 			oldplayerPed_W = playerPed;
@@ -2273,7 +2273,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			PlayerUpdated_w = false; 
 			if (detained == false && alert_level == 0) player_died = false;
 		}
-		if (((time_since_d > -1 && time_since_d < 2000) || playerPed != oldplayerPed_W || player_died == true || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) && PlayerUpdated_w == false) {
+		if (((time_since_d > -1 && time_since_d < 2000) || playerPed != oldplayerPed_W || player_died == true || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) && PlayerUpdated_w == false) {
 			PlayerUpdated_w = true;
 			tick_allw = 0;
 		}
@@ -2288,7 +2288,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				w_a_tick_secs_curr = w_tick_secs_passed;
 			}
 		}
-		if (tick_a_allw > 100 && PlayerUpdated_a && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) {
+		if (tick_a_allw > 100 && PlayerUpdated_a && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) {
 			WAIT(200);
 			add_all_weapons_attachments(playerPed);
 			oldplayerPed_A = playerPed;
@@ -2296,14 +2296,14 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			PlayerUpdated_a = false;
 			if (detained == false && alert_level == 0) player_died = false;
 		}
-		if (((time_since_d > -1 && time_since_d < 2000) || playerPed != oldplayerPed_A || player_died == true || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) && PlayerUpdated_a == false) {
+		if (((time_since_d > -1 && time_since_d < 2000) || playerPed != oldplayerPed_A || player_died == true || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) && PlayerUpdated_a == false) {
 			PlayerUpdated_a = true;
 			tick_a_allw = 0;
 		}
 	}
 
 	// Equip Saved Weapons
-	if (NPC_RAGDOLL_VALUES[WeaponsSavedLoad] > 0 && detained == false && in_prison == false && PED::IS_PED_HUMAN(playerPed) && !CUTSCENE::IS_CUTSCENE_PLAYING() && GAMEPLAY::GET_MISSION_FLAG() == 0 && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) {
+	if (NPC_RAGDOLL_VALUES[WeaponsSavedLoad] > 0 && detained == false && in_prison == false && PED::IS_PED_HUMAN(playerPed) && !CUTSCENE::IS_CUTSCENE_PLAYING() && MISC::GET_MISSION_FLAG() == 0 && !STREAMING::IS_PLAYER_SWITCH_IN_PROGRESS()) {
 		if (tick_s_allw < 100) {
 			w_tick_secs_passed = clock() / CLOCKS_PER_SEC;
 			if (((clock() / (CLOCKS_PER_SEC / 1000)) - ss_tick_secs_curr) != 0) {
@@ -2311,13 +2311,13 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				ss_tick_secs_curr = w_tick_secs_passed;
 			}
 		}
-		if (tick_s_allw > 60 && PlayerUpdated_s && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID())) {
+		if (tick_s_allw > 60 && PlayerUpdated_s && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE)) {
 			WAIT(300); //WAIT(200);
 			load_saved_weapons();
 			for (int a = 0; a < sizeof(VOV_WEAPON_VALUES) / sizeof(VOV_WEAPON_VALUES[0]); a++) { // give all equipped ammo
 				for (int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++) {
 					char* weaponName = (char*)VOV_WEAPON_VALUES[a].at(b).c_str();
-					Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+					Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 					if (WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, FALSE)) WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 10000, false, false);
 				}
 			}
@@ -2326,7 +2326,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			PlayerUpdated_s = false;
 			if (detained == false && alert_level == 0) player_died = false;
 		}
-		if (((time_since_d > -1 && time_since_d < 2000) || playerPed != oldplayerPed_s || player_died == true || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) && PlayerUpdated_s == false) {
+		if (((time_since_d > -1 && time_since_d < 2000) || playerPed != oldplayerPed_s || player_died == true || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) && PlayerUpdated_s == false) {
 			PlayerUpdated_s = true;
 			tick_s_allw = 0;
 		}
@@ -2354,9 +2354,9 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			}
 			vision_toggle = 0;
 		}
-		if (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_SNIPERRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_HEAVYSNIPER") ||
-			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_REMOTESNIPER") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_HEAVYSNIPER_MK2") ||
-			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_MARKSMANRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_MARKSMANRIFLE_MK2")) {
+		if (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_SNIPERRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_HEAVYSNIPER") ||
+			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_REMOTESNIPER") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_HEAVYSNIPER_MK2") ||
+			WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_MARKSMANRIFLE") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_MARKSMANRIFLE_MK2")) {
 			if (WORLD_GRAVITY_LEVEL_VALUES[SniperVisionIndex] == 2 && !PED::GET_PED_CONFIG_FLAG(playerPed, 58, 1) && PED::GET_PED_CONFIG_FLAG(playerPed, 78, 1)) {
 				GRAPHICS::SET_NIGHTVISION(true);
 				GRAPHICS::SET_SEETHROUGH(false);
@@ -2380,8 +2380,8 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 
 	// Rapid Fire
 	if (featureRapidFire) {
-		if ((CONTROLS::IS_CONTROL_PRESSED(2, 24) || (CONTROLS::IS_CONTROL_PRESSED(2, 24) && CONTROLS::IS_CONTROL_PRESSED(2, 25)))
-			&& ENTITY::DOES_ENTITY_EXIST(playerPed) && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID()) && !PED::IS_PED_RELOADING(playerPed)) {
+		if ((PAD::IS_CONTROL_PRESSED(2, 24) || (PAD::IS_CONTROL_PRESSED(2, 24) && PAD::IS_CONTROL_PRESSED(2, 25)))
+			&& ENTITY::DOES_ENTITY_EXIST(playerPed) && !ENTITY::IS_ENTITY_DEAD(PLAYER::PLAYER_PED_ID(), FALSE) && !PED::IS_PED_RELOADING(playerPed)) {
 			if (WEAPONS_RAPIDFIRE_VALUES[RapidFireIndex] != -1 && tick_rap_allw < WEAPONS_RAPIDFIRE_VALUES[RapidFireIndex]) {
 				w_tick_rap_secs_passed = clock() / CLOCKS_PER_SEC;
 				if (((clock() / (CLOCKS_PER_SEC / 10)) - ss_tick_rap_secs_curr) != 0) {
@@ -2390,14 +2390,14 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 				}
 			}
 			if (WEAPONS_RAPIDFIRE_VALUES[RapidFireIndex] == -1 || tick_rap_allw >= WEAPONS_RAPIDFIRE_VALUES[RapidFireIndex]) {
-				Entity curr_w = WEAPON::GET_CURRENT_PED_WEAPON_ENTITY_INDEX(playerPed);
+				Entity curr_w = WEAPON::GET_CURRENT_PED_WEAPON_ENTITY_INDEX(playerPed, FALSE);
 				Vector3 myCoords = ENTITY::GET_ENTITY_COORDS(curr_w, 1);
 				float Coord[3];
 				Vector3 moveToPos = add(&myCoords, &DirectionOffsetFromCam(5.5f));
 				VectorToFloat(moveToPos, Coord);
-				if (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_FIREWORK") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_RPG")) WEAPON::SET_PED_INFINITE_AMMO_CLIP(playerPed, true);
-				GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(myCoords.x, myCoords.y, myCoords.z, Coord[0], Coord[1], Coord[2]/* + 0.5*/, 250, 1, WEAPON::GET_SELECTED_PED_WEAPON(playerPed), playerPed, 1, 0, -1.0);
-				GAMEPLAY::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(myCoords.x, myCoords.y, myCoords.z, Coord[0], Coord[1], Coord[2]/* + 0.5*/, 250, 1, WEAPON::GET_SELECTED_PED_WEAPON(playerPed), playerPed, 1, 0, -1.0);
+				if (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_FIREWORK") || WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_RPG")) WEAPON::SET_PED_INFINITE_AMMO_CLIP(playerPed, true);
+				MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(myCoords.x, myCoords.y, myCoords.z, Coord[0], Coord[1], Coord[2]/* + 0.5*/, 250, 1, WEAPON::GET_SELECTED_PED_WEAPON(playerPed), playerPed, 1, 0, -1.0);
+				MISC::SHOOT_SINGLE_BULLET_BETWEEN_COORDS(myCoords.x, myCoords.y, myCoords.z, Coord[0], Coord[1], Coord[2]/* + 0.5*/, 250, 1, WEAPON::GET_SELECTED_PED_WEAPON(playerPed), playerPed, 1, 0, -1.0);
 				tick_rap_allw = 0;
 			}
 		}
@@ -2406,17 +2406,17 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	// Flashlight Strobe
 	if (FUEL_COLOURS_R_VALUES[WeapStrobeIndexN] > 0) {
 		float tmp_s = FUEL_COLOURS_R_VALUES[WeapStrobeIndexN];
-		if (CONTROLS::IS_CONTROL_JUST_PRESSED(2, 54) && WEAPON::SET_WEAPON_SMOKEGRENADE_ASSIGNED(playerPed) && strb_c < 6) {
+		if (PAD::IS_CONTROL_JUST_PRESSED(2, 54) && WEAPON::IS_FLASH_LIGHT_ON(playerPed) && strb_c < 6) {
 			f_strobe = true;
 		}
 		if (f_strobe == true) {
 			strobe_tick = strobe_tick + 0.1;
 			if (strobe_tick > (tmp_s / 100)) { // 0.9
-				CONTROLS::_SET_CONTROL_NORMAL(0, 54, 1);
+				PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 54, 1);
 				strobe_tick = 0.0;
 			}
 		}
-		if (CONTROLS::IS_CONTROL_PRESSED(2, 54)) strb_c = strb_c + 1;
+		if (PAD::IS_CONTROL_PRESSED(2, 54)) strb_c = strb_c + 1;
 		else strb_c = 0;
 		if (strb_c > 5) {
 			f_strobe = false;
@@ -2426,8 +2426,8 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 
 	// Flashlight Intensity
 	if (WEAP_DMG_FLOAT[WeapFlashDistIndex] > 1.0) {
-		if ((!PED::IS_PED_RELOADING(playerPed) && WEAPON::SET_WEAPON_SMOKEGRENADE_ASSIGNED(playerPed)) || (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == GAMEPLAY::GET_HASH_KEY("WEAPON_FLASHLIGHT") && CONTROLS::IS_CONTROL_PRESSED(2, 25))) {
-			Entity curr_w = WEAPON::GET_CURRENT_PED_WEAPON_ENTITY_INDEX(playerPed);
+		if ((!PED::IS_PED_RELOADING(playerPed) && WEAPON::IS_FLASH_LIGHT_ON(playerPed)) || (WEAPON::GET_SELECTED_PED_WEAPON(playerPed) == MISC::GET_HASH_KEY("WEAPON_FLASHLIGHT") && PAD::IS_CONTROL_PRESSED(2, 25))) {
+			Entity curr_w = WEAPON::GET_CURRENT_PED_WEAPON_ENTITY_INDEX(playerPed, FALSE);
 			Vector3 myCoords = ENTITY::GET_ENTITY_COORDS(curr_w, 1);
 				
 			float Coord1[3];
@@ -2441,17 +2441,17 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			float dirVector_lr_x = Coord2[0] - Coord1[0];
 			float dirVector_lr_y = Coord2[1] - Coord1[1];
 			float dirVector_lr_z = Coord2[2] - Coord1[2];
-			if (WEAP_DMG_FLOAT[WeapFlashDistIndex] < 1000.0) GRAPHICS::_DRAW_SPOT_LIGHT_WITH_SHADOW(Coord1[0], Coord1[1], Coord1[2], dirVector_lr_x, dirVector_lr_y, dirVector_lr_z, 255, 255, 255, WEAP_DMG_FLOAT[WeapFlashDistIndex] * 40.0, 1, 50, 19, 2.7, 10); // 21
-			if (WEAP_DMG_FLOAT[WeapFlashDistIndex] == 1000.0) GRAPHICS::_DRAW_SPOT_LIGHT_WITH_SHADOW(Coord1[0], Coord1[1], Coord1[2], dirVector_lr_x, dirVector_lr_y, dirVector_lr_z, 255, 255, 255, 300 * 40.0, 1, 50, 19, 2.7, 10); // 21
+			if (WEAP_DMG_FLOAT[WeapFlashDistIndex] < 1000.0) GRAPHICS::DRAW_SHADOWED_SPOT_LIGHT(Coord1[0], Coord1[1], Coord1[2], dirVector_lr_x, dirVector_lr_y, dirVector_lr_z, 255, 255, 255, WEAP_DMG_FLOAT[WeapFlashDistIndex] * 40.0, 1, 50, 19, 2.7, 10); // 21
+			if (WEAP_DMG_FLOAT[WeapFlashDistIndex] == 1000.0) GRAPHICS::DRAW_SHADOWED_SPOT_LIGHT(Coord1[0], Coord1[1], Coord1[2], dirVector_lr_x, dirVector_lr_y, dirVector_lr_z, 255, 255, 255, 300 * 40.0, 1, 50, 19, 2.7, 10); // 21
 		}
 	}
 
 	// Fire Mode
 	if (WORLD_GRAVITY_LEVEL_VALUES[WeaponsFireModeIndex] > 0) {
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 24, 1); // attack
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 257, 1); // attack2
-		CONTROLS::DISABLE_CONTROL_ACTION(2, 69, 1); // vehicle attack
-		if (CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, 24)) {
+		PAD::DISABLE_CONTROL_ACTION(2, 24, 1); // attack
+		PAD::DISABLE_CONTROL_ACTION(2, 257, 1); // attack2
+		PAD::DISABLE_CONTROL_ACTION(2, 69, 1); // vehicle attack
+		if (PAD::IS_DISABLED_CONTROL_PRESSED(2, 24)) {
 			if (featureWeaponInfiniteAmmo && PED::IS_PED_SHOOTING(playerPed)) bullet_tick = bullet_tick + 1;
 			if (WORLD_GRAVITY_LEVEL_VALUES[WeaponsFireModeIndex] == 3 && (((bullet_a - WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed))) > 4) || bullet_tick > 4)) { // burst auto
 				w_tick_secs_passed = clock() / CLOCKS_PER_SEC;
@@ -2468,12 +2468,12 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 			if ((WORLD_GRAVITY_LEVEL_VALUES[WeaponsFireModeIndex] == 1 && ((bullet_a - WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed))) < 1) && bullet_tick < 1) || // 1 - single fire
 				(WORLD_GRAVITY_LEVEL_VALUES[WeaponsFireModeIndex] == 2 && ((bullet_a - WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed))) < 5) && bullet_tick < 5) || // 2 - burst semi
 				(WORLD_GRAVITY_LEVEL_VALUES[WeaponsFireModeIndex] == 3 && ((bullet_a - WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed))) < 5) && bullet_tick < 5)) { // 3 - burst auto
-				CONTROLS::ENABLE_CONTROL_ACTION(2, 24, 1); // attack
-				CONTROLS::ENABLE_CONTROL_ACTION(2, 257, 1); // attack2
-				CONTROLS::ENABLE_CONTROL_ACTION(2, 69, 1); // vehicle attack
+				PAD::ENABLE_CONTROL_ACTION(2, 24, 1); // attack
+				PAD::ENABLE_CONTROL_ACTION(2, 257, 1); // attack2
+				PAD::ENABLE_CONTROL_ACTION(2, 69, 1); // vehicle attack
 			}
 		}
-		if (!CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, 24) && !PED::GET_PED_CONFIG_FLAG(PLAYER::PLAYER_PED_ID(), 58, 1)) {
+		if (!PAD::IS_DISABLED_CONTROL_PRESSED(2, 24) && !PED::GET_PED_CONFIG_FLAG(PLAYER::PLAYER_PED_ID(), 58, 1)) {
 			bullet_a = WEAPON::GET_AMMO_IN_PED_WEAPON(PLAYER::PLAYER_PED_ID(), WEAPON::GET_SELECTED_PED_WEAPON(playerPed));
 			tick_firemode = 0;
 			bullet_tick = 0;
@@ -2481,7 +2481,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 	}
 	
 	// Gravity Gun
-	if(bPlayerExists && featureGravityGun && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if(bPlayerExists && featureGravityGun && MISC::GET_MISSION_FLAG() == 0) {
 		Ped tempPed;
 		Hash tempWeap;
 
@@ -2497,7 +2497,7 @@ void update_weapon_features(BOOL bPlayerExists, Player player){
 		tempPed = PLAYER::PLAYER_ID();
 		WEAPON::GET_CURRENT_PED_WEAPON(PLAYER::PLAYER_PED_ID(), &tempWeap, 1);
 
-		if((PLAYER::IS_PLAYER_FREE_AIMING(tempPed) || PLAYER::IS_PLAYER_TARGETTING_ANYTHING(tempPed)) && ENTITY::DOES_ENTITY_EXIST(grav_entity) && tempWeap == GAMEPLAY::GET_HASH_KEY("weapon_stungun")){
+		if((PLAYER::IS_PLAYER_FREE_AIMING(tempPed) || PLAYER::IS_PLAYER_TARGETTING_ANYTHING(tempPed)) && ENTITY::DOES_ENTITY_EXIST(grav_entity) && tempWeap == MISC::GET_HASH_KEY("weapon_stungun")){
 			Vector3 myCoords = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
 			float myCoordV[3];
 			VectorToFloat(myCoords, myCoordV);
@@ -2572,7 +2572,7 @@ void save_player_weapons(Ped playerPed){
 		for(int b = 0; b < VOV_WEAPON_VALUES[a].size() && index < SAVED_WEAPONS_COUNT; b++, index++){
 			std::string weaponNameStr = VOV_WEAPON_VALUES[a].at(b);
 			char *weaponName = (char*) weaponNameStr.c_str();
-			Hash weaponHash = GAMEPLAY::GET_HASH_KEY(weaponName);
+			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 			saved_weapon_model[index] = weaponHash;
 			if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, 0)){
 				saved_ammo[index] = WEAPON::GET_AMMO_IN_PED_WEAPON(playerPed, weaponHash);
@@ -2589,7 +2589,7 @@ void save_player_weapons(Ped playerPed){
 					if(weaponNameStr.compare(WEAPONTYPES_MOD.at(c)) == 0){
 						for(int d = 0; d < VOV_WEAPONMOD_VALUES[c].size(); d++){
 							char *componentName = (char *) VOV_WEAPONMOD_VALUES[c].at(d).c_str();
-							Hash componentHash = GAMEPLAY::GET_HASH_KEY(componentName);
+							Hash componentHash = MISC::GET_HASH_KEY(componentName);
 							bool modEquipped = WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weaponHash, componentHash) ? true : false;
 							saved_weapon_mods[index][d] = modEquipped;
 						}
@@ -2615,7 +2615,7 @@ void restore_player_weapons(Ped playerPed){
 		for(int b = 0; b < VOV_WEAPON_VALUES[a].size() && index < SAVED_WEAPONS_COUNT; b++, index++){
 			if(saved_ammo[index] > 0){
 				WEAPON::GIVE_WEAPON_TO_PED(playerPed, saved_weapon_model[index], 1, false, false);
-				WEAPON::SET_PED_AMMO(playerPed, saved_weapon_model[index], saved_ammo[index]);
+				WEAPON::SET_PED_AMMO(playerPed, saved_weapon_model[index], saved_ammo[index], FALSE);
 				WEAPON::SET_AMMO_IN_CLIP(playerPed, saved_weapon_model[index], saved_clip_ammo[index]);
 
 				for(int c = 0; c < WEAPONTYPES_TINT.size(); c++){
@@ -2629,7 +2629,7 @@ void restore_player_weapons(Ped playerPed){
 					if(VOV_WEAPON_VALUES[a].at(b).compare(WEAPONTYPES_MOD.at(c)) == 0){
 						for(int d = 0; d < VOV_WEAPONMOD_VALUES[c].size(); d++){
 							char *componentName = (char *) VOV_WEAPONMOD_VALUES[c].at(d).c_str();
-							Hash componentHash = GAMEPLAY::GET_HASH_KEY(componentName);
+							Hash componentHash = MISC::GET_HASH_KEY(componentName);
 							if(saved_weapon_mods[index][d]){
 								WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(playerPed, saved_weapon_model[index], componentHash);
 							}
@@ -2653,24 +2653,24 @@ bool is_weapon_equipped(std::vector<int> extras){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	std::string weaponValue = VOV_WEAPON_VALUES[extras.at(0)].at(extras.at(1));
 	char *weaponChar = (char*) weaponValue.c_str();
-	return (WEAPON::HAS_PED_GOT_WEAPON(playerPed, GAMEPLAY::GET_HASH_KEY(weaponChar), 0) ? true : false);
+	return (WEAPON::HAS_PED_GOT_WEAPON(playerPed, MISC::GET_HASH_KEY(weaponChar), 0) ? true : false);
 }
 
 void set_weapon_equipped(bool equipped, std::vector<int> extras){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	std::string weaponValue = VOV_WEAPON_VALUES[extras.at(0)].at(extras.at(1));
 	char *weaponChar = (char*) weaponValue.c_str();
-	int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 	if(equipped){
 		WEAPON::GIVE_WEAPON_TO_PED(playerPed, weapHash, 1000, 0, 0);
 
 		//fill the clip and one spare
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
-		WEAPON::SET_PED_AMMO(playerPed, weapHash, maxClipAmmo);
+		WEAPON::SET_PED_AMMO(playerPed, weapHash, maxClipAmmo, FALSE);
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
 	}
 	else{
-		WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, GAMEPLAY::GET_HASH_KEY(weaponChar));
+		WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, MISC::GET_HASH_KEY(weaponChar));
 	}
 
 	redrawWeaponMenuAfterEquipChange = true;
@@ -2682,16 +2682,16 @@ bool is_weaponmod_equipped(std::vector<int> extras){
 	
 	if (!WEAPON::IS_PED_ARMED(PLAYER::PLAYER_PED_ID(), 7) && refresh_w == true) { // playerPed != PLAYER::PLAYER_PED_ID() && 
 		WAIT(500);
-		CONTROLS::_SET_CONTROL_NORMAL(0, 37, 1);
+		PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 37, 1);
 		refresh_w = false;
 	}
 
 	char *weaponChar = (char*) weaponValue.c_str();
-	int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 
 	const std::vector<std::string> MOD_VECTOR = VOV_WEAPONMOD_VALUES[extras.at(2)];
 	std::string componentName = MOD_VECTOR.at(extras.at(3));
-	DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+	DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 	return WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, componentHash) ? true : false;
 }
@@ -2702,15 +2702,15 @@ void set_weaponmod_equipped(bool equipped, std::vector<int> extras){
 	
 	if (playerPed != PLAYER::PLAYER_PED_ID()) {
 		WAIT(500);
-		CONTROLS::_SET_CONTROL_NORMAL(0, 37, 1);
+		PAD::SET_CONTROL_VALUE_NEXT_FRAME(0, 37, 1);
 		refresh_w = true;
 	}
 	
 	char *weaponChar = (char*) weaponValue.c_str();
-	int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 
 	std::string componentName = VOV_WEAPONMOD_VALUES[extras.at(2)].at(extras.at(3));
-	DWORD componentHash = GAMEPLAY::GET_HASH_KEY((char *) componentName.c_str());
+	DWORD componentHash = MISC::GET_HASH_KEY((char *) componentName.c_str());
 
 	if(WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, componentHash)){
 		WEAPON::REMOVE_WEAPON_COMPONENT_FROM_PED(playerPed, weapHash, componentHash);
@@ -2726,7 +2726,7 @@ void give_weapon_clip(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	std::string weaponValue = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	char *weaponChar = (char*) weaponValue.c_str();
-	int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 
 	int curAmmo = WEAPON::GET_AMMO_IN_PED_WEAPON(playerPed, weapHash);
 	int curClipAmmo = 0;
@@ -2739,7 +2739,7 @@ void give_weapon_clip(MenuItem<int> choice){
 	}
 	else{
 		set_status_text(tr("WeaponMenu.ExtraClipAdded", "Extra clip added"));
-		WEAPON::SET_PED_AMMO(playerPed, weapHash, curAmmo + maxClipAmmo);
+		WEAPON::SET_PED_AMMO(playerPed, weapHash, curAmmo + maxClipAmmo, FALSE);
 	}
 }
 
@@ -2747,14 +2747,14 @@ void fill_weapon_ammo(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	std::string weaponValue = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	char *weaponChar = (char*) weaponValue.c_str();
-	int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 
 	int maxAmmo = 0;
 	WEAPON::GET_MAX_AMMO(playerPed, weapHash, &maxAmmo);
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
 
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
-	WEAPON::SET_PED_AMMO(playerPed, weapHash, maxAmmo);
+	WEAPON::SET_PED_AMMO(playerPed, weapHash, maxAmmo, FALSE);
 
 	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }
@@ -2771,7 +2771,7 @@ void fill_weapon_ammo_hotkey()
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, tempWep, false);
 
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, tempWep, maxClipAmmo);
-	WEAPON::SET_PED_AMMO(playerPed, tempWep, maxAmmo);
+	WEAPON::SET_PED_AMMO(playerPed, tempWep, maxAmmo, FALSE);
 
 	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }
@@ -2785,7 +2785,7 @@ bool onconfirm_weapon_mod_menu_tint(MenuItem<int> choice){
 	std::string weaponName = "";
 	if (equip_ped == PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	if (equip_ped != PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedBodWeaponCategory].at(lastSelectedBodWeapon);
-	int weapHash = GAMEPLAY::GET_HASH_KEY((char*) weaponName.c_str());
+	int weapHash = MISC::GET_HASH_KEY((char*) weaponName.c_str());
 
 	WEAPON::SET_PED_WEAPON_TINT_INDEX(playerPed, weapHash, choice.value);
 
@@ -2799,12 +2799,12 @@ void onconfirm_open_tint_menu(MenuItem<int> choice) {
 	if (equip_ped == PLAYER::PLAYER_PED_ID()) weaponValue = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	if (equip_ped != PLAYER::PLAYER_PED_ID()) weaponValue = VOV_WEAPON_VALUES[lastSelectedBodWeaponCategory].at(lastSelectedBodWeapon);
 	char *weaponChar = (char*)weaponValue.c_str();
-	int weapHash = GAMEPLAY::GET_HASH_KEY(weaponChar);
+	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 	std::vector<MenuItem<int>*> menuItems;
 		
 	for (int i = 0; i < WEAPON::GET_WEAPON_TINT_COUNT(weapHash); i++) {
 		MenuItem<int> *item = new MenuItem<int>();
-		item->caption = UI::_GET_LABEL_TEXT((char*)("WCT_C_TINT_" + std::to_string(i)).c_str()); // CAPTIONS_TINT_MK2[i];
+		item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)("WCT_C_TINT_" + std::to_string(i)).c_str()); // CAPTIONS_TINT_MK2[i];
 		item->value = i;
 		menuItems.push_back(item);
 	}
@@ -2821,9 +2821,9 @@ bool onconfirm_weapon_mod_menu_tint_colour(MenuItem<int> choice) {
 	std::string weaponName = "";
 	if (equip_ped == PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	if (equip_ped != PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedBodWeaponCategory].at(lastSelectedBodWeapon);
-	int weapHash = GAMEPLAY::GET_HASH_KEY((char*)weaponName.c_str());
+	int weapHash = MISC::GET_HASH_KEY((char*)weaponName.c_str());
 
-	WEAPON::SET_WEAPON_LIVERY_COLOR(playerPed, weapHash, GAMEPLAY::GET_HASH_KEY(currWeaponCompHash), choice.value);
+	WEAPON::SET_PED_WEAPON_COMPONENT_TINT_INDEX(playerPed, weapHash, MISC::GET_HASH_KEY(currWeaponCompHash), choice.value);
 
 	return true;
 }
@@ -2836,21 +2836,21 @@ void onconfirm_open_tint_menu_colour(MenuItem<int> choice) {
 	std::string weaponName = "";
 	if (equip_ped == PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedWeaponCategory].at(lastSelectedWeapon);
 	if (equip_ped != PLAYER::PLAYER_PED_ID()) weaponName = VOV_WEAPON_VALUES[lastSelectedBodWeaponCategory].at(lastSelectedBodWeapon);
-	int weapHash = GAMEPLAY::GET_HASH_KEY((char*)weaponName.c_str());
+	int weapHash = MISC::GET_HASH_KEY((char*)weaponName.c_str());
 
 	for each(char* MK2_wep in MK2_WEAPONS)
 	{
-		if (weapHash == GAMEPLAY::GET_HASH_KEY((char*)MK2_wep))
+		if (weapHash == MISC::GET_HASH_KEY((char*)MK2_wep))
 		{
 			for each (char* MK2_wep_comp in MK2_WEAPONS_LIVERY_COMP)
 			{
-				if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, GAMEPLAY::GET_HASH_KEY(MK2_wep_comp)))
+				if (WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(playerPed, weapHash, MISC::GET_HASH_KEY(MK2_wep_comp)))
 				{
 					currWeaponCompHash = MK2_wep_comp;
 
 					for (int i = 0; i < WEAPON::GET_WEAPON_TINT_COUNT(weapHash); i++) {
 						MenuItem<int> *item = new MenuItem<int>();
-						item->caption = UI::_GET_LABEL_TEXT((char*)("WCT_C_TINT_" + std::to_string(i)).c_str()); //  CAPTIONS_TINT_MK2[i];
+						item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION((char*)("WCT_C_TINT_" + std::to_string(i)).c_str()); //  CAPTIONS_TINT_MK2[i];
 						item->value = i;
 						menuItems.push_back(item);
 					}

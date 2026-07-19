@@ -3944,11 +3944,11 @@ void replay_last_anim()
 }
 
 void update_anims_features(BOOL bPlayerExists, Ped playerPed) {
-	if (((IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE)) || (!CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && is_bind_disabled_just_pressed("KEY_MENU_BACK")) || CONTROLS::IS_CONTROL_PRESSED(2, 32) || CONTROLS::IS_CONTROL_PRESSED(2, 33) || CONTROLS::IS_CONTROL_PRESSED(2, 34) ||
-		CONTROLS::IS_CONTROL_PRESSED(2, 35)) && anim_p == true) {
-		AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), (char*)lastImmediatePlayDict.c_str(), (char*)lastImmediatePlayAnim.c_str(), 1.0);
+	if (((IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE)) || (!PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && is_bind_disabled_just_pressed("KEY_MENU_BACK")) || PAD::IS_CONTROL_PRESSED(2, 32) || PAD::IS_CONTROL_PRESSED(2, 33) || PAD::IS_CONTROL_PRESSED(2, 34) ||
+		PAD::IS_CONTROL_PRESSED(2, 35)) && anim_p == true) {
+		TASK::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), (char*)lastImmediatePlayDict.c_str(), (char*)lastImmediatePlayAnim.c_str(), 1.0);
 		PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
-		AI::CLEAR_PED_TASKS(playerPed);
+		TASK::CLEAR_PED_TASKS(playerPed);
 		PED::CLEAR_FACIAL_IDLE_ANIM_OVERRIDE(playerPed);
 		STREAMING::REMOVE_ANIM_DICT((char*)lastImmediatePlayDict.c_str());
 		STREAMING::REMOVE_ANIM_SET((char*)lastImmediatePlayAnim.c_str());
@@ -3971,7 +3971,7 @@ void do_play_anim(Ped playerPed, char* dict, char* anim, int mode)
 	}
 	if (mode == 95) { // CATEGORY_GENERAL_NOW:
 		anim_p = true;
-		AI::TASK_PLAY_ANIM(playerPed, dict, anim, 8, -8, -1, 0, 0, false, 0, true);
+		TASK::TASK_PLAY_ANIM(playerPed, dict, anim, 8, -8, -1, 0, 0, false, 0, true);
 	}
 	if (mode == 3) { // CATEGORY_SCENARIOS:
 		anim_p = true;
@@ -3980,8 +3980,8 @@ void do_play_anim(Ped playerPed, char* dict, char* anim, int mode)
 		std::string wordToFind = "_SEAT_"; // std::string wordToFind = "Sitting:";
 		size_t word = sentence.find(wordToFind);
 		if (word != std::string::npos) sitting_scenario = true; //If we don't reach end of the sentence - we found it!
-		if (sitting_scenario == false) AI::TASK_START_SCENARIO_IN_PLACE(playerPed, anim, 0, true);
-		else AI::TASK_START_SCENARIO_AT_POSITION(playerPed, anim, ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
+		if (sitting_scenario == false) TASK::TASK_START_SCENARIO_IN_PLACE(playerPed, anim, 0, true);
+		else TASK::TASK_START_SCENARIO_AT_POSITION(playerPed, anim, ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
 	}
 	if (mode == 4) { // CATEGORY_CLIPSET:
 		PED::SET_PED_MOVEMENT_CLIPSET(playerPed, anim, 1.0f);
@@ -4048,10 +4048,10 @@ bool onconfirm_scenarios_menu_l2(MenuItem<int> choice)
 	if (word != std::string::npos) sitting_scenario = true; //If we don't reach end of the sentence - we found it!
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	AI::CLEAR_PED_TASKS(playerPed);
+	TASK::CLEAR_PED_TASKS(playerPed);
 	set_status_text(tr("AnimsMenu.PressMenuBackToStopThisScenario", "Press Menu Back to stop this scenario"));
-	if (sitting_scenario == false) AI::TASK_START_SCENARIO_IN_PLACE(playerPed, (char*)value.c_str(), 0, true);
-	else AI::TASK_START_SCENARIO_AT_POSITION(playerPed, (char*)value.c_str(), ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
+	if (sitting_scenario == false) TASK::TASK_START_SCENARIO_IN_PLACE(playerPed, (char*)value.c_str(), 0, true);
+	else TASK::TASK_START_SCENARIO_AT_POSITION(playerPed, (char*)value.c_str(), ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
 
 	while (true)
 	{
@@ -4063,7 +4063,7 @@ bool onconfirm_scenarios_menu_l2(MenuItem<int> choice)
 		make_periodic_feature_call();
 	}
 
-	AI::CLEAR_PED_TASKS(playerPed);
+	TASK::CLEAR_PED_TASKS(playerPed);
 
 	return false;
 }
@@ -4154,7 +4154,7 @@ bool onconfirm_clipset_menu(MenuItem<int> choice)
 	lastImmediateType = 4;
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	AI::CLEAR_PED_TASKS(playerPed);
+	TASK::CLEAR_PED_TASKS(playerPed);
 	PED::SET_PED_MOVEMENT_CLIPSET(playerPed, (char*)value.c_str(), 1.0f);
 
 	return false;

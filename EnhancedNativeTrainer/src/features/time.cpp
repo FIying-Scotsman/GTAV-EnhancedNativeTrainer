@@ -462,15 +462,15 @@ void add_time_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 void movetime_day_forward(){
 	/*
 	bool timeWasPaused = featureTimePaused;
-	TIME::PAUSE_CLOCK(true);
+	CLOCK::PAUSE_CLOCK(true);
 	*/
 
-	int calDay = TIME::GET_CLOCK_DAY_OF_MONTH();
-	int calMon = TIME::GET_CLOCK_MONTH();
-	int calYear = TIME::GET_CLOCK_YEAR();
+	int calDay = CLOCK::GET_CLOCK_DAY_OF_MONTH();
+	int calMon = CLOCK::GET_CLOCK_MONTH();
+	int calYear = CLOCK::GET_CLOCK_YEAR();
 
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	bool leapYear = false;
 	if(calYear % 4 == 0){
@@ -505,28 +505,28 @@ void movetime_day_forward(){
 		calDay++;
 	}
 
-	TIME::SET_CLOCK_DATE(calDay, calMon, calYear);
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 0);
+	CLOCK::SET_CLOCK_DATE(calDay, calMon, calYear);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 0);
 
 	std::ostringstream ss;
 	ss << "Date is now: " << get_day_of_game_week() << " ";
-	ss << std::setfill('0') << std::setw(2) << TIME::GET_CLOCK_DAY_OF_MONTH();
+	ss << std::setfill('0') << std::setw(2) << CLOCK::GET_CLOCK_DAY_OF_MONTH();
 	ss << ".";
-	ss << std::setfill('0') << std::setw(2) << TIME::GET_CLOCK_MONTH();
+	ss << std::setfill('0') << std::setw(2) << CLOCK::GET_CLOCK_MONTH();
 	ss << ".";
-	ss << TIME::GET_CLOCK_YEAR();
+	ss << CLOCK::GET_CLOCK_YEAR();
 	set_status_text(ss.str());
 
-	//TIME::PAUSE_CLOCK(timeWasPaused);
+	//CLOCK::PAUSE_CLOCK(timeWasPaused);
 }
 
 void movetime_day_backward(){
-	int calDay = TIME::GET_CLOCK_DAY_OF_MONTH();
-	int calMon = TIME::GET_CLOCK_MONTH();
-	int calYear = TIME::GET_CLOCK_YEAR();
+	int calDay = CLOCK::GET_CLOCK_DAY_OF_MONTH();
+	int calMon = CLOCK::GET_CLOCK_MONTH();
+	int calYear = CLOCK::GET_CLOCK_YEAR();
 
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	bool leapYear = false;
 	if(calYear % 4 == 0){
@@ -559,8 +559,8 @@ void movetime_day_backward(){
 		calMon--;
 	}
 
-	TIME::SET_CLOCK_DATE(calDay, calMon, calYear);
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 0);
+	CLOCK::SET_CLOCK_DATE(calDay, calMon, calYear);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 0);
 
 	std::ostringstream ss;
 	ss << "Date is now " << get_day_of_game_week() << " ";
@@ -608,7 +608,7 @@ void set_date() {
 		if (strlen(tmp_Year.c_str()) > 4) tmp_Year.resize(4);
 		if (std::stoi(tmp_Year, &sz) > 9999) tmp_Year = "9999";
 
-		TIME::SET_CLOCK_DATE(std::stoi(tmp_Day, &sz), std::stoi(tmp_Mon, &sz), std::stoi(tmp_Year, &sz));
+		CLOCK::SET_CLOCK_DATE(std::stoi(tmp_Day, &sz), std::stoi(tmp_Mon, &sz), std::stoi(tmp_Year, &sz));
 	}
 
 	std::ostringstream ss;
@@ -659,36 +659,36 @@ void set_time() {
 }
 
 void movetime_hour_forward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 	gameHour++;
 	if(gameHour == 24){
 		movetime_day_forward();
 		gameHour = 00;
 	}
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
 	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_hour_backward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 	gameHour--;
 	if(gameHour == -1){
 		movetime_day_backward();
 		gameHour = 23;
 	}
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
 	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_fivemin_forward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	if(gameHour == 23 && gameMins > 54){
 		movetime_day_forward();
@@ -703,15 +703,15 @@ void movetime_fivemin_forward(){
 		gameMins = gameMins + 5;
 	}
 
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
 	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_fivemin_backward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	if(gameHour == 0 && gameMins < 5){
 		movetime_day_backward();
@@ -726,16 +726,16 @@ void movetime_fivemin_backward(){
 		gameMins = gameMins - 5;
 	}
 
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
 	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_set(int hour, int minute){
-	TIME::SET_CLOCK_TIME(hour, minute, 0);
+	CLOCK::SET_CLOCK_TIME(hour, minute, 0);
 	char text[32];
-	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), TIME::GET_CLOCK_HOURS(), TIME::GET_CLOCK_MINUTES());
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), CLOCK::GET_CLOCK_HOURS(), CLOCK::GET_CLOCK_MINUTES());
 	set_status_text(text);
 }
 
@@ -746,7 +746,7 @@ void toggle_game_speed()
 }
 
 std::string get_day_of_game_week(){
-	int day = TIME::GET_CLOCK_DAY_OF_WEEK();
+	int day = CLOCK::GET_CLOCK_DAY_OF_WEEK();
 	switch(day){
 		case 0:
 			return "Sun";
@@ -798,7 +798,7 @@ void update_time_features(Player player){
 		time_t now = time(0);
 		tm t;
 		localtime_s(&t, &now);
-		TIME::SET_CLOCK_TIME(t.tm_hour, t.tm_min, t.tm_sec);
+		CLOCK::SET_CLOCK_TIME(t.tm_hour, t.tm_min, t.tm_sec);
 	}
 	
 	if ((PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && featureSpeedAimInVeh) || !featureSpeedAimInVeh) slow_aim = true;
@@ -809,55 +809,55 @@ void update_time_features(Player player){
 		timeFlowRateIndex.changed = false;
 
 		if(timeFlowRateIndex.value == DEFAULT_TIME_FLOW_RATE){
-			TIME::PAUSE_CLOCK(false);
+			CLOCK::PAUSE_CLOCK(false);
 		}
 		else{
-			TIME::PAUSE_CLOCK(true);
+			CLOCK::PAUSE_CLOCK(true);
 		}
 		timeFactor = timeFlowRateIndex.value == 0 ? -1.0f : 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex.value);
-		SYSTEM::SETTIMERA(0);
+		BUILTIN::SETTIMERA(0);
 	}
 	if(timeFlowRateIndex.value != DEFAULT_TIME_FLOW_RATE){
-		TIME::PAUSE_CLOCK(true);
+		CLOCK::PAUSE_CLOCK(true);
 		if(timeFlowRateIndex.value > 0){
 			int hours = 0;
 			int minutes = 0;
-			int seconds = static_cast<int>(static_cast<float>(SYSTEM::TIMERA()) / timeFactor);
+			int seconds = static_cast<int>(static_cast<float>(BUILTIN::TIMERA()) / timeFactor);
 			hours = seconds / 3600, seconds %= 3600;
 			minutes = seconds / 60, seconds %= 60;
-			SYSTEM::SETTIMERA(SYSTEM::TIMERA() - static_cast<int>(static_cast<float>(hours * 3600 + minutes * 60 + seconds) * timeFactor));
-			TIME::ADD_TO_CLOCK_TIME(hours, minutes, seconds);
+			BUILTIN::SETTIMERA(BUILTIN::TIMERA() - static_cast<int>(static_cast<float>(hours * 3600 + minutes * 60 + seconds) * timeFactor));
+			CLOCK::ADD_TO_CLOCK_TIME(hours, minutes, seconds);
 		}
 	}
 
 	if((is_in_airbrake_mode() && is_airbrake_frozen_time()) || (is_in_prop_placement_mode() && is_prop_placement_frozen_time())){
-		GAMEPLAY::SET_TIME_SCALE(0.0f);
+		MISC::SET_TIME_SCALE(0.0f);
 		weHaveChangedTimeScale = true;
 	}
-	else if(CONTROLS::IS_CONTROL_PRESSED(0, 19) || PLAYER::IS_PLAYER_DEAD(PLAYER::PLAYER_ID())){
+	else if(PAD::IS_CONTROL_PRESSED(0, 19) || PLAYER::IS_PLAYER_DEAD(PLAYER::PLAYER_ID())){
 		//do nothing so the game chooses the speed for us
 	}
 	else if(is_hotkey_held_normal_speed()){
-		GAMEPLAY::SET_TIME_SCALE(1.0f);
+		MISC::SET_TIME_SCALE(1.0f);
 		weHaveChangedTimeScale = true;
 	}
 	else if(is_hotkey_held_slow_mo()){
-		GAMEPLAY::SET_TIME_SCALE(0.0f);
+		MISC::SET_TIME_SCALE(0.0f);
 		weHaveChangedTimeScale = true;
 	}
 	else if (is_hotkey_held_half_normal_speed()){
-		GAMEPLAY::SET_TIME_SCALE(0.4f);
+		MISC::SET_TIME_SCALE(0.4f);
 		weHaveChangedTimeScale = true;
 	}
 	else if (!HotkeyFlowRateLocked && HotkeyFlowRateIndex != DEFAULT_HOTKEY_FLOW_RATE && PLAYER::IS_PLAYER_CONTROL_ON(player) && !PLAYER::IS_PLAYER_DEAD(PLAYER::PLAYER_ID())) { // toggle game speed via hotkey
-		GAMEPLAY::SET_TIME_SCALE(TIME_SPEED_VALUES.at(HotkeyFlowRateIndex));
+		MISC::SET_TIME_SCALE(TIME_SPEED_VALUES.at(HotkeyFlowRateIndex));
 		weHaveChangedTimeScale = true;
 	}
 	else if(PLAYER::IS_PLAYER_FREE_AIMING(player) && PLAYER::IS_PLAYER_CONTROL_ON(player) && slow_aim == true){
 		if(timeSinceAimingBegan == 0){
 			timeSinceAimingBegan = GetTickCount();
 		} else{ // this must fix a bug when the game stayed slow even when not aiming
-			GAMEPLAY::SET_TIME_SCALE(1.0f);
+			MISC::SET_TIME_SCALE(1.0f);
 			weHaveChangedTimeScale = true;
 		}
 
@@ -869,15 +869,15 @@ void update_time_features(Player player){
 
 			float rate = quadratic_time_transition(fullSpeedTime, targetTime, progress);
 
-			GAMEPLAY::SET_TIME_SCALE(rate);
+			MISC::SET_TIME_SCALE(rate);
 		}
 		else{
-			GAMEPLAY::SET_TIME_SCALE(TIME_SPEED_VALUES.at(timeSpeedIndexWhileAiming));
+			MISC::SET_TIME_SCALE(TIME_SPEED_VALUES.at(timeSpeedIndexWhileAiming));
 			weHaveChangedTimeScale = true;
 		}
 	}
 	else if(weHaveChangedTimeScale){
-		GAMEPLAY::SET_TIME_SCALE(1.0f);
+		MISC::SET_TIME_SCALE(1.0f);
 		weHaveChangedTimeScale = false;
 	}
 
@@ -887,13 +887,13 @@ void update_time_features(Player player){
 
 	// Show Current Time
 	if (featureShowtime && menu_showing == false) {
-		int currHours = TIME::GET_CLOCK_HOURS();
-		int currMins = TIME::GET_CLOCK_MINUTES();
-		int currSecs = TIME::GET_CLOCK_SECONDS();
-		int calDay = TIME::GET_CLOCK_DAY_OF_MONTH();
-		int calMon = TIME::GET_CLOCK_MONTH();
-		int calYear = TIME::GET_CLOCK_YEAR();
-		int day = TIME::GET_CLOCK_DAY_OF_WEEK();
+		int currHours = CLOCK::GET_CLOCK_HOURS();
+		int currMins = CLOCK::GET_CLOCK_MINUTES();
+		int currSecs = CLOCK::GET_CLOCK_SECONDS();
+		int calDay = CLOCK::GET_CLOCK_DAY_OF_MONTH();
+		int calMon = CLOCK::GET_CLOCK_MONTH();
+		int calYear = CLOCK::GET_CLOCK_YEAR();
+		int day = CLOCK::GET_CLOCK_DAY_OF_WEEK();
 
 		char hours_to_show_char_modifiable[3];
 		char mins_to_show_char_modifiable[3];
@@ -935,64 +935,64 @@ void update_time_features(Player player){
 		if (currSecs == 8) seconds_to_show_char = "08";
 		if (currSecs == 9) seconds_to_show_char = "09";
 		// hours
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (currHours > 9 && currHours < 60) UI::_ADD_TEXT_COMPONENT_SCALEFORM(hours_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(hours_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (currHours > 9 && currHours < 60) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(hours_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(hours_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.185, 0);
 		// :
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(":");
-		UI::_DRAW_TEXT(0.013, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(":");
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.013, 0.185, 0);
 		// mins
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (currMins > 9 && currMins < 60) UI::_ADD_TEXT_COMPONENT_SCALEFORM(mins_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(minutes_to_show_char);
-		UI::_DRAW_TEXT(0.017, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (currMins > 9 && currMins < 60) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(mins_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(minutes_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.017, 0.185, 0);
 		// :
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(":");
-		UI::_DRAW_TEXT(0.027, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(":");
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.027, 0.185, 0);
 		// secs
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (currSecs > 9 && currSecs < 60) UI::_ADD_TEXT_COMPONENT_SCALEFORM(secs_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(seconds_to_show_char);
-		UI::_DRAW_TEXT(0.031, 0.185);
-		GRAPHICS::DRAW_RECT(0.0, 0.20, 0.10, 0.03, 10, 10, 10, 100);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (currSecs > 9 && currSecs < 60) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(secs_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(seconds_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.031, 0.185, 0);
+		GRAPHICS::DRAW_RECT(0.0, 0.20, 0.10, 0.03, 10, 10, 10, 100, FALSE);
 				
 		char day_to_show_char_modifiable[10];
 		char year_to_show_char_modifiable[10];
@@ -1021,57 +1021,57 @@ void update_time_features(Player player){
 		if (day == 6) week_to_show_char = "Saturday";
 
 		// day of the week
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(week_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.210);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(week_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.210, 0);
 		// day of the month
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (calDay > 9 && calDay < 32) UI::_ADD_TEXT_COMPONENT_SCALEFORM(day_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(hours_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.230);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (calDay > 9 && calDay < 32) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(day_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(hours_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.230, 0);
 		// month of the year
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(month_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.250);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(month_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.250, 0);
 		// year of the century
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(year_to_show_char_modifiable);
-		UI::_DRAW_TEXT(0.003, 0.270);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(year_to_show_char_modifiable);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.270, 0);
 	} // end of show current time
 
 	if (featurehotkeytime) {
 		if (GetKeyState(VK_RMENU) & 0x8000) {
 			PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), false);
-			UI::HIDE_HUD_COMPONENT_THIS_FRAME(19);
-			UI::HIDE_HUD_COMPONENT_THIS_FRAME(20);
+			HUD::HIDE_HUD_COMPONENT_THIS_FRAME(19);
+			HUD::HIDE_HUD_COMPONENT_THIS_FRAME(20);
 		}
 		else if (veh_to_spawn == "") PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), true);
 

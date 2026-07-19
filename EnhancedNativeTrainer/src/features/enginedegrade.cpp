@@ -59,7 +59,7 @@ int BoatEngineDegradeIndex = 5;
 //////////////////////////////////////////////// ENGINE DAMAGE /////////////////////////////////////////////////////////////////
 void engine_can_degrade()
 {
-	if (featureEngineDegrade && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if (featureEngineDegrade && MISC::GET_MISSION_FLAG() == 0) {
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 		
 		// CHECK IF ARRAY IS NOT EMPTY
@@ -130,9 +130,9 @@ void engine_can_degrade()
 				}
 
 				// CALCULATING MILEAGE
-				if ((GAMEPLAY::GET_GAME_TIMER() - E_Time_tick_mileage) > 200) {
+				if ((MISC::GET_GAME_TIMER() - E_Time_tick_mileage) > 200) {
 					e_mileage = e_mileage + floor(((vehspeed * (1.60934 * 0.02)) * 6.6) * 1) / 1;
-					E_Time_tick_mileage = GAMEPLAY::GET_GAME_TIMER();
+					E_Time_tick_mileage = MISC::GET_GAME_TIMER();
 					if (e_mileage > 31) e_mileage = 0;
 				}
 
@@ -140,13 +140,13 @@ void engine_can_degrade()
 				// CAR
 				if (VEH_ENGINEHEALTH_VALUES[CarEngineHealthIndexN] > 0 && vehspeed > 0) {
 					VEHICLE::SET_VEHICLE_ENGINE_CAN_DEGRADE(E_VEHICLES[0], true);
-					if ((GAMEPLAY::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(veh))) {
+					if ((MISC::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_CAR(ENTITY::GET_ENTITY_MODEL(veh))) {
 						if (E_HEALTH[0] > 0 && E_VEHICLES[0] == veh) {
 							if (e_mileage > 14 && e_mileage < 31) {
 								E_HEALTH[0] = (E_HEALTH[0] - (VEH_ENGINEDEGRADE_VALUES[CarEngineDegradeIndex] / 40));
 								e_mileage = 31;
 							}
-							E_Time_tick = GAMEPLAY::GET_GAME_TIMER();
+							E_Time_tick = MISC::GET_GAME_TIMER();
 						}
 						else {
 							E_HEALTH[0] = 0;
@@ -156,13 +156,13 @@ void engine_can_degrade()
 				// BIKE
 				if (VEH_ENGINEHEALTH_VALUES[BikeEngineHealthIndexN] > 0 && vehspeed > 0) {
 					VEHICLE::SET_VEHICLE_ENGINE_CAN_DEGRADE(E_VEHICLES[0], true);
-					if ((GAMEPLAY::GET_GAME_TIMER() - E_Time_tick) > 200 && (VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(veh)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(veh)))) {
+					if ((MISC::GET_GAME_TIMER() - E_Time_tick) > 200 && (VEHICLE::IS_THIS_MODEL_A_BIKE(ENTITY::GET_ENTITY_MODEL(veh)) || VEHICLE::IS_THIS_MODEL_A_QUADBIKE(ENTITY::GET_ENTITY_MODEL(veh)))) {
 						if (E_HEALTH[0] > 0 && E_VEHICLES[0] == veh) {
 							if (e_mileage > 14 && e_mileage < 31) {
 								E_HEALTH[0] = (E_HEALTH[0] - (VEH_ENGINEDEGRADE_VALUES[BikeEngineDegradeIndex] / 40));
 								e_mileage = 31;
 							}
-							E_Time_tick = GAMEPLAY::GET_GAME_TIMER();
+							E_Time_tick = MISC::GET_GAME_TIMER();
 						}
 						else {
 							E_HEALTH[0] = 0;
@@ -172,13 +172,13 @@ void engine_can_degrade()
 				// BOAT
 				if (VEH_ENGINEHEALTH_VALUES[BoatEngineHealthIndexN] > 0 && vehspeed > 0) {
 					VEHICLE::SET_VEHICLE_ENGINE_CAN_DEGRADE(E_VEHICLES[0], true);
-					if ((GAMEPLAY::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(veh))) {
+					if ((MISC::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_BOAT(ENTITY::GET_ENTITY_MODEL(veh))) {
 						if (E_HEALTH[0] > 0 && E_VEHICLES[0] == veh) {
 							if (e_mileage > 14 && e_mileage < 31) {
 								E_HEALTH[0] = (E_HEALTH[0] - (VEH_ENGINEDEGRADE_VALUES[BoatEngineDegradeIndex] / 40));
 								e_mileage = 31;
 							}
-							E_Time_tick = GAMEPLAY::GET_GAME_TIMER();
+							E_Time_tick = MISC::GET_GAME_TIMER();
 						}
 						else {
 							E_HEALTH[0] = 0;
@@ -188,13 +188,13 @@ void engine_can_degrade()
 				// PLANE
 				if (VEH_ENGINEHEALTH_VALUES[PlaneEngineHealthIndexN] > 0 && vehspeed > 0) {
 					VEHICLE::SET_VEHICLE_ENGINE_CAN_DEGRADE(E_VEHICLES[0], true);
-					if ((GAMEPLAY::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(veh))) {
+					if ((MISC::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_PLANE(ENTITY::GET_ENTITY_MODEL(veh))) {
 						if (E_HEALTH[0] > 0 && E_VEHICLES[0] == veh) {
 							if (e_mileage > 14 && e_mileage < 31) {
 								E_HEALTH[0] = (E_HEALTH[0] - (VEH_ENGINEDEGRADE_VALUES[PlaneEngineDegradeIndex] / 40));
 								e_mileage = 31;
 							}
-							E_Time_tick = GAMEPLAY::GET_GAME_TIMER();
+							E_Time_tick = MISC::GET_GAME_TIMER();
 						}
 						else {
 							E_HEALTH[0] = 0;
@@ -204,13 +204,13 @@ void engine_can_degrade()
 				// HELI
 				if (VEH_ENGINEHEALTH_VALUES[HeliEngineHealthIndexN] > 0 && vehspeed > 0) {
 					VEHICLE::SET_VEHICLE_ENGINE_CAN_DEGRADE(E_VEHICLES[0], true);
-					if ((GAMEPLAY::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(veh))) {
+					if ((MISC::GET_GAME_TIMER() - E_Time_tick) > 200 && VEHICLE::IS_THIS_MODEL_A_HELI(ENTITY::GET_ENTITY_MODEL(veh))) {
 						if (E_HEALTH[0] > 0 && E_VEHICLES[0] == veh) {
 							if (e_mileage > 14 && e_mileage < 31) {
 								E_HEALTH[0] = (E_HEALTH[0] - (VEH_ENGINEDEGRADE_VALUES[HeliEngineDegradeIndex] / 40));
 								e_mileage = 31;
 							}
-							E_Time_tick = GAMEPLAY::GET_GAME_TIMER();
+							E_Time_tick = MISC::GET_GAME_TIMER();
 						}
 						else {
 							E_HEALTH[0] = 0;
@@ -220,9 +220,9 @@ void engine_can_degrade()
 
 				// ENGINE HEALTH BAR
 				if (featureEngineHealthBar) {
-					if (E_HEALTH[0] > 40) GRAPHICS::DRAW_RECT(0.0, 1.0, E_HEALTH[0] / 50, 0.005, 100, 225, 137, 110);
-					if (E_HEALTH[0] < 41 && E_HEALTH[0] > 10) GRAPHICS::DRAW_RECT(0.00, 1.0, E_HEALTH[0] / 50, 0.005, 255, 255, 0, 110);
-					if (E_HEALTH[0] < 11) GRAPHICS::DRAW_RECT(0.00, 1.0, E_HEALTH[0] / 50, 0.005, 255, 0, 0, 110);
+					if (E_HEALTH[0] > 40) GRAPHICS::DRAW_RECT(0.0, 1.0, E_HEALTH[0] / 50, 0.005, 100, 225, 137, 110, FALSE);
+					if (E_HEALTH[0] < 41 && E_HEALTH[0] > 10) GRAPHICS::DRAW_RECT(0.00, 1.0, E_HEALTH[0] / 50, 0.005, 255, 255, 0, 110, FALSE);
+					if (E_HEALTH[0] < 11) GRAPHICS::DRAW_RECT(0.00, 1.0, E_HEALTH[0] / 50, 0.005, 255, 0, 0, 110, FALSE);
 				}
 
 				// ENGINE HEALTH LEVEL

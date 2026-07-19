@@ -274,10 +274,10 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		toggle_tractioncontrol();
 		break;
 	case HKEY_DELETE_CHECKPOINT:
-		UI::SET_WAYPOINT_OFF();
+		HUD::SET_WAYPOINT_OFF();
 		break;
 	case HKEY_CLEAR_PROPS:
-		PED::CLEAR_ALL_PED_PROPS(PLAYER::PLAYER_PED_ID());
+		PED::CLEAR_ALL_PED_PROPS(PLAYER::PLAYER_PED_ID(), 0);
 		break;
 	case HKEY_ENTER_DAMAGED_V:
 		enter_damaged_vehicle();

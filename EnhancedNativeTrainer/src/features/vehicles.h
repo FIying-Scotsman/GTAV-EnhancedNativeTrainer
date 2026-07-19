@@ -1717,7 +1717,7 @@ bool inline is_this_a_bicycle(Vehicle veh){
 
 bool inline is_this_a_boat_or_sub(Vehicle veh){
 	Entity et = ENTITY::GET_ENTITY_MODEL(veh);
-	return VEHICLE::IS_THIS_MODEL_A_BOAT(et) || VEHICLE::_IS_THIS_MODEL_A_SUBMERSIBLE(et);
+	return VEHICLE::IS_THIS_MODEL_A_BOAT(et) || VEHICLE::IS_THIS_MODEL_A_JETSKI(et);
 }
 
 bool inline is_this_a_train(Vehicle veh){

@@ -354,12 +354,12 @@ bool process_paint_menu_liveries(){
 	{
 		std::string modItemNameStr;
 
-		char* modItemNameChr = VEHICLE::GET_LIVERY_NAME(veh, i);
+		const char* modItemNameChr = VEHICLE::GET_LIVERY_NAME(veh, i);
 		if(modItemNameChr == NULL){
 			modItemNameStr = tr("PaintMenu.LiveryPrefix", "Livery #") + std::to_string(i + 1);
 		}
 		else{
-			char* modItemNameTxt = UI::_GET_LABEL_TEXT(modItemNameChr);
+			const char* modItemNameTxt = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(modItemNameChr);
 			if(modItemNameTxt != NULL){
 				modItemNameStr = std::string(modItemNameTxt);
 			}
@@ -636,8 +636,8 @@ bool onconfirm_randcolour_category_menu(MenuItem<int> choice)
 			if (i == 2 && (NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 0 || NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 1)) VEHICLE::SET_VEHICLE_CUSTOM_PRIMARY_COLOUR(my_veh, rand_colour_r, rand_colour_g, rand_colour_b);
 			if (i == 3 && (NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 0 || NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 2)) VEHICLE::SET_VEHICLE_CUSTOM_SECONDARY_COLOUR(my_veh, rand_colour_r, rand_colour_g, rand_colour_b);
 			if (i == 4) {
-				VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(my_veh, colorIndex1);
-				VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(my_veh, colorIndex2);
+				VEHICLE::SET_VEHICLE_EXTRA_COLOUR_5(my_veh, colorIndex1);
+				VEHICLE::SET_VEHICLE_EXTRA_COLOUR_6(my_veh, colorIndex2);
 			}
 		}
 	}
@@ -803,10 +803,10 @@ bool onconfirm_paint_menu_type(MenuItem<int> choice){
 
     switch (whichpart){
     case 5:
-        VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &extra);
         break;
     case 6:
-        VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &extra);
         break;
     }
 
@@ -898,11 +898,11 @@ bool process_paint_menu_type(){
 		indexItem->colorindex = wheel;
 		break;
     case 5:
-        VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &extra);
         indexItem->colorindex = extra;
         break;
     case 6:
-        VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &extra);
         indexItem->colorindex = extra;
         break;
     }
@@ -982,10 +982,10 @@ void apply_paint(PaintColor whichpaint){
 					VEHICLE::SET_VEHICLE_EXTRA_COLOURS(veh, pearl, colorIndex);
 					break;
                 case 5:
-                    VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(veh, colorIndex);
+                    VEHICLE::SET_VEHICLE_EXTRA_COLOUR_5(veh, colorIndex);
                     break;
                 case 6:
-                    VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(veh, colorIndex);
+                    VEHICLE::SET_VEHICLE_EXTRA_COLOUR_6(veh, colorIndex);
                     break;
                 default:
 					break;
