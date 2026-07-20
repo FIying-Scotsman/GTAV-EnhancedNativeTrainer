@@ -13,14 +13,55 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "propplacement.h"
 #include <iomanip>
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "script.h"
 
-const std::vector<std::string> TIME_SPEED_CAPTIONS{ "Minimum", "0.1x", "0.2x", "0.3x", "0.4x", "0.5x", "0.6x", "0.7x", "0.8x", "0.9x", "1x (Normal)" };
-const std::vector<float> TIME_SPEED_VALUES{ 0.0f, 0.1f, 0.2f, 0.3f, 0.4f, 0.5f, 0.6f, 0.7f, 0.8f, 0.9f, 1.0f };
+const Option<float> TIME_SPEED_OPTIONS[] = {
+	{ "Minimum", 0.0f },
+	{ "0.1x", 0.1f },
+	{ "0.2x", 0.2f },
+	{ "0.3x", 0.3f },
+	{ "0.4x", 0.4f },
+	{ "0.5x", 0.5f },
+	{ "0.6x", 0.6f },
+	{ "0.7x", 0.7f },
+	{ "0.8x", 0.8f },
+	{ "0.9x", 0.9f },
+	{ "1x (Normal)", 1.0f }
+};
+const std::vector<std::string> TIME_SPEED_CAPTIONS = captionsOf(TIME_SPEED_OPTIONS);
+const std::vector<float> TIME_SPEED_VALUES = valuesOf(TIME_SPEED_OPTIONS);
 const int DEFAULT_TIME_SPEED = 10;
 
-const std::vector<std::string> TIME_FLOW_RATE_CAPTIONS{ "Frozen Time (0s/s)", "Half a Second per Second", "Real Time (1s/s)", "2 Seconds per Second", "3 Seconds per Second", "5 Seconds per Second", "6 Seconds per Second", "10 Seconds per Second", "12 Seconds per Second", "15 Seconds per Second", "Normal Time (30s/s)", "1 Minute per Second", "2 Minutes per Second", "3 Minutes per Second", "5 Minutes per Second", "6 Minutes per Second", "10 Minutes per Second", "12 Minutes per Second", "15 Minutes per Second", "30 Minutes per Second", "1 Hour per Second", "3 Hours per Second", "6 Hours per Second", "12 Hours per Second", "1 Day per Second" }; // 25
-const std::vector<float> TIME_FLOW_RATE_VALUES{ 0.0f, 0.5f, 1.0f, 2.0f, 3.0f, 5.0f, 6.0f, 10.0f, 12.0f, 15.0f, 30.0f, 60.0f, 120.0f, 180.0f, 300.0f, 360.0f, 600.0f, 720.0f, 900.0f, 1800.0f, 3600.0f, 10800.0f, 21600.0f, 43200.0f, 86400.0f };
+const Option<float> TIME_FLOW_RATE_OPTIONS[] = { // 25
+	{ "Frozen Time (0s/s)", 0.0f },
+	{ "Half a Second per Second", 0.5f },
+	{ "Real Time (1s/s)", 1.0f },
+	{ "2 Seconds per Second", 2.0f },
+	{ "3 Seconds per Second", 3.0f },
+	{ "5 Seconds per Second", 5.0f },
+	{ "6 Seconds per Second", 6.0f },
+	{ "10 Seconds per Second", 10.0f },
+	{ "12 Seconds per Second", 12.0f },
+	{ "15 Seconds per Second", 15.0f },
+	{ "Normal Time (30s/s)", 30.0f },
+	{ "1 Minute per Second", 60.0f },
+	{ "2 Minutes per Second", 120.0f },
+	{ "3 Minutes per Second", 180.0f },
+	{ "5 Minutes per Second", 300.0f },
+	{ "6 Minutes per Second", 360.0f },
+	{ "10 Minutes per Second", 600.0f },
+	{ "12 Minutes per Second", 720.0f },
+	{ "15 Minutes per Second", 900.0f },
+	{ "30 Minutes per Second", 1800.0f },
+	{ "1 Hour per Second", 3600.0f },
+	{ "3 Hours per Second", 10800.0f },
+	{ "6 Hours per Second", 21600.0f },
+	{ "12 Hours per Second", 43200.0f },
+	{ "1 Day per Second", 86400.0f }
+};
+const std::vector<std::string> TIME_FLOW_RATE_CAPTIONS = captionsOf(TIME_FLOW_RATE_OPTIONS);
+const std::vector<float> TIME_FLOW_RATE_VALUES = valuesOf(TIME_FLOW_RATE_OPTIONS);
 const int DEFAULT_TIME_FLOW_RATE = 10;
 
 const int DEFAULT_HOTKEY_FLOW_RATE = 10;
@@ -33,15 +74,15 @@ std::vector<Vehicle> VEH_CURR;
 int timeSpeedIndexWhileAiming = DEFAULT_TIME_SPEED;
 int timeSpeedIndex = DEFAULT_TIME_SPEED;
 
-int timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
+ChangeTrackedValue<int> timeFlowRateIndex{DEFAULT_TIME_FLOW_RATE, true};
 int HotkeyFlowRateIndex = DEFAULT_HOTKEY_FLOW_RATE;
 
 bool featureTimeSynced = false;
 bool featureShowtime = false;
 bool featurehotkeytime = false;
 bool featureSpeedAimInVeh = false;
-bool timeFlowRateChanged = true, timeFlowRateLocked = true;
-bool HotkeyFlowRateChanged = true, HotkeyFlowRateLocked = true;
+bool timeFlowRateLocked = true;
+bool HotkeyFlowRateLocked = true;
 
 bool slow_aim = false;
 
@@ -51,7 +92,7 @@ bool requireRefreshOfTime = false;
 
 int activeLineIndexTime = 0;
 
-float timeFactor = 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex);
+float timeFactor = 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex.value);
 
 int timeSinceAimingBegan = 0;
 
@@ -108,53 +149,47 @@ bool onconfirm_time_set_menu(MenuItem<int> choice){
 
 void onconfirm_time_flow_rate(MenuItem<int> choice) {
 	if (timeFlowRateLocked = !timeFlowRateLocked) {
-		std::ostringstream ss;
-		ss << "Time flow rate: " << TIME_FLOW_RATE_CAPTIONS.at(choice.value);
-		set_status_text(ss.str());
+		set_status_text(tr("TimeMenu.TimeFlowRatePrefix", "Time flow rate: ") + TIME_FLOW_RATE_CAPTIONS.at(choice.value));
 	}
 }
 
 void onchange_game_speed_callback(int value, SelectFromListMenuItem* source) {
 	timeSpeedIndex = value;
-	std::ostringstream ss;
-	ss << "Game speed: " << TIME_SPEED_CAPTIONS.at(value);
-	set_status_text(ss.str());
+	set_status_text(tr("TimeMenu.GameSpeedPrefix", "Game speed: ") + TIME_SPEED_CAPTIONS.at(value));
 }
 
 void onchange_aiming_speed_callback(int value, SelectFromListMenuItem* source) {
 	timeSpeedIndexWhileAiming = value;
-	std::ostringstream ss;
-	ss << "Aiming speed: " << TIME_SPEED_CAPTIONS.at(value);
-	set_status_text(ss.str());
+	set_status_text(tr("TimeMenu.AimingSpeedPrefix", "Aiming speed: ") + TIME_SPEED_CAPTIONS.at(value));
 }
 
 void onchange_time_flow_rate_callback(int value, SelectFromListMenuItem *source) {
-	timeFlowRateIndex = value, timeFlowRateChanged = true, timeFlowRateLocked = false;
+	timeFlowRateIndex.value = value, timeFlowRateIndex.changed = true, timeFlowRateLocked = false;
 }
 
 void onchange_hotkey_flow_rate_callback(int value, SelectFromListMenuItem *source) {
-	HotkeyFlowRateIndex = value, HotkeyFlowRateChanged = true, HotkeyFlowRateLocked = false;
+	HotkeyFlowRateIndex = value, HotkeyFlowRateLocked = false;
 }
 
 void onchange_hotkey_freeze_unfreeze_time() {
-	if (timeFlowRateIndex != 0) {
-		frozentimestate = timeFlowRateIndex;
-		timeFlowRateIndex = 0;
-		timeFlowRateChanged = true;
-		set_status_text("Time is frozen");
+	if (timeFlowRateIndex.value != 0) {
+		frozentimestate = timeFlowRateIndex.value;
+		timeFlowRateIndex.value = 0;
+		timeFlowRateIndex.changed = true;
+		set_status_text(tr("TimeMenu.TimeIsFrozen", "Time is frozen"));
 		requireRefreshOfTime = true;
 	}
 	else
 	{
 		if (frozentimestate != -1) {
-			timeFlowRateIndex = frozentimestate;
-			timeFlowRateChanged = true;
+			timeFlowRateIndex.value = frozentimestate;
+			timeFlowRateIndex.changed = true;
 		}
 		else {
-			timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE;
-			timeFlowRateChanged = true;
+			timeFlowRateIndex.value = DEFAULT_TIME_FLOW_RATE;
+			timeFlowRateIndex.changed = true;
 		}
-		set_status_text("Time is unfrozen");
+		set_status_text(tr("TimeMenu.TimeIsUnfrozen", "Time is unfrozen"));
 		requireRefreshOfTime = true;
 	}
 }
@@ -162,7 +197,7 @@ void onchange_hotkey_freeze_unfreeze_time() {
 bool onconfirm_time_flowrate_menu(MenuItem<int> choice) {
 	if (choice.value == 0) {
 		if (featureTimeSynced) {
-			set_status_text("Time synced with system");
+			set_status_text(tr("TimeMenu.TimeSyncedWithSystem", "Time synced with system"));
 		}
 	}
 	else if (choice.value == 666) {
@@ -186,53 +221,53 @@ void all_time_flow_rate() {
 		int index = 0;
 
 		ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Sync With System";
+		togItem->caption = tr("TimeMenu.SyncWithSystem", "Sync With System");
 		togItem->value = 0;
 		togItem->toggleValue = &featureTimeSynced;
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
-		SelectFromListMenuItem *listItem = new SelectFromListMenuItem(TIME_SPEED_CAPTIONS, onchange_hotkey_flow_rate_callback);
+		SelectFromListMenuItem *listItem = new SelectFromListMenuItem(&TIME_SPEED_CAPTIONS, onchange_hotkey_flow_rate_callback);
 		listItem->wrap = false;
-		listItem->caption = "Global Game Speed";
+		listItem->caption = tr("TimeMenu.GlobalGameSpeed", "Global Game Speed");
 		listItem->value = HotkeyFlowRateIndex;
 		menuItems.push_back(listItem);
 
-		listItem = new SelectFromListMenuItem(TIME_SPEED_CAPTIONS, onchange_aiming_speed_callback);
+		listItem = new SelectFromListMenuItem(&TIME_SPEED_CAPTIONS, onchange_aiming_speed_callback);
 		listItem->wrap = false;
-		listItem->caption = "Game Speed While Aiming";
+		listItem->caption = tr("TimeMenu.GameSpeedWhileAiming", "Game Speed While Aiming");
 		listItem->value = timeSpeedIndexWhileAiming;
 		menuItems.push_back(listItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Game Speed While Aiming In Vehicle Only";
+		togItem->caption = tr("TimeMenu.GameSpeedWhileAimingInVehicleOnly", "Game Speed While Aiming In Vehicle Only");
 		togItem->value = 0;
 		togItem->toggleValue = &featureSpeedAimInVeh;
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
-		listItem = new SelectFromListMenuItem(TIME_FLOW_RATE_CAPTIONS, onchange_time_flow_rate_callback);
-		listItem->caption = "Time Flow Rate";
-		listItem->value = timeFlowRateIndex;
+		listItem = new SelectFromListMenuItem(&TIME_FLOW_RATE_CAPTIONS, onchange_time_flow_rate_callback);
+		listItem->caption = tr("TimeMenu.TimeFlowRate", "Time Flow Rate");
+		listItem->value = timeFlowRateIndex.value;
 		listItem->wrap = false;
 		listItem->onConfirmFunction = onconfirm_time_flow_rate;
 		menuItems.push_back(listItem);
 
 		item = new MenuItem<int>();
-		item->caption = "Toggle Frozen Time On/Off";
+		item->caption = tr("TimeMenu.ToggleFrozenTimeOnOff", "Toggle Frozen Time On/Off");
 		item->value = 666;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Show Current In-Game Time";
+		togItem->caption = tr("TimeMenu.ShowCurrentInGameTime", "Show Current In-Game Time");
 		togItem->value = 0;
 		togItem->toggleValue = &featureShowtime;
 		togItem->toggleValueUpdated = NULL;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Fast Time Switching [rAlt + 1-8, rAlt + Npad-/+]";
+		togItem->caption = tr("TimeMenu.FastTimeSwitchingRAlt18RAltNpad", "Fast Time Switching [rAlt + 1-8, rAlt + Npad-/+]");
 		togItem->value = 0;
 		togItem->toggleValue = &featurehotkeytime;
 		togItem->toggleValueUpdated = NULL;
@@ -248,49 +283,49 @@ void process_time_set_menu(){
 	int index = 0;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Midnight";
+	item->caption = tr("TimeMenu.Midnight", "Midnight");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Pre-Dawn";
+	item->caption = tr("TimeMenu.PreDawn", "Pre-Dawn");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Dawn";
+	item->caption = tr("TimeMenu.Dawn", "Dawn");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Morning";
+	item->caption = tr("TimeMenu.Morning", "Morning");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Midday";
+	item->caption = tr("TimeMenu.Midday", "Midday");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Afternoon";
+	item->caption = tr("TimeMenu.Afternoon", "Afternoon");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Sunset";
+	item->caption = tr("TimeMenu.Sunset", "Sunset");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Dusk";
+	item->caption = tr("TimeMenu.Dusk", "Dusk");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -342,61 +377,61 @@ void process_time_menu(){
 	int index = 0;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Set Time to Preset";
+	item->caption = tr("TimeMenu.SetTimeToPreset", "Set Time to Preset");
 	item->value = -1;
 	item->isLeaf = false;
 	menuItems.insert(menuItems.begin(), item);
 
 	item = new MenuItem<int>();
-	item->caption = "1 Hour Forward";
+	item->caption = tr("TimeMenu.N1HourForward", "1 Hour Forward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "1 Hour Backward";
+	item->caption = tr("TimeMenu.N1HourBackward", "1 Hour Backward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "5 Mins Forward";
+	item->caption = tr("TimeMenu.N5MinsForward", "5 Mins Forward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "5 Mins Backward";
+	item->caption = tr("TimeMenu.N5MinsBackward", "5 Mins Backward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Day Forward";
+	item->caption = tr("TimeMenu.DayForward", "Day Forward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Day Backward";
+	item->caption = tr("TimeMenu.DayBackward", "Day Backward");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Set Date (DD/MM/YYYY)";
+	item->caption = tr("TimeMenu.SetDateDDMMYYYY", "Set Date (DD/MM/YYYY)");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Set Time (HH:MM)";
+	item->caption = tr("TimeMenu.SetTimeHHMM", "Set Time (HH:MM)");
 	item->value = index++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Time Settings";
+	item->caption = tr("TimeMenu.TimeSettings", "Time Settings");
 	item->value = index++;
 	item->isLeaf = false;
 	menuItems.insert(menuItems.end(), item);
@@ -406,15 +441,14 @@ void process_time_menu(){
 
 void reset_time_globals(){
 	featureTimeSynced = false;
-	timeFlowRateChanged = true;
-	HotkeyFlowRateChanged = true;
+	timeFlowRateIndex.changed = true;
 	featureShowtime = false;
 	featurehotkeytime = false;
 	featureSpeedAimInVeh = false;
 
 	timeSpeedIndexWhileAiming = DEFAULT_TIME_SPEED;
 	timeSpeedIndex = DEFAULT_TIME_SPEED;
-	timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE; 
+	timeFlowRateIndex.value = DEFAULT_TIME_FLOW_RATE; 
 	HotkeyFlowRateIndex = DEFAULT_HOTKEY_FLOW_RATE;
 }
 
@@ -428,15 +462,15 @@ void add_time_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 void movetime_day_forward(){
 	/*
 	bool timeWasPaused = featureTimePaused;
-	TIME::PAUSE_CLOCK(true);
+	CLOCK::PAUSE_CLOCK(true);
 	*/
 
-	int calDay = TIME::GET_CLOCK_DAY_OF_MONTH();
-	int calMon = TIME::GET_CLOCK_MONTH();
-	int calYear = TIME::GET_CLOCK_YEAR();
+	int calDay = CLOCK::GET_CLOCK_DAY_OF_MONTH();
+	int calMon = CLOCK::GET_CLOCK_MONTH();
+	int calYear = CLOCK::GET_CLOCK_YEAR();
 
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	bool leapYear = false;
 	if(calYear % 4 == 0){
@@ -471,28 +505,28 @@ void movetime_day_forward(){
 		calDay++;
 	}
 
-	TIME::SET_CLOCK_DATE(calDay, calMon, calYear);
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 0);
+	CLOCK::SET_CLOCK_DATE(calDay, calMon, calYear);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 0);
 
 	std::ostringstream ss;
 	ss << "Date is now: " << get_day_of_game_week() << " ";
-	ss << std::setfill('0') << std::setw(2) << TIME::GET_CLOCK_DAY_OF_MONTH();
+	ss << std::setfill('0') << std::setw(2) << CLOCK::GET_CLOCK_DAY_OF_MONTH();
 	ss << ".";
-	ss << std::setfill('0') << std::setw(2) << TIME::GET_CLOCK_MONTH();
+	ss << std::setfill('0') << std::setw(2) << CLOCK::GET_CLOCK_MONTH();
 	ss << ".";
-	ss << TIME::GET_CLOCK_YEAR();
+	ss << CLOCK::GET_CLOCK_YEAR();
 	set_status_text(ss.str());
 
-	//TIME::PAUSE_CLOCK(timeWasPaused);
+	//CLOCK::PAUSE_CLOCK(timeWasPaused);
 }
 
 void movetime_day_backward(){
-	int calDay = TIME::GET_CLOCK_DAY_OF_MONTH();
-	int calMon = TIME::GET_CLOCK_MONTH();
-	int calYear = TIME::GET_CLOCK_YEAR();
+	int calDay = CLOCK::GET_CLOCK_DAY_OF_MONTH();
+	int calMon = CLOCK::GET_CLOCK_MONTH();
+	int calYear = CLOCK::GET_CLOCK_YEAR();
 
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	bool leapYear = false;
 	if(calYear % 4 == 0){
@@ -525,8 +559,8 @@ void movetime_day_backward(){
 		calMon--;
 	}
 
-	TIME::SET_CLOCK_DATE(calDay, calMon, calYear);
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 0);
+	CLOCK::SET_CLOCK_DATE(calDay, calMon, calYear);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 0);
 
 	std::ostringstream ss;
 	ss << "Date is now " << get_day_of_game_week() << " ";
@@ -540,7 +574,7 @@ void movetime_day_backward(){
 
 void set_date() {
 	keyboard_on_screen_already = true;
-	curr_message = "Enter new date (DD/MM/YYYY):"; // set date
+	set_curr_message(tr("TimeMenu.EnterNewDateDDMMYYYY", "Enter new date (DD/MM/YYYY):")); // set date
 	std::string lastDateSpawn;
 	std::string tmp_Day, tmp_Mon, tmp_Year;
 	std::string result = show_keyboard("Enter Name Manually", (char*)lastDateSpawn.c_str());
@@ -574,7 +608,7 @@ void set_date() {
 		if (strlen(tmp_Year.c_str()) > 4) tmp_Year.resize(4);
 		if (std::stoi(tmp_Year, &sz) > 9999) tmp_Year = "9999";
 
-		TIME::SET_CLOCK_DATE(std::stoi(tmp_Day, &sz), std::stoi(tmp_Mon, &sz), std::stoi(tmp_Year, &sz));
+		CLOCK::SET_CLOCK_DATE(std::stoi(tmp_Day, &sz), std::stoi(tmp_Mon, &sz), std::stoi(tmp_Year, &sz));
 	}
 
 	std::ostringstream ss;
@@ -589,7 +623,7 @@ void set_date() {
 
 void set_time() {
 	keyboard_on_screen_already = true;
-	curr_message = "Enter new time (HH:MM):"; // set time
+	set_curr_message(tr("TimeMenu.EnterNewTimeHHMM", "Enter new time (HH:MM):")); // set time
 	std::string lastTimeSpawn;
 	std::string tmp_Hour, tmp_Min;
 	std::string result = show_keyboard("Enter Name Manually", (char*)lastTimeSpawn.c_str());
@@ -625,36 +659,36 @@ void set_time() {
 }
 
 void movetime_hour_forward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 	gameHour++;
 	if(gameHour == 24){
 		movetime_day_forward();
 		gameHour = 00;
 	}
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_hour_backward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 	gameHour--;
 	if(gameHour == -1){
 		movetime_day_backward();
 		gameHour = 23;
 	}
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_fivemin_forward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	if(gameHour == 23 && gameMins > 54){
 		movetime_day_forward();
@@ -669,15 +703,15 @@ void movetime_fivemin_forward(){
 		gameMins = gameMins + 5;
 	}
 
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_fivemin_backward(){
-	int gameHour = TIME::GET_CLOCK_HOURS();
-	int gameMins = TIME::GET_CLOCK_MINUTES();
+	int gameHour = CLOCK::GET_CLOCK_HOURS();
+	int gameMins = CLOCK::GET_CLOCK_MINUTES();
 
 	if(gameHour == 0 && gameMins < 5){
 		movetime_day_backward();
@@ -692,16 +726,16 @@ void movetime_fivemin_backward(){
 		gameMins = gameMins - 5;
 	}
 
-	TIME::SET_CLOCK_TIME(gameHour, gameMins, 00);
+	CLOCK::SET_CLOCK_TIME(gameHour, gameMins, 00);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", gameHour, gameMins);
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), gameHour, gameMins);
 	set_status_text(text);
 }
 
 void movetime_set(int hour, int minute){
-	TIME::SET_CLOCK_TIME(hour, minute, 0);
+	CLOCK::SET_CLOCK_TIME(hour, minute, 0);
 	char text[32];
-	sprintf_s(text, "Time is now %02d:%02d", TIME::GET_CLOCK_HOURS(), TIME::GET_CLOCK_MINUTES());
+	sprintf_s(text, tr("TimeMenu.TimeIsNowFmt", "Time is now %02d:%02d").c_str(), CLOCK::GET_CLOCK_HOURS(), CLOCK::GET_CLOCK_MINUTES());
 	set_status_text(text);
 }
 
@@ -712,7 +746,7 @@ void toggle_game_speed()
 }
 
 std::string get_day_of_game_week(){
-	int day = TIME::GET_CLOCK_DAY_OF_WEEK();
+	int day = CLOCK::GET_CLOCK_DAY_OF_WEEK();
 	switch(day){
 		case 0:
 			return "Sun";
@@ -739,7 +773,7 @@ void handle_generic_settings_time(std::vector<StringPairSettingDBRow>* settings)
 			timeSpeedIndexWhileAiming = stoi(setting.value);
 		}
 		else if(setting.name.compare("timeFlowRateIndex") == 0){
-			timeFlowRateIndex = stoi(setting.value);
+			timeFlowRateIndex.value = stoi(setting.value);
 		}
 		else if (setting.name.compare("HotkeyFlowRateIndex") == 0) {
 			HotkeyFlowRateIndex = stoi(setting.value);
@@ -749,79 +783,81 @@ void handle_generic_settings_time(std::vector<StringPairSettingDBRow>* settings)
 
 void add_time_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"timeSpeedIndexWhileAiming", std::to_string(timeSpeedIndexWhileAiming)});
-	results->push_back(StringPairSettingDBRow{"timeFlowRateIndex", std::to_string(timeFlowRateIndex)});
+	results->push_back(StringPairSettingDBRow{"timeFlowRateIndex", std::to_string(timeFlowRateIndex.value)});
 	results->push_back(StringPairSettingDBRow{"HotkeyFlowRateIndex", std::to_string(HotkeyFlowRateIndex)});
 }
 
 void update_time_features(Player player){
 	// time sync
 	if(featureTimeSynced){
-		if(timeFlowRateIndex != DEFAULT_TIME_FLOW_RATE){
-			timeFlowRateIndex = DEFAULT_TIME_FLOW_RATE, timeFlowRateChanged = true;
+		if(timeFlowRateIndex.value != DEFAULT_TIME_FLOW_RATE){
+			timeFlowRateIndex.value = DEFAULT_TIME_FLOW_RATE, timeFlowRateIndex.changed = true;
 
 		}
 
 		time_t now = time(0);
 		tm t;
 		localtime_s(&t, &now);
-		TIME::SET_CLOCK_TIME(t.tm_hour, t.tm_min, t.tm_sec);
+		CLOCK::SET_CLOCK_TIME(t.tm_hour, t.tm_min, t.tm_sec);
 	}
 	
 	if ((PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && featureSpeedAimInVeh) || !featureSpeedAimInVeh) slow_aim = true;
 	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0) && featureSpeedAimInVeh) slow_aim = false;
 
 	// time flow rate
-	if(timeFlowRateChanged){
-		timeFlowRateChanged = false;
+	if(timeFlowRateIndex.changed){
+		timeFlowRateIndex.changed = false;
 
-		if(timeFlowRateIndex == DEFAULT_TIME_FLOW_RATE){
-			TIME::PAUSE_CLOCK(false);
+		if(timeFlowRateIndex.value == DEFAULT_TIME_FLOW_RATE){
+			CLOCK::PAUSE_CLOCK(false);
 		}
 		else{
-			TIME::PAUSE_CLOCK(true);
+			CLOCK::PAUSE_CLOCK(true);
 		}
-		timeFactor = timeFlowRateIndex == 0 ? -1.0f : 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex);
-		SYSTEM::SETTIMERA(0);
+		timeFactor = timeFlowRateIndex.value == 0 ? -1.0f : 1000.0f / TIME_FLOW_RATE_VALUES.at(timeFlowRateIndex.value);
+		BUILTIN::SETTIMERA(0);
 	}
-	if(timeFlowRateIndex != DEFAULT_TIME_FLOW_RATE){
-		TIME::PAUSE_CLOCK(true);
-		if(timeFlowRateIndex > 0){
-			int hours, minutes, seconds = static_cast<int>(static_cast<float>(SYSTEM::TIMERA()) / timeFactor);
+	if(timeFlowRateIndex.value != DEFAULT_TIME_FLOW_RATE){
+		CLOCK::PAUSE_CLOCK(true);
+		if(timeFlowRateIndex.value > 0){
+			int hours = 0;
+			int minutes = 0;
+			int seconds = static_cast<int>(static_cast<float>(BUILTIN::TIMERA()) / timeFactor);
 			hours = seconds / 3600, seconds %= 3600;
 			minutes = seconds / 60, seconds %= 60;
-			SYSTEM::SETTIMERA(SYSTEM::TIMERA() - static_cast<int>(static_cast<float>(hours * 3600 + minutes * 60 + seconds) * timeFactor));
-			TIME::ADD_TO_CLOCK_TIME(hours, minutes, seconds);
+			BUILTIN::SETTIMERA(BUILTIN::TIMERA() - static_cast<int>(static_cast<float>(hours * 3600 + minutes * 60 + seconds) * timeFactor));
+			CLOCK::ADD_TO_CLOCK_TIME(hours, minutes, seconds);
 		}
 	}
 
 	if((is_in_airbrake_mode() && is_airbrake_frozen_time()) || (is_in_prop_placement_mode() && is_prop_placement_frozen_time())){
-		GAMEPLAY::SET_TIME_SCALE(0.0f);
+		MISC::SET_TIME_SCALE(0.0f);
 		weHaveChangedTimeScale = true;
 	}
-	else if(CONTROLS::IS_CONTROL_PRESSED(0, 19) || PLAYER::IS_PLAYER_DEAD(PLAYER::PLAYER_ID())){
+	else if(PAD::IS_CONTROL_PRESSED(0, 19) || PLAYER::IS_PLAYER_DEAD(PLAYER::PLAYER_ID())){
 		//do nothing so the game chooses the speed for us
 	}
 	else if(is_hotkey_held_normal_speed()){
-		GAMEPLAY::SET_TIME_SCALE(1.0f);
+		MISC::SET_TIME_SCALE(1.0f);
 		weHaveChangedTimeScale = true;
 	}
 	else if(is_hotkey_held_slow_mo()){
-		GAMEPLAY::SET_TIME_SCALE(0.0f);
+		MISC::SET_TIME_SCALE(0.0f);
 		weHaveChangedTimeScale = true;
 	}
 	else if (is_hotkey_held_half_normal_speed()){
-		GAMEPLAY::SET_TIME_SCALE(0.4f);
+		MISC::SET_TIME_SCALE(0.4f);
 		weHaveChangedTimeScale = true;
 	}
 	else if (!HotkeyFlowRateLocked && HotkeyFlowRateIndex != DEFAULT_HOTKEY_FLOW_RATE && PLAYER::IS_PLAYER_CONTROL_ON(player) && !PLAYER::IS_PLAYER_DEAD(PLAYER::PLAYER_ID())) { // toggle game speed via hotkey
-		GAMEPLAY::SET_TIME_SCALE(TIME_SPEED_VALUES.at(HotkeyFlowRateIndex));
+		MISC::SET_TIME_SCALE(TIME_SPEED_VALUES.at(HotkeyFlowRateIndex));
 		weHaveChangedTimeScale = true;
 	}
 	else if(PLAYER::IS_PLAYER_FREE_AIMING(player) && PLAYER::IS_PLAYER_CONTROL_ON(player) && slow_aim == true){
 		if(timeSinceAimingBegan == 0){
 			timeSinceAimingBegan = GetTickCount();
 		} else{ // this must fix a bug when the game stayed slow even when not aiming
-			GAMEPLAY::SET_TIME_SCALE(1.0f);
+			MISC::SET_TIME_SCALE(1.0f);
 			weHaveChangedTimeScale = true;
 		}
 
@@ -833,15 +869,15 @@ void update_time_features(Player player){
 
 			float rate = quadratic_time_transition(fullSpeedTime, targetTime, progress);
 
-			GAMEPLAY::SET_TIME_SCALE(rate);
+			MISC::SET_TIME_SCALE(rate);
 		}
 		else{
-			GAMEPLAY::SET_TIME_SCALE(TIME_SPEED_VALUES.at(timeSpeedIndexWhileAiming));
+			MISC::SET_TIME_SCALE(TIME_SPEED_VALUES.at(timeSpeedIndexWhileAiming));
 			weHaveChangedTimeScale = true;
 		}
 	}
 	else if(weHaveChangedTimeScale){
-		GAMEPLAY::SET_TIME_SCALE(1.0f);
+		MISC::SET_TIME_SCALE(1.0f);
 		weHaveChangedTimeScale = false;
 	}
 
@@ -851,13 +887,13 @@ void update_time_features(Player player){
 
 	// Show Current Time
 	if (featureShowtime && menu_showing == false) {
-		int currHours = TIME::GET_CLOCK_HOURS();
-		int currMins = TIME::GET_CLOCK_MINUTES();
-		int currSecs = TIME::GET_CLOCK_SECONDS();
-		int calDay = TIME::GET_CLOCK_DAY_OF_MONTH();
-		int calMon = TIME::GET_CLOCK_MONTH();
-		int calYear = TIME::GET_CLOCK_YEAR();
-		int day = TIME::GET_CLOCK_DAY_OF_WEEK();
+		int currHours = CLOCK::GET_CLOCK_HOURS();
+		int currMins = CLOCK::GET_CLOCK_MINUTES();
+		int currSecs = CLOCK::GET_CLOCK_SECONDS();
+		int calDay = CLOCK::GET_CLOCK_DAY_OF_MONTH();
+		int calMon = CLOCK::GET_CLOCK_MONTH();
+		int calYear = CLOCK::GET_CLOCK_YEAR();
+		int day = CLOCK::GET_CLOCK_DAY_OF_WEEK();
 
 		char hours_to_show_char_modifiable[3];
 		char mins_to_show_char_modifiable[3];
@@ -899,64 +935,64 @@ void update_time_features(Player player){
 		if (currSecs == 8) seconds_to_show_char = "08";
 		if (currSecs == 9) seconds_to_show_char = "09";
 		// hours
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (currHours > 9 && currHours < 60) UI::_ADD_TEXT_COMPONENT_SCALEFORM(hours_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(hours_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (currHours > 9 && currHours < 60) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(hours_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(hours_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.185, 0);
 		// :
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(":");
-		UI::_DRAW_TEXT(0.013, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(":");
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.013, 0.185, 0);
 		// mins
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (currMins > 9 && currMins < 60) UI::_ADD_TEXT_COMPONENT_SCALEFORM(mins_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(minutes_to_show_char);
-		UI::_DRAW_TEXT(0.017, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (currMins > 9 && currMins < 60) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(mins_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(minutes_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.017, 0.185, 0);
 		// :
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(":");
-		UI::_DRAW_TEXT(0.027, 0.185);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(":");
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.027, 0.185, 0);
 		// secs
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 255);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (currSecs > 9 && currSecs < 60) UI::_ADD_TEXT_COMPONENT_SCALEFORM(secs_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(seconds_to_show_char);
-		UI::_DRAW_TEXT(0.031, 0.185);
-		GRAPHICS::DRAW_RECT(0.0, 0.20, 0.10, 0.03, 10, 10, 10, 100);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 255);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 255);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (currSecs > 9 && currSecs < 60) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(secs_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(seconds_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.031, 0.185, 0);
+		GRAPHICS::DRAW_RECT(0.0, 0.20, 0.10, 0.03, 10, 10, 10, 100, FALSE);
 				
 		char day_to_show_char_modifiable[10];
 		char year_to_show_char_modifiable[10];
@@ -985,57 +1021,57 @@ void update_time_features(Player player){
 		if (day == 6) week_to_show_char = "Saturday";
 
 		// day of the week
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(week_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.210);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(week_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.210, 0);
 		// day of the month
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		if (calDay > 9 && calDay < 32) UI::_ADD_TEXT_COMPONENT_SCALEFORM(day_to_show_char_modifiable);
-		else UI::_ADD_TEXT_COMPONENT_SCALEFORM(hours_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.230);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		if (calDay > 9 && calDay < 32) HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(day_to_show_char_modifiable);
+		else HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(hours_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.230, 0);
 		// month of the year
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(month_to_show_char);
-		UI::_DRAW_TEXT(0.003, 0.250);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(month_to_show_char);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.250, 0);
 		// year of the century
-		UI::SET_TEXT_FONT(4);
-		UI::SET_TEXT_SCALE(0.0, 0.45);
-		UI::SET_TEXT_PROPORTIONAL(1);
-		UI::SET_TEXT_COLOUR(255, 242, 0, 100);
-		UI::SET_TEXT_EDGE(3, 0, 0, 0, 255);
-		UI::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
-		UI::SET_TEXT_OUTLINE();
-		UI::_SET_TEXT_ENTRY("STRING");
-		UI::_ADD_TEXT_COMPONENT_SCALEFORM(year_to_show_char_modifiable);
-		UI::_DRAW_TEXT(0.003, 0.270);
+		HUD::SET_TEXT_FONT(4);
+		HUD::SET_TEXT_SCALE(0.0, 0.45);
+		HUD::SET_TEXT_PROPORTIONAL(1);
+		HUD::SET_TEXT_COLOUR(255, 242, 0, 100);
+		HUD::SET_TEXT_EDGE(3, 0, 0, 0, 255);
+		HUD::SET_TEXT_DROPSHADOW(10, 10, 10, 10, 100);
+		HUD::SET_TEXT_OUTLINE();
+		HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+		HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY(year_to_show_char_modifiable);
+		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.003, 0.270, 0);
 	} // end of show current time
 
 	if (featurehotkeytime) {
 		if (GetKeyState(VK_RMENU) & 0x8000) {
 			PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), false);
-			UI::HIDE_HUD_COMPONENT_THIS_FRAME(19);
-			UI::HIDE_HUD_COMPONENT_THIS_FRAME(20);
+			HUD::HIDE_HUD_COMPONENT_THIS_FRAME(19);
+			HUD::HIDE_HUD_COMPONENT_THIS_FRAME(20);
 		}
 		else if (veh_to_spawn == "") PED::SET_PED_CAN_SWITCH_WEAPON(PLAYER::PLAYER_PED_ID(), true);
 

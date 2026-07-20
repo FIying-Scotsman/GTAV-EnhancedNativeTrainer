@@ -43,10 +43,8 @@ bool featurePedsWeapons = false;
 bool featureAngryMenManually = false;
 bool featurePedsIncludeDrivers = false;
 bool featurePedsIncludePilots = false;
-bool featureAggressiveDrivers = false;
-bool featureAggressiveDriversUpdated = false;
-bool featureSpookyDrivers = false;
-bool featureSpookyDriversUpdated = false;
+ToggleFeature featureAggressiveDrivers{false, false};
+ToggleFeature featureSpookyDrivers{false, false};
 bool featureLawAbidingCitizens = false;
 bool featureNPCNoLights = false;
 bool featureNPCNeonLights = false;
@@ -82,13 +80,14 @@ bool time_to_chase = false;
 bool time_to_attack = true;
 std::vector<Ped> pursuer;
 std::vector<Vehicle> v_collided;
-int s_secs_passed, s_secs_curr, s_seconds = 0;
+int s_secs_passed = 0;
+int s_secs_curr = 0;
+int s_seconds = 0;
 
 // vigilante blips
 Blip blip_vigilante = -1;
 std::vector<Blip> BLIPTABLE_VIGILANTE;
 int VigilanteBlipIndex = 0;
-bool VigilanteBlipChanged = true;
 bool b_not_equal = false;
 
 // spooked drivers
@@ -104,29 +103,22 @@ const std::vector<std::string> PED_WEAPONS_SELECTIVE_CAPTIONS{ "\"WEAPON_UNARMED
 "\"WEAPON_DBSHOTGUN\"", "\"WEAPON_AUTOSHOTGUN\"", "\"WEAPON_MUSKET\"", "\"WEAPON_SAWNOFFSHOTGUN\"", "\"WEAPON_COMBATMG\"", "\"WEAPON_MINIGUN\"", "\"WEAPON_GUSENBERG\"", "\"WEAPON_SNIPERRIFLE\"", "\"WEAPON_HEAVYSNIPER\"",
 "\"WEAPON_GRENADELAUNCHER\"", "\"WEAPON_GRENADELAUNCHER_SMOKE\"", "\"WEAPON_RPG\"", "\"WEAPON_HOMINGLAUNCHER\"", "\"WEAPON_COMPACTLAUNCHER\"", "\"WEAPON_RAILGUN\"", "\"WEAPON_FIREWORK\"", "\"WEAPON_RAYCARBINE\"", "\"WEAPON_RAYMINIGUN\"",
 "\"WEAPON_RAYPISTOL\"" };
-int PedWeaponsSelectiveIndex = 0;
-bool PedWeaponsSelective1Changed = true;
+ChangeTrackedValue<int> PedWeaponsSelectiveIndex{0, true};
 
 //NPC Vehicle Invicible
 int VehPedInvincibilityIndex = 0;
-bool VehPedInvincibilityChanged = true;
 
 // NPC Vehicle Speed
 int NPCVehicleSpeedIndex = 0;
-bool NPCVehicleSpeedChanged = true;
 int PedAccuracyIndex = 0;
-bool PedAccuracyChanged = true;
 
 // Selective Angry Peds
 const std::vector<std::string> WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS{ "OFF", "Only Men Are Angry", "Only Women Are Angry" };
 int WorldSelectivePedsIndex = 0;
-bool WorldSelectivePedsChanged = true;
 
 // No Peds Gravity & Never Dirty
 int NoPedsGravityIndex = 0;
-bool NoPedsGravityChanged = true;
 int featureNeverDirty = 0;
-bool NeverDirtyChanged = true;
 
 void add_areaeffect_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results){
 	results->push_back(FeatureEnabledLocalDefinition{"featurePlayerIgnoredByAll", &featurePlayerIgnoredByAll}); 
@@ -145,8 +137,8 @@ void add_areaeffect_feature_enablements(std::vector<FeatureEnabledLocalDefinitio
 	results->push_back(FeatureEnabledLocalDefinition{"featureAngryMenManually", &featureAngryMenManually});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePedsIncludeDrivers", &featurePedsIncludeDrivers});
 	results->push_back(FeatureEnabledLocalDefinition{"featurePedsIncludePilots", &featurePedsIncludePilots});
-	results->push_back(FeatureEnabledLocalDefinition{"featureAggressiveDrivers", &featureAggressiveDrivers});
-	results->push_back(FeatureEnabledLocalDefinition{"featureSpookyDrivers", &featureSpookyDrivers});
+	results->push_back(FeatureEnabledLocalDefinition{"featureAggressiveDrivers", &featureAggressiveDrivers.enabled});
+	results->push_back(FeatureEnabledLocalDefinition{"featureSpookyDrivers", &featureSpookyDrivers.enabled});
 	results->push_back(FeatureEnabledLocalDefinition{"featureLawAbidingCitizens", &featureLawAbidingCitizens});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNPCNoLights", &featureNPCNoLights}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureNPCNeonLights", &featureNPCNeonLights}); 
@@ -172,10 +164,10 @@ void reset_areaeffect_globals(){
 	featureAngryPedsUseCover = false;
 	featurePedsIncludeDrivers = false;
 	featurePedsIncludePilots = false;
-	featureAggressiveDrivers = false;
-	featureAggressiveDriversUpdated = false;
-	featureSpookyDrivers = false;
-	featureSpookyDriversUpdated = false;
+	featureAggressiveDrivers.enabled = false;
+	featureAggressiveDrivers.updated = false;
+	featureSpookyDrivers.enabled = false;
+	featureSpookyDrivers.updated = false;
 	featureLawAbidingCitizens = false;
 	featureNPCNoLights = false;
 	featureNPCNeonLights = false;
@@ -202,94 +194,94 @@ void process_areaeffect_peds_menu(){
 	SelectFromListMenuItem *listItem;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Peds Angry";
+	item->caption = tr("AreaEffectMenu.PedsAngry", "Peds Angry");
 	item->value = -1;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Peds Weapons";
+	item->caption = tr("AreaEffectMenu.PedsWeapons", "Peds Weapons");
 	item->value = -2;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(PLAYER_HEALTH_CAPTIONS, onchange_peds_health_index);
+	listItem = new SelectFromListMenuItem(&PLAYER_HEALTH_CAPTIONS, onchange_peds_health_index);
 	listItem->wrap = false;
-	listItem->caption = "Peds Health";
+	listItem->caption = tr("AreaEffectMenu.PedsHealth", "Peds Health");
 	listItem->value = PedsHealthIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_ped_accuracy_index);
+	listItem = new SelectFromListMenuItem(&WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_ped_accuracy_index);
 	listItem->wrap = false;
-	listItem->caption = "Peds Accuracy";
+	listItem->caption = tr("AreaEffectMenu.PedsAccuracy", "Peds Accuracy");
 	listItem->value = PedAccuracyIndex;
 	menuItems.push_back(listItem);
 
 	ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Show Current Health";
+	togItem->caption = tr("AreaEffectMenu.NPCShowCurrentHealth", "NPC Show Current Health");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCShowHealth;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Everyone Permanently Calm";
+	togItem->caption = tr("AreaEffectMenu.EveryonePermanentlyCalm", "Everyone Permanently Calm");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePlayerIgnoredByAll;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Everyone Invincible";
+	togItem->caption = tr("AreaEffectMenu.EveryoneInvincible", "Everyone Invincible");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaPedsInvincible;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Everyone Dies";
+	togItem->caption = tr("AreaEffectMenu.EveryoneDies", "Everyone Dies");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaPedsHeadExplode;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Effects Include Drivers";
+	togItem->caption = tr("AreaEffectMenu.EffectsIncludeDrivers", "Effects Include Drivers");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsIncludeDrivers;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Effects Include Pilots";
+	togItem->caption = tr("AreaEffectMenu.EffectsIncludePilots", "Effects Include Pilots");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsIncludePilots;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_world_no_peds_gravity_index);
+	listItem = new SelectFromListMenuItem(&WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_world_no_peds_gravity_index);
 	listItem->wrap = false;
-	listItem->caption = "NPC No Gravity Peds";
+	listItem->caption = tr("AreaEffectMenu.NPCNoGravityPeds", "NPC No Gravity Peds");
 	listItem->value = NoPedsGravityIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Aggressive Drivers";
+	togItem->caption = tr("AreaEffectMenu.AggressiveDrivers", "Aggressive Drivers");
 	togItem->value = 1;
-	togItem->toggleValue = &featureAggressiveDrivers;
-	togItem->toggleValueUpdated = &featureAggressiveDriversUpdated;
+	togItem->toggleValue = &featureAggressiveDrivers.enabled;
+	togItem->toggleValueUpdated = &featureAggressiveDrivers.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Spooked Drivers";
+	togItem->caption = tr("AreaEffectMenu.SpookedDrivers", "Spooked Drivers");
 	togItem->value = 1;
-	togItem->toggleValue = &featureSpookyDrivers;
-	togItem->toggleValueUpdated = &featureSpookyDriversUpdated;
+	togItem->toggleValue = &featureSpookyDrivers.enabled;
+	togItem->toggleValueUpdated = &featureSpookyDrivers.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Vigilante Citizens";
+	togItem->caption = tr("AreaEffectMenu.VigilanteCitizens", "Vigilante Citizens");
 	togItem->value = 1;
 	togItem->toggleValue = &featureLawAbidingCitizens;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_vigilante_blips_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_vigilante_blips_index);
 	listItem->wrap = false;
-	listItem->caption = "Show Vigilante Blips";
+	listItem->caption = tr("AreaEffectMenu.ShowVigilanteBlips", "Show Vigilante Blips");
 	listItem->value = VigilanteBlipIndex;
 	menuItems.push_back(listItem);
 
@@ -300,93 +292,93 @@ void process_areaeffect_vehicle_menu(){
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem *listItem;
 
-	listItem = new SelectFromListMenuItem(VEH_INVINC_MODE_CAPTIONS, onchange_veh_ped_invincibility_mode);
+	listItem = new SelectFromListMenuItem(&VEH_INVINC_MODE_CAPTIONS, onchange_veh_ped_invincibility_mode);
 	listItem->wrap = false;
-	listItem->caption = "All Vehicles Invincible";
+	listItem->caption = tr("AreaEffectMenu.AllVehiclesInvincible", "All Vehicles Invincible");
 	listItem->value = VehPedInvincibilityIndex;
 	menuItems.push_back(listItem);
 
 	ToggleMenuItem<int>* togItem = new ToggleMenuItem<int>();
-	togItem->caption = "All Vehicles Abandoned";
+	togItem->caption = tr("AreaEffectMenu.AllVehiclesAbandoned", "All Vehicles Abandoned");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaVehiclesBroken;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "All Vehicles Exploded";
+	togItem->caption = tr("AreaEffectMenu.AllVehiclesExploded", "All Vehicles Exploded");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaVehiclesExploded;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles No Lights";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesNoLights", "NPC Vehicles No Lights");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCNoLights;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles Have Neon/Xenon Lights";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesHaveNeonXenonLights", "NPC Vehicles Have Neon/Xenon Lights");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCNeonLights;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles Use Full Beam";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesUseFullBeam", "NPC Vehicles Use Full Beam");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCFullBeam;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Dirty Vehicles";
+	togItem->caption = tr("AreaEffectMenu.NPCDirtyVehicles", "NPC Dirty Vehicles");
 	togItem->value = 1;
 	togItem->toggleValue = &featureDirtyVehicles;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Clean Vehicles";
+	togItem->caption = tr("AreaEffectMenu.NPCCleanVehicles", "NPC Clean Vehicles");
 	togItem->value = 1;
 	togItem->toggleValue = &featureCleanVehicles;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC No Gravity Vehicles";
+	togItem->caption = tr("AreaEffectMenu.NPCNoGravityVehicles", "NPC No Gravity Vehicles");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCNoGravityVehicles;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "NPC Vehicles Reduced Grip";
+	togItem->caption = tr("AreaEffectMenu.NPCVehiclesReducedGrip", "NPC Vehicles Reduced Grip");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNPCReducedGripVehicles;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_world_npc_vehicles_speed_index);
+	listItem = new SelectFromListMenuItem(&WORLD_NPC_VEHICLESPEED_CAPTIONS, onchange_world_npc_vehicles_speed_index);
 	listItem->wrap = false;
-	listItem->caption = "NPC Vehicles Forced Speed";
+	listItem->caption = tr("AreaEffectMenu.NPCVehiclesForcedSpeed", "NPC Vehicles Forced Speed");
 	listItem->value = NPCVehicleSpeedIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Boost NPC Radio Volume";
+	togItem->caption = tr("AreaEffectMenu.BoostNPCRadioVolume", "Boost NPC Radio Volume");
 	togItem->value = 1;
 	togItem->toggleValue = &featureBoostNPCRadio;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(VEH_COLOUR_CAPTIONS, onchange_world_npc_vehicles_colour_index);
+	listItem = new SelectFromListMenuItem(&VEH_COLOUR_CAPTIONS, onchange_world_npc_vehicles_colour_index);
 	listItem->wrap = false;
-	listItem->caption = "NPC Vehicles Colour";
+	listItem->caption = tr("AreaEffectMenu.NPCVehiclesColour", "NPC Vehicles Colour");
 	listItem->value = VehColourIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Bus Interior Light On At Night";
+	togItem->caption = tr("AreaEffectMenu.BusInteriorLightOnAtNight", "Bus Interior Light On At Night");
 	togItem->value = 1;
 	togItem->toggleValue = &featureBusLight;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(LIMP_IF_INJURED_CAPTIONS, onchange_world_npc_veh_damageoncoll_index);
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_world_npc_veh_damageoncoll_index);
 	listItem->wrap = false;
-	listItem->caption = "Destroy Car On Collision";
+	listItem->caption = tr("AreaEffectMenu.DestroyCarOnCollision", "Destroy Car On Collision");
 	listItem->value = NPCVehicleDamageOnCollIndex;
 	menuItems.push_back(listItem);
 
@@ -398,31 +390,31 @@ void process_areaeffect_advanced_ped_menu(){
 	SelectFromListMenuItem* listItem;
 	
 	ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Peds Angry";
+	togItem->caption = tr("AreaEffectMenu.PedsAngry", "Peds Angry");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAreaPedsRioting;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Angry Peds Use Cover";
+	togItem->caption = tr("AreaEffectMenu.AngryPedsUseCover", "Angry Peds Use Cover");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAngryPedsUseCover;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Angry Peds Also Target You";
+	togItem->caption = tr("AreaEffectMenu.AngryPedsAlsoTargetYou", "Angry Peds Also Target You");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAngryPedsTargetYou;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS, onchange_world_selective_peds_angry_index);
+	listItem = new SelectFromListMenuItem(&WORLD_SELECTIVE_PEDS_ANGRY_CAPTIONS, onchange_world_selective_peds_angry_index);
 	listItem->wrap = false;
-	listItem->caption = "Ped Type";
+	listItem->caption = tr("AreaEffectMenu.PedType", "Ped Type");
 	listItem->value = WorldSelectivePedsIndex;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Targeted Angry Peds";
+	togItem->caption = tr("AreaEffectMenu.TargetedAngryPeds", "Targeted Angry Peds");
 	togItem->value = 1;
 	togItem->toggleValue = &featureAngryMenManually;
 	menuItems.push_back(togItem);
@@ -434,37 +426,37 @@ void process_areaeffect_peds_weapons_menu() {
 	std::vector<MenuItem<int>*> menuItems;
 
 	ToggleMenuItem<int> *togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Enabled";
+	togItem->caption = tr("AreaEffectMenu.Enabled", "Enabled");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsWeapons;
 	menuItems.push_back(togItem);
 
-	SelectFromListMenuItem* listItem = new SelectFromListMenuItem(PED_WEAPON_TITLES, onchange_areaeffect_ped_weapons);
+	SelectFromListMenuItem* listItem = new SelectFromListMenuItem(&PED_WEAPON_TITLES, onchange_areaeffect_ped_weapons);
 	listItem->wrap = false;
-	listItem->caption = "Peds Armed With...";
+	listItem->caption = tr("AreaEffectMenu.PedsArmedWith", "Peds Armed With...");
 	listItem->value = pedWeaponSetIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(PED_WEAPONS_SELECTIVE_CAPTIONS, onchange_ped_weapons_selective_index);
+	listItem = new SelectFromListMenuItem(&PED_WEAPONS_SELECTIVE_CAPTIONS, onchange_ped_weapons_selective_index);
 	listItem->wrap = false;
-	listItem->caption = "Custom Weapon";
-	listItem->value = PedWeaponsSelectiveIndex;
+	listItem->caption = tr("AreaEffectMenu.CustomWeapon", "Custom Weapon");
+	listItem->value = PedWeaponsSelectiveIndex.value;
 	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Peds Can Switch Weapons";
+	togItem->caption = tr("AreaEffectMenu.PedsCanSwitchWeapons", "Peds Can Switch Weapons");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsSwitchWeapons;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Explosive Melee";
+	togItem->caption = tr("AreaEffectMenu.ExplosiveMelee", "Explosive Melee");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsExplosiveMelee;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = "Explosive Ammo";
+	togItem->caption = tr("AreaEffectMenu.ExplosiveAmmo", "Explosive Ammo");
 	togItem->value = 1;
 	togItem->toggleValue = &featurePedsExplosiveAmmo;
 	menuItems.push_back(togItem);
@@ -499,7 +491,7 @@ void do_maintenance_on_tracked_entities(){
 void findRandomTargetForPed(ENTTrackedPedestrian* tped){
 	Ped otherPed = 0;
 
-	if(tped->lastTarget == 0 || !ENTITY::DOES_ENTITY_EXIST(tped->lastTarget) || ENTITY::IS_ENTITY_DEAD(tped->lastTarget)){
+	if(tped->lastTarget == 0 || !ENTITY::DOES_ENTITY_EXIST(tped->lastTarget) || ENTITY::IS_ENTITY_DEAD(tped->lastTarget, FALSE)){
 		tped->lastTarget = 0;
 		while(tped->lastTarget == 0){
 			int randIndex = rand() % (trackedPeds.size() + 1); //add one to the random range
@@ -521,18 +513,18 @@ void findRandomTargetForPed(ENTTrackedPedestrian* tped){
 				int rand_ped = rand() % trackedPeds.size() + 0;
 				if (trackedPeds.at(rand_ped)->ped != PLAYER::PLAYER_PED_ID()) {
 					PED::REGISTER_TARGET(tped->ped, trackedPeds.at(rand_ped)->ped);
-					AI::TASK_COMBAT_PED(tped->ped, trackedPeds.at(rand_ped)->ped, 0, 16);
+					TASK::TASK_COMBAT_PED(tped->ped, trackedPeds.at(rand_ped)->ped, 0, 16);
 					tped->lastTarget = trackedPeds.at(rand_ped)->ped;
 				}
 				else {
 					PED::REGISTER_TARGET(tped->ped, tped->ped);
-					AI::TASK_COMBAT_PED(tped->ped, tped->ped, 0, 16);
+					TASK::TASK_COMBAT_PED(tped->ped, tped->ped, 0, 16);
 					tped->lastTarget = tped->ped;
 				}
 			}
 			if ((!featureAngryPedsTargetYou && otherPed != PLAYER::PLAYER_PED_ID()) || featureAngryPedsTargetYou) {
 				PED::REGISTER_TARGET(tped->ped, otherPed);
-				AI::TASK_COMBAT_PED(tped->ped, otherPed, 0, 16);
+				TASK::TASK_COMBAT_PED(tped->ped, otherPed, 0, 16);
 				tped->lastTarget = otherPed;
 			}
 		}
@@ -606,7 +598,7 @@ void update_area_effects(Ped playerPed){
 				FIRE::STOP_ENTITY_FIRE(veh_npc);
 			}
 
-			ENTITY::SET_ENTITY_HEALTH(veh_npc, 10000.0f);
+			ENTITY::SET_ENTITY_HEALTH(veh_npc, 10000.0f, 0, 0);
 			VEHICLE::SET_VEHICLE_ENGINE_HEALTH(veh_npc, 10000.0);
 			VEHICLE::SET_VEHICLE_PETROL_TANK_HEALTH(veh_npc, 10000.0);
 
@@ -615,12 +607,12 @@ void update_area_effects(Ped playerPed){
 			VEHICLE::SET_VEHICLE_WHEELS_CAN_BREAK(veh_npc, 0);
 
 			VEHICLE::SET_VEHICLE_CAN_BREAK(veh_npc, !featureVehPedNoDamage);
-			ENTITY::SET_ENTITY_INVINCIBLE(veh_npc, featureVehPedNoDamage);
+			ENTITY::SET_ENTITY_INVINCIBLE(veh_npc, featureVehPedNoDamage, FALSE);
 			ENTITY::SET_ENTITY_CAN_BE_DAMAGED(veh_npc, !featureVehPedNoDamage);
 			VEHICLE::SET_VEHICLE_CAN_BE_VISIBLY_DAMAGED(veh_npc, !featureVehPedNoDamage);
 
 			for (int i = 0; i < 6; i++) {
-				VEHICLE::_SET_VEHICLE_DOOR_BREAKABLE(veh_npc, i, !featureVehPedNoDamage); //(Vehicle, doorIndex, isBreakable)
+				VEHICLE::SET_DOOR_ALLOWED_TO_BE_BROKEN_OFF(veh_npc, i, !featureVehPedNoDamage); //(Vehicle, doorIndex, isBreakable)
 			}
 
 			if (featureVehPedNoDamage) {
@@ -628,7 +620,7 @@ void update_area_effects(Ped playerPed){
 				VEHICLE::SET_VEHICLE_BODY_HEALTH(veh_npc, 10000.0f);
 
 				// This API seems to be a damage check - don't just continually repair the vehicle as it causes glitches.
-				if (VEHICLE::_IS_VEHICLE_DAMAGED(veh_npc) && featureVehPedNoDamage && WORLD_GRAVITY_LEVEL_VALUES[VehPedInvincibilityIndex] == 3) {
+				if (VEHICLE::GET_DOES_VEHICLE_HAVE_DAMAGE_DECALS(veh_npc) && featureVehPedNoDamage && WORLD_GRAVITY_LEVEL_VALUES[VehPedInvincibilityIndex] == 3) {
 					VEHICLE::SET_VEHICLE_FIXED(veh_npc);
 				}
 			}
@@ -651,9 +643,9 @@ void update_area_effects(Ped playerPed){
 		if((featureAreaPedsRioting && pedWeaponSetIndex != 0) || pedWeaponSetIndex != 0){
 			give_all_nearby_peds_a_weapon(pedWeaponSetIndex); //  != 0
 		}
-		if ((featureAreaPedsRioting && PedWeaponsSelectiveIndex != 0) || PedWeaponsSelective1Changed || PedWeaponsSelectiveIndex != 0) {
-			give_all_nearby_peds_a_weapon(PedWeaponsSelectiveIndex); //  != 0
-			PedWeaponsSelective1Changed = false;
+		if ((featureAreaPedsRioting && PedWeaponsSelectiveIndex.value != 0) || PedWeaponsSelectiveIndex.changed || PedWeaponsSelectiveIndex.value != 0) {
+			give_all_nearby_peds_a_weapon(PedWeaponsSelectiveIndex.value); //  != 0
+			PedWeaponsSelectiveIndex.changed = false;
 		}
 	}
 	
@@ -686,13 +678,13 @@ void update_area_effects(Ped playerPed){
 	if (!featureAngryMenManually) sa_message = false;
 	if (featureAngryMenManually && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, true)) {
 		if (sa_message == false) {
-		set_status_text("Equip the Stungun. Aim at a ped and at another ped to start a fight.");
+		set_status_text(tr("AreaEffectMenu.EquipTheStungunAimAtAPedAndAtAnotherPedT", "Equip the Stungun. Aim at a ped and at another ped to start a fight."));
 		sa_message = true;
 		}
 		Hash tempWeap;
 		WEAPON::GET_CURRENT_PED_WEAPON(PLAYER::PLAYER_PED_ID(), &tempWeap, 1);
 
-		if (PLAYER::IS_PLAYER_FREE_AIMING(player) && tempWeap == GAMEPLAY::GET_HASH_KEY("weapon_stungun")) {
+		if (PLAYER::IS_PLAYER_FREE_AIMING(player) && tempWeap == MISC::GET_HASH_KEY("weapon_stungun")) {
 			PLAYER::GET_ENTITY_PLAYER_IS_FREE_AIMING_AT(player, &aimedAt);
 			Ped targetPed = ENTITY::GET_PED_INDEX_FROM_ENTITY_INDEX(aimedAt);
 			bool inSameCar = ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimedAt) && (ENTITY::GET_ENTITY_ATTACHED_TO(playerPed) == ENTITY::GET_ENTITY_ATTACHED_TO(aimedAt));
@@ -707,7 +699,7 @@ void update_area_effects(Ped playerPed){
 			}
 		} // end of aiming
 		
-		if (CONTROLS::IS_CONTROL_JUST_RELEASED(2, 25) && aimedAt != 0) aim_p_n = aim_p_n + 1;
+		if (PAD::IS_CONTROL_JUST_RELEASED(2, 25) && aimedAt != 0) aim_p_n = aim_p_n + 1;
 		
 		if (!PLAYER::IS_PLAYER_FREE_AIMING(player) && aimedAt != 0 && aim_p_n == 1) s_ped1 = aimedAt;
 		if (!PLAYER::IS_PLAYER_FREE_AIMING(player) && aimedAt != 0 && aim_p_n == 2) s_ped2 = aimedAt;
@@ -718,22 +710,22 @@ void update_area_effects(Ped playerPed){
 		if (!PLAYER::IS_PLAYER_FREE_AIMING(player)) aimedAt = 0;
 		if (!PLAYER::IS_PLAYER_FREE_AIMING(player) && aim_p_n > 1) {
 			if (s_ped1 != -1 && s_ped2 != -1) {
-				AI::CLEAR_PED_TASKS_IMMEDIATELY(s_ped1);
-				AI::CLEAR_PED_TASKS_IMMEDIATELY(s_ped2);
+				TASK::CLEAR_PED_TASKS_IMMEDIATELY(s_ped1);
+				TASK::CLEAR_PED_TASKS_IMMEDIATELY(s_ped2);
 				
 				PED::SET_PED_COMBAT_ATTRIBUTES(s_ped1, 46, 1); //always fight
 				PED::SET_PED_COMBAT_ATTRIBUTES(s_ped1, 5, 1); //fight armed peds when unarmed
 				PED::SET_PED_FLEE_ATTRIBUTES(s_ped1, 0, 0);
 				PED::REGISTER_TARGET(s_ped1, s_ped2);
-				AI::TASK_COMBAT_PED(s_ped1, s_ped2, 0, 16);
-				AUDIO::_PLAY_AMBIENT_SPEECH1(s_ped1, "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+				TASK::TASK_COMBAT_PED(s_ped1, s_ped2, 0, 16);
+				AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(s_ped1, "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 				
 				PED::SET_PED_COMBAT_ATTRIBUTES(s_ped2, 46, 1); //always fight
 				PED::SET_PED_COMBAT_ATTRIBUTES(s_ped2, 5, 1); //fight armed peds when unarmed
 				PED::SET_PED_FLEE_ATTRIBUTES(s_ped2, 0, 0);
 				PED::REGISTER_TARGET(s_ped2, s_ped1);
-				AI::TASK_COMBAT_PED(s_ped2, s_ped1, 0, 16);
-				AUDIO::_PLAY_AMBIENT_SPEECH1(s_ped2, "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+				TASK::TASK_COMBAT_PED(s_ped2, s_ped1, 0, 16);
+				AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(s_ped2, "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 
 				PLAYER::SET_EVERYONE_IGNORE_PLAYER(player, false);
 
@@ -745,7 +737,7 @@ void update_area_effects(Ped playerPed){
 	}
 
 	// Aggressive Drivers && Vigilante Citizens
-	if ((featureAggressiveDrivers || featureLawAbidingCitizens) && !featurePlayerIgnoredByAll && !featurePlayerInvisible && GAMEPLAY::GET_MISSION_FLAG() == 0) { // !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp")
+	if ((featureAggressiveDrivers.enabled || featureLawAbidingCitizens) && !featurePlayerIgnoredByAll && !featurePlayerInvisible && MISC::GET_MISSION_FLAG() == 0) { // !SCRIPT::HAS_SCRIPT_LOADED("wardrobe_sp")
 		Vehicle veh_me = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
 		Vector3 veh_me_coords = ENTITY::GET_ENTITY_COORDS(veh_me, true);
 		Vector3 me_coords = ENTITY::GET_ENTITY_COORDS(playerPed, true);
@@ -755,15 +747,15 @@ void update_area_effects(Ped playerPed){
 		int count_veh = worldGetAllPeds(veh_agressive, arrSize_laws);
 		for (int i = 0; i < count_veh; i++) {
 			if (veh_agressive[i] != playerPed && PED::IS_PED_HUMAN(veh_agressive[i]) && !PED::IS_PED_GROUP_MEMBER(veh_agressive[i], myENTGroup) && PED::GET_PED_TYPE(veh_agressive[i]) != 6 && PED::GET_PED_TYPE(veh_agressive[i]) != 27 && 
-				PED::GET_PED_TYPE(veh_agressive[i]) != 29 && veh_agressive[i] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 0) && veh_agressive[i] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 1) && 
-				veh_agressive[i] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 2) && PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, veh_agressive[i]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(veh_agressive[i], playerPed) != 0 &&
+				PED::GET_PED_TYPE(veh_agressive[i]) != 29 && veh_agressive[i] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 0, FALSE) && veh_agressive[i] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 1, FALSE) && 
+				veh_agressive[i] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 2, FALSE) && PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, veh_agressive[i]) != 0 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(veh_agressive[i], playerPed) != 0 &&
 				PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, veh_agressive[i]) != 1 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(veh_agressive[i], playerPed) != 1 &&
 				PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, veh_agressive[i]) != 2 && PED::GET_RELATIONSHIP_BETWEEN_PEDS(veh_agressive[i], playerPed) != 2) {
 				
 				// vigilante citizens
-				if (featureLawAbidingCitizens && GAMEPLAY::GET_MISSION_FLAG() == 0 && in_prison == false && !featurePowerPunch) {
-					if ((PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed) != 0 && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed), -1) != 0 &&
-						!PED::IS_PED_IN_ANY_TAXI(VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed), -1))) ||
+				if (featureLawAbidingCitizens && MISC::GET_MISSION_FLAG() == 0 && in_prison == false && !featurePowerPunch) {
+					if ((PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed) != 0 && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed), -1, FALSE) != 0 &&
+						!PED::IS_PED_IN_ANY_TAXI(VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed), -1, FALSE))) ||
 						(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed) != 0 && VEHICLE::IS_VEHICLE_ALARM_ACTIVATED(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed))) || 
 						(!PED::IS_PED_IN_ANY_VEHICLE(veh_agressive[i], 0) && ENTITY::HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(veh_agressive[i], playerPed, 1)) ||
 						(!PED::IS_PED_IN_ANY_VEHICLE(veh_agressive[i], 0) && ENTITY::HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(veh_agressive[i], PED::GET_VEHICLE_PED_IS_IN(playerPed, false), 1))) {
@@ -779,9 +771,9 @@ void update_area_effects(Ped playerPed){
 						}
 						if (ENTITY::HAS_ENTITY_BEEN_DAMAGED_BY_ENTITY(PED::GET_VEHICLE_PED_IS_IN(veh_agressive[i], false), PLAYER::PLAYER_PED_ID(), 1)) temp_vehicle = PED::GET_VEHICLE_PED_IS_IN(veh_agressive[i], false);
 						PED::SET_PED_AS_ENEMY(PLAYER::PLAYER_PED_ID(), true);
-						PED::REGISTER_TARGET(VEHICLE::GET_PED_IN_VEHICLE_SEAT(temp_vehicle, -1), PLAYER::PLAYER_PED_ID());
-						AI::TASK_COMBAT_PED(VEHICLE::GET_PED_IN_VEHICLE_SEAT(temp_vehicle, -1), PLAYER::PLAYER_PED_ID(), 0, 16);
-						AUDIO::_PLAY_AMBIENT_SPEECH1(VEHICLE::GET_PED_IN_VEHICLE_SEAT(temp_vehicle, -1), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+						PED::REGISTER_TARGET(VEHICLE::GET_PED_IN_VEHICLE_SEAT(temp_vehicle, -1, FALSE), PLAYER::PLAYER_PED_ID());
+						TASK::TASK_COMBAT_PED(VEHICLE::GET_PED_IN_VEHICLE_SEAT(temp_vehicle, -1, FALSE), PLAYER::PLAYER_PED_ID(), 0, 16);
+						AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(VEHICLE::GET_PED_IN_VEHICLE_SEAT(temp_vehicle, -1, FALSE), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 						ENTITY::CLEAR_ENTITY_LAST_DAMAGE_ENTITY(PED::GET_VEHICLE_PED_IS_IN(veh_agressive[i], false));
 						ENTITY::CLEAR_ENTITY_LAST_DAMAGE_ENTITY(temp_vehicle);
 					}
@@ -789,7 +781,7 @@ void update_area_effects(Ped playerPed){
 				} // end of vigilante citizens
 				
 				// aggressive drivers
-				if (featureAggressiveDrivers && !SCRIPT::HAS_SCRIPT_LOADED("fbi4_prep3amb")) {
+				if (featureAggressiveDrivers.enabled && !SCRIPT::HAS_SCRIPT_LOADED("fbi4_prep3amb")) {
 					Vehicle veh_coll_with = PED::GET_VEHICLE_PED_IS_IN(veh_agressive[i], false);
 					Vector3 veh_coll_with_coords = ENTITY::GET_ENTITY_COORDS(veh_coll_with, true);
 					int vehcoll_with_dist_x = (veh_me_coords.x - veh_coll_with_coords.x);
@@ -797,10 +789,10 @@ void update_area_effects(Ped playerPed){
 					if (vehcoll_with_dist_x < 0) vehcoll_with_dist_x = (vehcoll_with_dist_x * -1);
 					if (vehcoll_with_dist_y < 0) vehcoll_with_dist_y = (vehcoll_with_dist_y * -1);
 
-					if (veh_coll_with != PED::GET_VEHICLE_PED_IS_IN(playerPed, false) && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), -1) == playerPed &&
+					if (veh_coll_with != PED::GET_VEHICLE_PED_IS_IN(playerPed, false) && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), -1, FALSE) == playerPed &&
 						ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(veh_me) && ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(veh_coll_with) && vehcoll_with_dist_x < 5 && vehcoll_with_dist_y < 5) {
 						v_collision_check = true;
-						if (ENTITY::DOES_ENTITY_EXIST(veh_agressive[i]) && !ENTITY::IS_ENTITY_DEAD(veh_agressive[i])) {
+						if (ENTITY::DOES_ENTITY_EXIST(veh_agressive[i]) && !ENTITY::IS_ENTITY_DEAD(veh_agressive[i], FALSE)) {
 							if (pursuer.empty()) pursuer.push_back(veh_agressive[i]);
 							if (v_collided.empty()) v_collided.push_back(veh_coll_with);
 							if (!pursuer.empty()) {
@@ -822,11 +814,11 @@ void update_area_effects(Ped playerPed){
 			} // end of if
 		} // end of for
 
-		if (time_to_chase == true && PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed) == 0 && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+		if (time_to_chase == true && PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed) == 0 && MISC::GET_MISSION_FLAG() == 0) {
 			for (int vc = 0; vc < count_veh; vc++) {
 				if (veh_agressive[vc] != playerPed && PED::IS_PED_HUMAN(veh_agressive[vc]) && !PED::IS_PED_GROUP_MEMBER(veh_agressive[vc], myENTGroup) && PED::GET_PED_TYPE(veh_agressive[vc]) != 6 && PED::GET_PED_TYPE(veh_agressive[vc]) != 27 && 
-					PED::GET_PED_TYPE(veh_agressive[vc]) != 29 && veh_agressive[vc] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 0) && veh_agressive[vc] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 1) && 
-					veh_agressive[vc] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 2)) {
+					PED::GET_PED_TYPE(veh_agressive[vc]) != 29 && veh_agressive[vc] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 0, FALSE) && veh_agressive[vc] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 1, FALSE) && 
+					veh_agressive[vc] != VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_me, 2, FALSE)) {
 					Vector3 npc_abid_coords = ENTITY::GET_ENTITY_COORDS(veh_agressive[vc], true);
 					int lawabidped_with_dist_x = (me_coords.x - npc_abid_coords.x);
 					int lawabidped_with_dist_y = (me_coords.y - npc_abid_coords.y);
@@ -845,26 +837,26 @@ void update_area_effects(Ped playerPed){
 								v_collided.push_back(PED::GET_VEHICLE_PED_IS_IN(veh_agressive[vc], false));
 							}
 						}
-						if (!PED::IS_PED_IN_ANY_VEHICLE(veh_agressive[vc], true)/* && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed), -1) != veh_agressive[i]*/) {
+						if (!PED::IS_PED_IN_ANY_VEHICLE(veh_agressive[vc], true)/* && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_TRYING_TO_ENTER(playerPed), -1, FALSE) != veh_agressive[i]*/) {
 							PED::SET_PED_AS_ENEMY(PLAYER::PLAYER_PED_ID(), true);
 							PED::REGISTER_TARGET(veh_agressive[vc], PLAYER::PLAYER_PED_ID());
-							AI::TASK_COMBAT_PED(veh_agressive[vc], PLAYER::PLAYER_PED_ID(), 0, 16);
-							AUDIO::_PLAY_AMBIENT_SPEECH1(veh_agressive[vc], "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+							TASK::TASK_COMBAT_PED(veh_agressive[vc], PLAYER::PLAYER_PED_ID(), 0, 16);
+							AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(veh_agressive[vc], "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 						}
 						PED::SET_PED_AS_ENEMY(PLAYER::PLAYER_PED_ID(), true);
 						PED::REGISTER_TARGET(pursuer.back(), PLAYER::PLAYER_PED_ID());
-						AI::TASK_COMBAT_PED(pursuer.back(), PLAYER::PLAYER_PED_ID(), 0, 16);
-						AUDIO::_PLAY_AMBIENT_SPEECH1(pursuer.back(), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+						TASK::TASK_COMBAT_PED(pursuer.back(), PLAYER::PLAYER_PED_ID(), 0, 16);
+						AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(pursuer.back(), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 						ENTITY::SET_ENTITY_AS_MISSION_ENTITY(pursuer.back(), 1, 1);
 						ENTITY::SET_ENTITY_AS_MISSION_ENTITY(v_collided.back(), 1, 1);
-						AI::SET_DRIVE_TASK_CRUISE_SPEED(pursuer.back(), 300.0);
-						AI::TASK_VEHICLE_CHASE(pursuer.back(), playerPed);
-						AI::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(pursuer.back(), 60.0f);
-						AI::SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG(pursuer.back(), 32, true);
-						AI::SET_DRIVE_TASK_DRIVING_STYLE(pursuer.back(), 786468);
+						TASK::SET_DRIVE_TASK_CRUISE_SPEED(pursuer.back(), 300.0);
+						TASK::TASK_VEHICLE_CHASE(pursuer.back(), playerPed);
+						TASK::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(pursuer.back(), 60.0f);
+						TASK::SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG(pursuer.back(), 32, true);
+						TASK::SET_DRIVE_TASK_DRIVING_STYLE(pursuer.back(), 786468);
 						PED::SET_DRIVER_AGGRESSIVENESS(pursuer.back(), 0.9f);
 						PED::SET_DRIVER_ABILITY(pursuer.back(), 0.9f);
-						AUDIO::_PLAY_AMBIENT_SPEECH1(pursuer.back(), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+						AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(pursuer.back(), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 					}
 				}
 			}
@@ -873,19 +865,19 @@ void update_area_effects(Ped playerPed){
 		} //end of time to chase
 
 		if (v_collision_check == true && !pursuer.empty()) {
-			AI::SET_DRIVE_TASK_CRUISE_SPEED(pursuer.back(), 300.0);
-			AI::TASK_VEHICLE_CHASE(pursuer.back(), playerPed);
-			AI::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(pursuer.back(), 60.0f);
-			AI::SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG(pursuer.back(), 32, true);
-			AI::SET_DRIVE_TASK_DRIVING_STYLE(pursuer.back(), 786468);
+			TASK::SET_DRIVE_TASK_CRUISE_SPEED(pursuer.back(), 300.0);
+			TASK::TASK_VEHICLE_CHASE(pursuer.back(), playerPed);
+			TASK::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(pursuer.back(), 60.0f);
+			TASK::SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG(pursuer.back(), 32, true);
+			TASK::SET_DRIVE_TASK_DRIVING_STYLE(pursuer.back(), 786468);
 			PED::SET_DRIVER_AGGRESSIVENESS(pursuer.back(), 0.9f);
 			PED::SET_DRIVER_ABILITY(pursuer.back(), 0.9f);
 			if (featurePedsWeapons) {
 				int chanceOfGettingWeapon_a = rand() % 10;
 				if (chanceOfGettingWeapon_a == 9 && (WEAPON::GET_WEAPONTYPE_GROUP(WEAPON::GET_SELECTED_PED_WEAPON(pursuer.back())) != Hash((416676503) || Hash(3337201093))))
-					WEAPON::GIVE_WEAPON_TO_PED(pursuer.back(), GAMEPLAY::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
+					WEAPON::GIVE_WEAPON_TO_PED(pursuer.back(), MISC::GET_HASH_KEY("WEAPON_PISTOL"), 999, false, true);
 			}
-			AUDIO::_PLAY_AMBIENT_SPEECH1(pursuer.back(), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED");
+			AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(pursuer.back(), "PROVOKE_GENERIC", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 			time_to_attack = false;
 			v_collision_check = false;
 		}
@@ -899,10 +891,10 @@ void update_area_effects(Ped playerPed){
 		if (veh_me_speed > 1) s_seconds = 0;
 		if ((!PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) || s_seconds > 3) && time_to_attack == false && !pursuer.empty()) {
 			for (int j = 0; j < pursuer.size(); j++) {
-				if (ENTITY::DOES_ENTITY_EXIST(pursuer[j]) && !ENTITY::IS_ENTITY_DEAD(pursuer[j])) {
+				if (ENTITY::DOES_ENTITY_EXIST(pursuer[j]) && !ENTITY::IS_ENTITY_DEAD(pursuer[j], FALSE)) {
 					PED::SET_PED_AS_ENEMY(PLAYER::PLAYER_PED_ID(), true);
 					PED::REGISTER_TARGET(pursuer[j], PLAYER::PLAYER_PED_ID());
-					AI::TASK_COMBAT_PED(pursuer[j], PLAYER::PLAYER_PED_ID(), 0, 16);
+					TASK::TASK_COMBAT_PED(pursuer[j], PLAYER::PLAYER_PED_ID(), 0, 16);
 				}
 			}
 			s_seconds = 0;
@@ -924,7 +916,7 @@ void update_area_effects(Ped playerPed){
 		// vigilante blips
 		if (NPC_RAGDOLL_VALUES[VigilanteBlipIndex] > 0) {
 			if (pursuer.empty() && !BLIPTABLE_VIGILANTE.empty()) {
-				for (int j = 0; j < BLIPTABLE_VIGILANTE.size(); j++) UI::REMOVE_BLIP(&BLIPTABLE_VIGILANTE[j]);
+				for (int j = 0; j < BLIPTABLE_VIGILANTE.size(); j++) HUD::REMOVE_BLIP(&BLIPTABLE_VIGILANTE[j]);
 				BLIPTABLE_VIGILANTE.clear();
 				BLIPTABLE_VIGILANTE.shrink_to_fit();
 				pursuer.clear();
@@ -940,27 +932,27 @@ void update_area_effects(Ped playerPed){
 				}
 				if (!pursuer.empty() && !BLIPTABLE_VIGILANTE.empty() && BLIPTABLE_VIGILANTE.size() != pursuer.size()) b_not_equal = true;
 				if (!pursuer.empty() && !BLIPTABLE_VIGILANTE.empty() && b_not_equal == true) {
-					for (int j = 0; j < BLIPTABLE_VIGILANTE.size(); j++) UI::REMOVE_BLIP(&BLIPTABLE_VIGILANTE[j]);
+					for (int j = 0; j < BLIPTABLE_VIGILANTE.size(); j++) HUD::REMOVE_BLIP(&BLIPTABLE_VIGILANTE[j]);
 					BLIPTABLE_VIGILANTE.clear();
 					BLIPTABLE_VIGILANTE.shrink_to_fit();
 					for (int j = 0; j < pursuer.size(); j++) {
 						if (ENTITY::DOES_ENTITY_EXIST(pursuer[j]) && !PED::IS_PED_DEAD_OR_DYING(pursuer[j], true)) {
-							blip_vigilante = UI::ADD_BLIP_FOR_ENTITY(pursuer[j]);
-							UI::SET_BLIP_SPRITE(blip_vigilante, 1);
-							UI::SET_BLIP_SCALE(blip_vigilante, 0.5);
-							UI::SET_BLIP_COLOUR(blip_vigilante, 1);
-							if (NPC_RAGDOLL_VALUES[VigilanteBlipIndex] == 1) UI::SET_BLIP_AS_SHORT_RANGE(blip_vigilante, true);
+							blip_vigilante = HUD::ADD_BLIP_FOR_ENTITY(pursuer[j]);
+							HUD::SET_BLIP_SPRITE(blip_vigilante, 1);
+							HUD::SET_BLIP_SCALE(blip_vigilante, 0.5);
+							HUD::SET_BLIP_COLOUR(blip_vigilante, 1);
+							if (NPC_RAGDOLL_VALUES[VigilanteBlipIndex] == 1) HUD::SET_BLIP_AS_SHORT_RANGE(blip_vigilante, true);
 							BLIPTABLE_VIGILANTE.push_back(blip_vigilante);
 						}
 					}
 					b_not_equal = false;
 				}
 				if (!pursuer.empty() && BLIPTABLE_VIGILANTE.empty() && !PED::IS_PED_DEAD_OR_DYING(pursuer[0], true)) {
-					blip_vigilante = UI::ADD_BLIP_FOR_ENTITY(pursuer[0]);
-					UI::SET_BLIP_SPRITE(blip_vigilante, 1);
-					UI::SET_BLIP_SCALE(blip_vigilante, 0.5);
-					UI::SET_BLIP_COLOUR(blip_vigilante, 1);
-					if (NPC_RAGDOLL_VALUES[VigilanteBlipIndex] == 1) UI::SET_BLIP_AS_SHORT_RANGE(blip_vigilante, true);
+					blip_vigilante = HUD::ADD_BLIP_FOR_ENTITY(pursuer[0]);
+					HUD::SET_BLIP_SPRITE(blip_vigilante, 1);
+					HUD::SET_BLIP_SCALE(blip_vigilante, 0.5);
+					HUD::SET_BLIP_COLOUR(blip_vigilante, 1);
+					if (NPC_RAGDOLL_VALUES[VigilanteBlipIndex] == 1) HUD::SET_BLIP_AS_SHORT_RANGE(blip_vigilante, true);
 					BLIPTABLE_VIGILANTE.push_back(blip_vigilante);
 				}
 			}
@@ -973,15 +965,15 @@ void update_area_effects(Ped playerPed){
 			if (ENTITY::DOES_ENTITY_EXIST(v_collided[0])) ENTITY::SET_VEHICLE_AS_NO_LONGER_NEEDED(&v_collided[0]);
 			if (ENTITY::DOES_ENTITY_EXIST(v_collided[0])) VEHICLE::DELETE_VEHICLE(&v_collided[0]);
 			v_collided.erase(v_collided.begin());
-			if (!BLIPTABLE_VIGILANTE.empty() && UI::DOES_BLIP_EXIST(BLIPTABLE_VIGILANTE[0])) {
-				UI::REMOVE_BLIP(&BLIPTABLE_VIGILANTE[0]);
+			if (!BLIPTABLE_VIGILANTE.empty() && HUD::DOES_BLIP_EXIST(BLIPTABLE_VIGILANTE[0])) {
+				HUD::REMOVE_BLIP(&BLIPTABLE_VIGILANTE[0]);
 				BLIPTABLE_VIGILANTE.erase(BLIPTABLE_VIGILANTE.begin());
 			}
 		}
 	} // end of aggressive drivers && vigilante citizens
 
 	// Spooked Drivers
-	if (featureSpookyDrivers && PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) && GAMEPLAY::GET_MISSION_FLAG() == 0) {
+	if (featureSpookyDrivers.enabled && PED::IS_PED_IN_ANY_VEHICLE(playerPed, false) && MISC::GET_MISSION_FLAG() == 0) {
 		Vehicle veh_me = PED::GET_VEHICLE_PED_IS_IN(playerPed, false);
 		Vector3 veh_me_coords = ENTITY::GET_ENTITY_COORDS(veh_me, true);
 		Vehicle veh_col = -1;
@@ -995,7 +987,7 @@ void update_area_effects(Ped playerPed){
 		int count_veh = worldGetAllPeds(veh_agressive, arrSize_laws);
 
 		Vector3 coords_target_driver = ENTITY::GET_ENTITY_COORDS(veh_dist, true);
-		float dist_diff_me_tar = SYSTEM::VDIST(veh_me_coords.x, veh_me_coords.y, veh_me_coords.z, coords_target_driver.x, coords_target_driver.y, coords_target_driver.z);
+		float dist_diff_me_tar = BUILTIN::VDIST(veh_me_coords.x, veh_me_coords.y, veh_me_coords.z, coords_target_driver.x, coords_target_driver.y, coords_target_driver.z);
 		if (dist_diff_me_tar > 600) has_collided = true;
 
 		for (int i = 0; i < count_veh; i++) {
@@ -1006,18 +998,18 @@ void update_area_effects(Ped playerPed){
 			if (vehcoll_with_dist_x < 0) vehcoll_with_dist_x = (vehcoll_with_dist_x * -1);
 			if (vehcoll_with_dist_y < 0) vehcoll_with_dist_y = (vehcoll_with_dist_y * -1);
 
-			if (veh_coll_with != PED::GET_VEHICLE_PED_IS_IN(playerPed, false) && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), -1) == playerPed &&
+			if (veh_coll_with != PED::GET_VEHICLE_PED_IS_IN(playerPed, false) && VEHICLE::GET_PED_IN_VEHICLE_SEAT(PED::GET_VEHICLE_PED_IS_IN(playerPed, false), -1, FALSE) == playerPed &&
 				ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(veh_me) && ENTITY::HAS_ENTITY_COLLIDED_WITH_ANYTHING(veh_coll_with) && vehcoll_with_dist_x < 5 && vehcoll_with_dist_y < 5) {
 				veh_col = veh_coll_with;
 
 				bool exists_already = false;
 				if (!spooky_p.empty()) {
 					for (int j = 0; j < spooky_p.size(); j++) {
-						if (spooky_p[j] == VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_col, -1)) exists_already = true;
+						if (spooky_p[j] == VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_col, -1, FALSE)) exists_already = true;
 					}
-					if (exists_already == false) spooky_p.push_back(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_col, -1));
+					if (exists_already == false) spooky_p.push_back(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_col, -1, FALSE));
 				}
-				if (spooky_p.empty()) spooky_p.push_back(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_col, -1));
+				if (spooky_p.empty()) spooky_p.push_back(VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_col, -1, FALSE));
 
 				has_collided = true;
 			}
@@ -1025,7 +1017,7 @@ void update_area_effects(Ped playerPed){
 
 		if (has_collided == true) {
 			if (veh_dist != -1) {
-				Ped tmp_p = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_dist, -1);
+				Ped tmp_p = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_dist, -1, FALSE);
 				ENTITY::SET_PED_AS_NO_LONGER_NEEDED(&tmp_p);
 				ENTITY::SET_VEHICLE_AS_NO_LONGER_NEEDED(&veh_dist);
 				veh_dist = -1;
@@ -1037,8 +1029,8 @@ void update_area_effects(Ped playerPed){
 			temp_dist = 1.0;
 			for (int k = 0; k < count_surr_vehs; k++) {
 				Vector3 coords_dist_veh = ENTITY::GET_ENTITY_COORDS(surr_vehs[k], true);
-				if (PATHFIND::IS_POINT_ON_ROAD(coords_dist_veh.x, coords_dist_veh.y, coords_dist_veh.z, surr_vehs[k]) && VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs[k])/*VEHICLE::GET_PED_IN_VEHICLE_SEAT(surr_vehs[k], -1) != 0*/) {
-					dist_diff = SYSTEM::VDIST(veh_me_coords.x, veh_me_coords.y, veh_me_coords.z, coords_dist_veh.x, coords_dist_veh.y, coords_dist_veh.z);
+				if (PATH::IS_POINT_ON_ROAD(coords_dist_veh.x, coords_dist_veh.y, coords_dist_veh.z, surr_vehs[k]) && VEHICLE::GET_IS_VEHICLE_ENGINE_RUNNING(surr_vehs[k])/*VEHICLE::GET_PED_IN_VEHICLE_SEAT(surr_vehs[k], -1, FALSE) != 0*/) {
+					dist_diff = BUILTIN::VDIST(veh_me_coords.x, veh_me_coords.y, veh_me_coords.z, coords_dist_veh.x, coords_dist_veh.y, coords_dist_veh.z);
 					if (dist_diff < 600 && temp_dist < dist_diff) {
 						temp_dist = dist_diff;
 						veh_dist = surr_vehs[k];
@@ -1049,22 +1041,22 @@ void update_area_effects(Ped playerPed){
 			if (!spooky_p.empty()) {
 				for (int j = 0; j < spooky_p.size(); j++) {
 					Ped tmp_col_ped = spooky_p[j];
-					Ped tmp_dist_ped = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_dist, -1);
+					Ped tmp_dist_ped = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh_dist, -1, FALSE);
 					ENTITY::SET_ENTITY_AS_MISSION_ENTITY(veh_col, 1, 1);
 					ENTITY::SET_ENTITY_AS_MISSION_ENTITY(tmp_col_ped, 1, 1);
 					ENTITY::SET_ENTITY_AS_MISSION_ENTITY(veh_dist, 1, 1);
 					ENTITY::SET_ENTITY_AS_MISSION_ENTITY(tmp_dist_ped, 1, 1);
-					AUDIO::_PLAY_AMBIENT_SPEECH1(tmp_col_ped, "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
-					AI::SET_DRIVE_TASK_CRUISE_SPEED(tmp_col_ped, 300.0);
-					AI::TASK_VEHICLE_CHASE(tmp_col_ped, tmp_dist_ped);
-					AI::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(tmp_col_ped, 60.0f);
-					AI::SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG(tmp_col_ped, 32, true);
+					AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(tmp_col_ped, "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
+					TASK::SET_DRIVE_TASK_CRUISE_SPEED(tmp_col_ped, 300.0);
+					TASK::TASK_VEHICLE_CHASE(tmp_col_ped, tmp_dist_ped);
+					TASK::SET_TASK_VEHICLE_CHASE_IDEAL_PURSUIT_DISTANCE(tmp_col_ped, 60.0f);
+					TASK::SET_TASK_VEHICLE_CHASE_BEHAVIOR_FLAG(tmp_col_ped, 32, true);
 					//
-					AI::SET_DRIVE_TASK_DRIVING_STYLE(tmp_col_ped, 786468);
+					TASK::SET_DRIVE_TASK_DRIVING_STYLE(tmp_col_ped, 786468);
 					PED::SET_DRIVER_AGGRESSIVENESS(tmp_col_ped, 0.9f);
 					//
 					PED::SET_DRIVER_ABILITY(tmp_col_ped, 0.9f);
-					AUDIO::_PLAY_AMBIENT_SPEECH1(tmp_col_ped, "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED");
+					AUDIO::PLAY_PED_AMBIENT_SPEECH_NATIVE(tmp_col_ped, "GENERIC_FRIGHTENED_HIGH", "SPEECH_PARAMS_FORCE_SHOUTED", 0);
 				}
 			}
 			
@@ -1075,10 +1067,10 @@ void update_area_effects(Ped playerPed){
 			for (int j = 0; j < spooky_p.size(); j++) {
 				if (ENTITY::DOES_ENTITY_EXIST(spooky_p[j])) {
 					Vector3 coords_spooked_driver = ENTITY::GET_ENTITY_COORDS(PED::GET_VEHICLE_PED_IS_IN(spooky_p[j], false), true);
-					dist_diff_col_tar = SYSTEM::VDIST(coords_spooked_driver.x, coords_spooked_driver.y, coords_spooked_driver.z, coords_target_driver.x, coords_target_driver.y, coords_target_driver.z);
+					dist_diff_col_tar = BUILTIN::VDIST(coords_spooked_driver.x, coords_spooked_driver.y, coords_spooked_driver.z, coords_target_driver.x, coords_target_driver.y, coords_target_driver.z);
 					if (dist_diff_col_tar < 100) has_collided = true; // 50
 					//
-					dist_diff_me = SYSTEM::VDIST(veh_me_coords.x, veh_me_coords.y, veh_me_coords.z, coords_spooked_driver.x, coords_spooked_driver.y, coords_spooked_driver.z);
+					dist_diff_me = BUILTIN::VDIST(veh_me_coords.x, veh_me_coords.y, veh_me_coords.z, coords_spooked_driver.x, coords_spooked_driver.y, coords_spooked_driver.z);
 					if (dist_diff_me > 700) { // 800
 						ENTITY::SET_PED_AS_NO_LONGER_NEEDED(&spooky_p[j]);
 						Vehicle tmp_v = PED::GET_VEHICLE_PED_IS_IN(spooky_p[j], false);
@@ -1097,13 +1089,13 @@ void update_area_effects(Ped playerPed){
 		}
 
 	}
-	if (featureAggressiveDriversUpdated) {
-		featureSpookyDrivers = false;
-		featureAggressiveDriversUpdated = false;
+	if (featureAggressiveDrivers.updated) {
+		featureSpookyDrivers.enabled = false;
+		featureAggressiveDrivers.updated = false;
 	}
-	if (featureSpookyDriversUpdated) {
-		featureAggressiveDrivers = false;
-		featureSpookyDriversUpdated = false;
+	if (featureSpookyDrivers.updated) {
+		featureAggressiveDrivers.enabled = false;
+		featureSpookyDrivers.updated = false;
 	} // end of spooked drivers
 	
 }
@@ -1114,13 +1106,13 @@ void draw_box(Ped ped, int red, int green, int blue, int alpha) {
 	int screenResX, screenResY;
 	float screenX, screenY;
 
-	GRAPHICS::_GET_SCREEN_ACTIVE_RESOLUTION(&screenResX, &screenResY); // use this to correct for screen ratio
+	GRAPHICS::GET_ACTUAL_SCREEN_RESOLUTION(&screenResX, &screenResY); // use this to correct for screen ratio
 
-	if (GRAPHICS::_WORLD3D_TO_SCREEN2D(pedPosition.x, pedPosition.y, pedPosition.z, &screenX, &screenY) == TRUE) {
-		GRAPHICS::DRAW_RECT(screenX, screenY, 5.0f / (float)screenResX, 5.0f / (float)screenResY, red, green, blue, alpha);
+	if (GRAPHICS::GET_SCREEN_COORD_FROM_WORLD_COORD(pedPosition.x, pedPosition.y, pedPosition.z, &screenX, &screenY) == TRUE) {
+		GRAPHICS::DRAW_RECT(screenX, screenY, 5.0f / (float)screenResX, 5.0f / (float)screenResY, red, green, blue, alpha, FALSE);
 	}
 
-	UI::SET_TEXT_OUTLINE();
+	HUD::SET_TEXT_OUTLINE();
 	GRAPHICS::DRAW_LINE(pedPosition.x + 0.5, pedPosition.y + 0.5, pedPosition.z + 0.75, pedPosition.x + 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, red, green, blue, alpha);
 	GRAPHICS::DRAW_LINE(pedPosition.x + 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, pedPosition.x - 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, red, green, blue, alpha);
 	GRAPHICS::DRAW_LINE(pedPosition.x - 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, pedPosition.x - 0.5, pedPosition.y + 0.5, pedPosition.z + 0.75, red, green, blue, alpha);
@@ -1157,7 +1149,7 @@ void set_all_nearby_peds_to_invincible(bool enabled){
 				PED::SET_PED_DIES_WHEN_INJURED(xped, !enabled);
 
 				PED::SET_PED_MAX_HEALTH(xped, enabled ? 10000 : 100);
-				ENTITY::SET_ENTITY_HEALTH(xped, enabled ? 10000 : 100);
+				ENTITY::SET_ENTITY_HEALTH(xped, enabled ? 10000 : 100, 0, 0);
 				PED::SET_PED_SUFFERS_CRITICAL_HITS(xped, !enabled);
 
 				PED::SET_PED_COMBAT_ABILITY(xped, enabled ? 1 : 0);
@@ -1236,18 +1228,18 @@ void set_all_nearby_vehs_to_broken(bool enabled){
 			Object taskHdl;
 
 			for(int i = -1; i < VEHICLE::GET_VEHICLE_MAX_NUMBER_OF_PASSENGERS(veh); i++){
-				Ped passenger = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh, i);
+				Ped passenger = VEHICLE::GET_PED_IN_VEHICLE_SEAT(veh, i, FALSE);
 				if(ENTITY::DOES_ENTITY_EXIST(passenger)){
 					if(passenger != PLAYER::PLAYER_PED_ID()){
-						AI::CLEAR_PED_TASKS(passenger);
+						TASK::CLEAR_PED_TASKS(passenger);
 
-						AI::OPEN_SEQUENCE_TASK(&taskHdl);
-						AI::TASK_LEAVE_VEHICLE(passenger, veh, 1);
-						AI::TASK_WANDER_STANDARD(passenger, 100.0, 1);
-						AI::CLOSE_SEQUENCE_TASK(taskHdl);
+						TASK::OPEN_SEQUENCE_TASK(&taskHdl);
+						TASK::TASK_LEAVE_VEHICLE(passenger, veh, 1);
+						TASK::TASK_WANDER_STANDARD(passenger, 100.0, 1);
+						TASK::CLOSE_SEQUENCE_TASK(taskHdl);
 
-						AI::TASK_PERFORM_SEQUENCE(passenger, taskHdl);
-						AI::CLEAR_SEQUENCE_TASK(&taskHdl);
+						TASK::TASK_PERFORM_SEQUENCE(passenger, taskHdl);
+						TASK::CLEAR_SEQUENCE_TASK(&taskHdl);
 					}
 				}
 			}
@@ -1277,7 +1269,7 @@ std::set<Ped>get_nearby_peds(Ped playerPed){
 			continue;
 		}
 
-		if(ENTITY::IS_ENTITY_DEAD(item)){
+		if(ENTITY::IS_ENTITY_DEAD(item, FALSE)){
 			continue;
 		}
 		if(playerPed == item){
@@ -1338,7 +1330,7 @@ std::set<Vehicle> get_nearby_vehicles(Ped playerPed){
 		}
 
 		//don't return dead items
-		if(ENTITY::IS_ENTITY_DEAD(item)){
+		if(ENTITY::IS_ENTITY_DEAD(item, FALSE)){
 			continue;
 		}
 		//don't return the vehicle we're using
@@ -1381,12 +1373,12 @@ void kill_all_nearby_peds_now(){
 			//remove invincibility
 			PED::SET_PED_DIES_WHEN_INJURED(xped, true);
 			PED::SET_PED_MAX_HEALTH(xped, 1);
-			ENTITY::SET_ENTITY_HEALTH(xped, 1);
+			ENTITY::SET_ENTITY_HEALTH(xped, 1, 0, 0);
 			PED::SET_PED_SUFFERS_CRITICAL_HITS(xped, true);
 			PED::SET_PED_COMBAT_ABILITY(xped, 1);
 			ENTITY::SET_ENTITY_CAN_BE_DAMAGED(xped, true);
 
-			PED::EXPLODE_PED_HEAD(xped, GAMEPLAY::GET_HASH_KEY("WEAPON_SNIPERRIFLE"));
+			PED::EXPLODE_PED_HEAD(xped, MISC::GET_HASH_KEY("WEAPON_SNIPERRIFLE"));
 		}
 	}
 }
@@ -1408,12 +1400,12 @@ void kill_all_nearby_peds_continuous(){
 			//remove invincibility
 			PED::SET_PED_DIES_WHEN_INJURED(xped, true);
 			PED::SET_PED_MAX_HEALTH(xped, 1);
-			ENTITY::SET_ENTITY_HEALTH(xped, 1);
+			ENTITY::SET_ENTITY_HEALTH(xped, 1, 0, 0);
 			PED::SET_PED_SUFFERS_CRITICAL_HITS(xped, true);
 			PED::SET_PED_COMBAT_ABILITY(xped, 1);
 			ENTITY::SET_ENTITY_CAN_BE_DAMAGED(xped, true);
 
-			PED::EXPLODE_PED_HEAD(xped, GAMEPLAY::GET_HASH_KEY("WEAPON_SNIPERRIFLE"));
+			PED::EXPLODE_PED_HEAD(xped, MISC::GET_HASH_KEY("WEAPON_SNIPERRIFLE"));
 		}
 	}
 }
@@ -1511,17 +1503,14 @@ void onchange_areaeffect_ped_weapons(int value, SelectFromListMenuItem* source){
 
 void onchange_world_npc_vehicles_speed_index(int value, SelectFromListMenuItem* source) {
 	NPCVehicleSpeedIndex = value;
-	NPCVehicleSpeedChanged = true;
 }
 
 void onchange_veh_ped_invincibility_mode(int value, SelectFromListMenuItem* source) {
 	VehPedInvincibilityIndex = value;
-	VehPedInvincibilityChanged = true;
 }
 
 void onchange_world_selective_peds_angry_index(int value, SelectFromListMenuItem* source) {
 	WorldSelectivePedsIndex = value;
-	WorldSelectivePedsChanged = true;
 }
 
 void onchange_peds_health_index(int value, SelectFromListMenuItem* source) {
@@ -1531,22 +1520,19 @@ void onchange_peds_health_index(int value, SelectFromListMenuItem* source) {
 
 void onchange_world_no_peds_gravity_index(int value, SelectFromListMenuItem* source) {
 	NoPedsGravityIndex = value;
-	NoPedsGravityChanged = true;
 }
 
 void onchange_vigilante_blips_index(int value, SelectFromListMenuItem* source) {
 	VigilanteBlipIndex = value;
-	VigilanteBlipChanged = true;
 }
 
 void onchange_ped_accuracy_index(int value, SelectFromListMenuItem* source) {
 	PedAccuracyIndex = value;
-	PedAccuracyChanged = true;
 }
 
 void onchange_ped_weapons_selective_index(int value, SelectFromListMenuItem* source){
-	PedWeaponsSelectiveIndex = value;
-	PedWeaponsSelective1Changed = true;
+	PedWeaponsSelectiveIndex.value = value;
+	PedWeaponsSelectiveIndex.changed = true;
 }
 
 void give_all_nearby_peds_a_weapon(bool enabled){ 
@@ -1567,11 +1553,11 @@ void give_all_nearby_peds_a_weapon(bool enabled){
 
 					int index = rand() % weaponSet.size();
 					std::string weapon = weaponSet.at(index);
-					Hash weapHash = GAMEPLAY::GET_HASH_KEY((char *)weapon.c_str());
+					Hash weapHash = MISC::GET_HASH_KEY((char *)weapon.c_str());
 
 					bool foundWeapon = false;
 					for (std::string searchStr : weaponSet){
-						Hash searchHash = GAMEPLAY::GET_HASH_KEY((char *)searchStr.c_str());
+						Hash searchHash = MISC::GET_HASH_KEY((char *)searchStr.c_str());
 						if (trackedPed->lastWeaponApplied == searchHash){
 							foundWeapon = true;
 							break;
@@ -1599,9 +1585,9 @@ void give_all_nearby_peds_a_weapon(bool enabled){
 		else
 		{
 			if (!PED::IS_PED_GROUP_MEMBER(xped, PLAYER::GET_PLAYER_GROUP(PLAYER::PLAYER_PED_ID())) && PED::GET_PED_TYPE(xped) != 6 && PED::GET_PED_TYPE(xped) != 27 && PED::GET_PED_TYPE(xped) != 29) {
-				char *currWeapon = new char[PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex].length() + 1];
-				strcpy(currWeapon, PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex].c_str());
-				Hash Ped_Selective_Weapon = GAMEPLAY::GET_HASH_KEY(currWeapon);
+				char *currWeapon = new char[PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex.value].length() + 1];
+				strcpy(currWeapon, PED_WEAPONS_SELECTIVE_CAPTIONS[PedWeaponsSelectiveIndex.value].c_str());
+				Hash Ped_Selective_Weapon = MISC::GET_HASH_KEY(currWeapon);
 				if (!featurePedsIncludeDrivers && WEAPON::GET_SELECTED_PED_WEAPON(xped) != Ped_Selective_Weapon && !PED::IS_PED_IN_ANY_VEHICLE(xped, false)) WEAPON::GIVE_WEAPON_TO_PED(xped, Ped_Selective_Weapon, 999, FALSE, TRUE); // !WEAPON::HAS_PED_GOT_WEAPON(xped, Ped_Selective_Weapon, 0)
 				if (featurePedsIncludeDrivers && WEAPON::GET_SELECTED_PED_WEAPON(xped) != Ped_Selective_Weapon) WEAPON::GIVE_WEAPON_TO_PED(xped, Ped_Selective_Weapon, 999, FALSE, TRUE);
 				WEAPON::SET_PED_INFINITE_AMMO_CLIP(xped, true);
@@ -1616,7 +1602,7 @@ void add_areaeffect_generic_settings(std::vector<StringPairSettingDBRow>* result
 	results->push_back(StringPairSettingDBRow{"pedWeaponSetIndex", std::to_string(pedWeaponSetIndex)});
 	results->push_back(StringPairSettingDBRow{"VehPedInvincibilityIndex", std::to_string(VehPedInvincibilityIndex)});
 	results->push_back(StringPairSettingDBRow{"VigilanteBlipIndex", std::to_string(VigilanteBlipIndex)});
-	results->push_back(StringPairSettingDBRow{"PedWeaponsSelectiveIndex", std::to_string(PedWeaponsSelectiveIndex)});
+	results->push_back(StringPairSettingDBRow{"PedWeaponsSelectiveIndex", std::to_string(PedWeaponsSelectiveIndex.value)});
 	results->push_back(StringPairSettingDBRow{"WorldSelectivePedsIndex", std::to_string(WorldSelectivePedsIndex)});
 }
 
@@ -1627,20 +1613,17 @@ void handle_generic_settings_areaeffect(std::vector<StringPairSettingDBRow>* set
 			pedWeaponSetIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("PedWeaponsSelectiveIndex") == 0){
-			PedWeaponsSelectiveIndex = stoi(setting.value);
-			PedWeaponsSelective1Changed = true;
+			PedWeaponsSelectiveIndex.value = stoi(setting.value);
+			PedWeaponsSelectiveIndex.changed = true;
 		}
 		else if (setting.name.compare("VigilanteBlipIndex") == 0) {
 			VigilanteBlipIndex = stoi(setting.value);
-			VigilanteBlipChanged = true;
 		}
 		else if (setting.name.compare("VehPedInvincibilityIndex") == 0) {
 			VehPedInvincibilityIndex = stoi(setting.value);
-			VehPedInvincibilityChanged = true;
 		}
 		else if (setting.name.compare("WorldSelectivePedsIndex") == 0) {
 			WorldSelectivePedsIndex = stoi(setting.value);
-			PedWeaponsSelective1Changed = true;
 		}
 	}
 }

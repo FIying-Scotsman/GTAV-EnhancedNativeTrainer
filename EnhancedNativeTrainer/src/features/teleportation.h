@@ -28,6 +28,8 @@ void reset_teleporter_globals();
 
 void teleport_to_marker();
 
+void teleport_to_coords(Entity e, Vector3 coords);
+
 void teleport_to_mission_marker();
 
 void teleport_to_vehicle_as_passenger();

@@ -220,7 +220,7 @@ const std::vector<const char*> IPLS_NORTH_YANKTON = {
 	"prologuerd_lod"
 };
 
-std::vector<char*> IPL_PROPS_BIKER_CLUBHOUSE = {
+const std::vector<char*> IPL_PROPS_BIKER_CLUBHOUSE = {
 	"mod_booth",
 	"walls_01",
 	"furnishings_01",
@@ -235,7 +235,7 @@ std::vector<char*> IPL_PROPS_BIKER_CLUBHOUSE = {
 	"counterfeit_stash1",
 };
 
-std::vector<char*> IPL_PROPS_BIKER_FORGERY_WAREHOUSE = {
+const std::vector<char*> IPL_PROPS_BIKER_FORGERY_WAREHOUSE = {
 	"equipment_upgrade",
 	"production",
 	"security_high",
@@ -256,7 +256,7 @@ const std::vector<const char*> IPLS_M24_CARRIER = {
 	"m24_1_carrier_ladders",
 };
 
-std::vector<char*> IPL_PROPS_BIKER_FAKE_CASH_WAREHOUSE = {
+const std::vector<char*> IPL_PROPS_BIKER_FAKE_CASH_WAREHOUSE = {
 	"counterfeit_upgrade_equip",
 	"counterfeit_setup",
 	"counterfeit_upgrade_equip_no_prod",
@@ -272,7 +272,7 @@ std::vector<char*> IPL_PROPS_BIKER_FAKE_CASH_WAREHOUSE = {
 	"special_chairs",
 };
 
-std::vector<char*> IPL_PROPS_BIKER_WEED_WAREHOUSE = {
+const std::vector<char*> IPL_PROPS_BIKER_WEED_WAREHOUSE = {
 	"weed_drying",
 	"weed_upgrade_equip",
 	"weed_growtha_stage3",
@@ -757,81 +757,6 @@ const std::vector<char*> IPL_PROPS_CEO_OFFICE = {
 	"swag_guns3",
 };
 
-//const std::vector<char*> IPL_PROPS_MANSION = {
-const std::vector<const char*> IPL_PROPS_MANSION = {
-	"m25_2_int_placement",
-	"hei_ch1_06e_mansion_railings_m",
-	"m25_2_ch1_06e_mansion_interior_a",
-	"m25_2_ch1_06e_mansion_interior_b",
-	"m25_2_ch1_06e_mansion_interior_c",
-	"m25_2_ch1_06e_mansion_interior_d",
-	"hei_ch1_06e_mansion_original",
-	"hei_ch1_06e_props_original",
-	"hei_ch1_roads_original",
-	"hei_ch1_06e_mansion_shared",
-	"hei_ch1_06f_mansion_shared",
-	"hei_ch1_06e_mansion_private",
-	"hei_ch1_roads_mansion",
-	"hei_ch1_06e_mansion_player_bounds",
-	"hei_ch1_06e_mansion_furniture",
-	"hei_ch1_06e_mansion_firepit",
-	"hei_ch1_06e_mansion_firepit_lodlights",
-	"hei_ch1_06e_mansion_firepit_distantlights",
-	"hei_ch1_06e_mansion_private_lodlights",
-	"hei_ch1_06e_mansion_private_distantlights",
-	"hei_ch1_06e_mansion_shared_lodlights",
-	"hei_ch1_06e_mansion_shared_distantlights",
-	"m25_2_mansion_gym",
-	"m25_2_dog_house",
-	"hei_ch1_06f_mansion_original",
-	"hei_ch1_06e_mansion_ground",
-	"hei_ch1_06e_original_terrain",
-	"apa_ch2_04_mansion_private",
-	"apa_ch2_04_mansion_railings_m",
-	"apa_ch2_04_mansion_firepit_distantlights"
-	"apa_ch2_04_mansion_private_distantlights",
-	"apa_ch2_04_mansion_shared_distantlights",
-	"apa_ch2_04_mansion_firepit_lodlights",
-	"apa_ch2_04_mansion_private_lodlights",
-	"apa_ch2_04_mansion_shared_lodlights",
-	"m25_2_ch2_04_mansion_interior_a",
-	"m25_2_ch2_04_mansion_interior_b",
-	"m25_2_ch2_04_mansion_interior_c",
-	"m25_2_ch2_04_mansion_interior_d",
-	"apa_ch2_04_mansion_original",
-	"apa_ch2_04_props_original",
-	"apa_ch2_04_mansion_grass",
-	"apa_ch2_04_mansion_shared",
-	"apa_ch2_04_mansion_player_bounds",
-	"apa_ch2_04_mansion_furniture",
-	"apa_ch2_04_mansion_firepit",
-	"m25_2_east_mansion_gym",
-	"m25_2_east_dog_house",
-	"hei_ch1_09_mansion_private",
-	"hei_ch1_09_mansion_railings_m",
-	"m25_2_ch1_09_mansion_interior_a",
-	"m25_2_ch1_09_mansion_interior_b",
-	"m25_2_ch1_09_mansion_interior_c",
-	"m25_2_ch1_09_mansion_interior_d",
-	"hei_ch1_09_mansion_original",
-	"hei_ch1_09_props_original",
-	"hei_ch1_09_mansion_shared",
-	"hei_ch1_09_mansion_player_bounds",
-	"hei_ch1_09_mansion_furniture",
-	"hei_ch1_09_mansion_firepit",
-	"m25_2_tongva_mansion_gym",
-	"m25_2_tongva_dog_house",
-	"hei_ch1_09_mansion_original_lodlights",
-	"hei_ch1_09_mansion_original_distantlights",
-	"hei_ch1_09_props_original_lodlights",
-	"hei_ch1_09_props_original_distantlights",
-	"hei_ch1_09_mansion_firepit_lodlights",
-	"hei_ch1_09_mansion_firepit_distantlights",
-	"hei_ch1_09_mansion_private_lodlights",
-	"hei_ch1_09_mansion_private_distantlights",
-	"hei_ch1_09_mansion_shared_distantlights",
-};
-
 const std::vector<const char*> IPL_PROPS_DOOMSDAY_MAIN_BASE = {
 	"xm_x17dlc_int_placement_interior_33_x17dlc_int_02_milo_",
 	"xm_x17dlc_int_placement_interior_4_x17dlc_int_facility_milo_",
@@ -949,26 +874,7 @@ const std::vector<char*> IPL_PROPS_HANGAR = {
 	"set_office_traditional",
 };
 
-const std::vector<char*> IPL_PROPS_FACILITY = {
-	"set_int_02_shell",
-	"set_int_02_lounge3",
-	"set_int_02_no_sleep",
-	"set_int_02_security",
-	"set_int_02_cannon",
-	"set_int_02_decal_09",
-	"set_int_02_trophy1",
-	"Set_Int_02_Parts_Panther3",
-	"Set_Int_02_Parts_Riot3",
-	"Set_Int_02_Parts_Cheno3",
-	"Set_Int_02_Parts_Thruster3",
-	"Set_Int_02_Parts_Avenger3",
-	"set_int_02_clutter5",
-	"set_int_02_crewemblem",
-	"set_int_02_forcedentry_complete",
-	"Set_Int_02_outfit_sub_finale",
-};
-
-std::vector<char*> IPL_PROPS_BIKER_UNDERCOVER1 = {
+const std::vector<char*> IPL_PROPS_BIKER_UNDERCOVER1 = {
 	"entity_set_office",
 	"entity_set_light_option_1",
 	"entity_set_light_option_2",

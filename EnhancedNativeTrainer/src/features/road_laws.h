@@ -20,8 +20,18 @@ extern bool featurePlayerMostWanted;
 extern bool featurePlayerNoSwitch;
 
 //Speeding In A City
-const std::vector<std::string> VEH_SPEEDINGCITY_CAPTIONS{ "OFF", "45 MPH", "60 MPH", "80 MPH", "100 MPH", "120 MPH", "150 MPH", "180 MPH" };
-const int VEH_SPEEDINGCITY_VALUES[] = { 0, 45, 60, 80, 100, 120, 150, 180 };
+const Option<int> VEH_SPEEDINGCITY_OPTIONS[] = {
+	{ "OFF", 0 },
+	{ "45 MPH", 45 },
+	{ "60 MPH", 60 },
+	{ "80 MPH", 80 },
+	{ "100 MPH", 100 },
+	{ "120 MPH", 120 },
+	{ "150 MPH", 150 },
+	{ "180 MPH", 180 }
+};
+const std::vector<std::string> VEH_SPEEDINGCITY_CAPTIONS = captionsOf(VEH_SPEEDINGCITY_OPTIONS);
+const std::vector<int> VEH_SPEEDINGCITY_VALUES = valuesOf(VEH_SPEEDINGCITY_OPTIONS);
 extern int SpeedingCityIndex;
 
 extern int SpeedingSpeedwayIndex; //Speeding On Speedway
@@ -29,25 +39,49 @@ extern int SpeedingSpeedwayIndex; //Speeding On Speedway
 extern int FineSizeIndex; //Fine Size
 
 //Detection Range
-const std::vector<std::string> VEH_DETECTIONRANGE_CAPTIONS{ "3m", "5m", "10m", "20m", "30m", "50m", "100m", "200m", "500m" };
-const int VEH_DETECTIONRANGE_VALUES[] = { 3, 5, 10, 20, 30, 50, 100, 200, 500 };
+const Option<int> VEH_DETECTIONRANGE_OPTIONS[] = {
+	{ "3m", 3 },
+	{ "5m", 5 },
+	{ "10m", 10 },
+	{ "20m", 20 },
+	{ "30m", 30 },
+	{ "50m", 50 },
+	{ "100m", 100 },
+	{ "200m", 200 },
+	{ "500m", 500 }
+};
+const std::vector<std::string> VEH_DETECTIONRANGE_CAPTIONS = captionsOf(VEH_DETECTIONRANGE_OPTIONS);
+const std::vector<int> VEH_DETECTIONRANGE_VALUES = valuesOf(VEH_DETECTIONRANGE_OPTIONS);
 extern int DetectionRangeIndex;
 
 //Pirsuit Range
-const std::vector<std::string> VEH_PIRSUITRANGE_CAPTIONS{ "300m", "400m", "500m", "600m", "700m", "800m" };
-const int VEH_PIRSUITRANGE_VALUES[] = { 300, 400, 500, 600, 700, 800 };
+const Option<int> VEH_PIRSUITRANGE_OPTIONS[] = {
+	{ "300m", 300 },
+	{ "400m", 400 },
+	{ "500m", 500 },
+	{ "600m", 600 },
+	{ "700m", 700 },
+	{ "800m", 800 }
+};
+const std::vector<std::string> VEH_PIRSUITRANGE_CAPTIONS = captionsOf(VEH_PIRSUITRANGE_OPTIONS);
+const std::vector<int> VEH_PIRSUITRANGE_VALUES = valuesOf(VEH_PIRSUITRANGE_OPTIONS);
 extern int PirsuitRangeIndexN;
 
 //Stars If Try To Escape
-const std::vector<std::string> VEH_STARSPUNISH_CAPTIONS{ "1 Star", "2 Stars", "3 Stars", "4 Stars", "5 Stars" };
-const int VEH_STARSPUNISH_VALUES[] = { 1, 2, 3, 4, 5 };
+const Option<int> VEH_STARSPUNISH_OPTIONS[] = {
+	{ "1 Star", 1 },
+	{ "2 Stars", 2 },
+	{ "3 Stars", 3 },
+	{ "4 Stars", 4 },
+	{ "5 Stars", 5 }
+};
+const std::vector<std::string> VEH_STARSPUNISH_CAPTIONS = captionsOf(VEH_STARSPUNISH_OPTIONS);
+const std::vector<int> VEH_STARSPUNISH_VALUES = valuesOf(VEH_STARSPUNISH_OPTIONS);
 extern int StarsPunishIndex;
 
 //Most Wanted
 extern int current_player_mostwanted;
-extern bool current_player_mostwanted_Changed;
 extern int mostwanted_level_enable;
-extern bool mostwanted_level_enable_Changed;
 
 void road_laws();
 void most_wanted();

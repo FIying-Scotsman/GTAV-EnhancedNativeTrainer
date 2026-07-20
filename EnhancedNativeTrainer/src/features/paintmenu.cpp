@@ -228,21 +228,12 @@ bool onconfirm_paintdirt(MenuItem<float> choice){
 }
 
 void onhighlight_paintdirt(MenuItem<float> choice){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
 
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
-		return;
-	}
-
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 	VEHICLE::SET_VEHICLE_DIRT_LEVEL(veh, choice.value);
 }
 
@@ -251,54 +242,42 @@ bool onconfirm_paintfade(MenuItem<float> choice){
 }
 
 void onhighlight_paintfade(MenuItem<float> choice){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
 
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
-		return;
-	}
-
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 	VEHICLE::SET_VEHICLE_ENVEFF_SCALE(veh, choice.value);
 }
 
 bool process_paint_menu_fades(){
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
 
-	set_status_text("Paint fade is only applicable to certain vehicles");
+	set_status_text(tr("PaintMenu.PaintFadeIsOnlyApplicableToCertainVehicl", "Paint fade is only applicable to certain vehicles"));
 
 	std::vector<MenuItem<float>*> menuItems;
 
 	MenuItem<float> *item = new MenuItem<float>();
-	item->caption = "Fresh Paint";
+	item->caption = tr("PaintMenu.FreshPaint", "Fresh Paint");
 	item->value = 0.0f;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	for(int i = 20; i < 100; i += 20){
 		MenuItem<float> *item = new MenuItem<float>();
-		std::ostringstream ss;
-		ss << i << "% Faded";
-		item->caption = ss.str();
+		item->caption = std::to_string(i) + tr("PaintMenu.FadedSuffix", "% Faded");
 		item->value = (float) i / 100;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 	}
 
 	item = new MenuItem<float>();
-	item->caption = "Fully Faded";
+	item->caption = tr("PaintMenu.FullyFaded", "Fully Faded");
 	item->value = 1.0f;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -307,33 +286,30 @@ bool process_paint_menu_fades(){
 }
 
 bool process_paint_menu_dirt(){
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
 
 	std::vector<MenuItem<float>*> menuItems;
 
 	MenuItem<float> *item = new MenuItem<float>();
-	item->caption = "Clean";
+	item->caption = tr("PaintMenu.Clean", "Clean");
 	item->value = 0.0f;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	for(int i = 20; i < 100; i += 20){
 		MenuItem<float> *item = new MenuItem<float>();
-		std::ostringstream ss;
-		ss << i << "% Dirty";
-		item->caption = ss.str();
+		item->caption = std::to_string(i) + tr("PaintMenu.DirtySuffix", "% Dirty");
 		item->value = ((float) i / 100) * 15.0f;
 		item->isLeaf = true;
 		menuItems.push_back(item);
 	}
 
 	item = new MenuItem<float>();
-	item->caption = "Fully Dirty";
+	item->caption = tr("PaintMenu.FullyDirty", "Fully Dirty");
 	item->value = 14.89999f;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -342,21 +318,12 @@ bool process_paint_menu_dirt(){
 }
 
 void onhighlight_livery(MenuItem<int> choice){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return;
 	}
 
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
-		return;
-	}
-
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 	VEHICLE::SET_VEHICLE_LIVERY(veh, choice.value);
 
 	//VEHICLE::SET_VEHICLE_MOD(veh, 48, choice.value, 0); //vehicle, modType (48 liv), mod index, bool customTires)
@@ -367,28 +334,18 @@ bool onconfirm_livery(MenuItem<int> choice){
 }
 
 bool process_paint_menu_liveries(){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
-		return false;
-	}
-
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 
 	int count = VEHICLE::GET_VEHICLE_LIVERY_COUNT(veh);
 	//int livCount = VEHICLE::GET_NUM_VEHICLE_MODS(veh, 48); //48 is the livery index
 
 	/*if (count <= -2) //for some reason, one of the liveries for the halloween car is -1
 	{
-		set_status_text("No liveries for this vehicle");
+		set_status_text(tr("PaintMenu.NoLiveriesForThisVehicle", "No liveries for this vehicle"));
 	}*/
 
 	std::vector<MenuItem<int>*> menuItems;
@@ -397,21 +354,17 @@ bool process_paint_menu_liveries(){
 	{
 		std::string modItemNameStr;
 
-		char* modItemNameChr = VEHICLE::GET_LIVERY_NAME(veh, i);
+		const char* modItemNameChr = VEHICLE::GET_LIVERY_NAME(veh, i);
 		if(modItemNameChr == NULL){
-			std::ostringstream ss;
-			ss << "Livery #" << (i + 1);
-			modItemNameStr = ss.str();
+			modItemNameStr = tr("PaintMenu.LiveryPrefix", "Livery #") + std::to_string(i + 1);
 		}
 		else{
-			char* modItemNameTxt = UI::_GET_LABEL_TEXT(modItemNameChr);
+			const char* modItemNameTxt = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(modItemNameChr);
 			if(modItemNameTxt != NULL){
 				modItemNameStr = std::string(modItemNameTxt);
 			}
 			else{
-				std::ostringstream ss;
-				ss << "Livery #" << (i + 1);
-				modItemNameStr = ss.str();
+				modItemNameStr = tr("PaintMenu.LiveryPrefix", "Livery #") + std::to_string(i + 1);
 			}
 		}
 
@@ -429,8 +382,9 @@ bool process_paint_menu_liveries(){
 
 // save/load veh colours
 bool veh_colour_menu_interrupt() {
-	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)) return true;
-	
+	Vehicle veh;
+	if (!try_get_players_vehicle(&veh)) return true;
+
 	if (vehcolourSaveMenuInterrupt)
 	{
 		vehcolourSaveMenuInterrupt = false;
@@ -442,7 +396,8 @@ bool veh_colour_menu_interrupt() {
 
 bool veh_colour_save_slot_menu_interrupt()
 {
-	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)) return true;
+	Vehicle veh;
+	if (!try_get_players_vehicle(&veh)) return true;
 
 	if (vehcolourSaveSlotMenuInterrupt)
 	{
@@ -476,19 +431,10 @@ bool spawn_saved_veh_colour(int slot, std::string caption)
 
 void save_current_veh_colour(int slot)
 {
-	std::ostringstream ss;
-	if (slot != -1)
-	{
-		ss << activeSavedVehColourSlotName;
-	}
-	else
-	{
-		ss << "Saved Colour " << (lastKnownSavedVehColourCount + 1);
-	}
+	std::string existingText = (slot != -1) ? activeSavedVehColourSlotName : (tr("PaintMenu.SavedColourPrefix", "Saved Colour ") + std::to_string(lastKnownSavedVehColourCount + 1));
 
 	keyboard_on_screen_already = true;
-	curr_message = "Enter vehicle colours save name:"; // save vehicle colours
-	auto existingText = ss.str();
+	set_curr_message(tr("PaintMenu.EnterVehicleColoursSaveName", "Enter vehicle colours save name:")); // save vehicle colours
 	std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 	if (!result.empty())
 	{
@@ -497,11 +443,11 @@ void save_current_veh_colour(int slot)
 		if (database->save_veh_colour(PLAYER::PLAYER_PED_ID(), result, slot))
 		{
 			activeSavedVehColourSlotName = result;
-			set_status_text("Saved colour");
+			set_status_text(tr("PaintMenu.SavedColour", "Saved colour"));
 		}
 		else
 		{
-			set_status_text("Save error");
+			set_status_text(tr("PaintMenu.SaveError", "Save error"));
 		}
 	}
 }
@@ -525,7 +471,7 @@ bool onconfirm_veh_savedcolour_slot_menu(MenuItem<int> choice)
 	case 3: //rename
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a new name:"; // rename saved vehicle colours
+		set_curr_message(tr("PaintMenu.EnterANewName", "Enter a new name:")); // rename saved vehicle colours
 		std::string result = show_keyboard("Enter Name Manually", (char*)activeSavedVehColourSlotName.c_str());
 		if (!result.empty())
 		{
@@ -565,25 +511,25 @@ bool process_veh_savedcolour_slot_menu(int slot)
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 1;
-		item->caption = "Apply";
+		item->caption = tr("PaintMenu.Apply", "Apply");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 2;
-		item->caption = "Overwrite With Current";
+		item->caption = tr("PaintMenu.OverwriteWithCurrent", "Overwrite With Current");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 3;
-		item->caption = "Rename";
+		item->caption = tr("PaintMenu.Rename", "Rename");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 4;
-		item->caption = "Delete";
+		item->caption = tr("PaintMenu.Delete", "Delete");
 		menuItems.push_back(item);
 
 		draw_generic_menu<int>(menuItems, 0, activeSavedVehColourSlotName, onconfirm_veh_savedcolour_slot_menu, NULL, NULL, veh_colour_save_slot_menu_interrupt);
@@ -624,7 +570,7 @@ bool process_veh_savedcolour_menu()
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
-		item->caption = "Create New Colour Set";
+		item->caption = tr("PaintMenu.CreateNewColourSet", "Create New Colour Set");
 		menuItems.push_back(item);
 
 		for each (SavedVehColourDBRow *sv in savedVehColours)
@@ -690,8 +636,8 @@ bool onconfirm_randcolour_category_menu(MenuItem<int> choice)
 			if (i == 2 && (NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 0 || NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 1)) VEHICLE::SET_VEHICLE_CUSTOM_PRIMARY_COLOUR(my_veh, rand_colour_r, rand_colour_g, rand_colour_b);
 			if (i == 3 && (NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 0 || NPC_RAGDOLL_VALUES[VehRandomColourIndex] == 2)) VEHICLE::SET_VEHICLE_CUSTOM_SECONDARY_COLOUR(my_veh, rand_colour_r, rand_colour_g, rand_colour_b);
 			if (i == 4) {
-				VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(my_veh, colorIndex1);
-				VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(my_veh, colorIndex2);
+				VEHICLE::SET_VEHICLE_EXTRA_COLOUR_5(my_veh, colorIndex1);
+				VEHICLE::SET_VEHICLE_EXTRA_COLOUR_6(my_veh, colorIndex2);
 			}
 		}
 	}
@@ -704,14 +650,14 @@ bool process_veh_randomcolour_menu() {
 	SelectFromListMenuItem* listItem;
 
 	item = new MenuItem<int>();
-	item->caption = "Randomize Colours";
+	item->caption = tr("PaintMenu.RandomizeColours", "Randomize Colours");
 	item->value = 10;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
-	listItem = new SelectFromListMenuItem(VEH_RAND_COLOUR_CAPTIONS, onchange_vehicles_random_colour_index);
+	listItem = new SelectFromListMenuItem(&VEH_RAND_COLOUR_CAPTIONS, onchange_vehicles_random_colour_index);
 	listItem->wrap = false;
-	listItem->caption = "Randomize";
+	listItem->caption = tr("PaintMenu.Randomize", "Randomize");
 	listItem->value = VehRandomColourIndex;
 	menuItems.push_back(listItem);
 
@@ -745,21 +691,12 @@ bool onconfirm_paint_menu(MenuItem<int> choice){
 }
 
 bool process_paint_menu(){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return false;
 	}
 
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
-		return false;
-	}
-
-	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
 	int livCount = VEHICLE::GET_VEHICLE_LIVERY_COUNT(veh);
 
 	std::vector<MenuItem<int> *> menuItems;
@@ -776,35 +713,33 @@ bool process_paint_menu(){
 	}
 
 	item = new MenuItem<int>();
-	item->caption = "Dirt Level";
+	item->caption = tr("PaintMenu.DirtLevel", "Dirt Level");
 	item->value = index++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Paint Fade";
+	item->caption = tr("PaintMenu.PaintFade", "Paint Fade");
 	item->value = index++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	if(livCount > 1){
-		std::ostringstream ss;
-		ss << "Liveries (" << livCount << ")";
 		item = new MenuItem<int>();
-		item->caption = ss.str();
+		item->caption = tr("PaintMenu.LiveriesPrefix", "Liveries (") + std::to_string(livCount) + ")";
 		item->value = index++;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 	}
 
 	item = new MenuItem<int>();
-	item->caption = "Saved Colours";
+	item->caption = tr("PaintMenu.SavedColours", "Saved Colours");
 	item->value = 163;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Randomize Colours";
+	item->caption = tr("PaintMenu.RandomizeColours", "Randomize Colours");
 	item->value = 164;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -863,14 +798,15 @@ bool onconfirm_paint_menu_type(MenuItem<int> choice){
 		paints = PAINTS_BY_TYPE[whichtype];
 	}
 
-	int matchIndex = 0, ps = paints.size();
+	int matchIndex = 0;
+	int ps = paints.size();
 
     switch (whichpart){
     case 5:
-        VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &extra);
         break;
     case 6:
-        VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &extra);
         break;
     }
 
@@ -962,11 +898,11 @@ bool process_paint_menu_type(){
 		indexItem->colorindex = wheel;
 		break;
     case 5:
-        VEHICLE::_GET_VEHICLE_INTERIOR_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_5(veh, &extra);
         indexItem->colorindex = extra;
         break;
     case 6:
-        VEHICLE::_GET_VEHICLE_DASHBOARD_COLOUR(veh, &extra);
+        VEHICLE::GET_VEHICLE_EXTRA_COLOUR_6(veh, &extra);
         indexItem->colorindex = extra;
         break;
     }
@@ -997,14 +933,14 @@ bool onconfirm_color_menu_selection(MenuItem<int> choice){
 }
 
 void apply_paint(PaintColor whichpaint){
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(playerPed);
-
-	if(bPlayerExists){
-		if(PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-			Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
-
-			int primary, secondary, pearl, wheel, colorIndex = whichpaint.colorIndex;
+	Vehicle veh;
+	if(try_get_players_vehicle(&veh)){
+		{
+			int primary = 0;
+			int secondary = 0;
+			int pearl = 0;
+			int wheel = 0;
+			int colorIndex = whichpaint.colorIndex;
 			VEHICLE::GET_VEHICLE_COLOURS(veh, &primary, &secondary);
 			VEHICLE::GET_VEHICLE_EXTRA_COLOURS(veh, &pearl, &wheel);
 
@@ -1046,10 +982,10 @@ void apply_paint(PaintColor whichpaint){
 					VEHICLE::SET_VEHICLE_EXTRA_COLOURS(veh, pearl, colorIndex);
 					break;
                 case 5:
-                    VEHICLE::_SET_VEHICLE_INTERIOR_COLOUR(veh, colorIndex);
+                    VEHICLE::SET_VEHICLE_EXTRA_COLOUR_5(veh, colorIndex);
                     break;
                 case 6:
-                    VEHICLE::_SET_VEHICLE_DASHBOARD_COLOUR(veh, colorIndex);
+                    VEHICLE::SET_VEHICLE_EXTRA_COLOUR_6(veh, colorIndex);
                     break;
                 default:
 					break;
@@ -1063,8 +999,8 @@ void apply_paint(PaintColor whichpaint){
 				parentIndexItem->SetIndex(colorIndex);
 			}
 		}
-		else{
-			set_status_text("Player isn't in a vehicle");
-		}
+	}
+	else{
+		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 	}
 }

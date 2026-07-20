@@ -7,6 +7,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "anims.h"
 #include "..\ui_support\menu_functions.h"
 #include "..\debug\debuglog.h"
+#include "..\io\controller.h"
 #include "..\utils.h"
 #include <sstream>
 #include <vector>
@@ -3743,7 +3744,7 @@ bool onconfirm_anim_menu(MenuItem<int> choice)
 			}
 			else
 			{
-				set_status_text("Can't find this animation");
+				set_status_text(tr("AnimsMenu.CanTFindThisAnimation", "Can't find this animation"));
 				return false;
 			}
 		}
@@ -3762,7 +3763,7 @@ bool onconfirm_anim_menu(MenuItem<int> choice)
 		
 		do_play_anim(playerPed, dict, anim, currentAnimMenuMode);
 
-		set_status_text("Animation applied");
+		set_status_text(tr("AnimsMenu.AnimationApplied", "Animation applied"));
 
 		return false;
 	}
@@ -3782,7 +3783,7 @@ bool process_anims_menu()
 {
 	if (!loaded)
 	{
-		set_status_text("Anims not loaded yet, try again later");
+		set_status_text(tr("AnimsMenu.AnimsNotLoadedYetTryAgainLater", "Anims not loaded yet, try again later"));
 		return false;
 	}
 
@@ -3820,7 +3821,7 @@ bool process_anims_menu()
 	{
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
-		item->caption = "Clear/Reset To Default";
+		item->caption = tr("AnimsMenu.ClearResetToDefault", "Clear/Reset To Default");
 		item->value = -1;
 		menuItems.push_back(item);
 	}
@@ -3859,9 +3860,7 @@ bool process_anims_menu()
 	//	break;
 	}
 
-	std::stringstream caption_ss;
-	caption_ss << caption << " Level " << (currentAnimMenuDepth + 1);
-	auto caption_str = caption_ss.str();
+	std::string caption_str = std::string(caption) + tr("AnimsMenu.LevelPrefix", " Level ") + std::to_string(currentAnimMenuDepth + 1);
 
 	bool result = draw_generic_menu<int>(menuItems, 0, caption_str, onconfirm_anim_menu, NULL, NULL, NULL);
 
@@ -3895,25 +3894,25 @@ bool process_anims_menu_top()
 
 	MenuItem<int> *item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Scenarios";
+	item->caption = tr("AnimsMenu.Scenarios", "Scenarios");
 	item->value = CATEGORY_SCENARIOS;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Movement Clipsets";
+	item->caption = tr("AnimsMenu.MovementClipsets", "Movement Clipsets");
 	item->value = CATEGORY_MOVE_CLIPSET;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "Facial Anims: Immediate Play";
+	item->caption = tr("AnimsMenu.FacialAnimsImmediatePlay", "Facial Anims: Immediate Play");
 	item->value = CATEGORY_FACIAL_NOW;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->isLeaf = false;
-	item->caption = "All Anims: Immediate Play";
+	item->caption = tr("AnimsMenu.AllAnimsImmediatePlay", "All Anims: Immediate Play");
 	item->value = CATEGORY_GENERAL_NOW;
 	menuItems.push_back(item);
 
@@ -3936,7 +3935,7 @@ bool process_anims_menu_top()
 
 void replay_last_anim()
 {
-	if (lastImmediatePlayAnim.empty() || lastImmediatePlayDict.empty()) set_status_text("No animation to play");
+	if (lastImmediatePlayAnim.empty() || lastImmediatePlayDict.empty()) set_status_text(tr("AnimsMenu.NoAnimationToPlay", "No animation to play"));
 	
 	if (!lastImmediatePlayAnim.empty() && !lastImmediatePlayDict.empty())
 	{
@@ -3945,11 +3944,11 @@ void replay_last_anim()
 }
 
 void update_anims_features(BOOL bPlayerExists, Ped playerPed) {
-	if (((IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE)) || (!CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, controller_binds["KEY_MENU_BACK"].first)) || CONTROLS::IS_CONTROL_PRESSED(2, 32) || CONTROLS::IS_CONTROL_PRESSED(2, 33) || CONTROLS::IS_CONTROL_PRESSED(2, 34) ||
-		CONTROLS::IS_CONTROL_PRESSED(2, 35)) && anim_p == true) {
-		AI::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), (char*)lastImmediatePlayDict.c_str(), (char*)lastImmediatePlayAnim.c_str(), 1.0);
+	if (((IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE)) || (!PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && is_bind_disabled_just_pressed("KEY_MENU_BACK")) || PAD::IS_CONTROL_PRESSED(2, 32) || PAD::IS_CONTROL_PRESSED(2, 33) || PAD::IS_CONTROL_PRESSED(2, 34) ||
+		PAD::IS_CONTROL_PRESSED(2, 35)) && anim_p == true) {
+		TASK::STOP_ANIM_TASK(PLAYER::PLAYER_PED_ID(), (char*)lastImmediatePlayDict.c_str(), (char*)lastImmediatePlayAnim.c_str(), 1.0);
 		PED::RESET_PED_MOVEMENT_CLIPSET(playerPed, 1.0f);
-		AI::CLEAR_PED_TASKS(playerPed);
+		TASK::CLEAR_PED_TASKS(playerPed);
 		PED::CLEAR_FACIAL_IDLE_ANIM_OVERRIDE(playerPed);
 		STREAMING::REMOVE_ANIM_DICT((char*)lastImmediatePlayDict.c_str());
 		STREAMING::REMOVE_ANIM_SET((char*)lastImmediatePlayAnim.c_str());
@@ -3972,7 +3971,7 @@ void do_play_anim(Ped playerPed, char* dict, char* anim, int mode)
 	}
 	if (mode == 95) { // CATEGORY_GENERAL_NOW:
 		anim_p = true;
-		AI::TASK_PLAY_ANIM(playerPed, dict, anim, 8, -8, -1, 0, 0, false, 0, true);
+		TASK::TASK_PLAY_ANIM(playerPed, dict, anim, 8, -8, -1, 0, 0, false, 0, true);
 	}
 	if (mode == 3) { // CATEGORY_SCENARIOS:
 		anim_p = true;
@@ -3981,8 +3980,8 @@ void do_play_anim(Ped playerPed, char* dict, char* anim, int mode)
 		std::string wordToFind = "_SEAT_"; // std::string wordToFind = "Sitting:";
 		size_t word = sentence.find(wordToFind);
 		if (word != std::string::npos) sitting_scenario = true; //If we don't reach end of the sentence - we found it!
-		if (sitting_scenario == false) AI::TASK_START_SCENARIO_IN_PLACE(playerPed, anim, 0, true);
-		else AI::TASK_START_SCENARIO_AT_POSITION(playerPed, anim, ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
+		if (sitting_scenario == false) TASK::TASK_START_SCENARIO_IN_PLACE(playerPed, anim, 0, true);
+		else TASK::TASK_START_SCENARIO_AT_POSITION(playerPed, anim, ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
 	}
 	if (mode == 4) { // CATEGORY_CLIPSET:
 		PED::SET_PED_MOVEMENT_CLIPSET(playerPed, anim, 1.0f);
@@ -4049,14 +4048,14 @@ bool onconfirm_scenarios_menu_l2(MenuItem<int> choice)
 	if (word != std::string::npos) sitting_scenario = true; //If we don't reach end of the sentence - we found it!
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	AI::CLEAR_PED_TASKS(playerPed);
-	set_status_text("Press Menu Back to stop this scenario");
-	if (sitting_scenario == false) AI::TASK_START_SCENARIO_IN_PLACE(playerPed, (char*)value.c_str(), 0, true);
-	else AI::TASK_START_SCENARIO_AT_POSITION(playerPed, (char*)value.c_str(), ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
+	TASK::CLEAR_PED_TASKS(playerPed);
+	set_status_text(tr("AnimsMenu.PressMenuBackToStopThisScenario", "Press Menu Back to stop this scenario"));
+	if (sitting_scenario == false) TASK::TASK_START_SCENARIO_IN_PLACE(playerPed, (char*)value.c_str(), 0, true);
+	else TASK::TASK_START_SCENARIO_AT_POSITION(playerPed, (char*)value.c_str(), ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z - 1, ENTITY::GET_ENTITY_HEADING(playerPed), 0, 0, 1);
 
 	while (true)
 	{
-		if ((!IsKeyJustUp(VK_ESCAPE) && IsKeyJustUp(KeyConfig::KEY_MENU_BACK)) || (!CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, controller_binds["KEY_MENU_BACK"].first) && CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, controller_binds["KEY_MENU_BACK"].first)))
+		if ((!IsKeyJustUp(VK_ESCAPE) && IsKeyJustUp(KeyConfig::KEY_MENU_BACK)) || (!is_bind_disabled_just_released("KEY_MENU_BACK") && is_bind_disabled_pressed("KEY_MENU_BACK")))
 		{
 			break;
 		}
@@ -4064,7 +4063,7 @@ bool onconfirm_scenarios_menu_l2(MenuItem<int> choice)
 		make_periodic_feature_call();
 	}
 
-	AI::CLEAR_PED_TASKS(playerPed);
+	TASK::CLEAR_PED_TASKS(playerPed);
 
 	return false;
 }
@@ -4114,12 +4113,12 @@ bool process_scenarios_menu_l1()
 	int i = 0;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = "Human Scenarios";
+	item->caption = tr("AnimsMenu.HumanScenarios", "Human Scenarios");
 	item->value = 0;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Animal Scenarios";
+	item->caption = tr("AnimsMenu.AnimalScenarios", "Animal Scenarios");
 	item->value = 1;
 	menuItems.push_back(item);
 
@@ -4146,9 +4145,7 @@ bool onconfirm_clipset_menu(MenuItem<int> choice)
 	}
 	if (!STREAMING::HAS_ANIM_SET_LOADED((char*)value.c_str()))
 	{
-		std::stringstream ss;
-		ss << "Loading clipset " << (char*)value.c_str() << " failed";
-		set_status_text(ss.str());
+		set_status_text(tr("AnimsMenu.LoadingClipsetPrefix", "Loading clipset ") + value + tr("AnimsMenu.FailedSuffix", " failed"));
 		return false;
 	}
 
@@ -4157,7 +4154,7 @@ bool onconfirm_clipset_menu(MenuItem<int> choice)
 	lastImmediateType = 4;
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	AI::CLEAR_PED_TASKS(playerPed);
+	TASK::CLEAR_PED_TASKS(playerPed);
 	PED::SET_PED_MOVEMENT_CLIPSET(playerPed, (char*)value.c_str(), 1.0f);
 
 	return false;

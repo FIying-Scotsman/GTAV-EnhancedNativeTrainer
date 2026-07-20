@@ -1,11 +1,10 @@
-/*
 #include "aimbot_esp.h"
 
 int aimbotESPLineIndex = 0;
 
 bool pedESP = false;
 
-Entity aimedAt = NULL;
+Entity aimbotAimedAt = NULL;
 bool isTargetLocked = false;
 
 bool aimAtVehicles = false;
@@ -25,13 +24,13 @@ void draw_ESP_box(Ped ped, int red, int green, int blue, int alpha) {
 	int screenResX, screenResY;
 	float screenX, screenY;
 
-	GRAPHICS::_GET_SCREEN_ACTIVE_RESOLUTION(&screenResX, &screenResY); // use this to correct for screen ratio
+	GRAPHICS::GET_ACTUAL_SCREEN_RESOLUTION(&screenResX, &screenResY); // use this to correct for screen ratio
 
-	if (GRAPHICS::_WORLD3D_TO_SCREEN2D(pedPosition.x, pedPosition.y, pedPosition.z, &screenX, &screenY) == TRUE) {
-		GRAPHICS::DRAW_RECT(screenX, screenY, 5.0f / (float)screenResX, 5.0f / (float)screenResY, red, green, blue, alpha);
+	if (GRAPHICS::GET_SCREEN_COORD_FROM_WORLD_COORD(pedPosition.x, pedPosition.y, pedPosition.z, &screenX, &screenY) == TRUE) {
+		GRAPHICS::DRAW_RECT(screenX, screenY, 5.0f / (float)screenResX, 5.0f / (float)screenResY, red, green, blue, alpha, FALSE);
 	}
 
-	UI::SET_TEXT_OUTLINE();
+	HUD::SET_TEXT_OUTLINE();
 	GRAPHICS::DRAW_LINE(pedPosition.x + 0.5, pedPosition.y + 0.5, pedPosition.z + 0.75, pedPosition.x + 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, red, green, blue, alpha);
 	GRAPHICS::DRAW_LINE(pedPosition.x + 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, pedPosition.x - 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, red, green, blue, alpha);
 	GRAPHICS::DRAW_LINE(pedPosition.x - 0.5, pedPosition.y - 0.5, pedPosition.z + 0.75, pedPosition.x - 0.5, pedPosition.y + 0.5, pedPosition.z + 0.75, red, green, blue, alpha);
@@ -56,7 +55,7 @@ void doESP() {
 	int numPedsInWorld = worldGetAllPeds(worldPeds, ARR_SIZE);
 
 	for (int i = 0; i < numPedsInWorld; i++) {
-		if (ENTITY::DOES_ENTITY_EXIST(worldPeds[i]) && !ENTITY::IS_ENTITY_DEAD(worldPeds[i]) && worldPeds[i] != playerPed)
+		if (ENTITY::DOES_ENTITY_EXIST(worldPeds[i]) && !ENTITY::IS_ENTITY_DEAD(worldPeds[i], FALSE) && worldPeds[i] != playerPed)
 		peds.push_back(worldPeds[i]);
 	}
 
@@ -99,15 +98,15 @@ void doAimbot(Entity targetPed) {
 
 	Vector3D targetPosWorld3D(PED::GET_PED_BONE_COORDS(targetPed, boneId, 0.0f, 0.0f, 0.0f));
 	Vector3D playerPosWorld3D(ENTITY::GET_ENTITY_COORDS(playerPed, true));
-	Vector3D playerCam3D(CAM::GET_GAMEPLAY_CAM_COORD());
+	Vector3D playerCam3D(CAMERA::GET_GAMEPLAY_CAM_COORD());
 
 	// draw a red box over what we're aiming
 	int screenResX, screenResY;
-	GRAPHICS::_GET_SCREEN_ACTIVE_RESOLUTION(&screenResX, &screenResY); // use this to correct for screen ratio
+	GRAPHICS::GET_ACTUAL_SCREEN_RESOLUTION(&screenResX, &screenResY); // use this to correct for screen ratio
 
 	float screenX, screenY;
-	if (GRAPHICS::_WORLD3D_TO_SCREEN2D(targetPosWorld3D.x, targetPosWorld3D.y, targetPosWorld3D.z, &screenX, &screenY) == TRUE) {
-		GRAPHICS::DRAW_RECT(screenX, screenY, 10.0f / (float)screenResX, 10.0f / (float)screenResY, 255, 0, 0, 150);
+	if (GRAPHICS::GET_SCREEN_COORD_FROM_WORLD_COORD(targetPosWorld3D.x, targetPosWorld3D.y, targetPosWorld3D.z, &screenX, &screenY) == TRUE) {
+		GRAPHICS::DRAW_RECT(screenX, screenY, 10.0f / (float)screenResX, 10.0f / (float)screenResY, 255, 0, 0, 150, FALSE);
 	}
 
 	// get x-angle between player heading and player to target
@@ -157,10 +156,10 @@ void doAimbot(Entity targetPed) {
 	float deltaHeading = camHeadingAngle - playerHeading;
 	float deltaPitch = camPitchAngle - playerPitch;
 
-	CAM::SET_GAMEPLAY_CAM_RELATIVE_HEADING(deltaHeading); // adjust heading
-	CAM::SET_GAMEPLAY_CAM_RELATIVE_PITCH(deltaPitch, 0x3F800000); // adjust pitch
-	CAM::_SET_GAMEPLAY_CAM_RAW_PITCH(deltaHeading);
-	CAM::_SET_GAMEPLAY_CAM_RAW_YAW(deltaPitch);
+	CAMERA::SET_GAMEPLAY_CAM_RELATIVE_HEADING(deltaHeading); // adjust heading
+	CAMERA::SET_GAMEPLAY_CAM_RELATIVE_PITCH(deltaPitch, 0x3F800000); // adjust pitch
+	CAMERA::SET_FIRST_PERSON_SHOOTER_CAMERA_PITCH(deltaHeading);
+	CAMERA::SET_FIRST_PERSON_SHOOTER_CAMERA_HEADING(deltaPitch);
 }
 
 void onchange_aimbot(int value, SelectFromListMenuItem* source)
@@ -245,7 +244,7 @@ void reset_aimbot_globals() {
 
 	pedESP = 0;
 
-	aimedAt = NULL;
+	aimbotAimedAt = NULL;
 	isTargetLocked = false;
 
 	aimAtVehicles = false;
@@ -260,59 +259,59 @@ void reset_aimbot_globals() {
 
 bool process_aimbot_esp_menu()
 {
-	std::string caption = "Aimbot ESP Options";
+	std::string caption = tr("AimbotMenu.AimbotESPOptions", "Aimbot ESP Options");
 	std::vector<MenuItem<int>*> menuItems;
 	ToggleMenuItem<int>* toggleItem;
 	SelectFromListMenuItem *listItem;
 
 	int i = 0;
 
-	listItem = new SelectFromListMenuItem(AIMBOT_TARGETS, onchange_aimbot);
+	listItem = new SelectFromListMenuItem(&AIMBOT_TARGETS, onchange_aimbot);
 	listItem->wrap = false;
-	listItem->caption = "Aimbot";
+	listItem->caption = tr("AimbotMenu.Aimbot", "Aimbot");
 	listItem->value = aimbotIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_BONE_CAPTION, onchange_aimbot_bone);
+	listItem = new SelectFromListMenuItem(&AIMBOT_BONE_CAPTION, onchange_aimbot_bone);
 	listItem->wrap = false;
-	listItem->caption = "Aim Bone";
+	listItem->caption = tr("AimbotMenu.AimBone", "Aim Bone");
 	listItem->value = aimbotBoneIndex;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_TARGET_METHOD, onchange_target_method);
+	listItem = new SelectFromListMenuItem(&AIMBOT_TARGET_METHOD, onchange_target_method);
 	listItem->wrap = false;
-	listItem->caption = "Target Method";
+	listItem->caption = tr("AimbotMenu.TargetMethod", "Target Method");
 	listItem->value = targetMethod;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_TOLERANCE_CAPTIONS, onchange_aimbot_tolerance);
+	listItem = new SelectFromListMenuItem(&AIMBOT_TOLERANCE_CAPTIONS, onchange_aimbot_tolerance);
 	listItem->wrap = false;
-	listItem->caption = "Target Lock Radius";
+	listItem->caption = tr("AimbotMenu.TargetLockRadius", "Target Lock Radius");
 	listItem->value = aimbotToleranceIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Target Peds in Vehicles";
+	toggleItem->caption = tr("AimbotMenu.TargetPedsInVehicles", "Target Peds in Vehicles");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &aimAtVehicles;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(AIMBOT_VEH_OFFSET_CAPTIONS, onchange_aimbot_veh_offset);
+	listItem = new SelectFromListMenuItem(&AIMBOT_VEH_OFFSET_CAPTIONS, onchange_aimbot_veh_offset);
 	listItem->wrap = false;
-	listItem->caption = "Vehicle Aimbot Offset";
+	listItem->caption = tr("AimbotMenu.VehicleAimbotOffset", "Vehicle Aimbot Offset");
 	listItem->value = aimbotVehOffsetIndex;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Aim Through Walls";
+	toggleItem->caption = tr("AimbotMenu.AimThroughWalls", "Aim Through Walls");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &aimThroughWalls;
 	toggleItem->toggleValueUpdated = NULL;
 	menuItems.push_back(toggleItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Ped ESP";
+	toggleItem->caption = tr("AimbotMenu.PedESP", "Ped ESP");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &pedESP;
 	toggleItem->toggleValueUpdated = NULL;
@@ -338,7 +337,7 @@ Entity get_ped_in_freeaim() {
 
 	// Make sure we're aiming at a ped that's NOT a vehicle, that's ALIVE, and is NOT friendly to the player
 	if (!inSameCar && !PED::IS_PED_DEAD_OR_DYING(aimedAt, true) && PED::IS_PED_HUMAN(aimedAt) && (PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, aimedAt) >= 3)) {
-	// if (!inSameCar && ENTITY::IS_ENTITY_A_PED(aimedAt) && !ENTITY::IS_ENTITY_A_VEHICLE(aimedAt) &&  !ENTITY::IS_ENTITY_DEAD(aimedAt) && ENTITY::GET_ENTITY_ALPHA(aimedAt) == 255 && (PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, targetPed) >= 3)) {
+	// if (!inSameCar && ENTITY::IS_ENTITY_A_PED(aimedAt) && !ENTITY::IS_ENTITY_A_VEHICLE(aimedAt) &&  !ENTITY::IS_ENTITY_DEAD(aimedAt, FALSE) && ENTITY::GET_ENTITY_ALPHA(aimedAt) == 255 && (PED::GET_RELATIONSHIP_BETWEEN_PEDS(playerPed, targetPed) >= 3)) {
 		return aimedAt;
 	}
 	return 0;
@@ -387,7 +386,7 @@ Entity get_ped_nearest_to_crosshair() {
 
 				Vector3D pedPosWorld3D(PED::GET_PED_BONE_COORDS(*pedIterator, AIMBOT_BONE[aimbotBoneIndex], 0.0, 0.0, 0.0));
 
-				GRAPHICS::_WORLD3D_TO_SCREEN2D(pedPosWorld3D.x, pedPosWorld3D.y, pedPosWorld3D.z, &xScreen, &yScreen);
+				GRAPHICS::GET_SCREEN_COORD_FROM_WORLD_COORD(pedPosWorld3D.x, pedPosWorld3D.y, pedPosWorld3D.z, &xScreen, &yScreen);
 
 				float xDelta = xScreen - 0.5f;
 				float yDelta = yScreen - 0.5f;
@@ -413,7 +412,7 @@ void update_aimbot_esp_features() {
 		Player player = PLAYER::PLAYER_ID();
 		Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-		Vector3D playerCam3D(CAM::GET_GAMEPLAY_CAM_COORD());
+		Vector3D playerCam3D(CAMERA::GET_GAMEPLAY_CAM_COORD());
 
 		Vector3D playerCoords(ENTITY::GET_ENTITY_COORDS(playerPed, true));
 		Vector3D entityCoords(ENTITY::GET_ENTITY_COORDS(ENTITY::GET_ENTITY_ATTACHED_TO(playerPed), true));
@@ -433,14 +432,14 @@ void update_aimbot_esp_features() {
 					if (aimbotIndex == 1) { // Target NPCs
 						if (targetMethod == 0) {
 							// target whatever GTA thinks the player is free aiming at
-							aimedAt = get_ped_in_freeaim();
+							aimbotAimedAt = get_ped_in_freeaim();
 						}
 						else if (targetMethod == 1) {
 							// get the ped nearest to the crosshair
-							aimedAt = get_ped_nearest_to_crosshair();
+							aimbotAimedAt = get_ped_nearest_to_crosshair();
 						}
 
-						if (!ENTITY::IS_ENTITY_DEAD(aimedAt) && !PED::IS_PED_A_PLAYER(aimedAt) && (!ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimedAt) || (ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimedAt) && aimAtVehicles))) {
+						if (!ENTITY::IS_ENTITY_DEAD(aimbotAimedAt, FALSE) && !PED::IS_PED_A_PLAYER(aimbotAimedAt) && (!ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimbotAimedAt) || (ENTITY::IS_ENTITY_ATTACHED_TO_ANY_VEHICLE(aimbotAimedAt) && aimAtVehicles))) {
 							isTargetLocked = true;
 						}
 						else {
@@ -450,15 +449,15 @@ void update_aimbot_esp_features() {
 					// Removed a bunch of code for aiming only at vehicles, objects, etc...
 				}
 				else { // Target is locked
-					if (!ENTITY::DOES_ENTITY_EXIST(aimedAt) || ENTITY::IS_ENTITY_DEAD(aimedAt)) { // Do a sanity check to make sure we're not constantly locking onto something that we shouldn't be 
+					if (!ENTITY::DOES_ENTITY_EXIST(aimbotAimedAt) || ENTITY::IS_ENTITY_DEAD(aimbotAimedAt, FALSE)) { // Do a sanity check to make sure we're not constantly locking onto something that we shouldn't be
 						isTargetLocked = false;
 					}
 
-					if (!ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(playerPed, aimedAt, 17) && !aimThroughWalls) { // Drop target if wallhack is off and we lose vision of him
+					if (!ENTITY::HAS_ENTITY_CLEAR_LOS_TO_ENTITY(playerPed, aimbotAimedAt, 17) && !aimThroughWalls) { // Drop target if wallhack is off and we lose vision of him
 						isTargetLocked = false;
 					}
 					else {
-						doAimbot(aimedAt);
+						doAimbot(aimbotAimedAt);
 					}
 				}
 			}
@@ -467,5 +466,4 @@ void update_aimbot_esp_features() {
 			}
 		} // end of if (bPlayerExists && aimbotIndex)
 	}
-} 
-*/
+}

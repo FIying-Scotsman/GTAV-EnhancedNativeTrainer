@@ -14,17 +14,9 @@ void onhighlight_smoke_selection(MenuItem<int> choice){
 }
 
 bool onconfirm_smoke_selection(MenuItem<int> choice){
-	// common variables
-	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
-
-	if(!bPlayerExists){
-		return true;
-	}
-
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
-
-	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("Player isn't in a vehicle");
+	Vehicle veh;
+	if(!try_get_players_vehicle(&veh)){
+		set_status_text(tr("TyreSmokeMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
 		return true;
 	}
 
@@ -36,11 +28,13 @@ bool onconfirm_smoke_selection(MenuItem<int> choice){
 void set_smoke(bool applied, std::vector<int> extras){
 	int loc = extras.at(0);
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	int rCol, bCol, gCol = bCol = rCol = 0;
+	int rCol = 0;
+	int bCol = 0;
+	int gCol = 0;
 	bool lightFound = false;
 
 	if(!is_this_a_car(veh) || !is_this_a_motorcycle(veh)){
-		set_status_text("Can't add smoke to this vehicle");
+		set_status_text(tr("TyreSmokeMenu.CanTAddSmokeToThisVehicle", "Can't add smoke to this vehicle"));
 		return;
 	}
 
@@ -63,7 +57,9 @@ bool process_smoke_colour_menu(){
 	int colIndex = -1;
 
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	int r = 0, g = 0, b = 0;
+	int r = 0;
+	int g = 0;
+	int b = 0;
 	VEHICLE::GET_VEHICLE_TYRE_SMOKE_COLOR(veh, &r, &g, &b);
 
 	for(int i = 0; i < SMOKE_COLORS.size(); i++){
@@ -76,7 +72,7 @@ bool process_smoke_colour_menu(){
 
 		MenuItem<int> *item = new MenuItem<int>();
 		std::string smoke_label = SMOKE_COLORS[i].colorString;
-		item->caption = UI::_GET_LABEL_TEXT(&smoke_label[0]);
+		item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&smoke_label[0]);
 		item->isLeaf = true;
 		item->value = i;
 		menuItems.push_back(item);

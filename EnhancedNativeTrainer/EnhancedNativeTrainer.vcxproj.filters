@@ -13,10 +13,16 @@
     <ClCompile Include="src\ui_support\menu_functions.cpp">
       <Filter>src\ui_support</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui_support\vehicle_stats_widget.cpp">
+      <Filter>src\ui_support</Filter>
+    </ClCompile>
     <ClCompile Include="src\storage\database.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
     <ClCompile Include="src\io\config_io.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
+    <ClCompile Include="src\io\translation.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
     <ClCompile Include="src\io\keyboard.cpp">
@@ -59,6 +65,9 @@
       <Filter>src\features</Filter>
     </ClCompile>
     <ClCompile Include="src\features\teleportation.cpp">
+      <Filter>src\features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\interior_customization.cpp">
       <Filter>src\features</Filter>
     </ClCompile>
     <ClCompile Include="src\features\time.cpp">
@@ -133,6 +142,9 @@
     <ClCompile Include="src\io\controller.cpp">
       <Filter>src\io</Filter>
     </ClCompile>
+    <ClCompile Include="src\io\controller_buttons.cpp">
+      <Filter>src\io</Filter>
+    </ClCompile>
     <ClCompile Include="src\rage_thread\rage_thread.cpp">
       <Filter>src\scripts</Filter>
     </ClCompile>
@@ -177,6 +189,9 @@
     <ClInclude Include="src\io\config_io.h">
       <Filter>inc\io</Filter>
     </ClInclude>
+    <ClInclude Include="src\io\translation.h">
+      <Filter>inc\io</Filter>
+    </ClInclude>
     <ClInclude Include="src\io\io.h">
       <Filter>inc\io</Filter>
     </ClInclude>
@@ -190,6 +205,9 @@
       <Filter>inc\ui_support</Filter>
     </ClInclude>
     <ClInclude Include="src\ui_support\menu_functions.h">
+      <Filter>inc\ui_support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui_support\vehicle_stats_widget.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
     <ClInclude Include="src\storage\database.h">
@@ -225,6 +243,12 @@
     <ClInclude Include="src\common\vectorHelper.h">
       <Filter>inc\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\option_table.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common\controller_bind.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
     <ClInclude Include="src\ui_support\entcolor.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
@@ -238,6 +262,15 @@
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="src\ent-enums.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vehicle_enums.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vehicle_hashes.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\weapon_enums.h">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="inc\main.h">
@@ -267,8 +300,14 @@
     <ClInclude Include="src\features\interior_props.h">
       <Filter>inc\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\features\interior_customization.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
     <ClInclude Include="src\features\enginedegrade.h" />
     <ClInclude Include="src\io\controller.h">
+      <Filter>inc\io</Filter>
+    </ClInclude>
+    <ClInclude Include="src\io\controller_buttons.h">
       <Filter>inc\io</Filter>
     </ClInclude>
     <ClInclude Include="src\joaat.hpp">

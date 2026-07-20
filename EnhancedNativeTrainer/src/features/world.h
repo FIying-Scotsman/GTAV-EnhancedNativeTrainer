@@ -19,6 +19,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <cstdint>
 #include "..\..\inc\main.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\common\toggle_feature.h"
 #include "..\ent-enums.h"
 #include "..\utils.h"
 #include "..\common\ENTUtil.h"
@@ -91,17 +92,22 @@ extern bool featureFirstPersonDeathCamera;
 
 void EnableTracks(bool tracksVehicle, bool tracksPeds, bool deepTracksVehicle, bool deepTracksPed);
 
-void EnableSnow(bool featureSnow);
+void EnableSnow(bool* snowEnabled, bool silent = false);
 
 extern bool featureBusLight;
 
 // Gravity Level
 extern int featureGravityLevelIndex;
-const std::vector<std::string> WORLD_GRAVITY_LEVEL_CAPTIONS{ "Earth", "Moon", "Pluto", "Near Zero" };
-const int WORLD_GRAVITY_LEVEL_VALUES[] = { 0, 1, 2, 3 };
+const Option<int> WORLD_GRAVITY_LEVEL_OPTIONS[] = {
+	{ "Earth", 0 },
+	{ "Moon", 1 },
+	{ "Pluto", 2 },
+	{ "Near Zero", 3 }
+};
+const std::vector<std::string> WORLD_GRAVITY_LEVEL_CAPTIONS = captionsOf(WORLD_GRAVITY_LEVEL_OPTIONS);
+const std::vector<int> WORLD_GRAVITY_LEVEL_VALUES = valuesOf(WORLD_GRAVITY_LEVEL_OPTIONS);
 
-extern bool featurePenitentiaryMap;
-extern bool featureCayoPericoMap;
+extern ToggleFeature featurePenitentiaryMap;
+extern ToggleFeature featureCayoPericoMap;
 
-extern bool featureWorldNoTraffic;
-extern bool featureWorldNoTrafficUpdated;
+extern ToggleFeature featureWorldNoTraffic;

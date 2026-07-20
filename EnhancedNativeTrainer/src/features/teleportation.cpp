@@ -16,6 +16,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\debug\debuglog.h"
 #include "..\ent-enums.h"
 #include "interior_props.h"
+#include "interior_customization.h"
 #include "script.h"
 #include <iostream>   // std::cout
 #include <string>     // std::string, std::stof
@@ -37,11 +38,6 @@ bool featureChoshopCargoship = false;
 int chopshop_tick = 0;
 bool chopshop_init = false;
 bool on_island = false;
-
-//Load House On The Hill Automatically
-bool featureHouseOnHill = false;
-int househill_tick = 0;
-bool househill_init = false;
 
 struct tele_location{
 	std::string text;
@@ -301,20 +297,44 @@ const std::vector<tele_location> LOCATIONS_REQSCEN = {
 
 /* Name, coords, IPL name, scenary (props) required, scenary to remove, bool isloaded*/
 const std::vector<tele_location> LOCATIONS_ONLINE = {
+	// Kept at the top rather than mixed in with the rest of this list below - these all route into the customization framework (interior_customization.cpp) instead of a plain teleport (or, for the Kortz Center entries, are plain teleports pending that), and get used often enough while iterating on paint/style choices that paging through the rest of the alphabetical list isn't worth it. Coords/shell IPLs here are for display only; loading is handled by interior_customization.cpp (see onconfirm_teleport_location's caption checks below). This block is itself alphabetical, same as the rest of the list.
+	{ OFFICE_AUTOSHOP_ARCADIUS_CAPTION, -144.2712f, -593.0843f, 167.0001f, {}, {}, {}, false },
+	{ OFFICE_AUTOSHOP_LOMBANK_WEST_CAPTION, -1574.5394f, -571.2640f, 105.2001f, {}, {}, {}, false },
+	{ OFFICE_AUTOSHOP_MAZEBANK_BUILDING_CAPTION, -73.9068f, -815.3940f, 285.0001f, {}, {}, {}, false },
+	{ OFFICE_AUTOSHOP_MAZEBANK_WEST_CAPTION, -1389.9446f, -480.1762f, 78.2001f, {}, {}, {}, false },
+	{ BIKER_CLUBHOUSE_1FLOOR_CAPTION, 1109.1124f, -3164.1536f, -37.5186f, {}, {}, {}, false },
+	{ BIKER_CLUBHOUSE_2FLOORS_CAPTION, 998.3676f, -3164.6531f, -38.9073f, {}, {}, {}, false },
+	{ BUNKER_CUSTOMIZATION_CAPTION, 938.3077f, -3196.112f, -98.0f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION, 1093.6f, -3196.6f, -38.5f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_COUNTERFEIT_CASH_CAPTION, 1124.6f, -3196.6f, -38.5f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_DOCUMENT_FORGERY_CAPTION, 1165.0f, -3196.6f, -38.2f, {}, {}, {}, false },
+	{ DOOMSDAY_FACILITY_CAPTION, 462.09f, 4820.42f, -59.0f, {}, {}, {}, false },
+	{ HANGAR_CUSTOMIZATION_CAPTION, -1253.66f, -2998.80f, -48.49f, {}, {}, {}, false },
+	// Plain teleports only, not wired into the customization framework yet - coords/interior type confirmed via decompiled finale_heist1.c, shell IPLs as supplied. Rest of the Kortz Center Heist target building.
+	{ "Kortz Center: Exhibition Basement", 2631.4f, 5893.9f, -61.0f, { "M26_1_int_placement_interior_int_exhibition_basement_milo_" }, {}, {}, false },
+	{ "Kortz Center: Exhibition Room", 2603.2f, 5903.8f, -49.0f, { "M26_1_int_placement_interior_int_exhibition_room_milo_" }, {}, {}, false },
+	{ "Kortz Center: Loading Bay Tunnel", 2693.7f, 5877.5f, -61.0f, { "M26_1_int_placement_interior_int_loading_bay_tunnel_milo_" }, {}, {}, false },
+	{ "Kortz Center: Sewers Access", 2675.3f, 5927.8f, -65.6f, { "M26_1_int_placement_interior_int_sewers_access_milo_" }, {}, {}, false },
+	{ MANSION_CAPTION, -1666.368f, 478.9271f, 128.2216f, {}, {}, {}, false },
+	{ ART_WORKSHOP_CAPTION, 2588.177f, 5959.916f, -47.935f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_METH_LAB_CAPTION, 1009.5f, -3196.6f, -38.5f, {}, {}, {}, false },
+	{ NIGHTCLUB_CAPTION, -1569.25f, -3017.39f, -73.22f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_ARCADIUS_CAPTION, -197.5016f, -579.3605f, 136.0005f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_LOMBANK_WEST_CAPTION, -1585.6804f, -561.9070f, 86.5005f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_MAZEBANK_BUILDING_CAPTION, -90.7866f, -821.2824f, 222.0005f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_MAZEBANK_WEST_CAPTION, -1395.2725f, -480.5121f, 57.1005f, {}, {}, {}, false },
+	{ IE_VEHICLE_BUNKER_CAPTION, 1001.2706f, -2997.8494f, -47.6470f, {}, {}, {}, false },
+	{ IE_WAREHOUSE_CAPTION, 973.5615f, -2999.5610f, -39.6470f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_WEED_FARM_CAPTION, 1049.6f, -3196.6f, -38.5f, {}, {}, {}, false },
 	{ "2 Car Garage", 173.1176f, -1003.279f, -99.000f, { "hw1_blimp_interior_v_garages_milo_" }, {}, {}, false },
 	{ "4 Integrity Way Apt 10", -32.17249000f, -579.01830000f, 82.90740000f, { "hei_hw1_blimp_interior_10_dlc_apart_high_new_milo_" }, {}, {}, false },
 	{ "4 Integrity Way Apt 28", -14.7964f, -581.709f, 79.4307f, {}, {}, {}, false },
 	{ "6 Car Garage", 199.9716f, -999.6678f, -99.000f, { "hw1_blimp_interior_v_garagem_milo_" }, {}, {}, false },
 	{ "7302 San Andreas Avenue Apt 6", -460.61330000f, -691.55620000f, 69.87947000f, { "hw1_blimp_interior_v_apartment_high_milo__6" }, {}, {}, false },
 	{ "10 Car Garage Bay", 228.135f, -995.350f, -99.000f, { "hw1_blimp_interior_v_garagel_milo_" }, {}, {}, false },
-	{ "Arcadius Business Center Office: Style 1", -139.53950000f, -629.07570000f, 167.82040000f, { "ex_dt1_02_office_01a" }, {}, {}, false },
+	{ "Old Spice Warm (Arcadius Business Centre)", -139.53950000f, -629.07570000f, 167.82040000f, { "ex_dt1_02_office_01a" }, {}, {}, false },
 	{ "Benny's Garage", -209.759f, -1319.617f, 30.08367f }, 
-	{ "Biker Club Garage 1", 1005.861f, -3156.162f, -39.90727f, { "bkr_biker_interior_placement_interior_1_biker_dlc_int_02_milo_" }, {}, { IPL_PROPS_BIKER_CLUBHOUSE }, false },
 	{ "Bikers 'Lost' Safehouse", 981.211f, -101.864f, 75.8451f, { "bkr_bi_hw1_13_int" }, {}, {}, false },
-	{ "Biker Warehouse: Forgery 2", 1165.001f, -3196.597f, -39.99353f, { "bkr_biker_interior_placement_interior_6_biker_dlc_int_ware05_milo_" }, {}, { IPL_PROPS_BIKER_FORGERY_WAREHOUSE }, false },
-	{ "Biker Warehouse: Money Printer 1", 1009.545f, -3196.597f, -39.99353f, { "bkr_biker_interior_placement_interior_2_biker_dlc_int_ware01_milo_" }, {}, {}, false },
-	{ "Biker Warehouse: Money Printer 2", 1124.734f, -3196.597f, -39.99353f, { "bkr_biker_interior_placement_interior_5_biker_dlc_int_ware04_milo_" }, {}, { IPL_PROPS_BIKER_FAKE_CASH_WAREHOUSE }, false },
-	{ "Biker Warehouse: Weed Farm", 1059.028f, -3201.89f, -39.99353f, { "bkr_biker_interior_placement_interior_3_biker_dlc_int_ware02_milo_" }, {}, { IPL_PROPS_BIKER_WEED_WAREHOUSE }, false },
 	{ "Brickade Acid Lab", 485.0f, -2625.0f, -49.0f, { "xm3_int_placement_xm3_interior_0_dlc_int_01_xm3_milo_" }, {}, {}, false },
 	{ "Casino Back", 2523.36100000f, -270.00000000f, -59.72315000f, { "ch_int_placement_ch_interior_3_dlc_casino_back_milo_" }, {}, {}, false },
 	{ "Casino Carpark", 1380.0000, 200.0000, -50.0000f, { "vw_casino_carpark" }, {}, {}, false },
@@ -328,7 +348,6 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Casino Utility", 2519.87600000f, -255.30270000f, -25.11497000f, { "ch_int_placement_ch_interior_7_dlc_casino_utility_milo_" }, {}, {}, false },
 	{ "Casino Vault", 2488.34800000f, -267.36370000f, -71.64563000f, { "ch_int_placement_ch_interior_6_dlc_casino_vault_milo_" }, {}, {}, false },
 	{ "Cayo Perico Mansion", 5010.101f, -5753.549f, 27.8444f, { "h4_islandx_mansion_office" }, {}, {}, false }, // h4_dlc_island_office
-	{ "CEO Garage Modshop", -77.42f, -827.27f, 285.00f, { "imp_dt1_11_modgarage" }, {}, {}, false }, // 730.0f, -2990.0f, -40.0f // imp_impexp_interior_placement_interior_2_imptexp_mod_int_01_milo_
 	{ "CEO Warehouse", 800.00000000f, -3000.00000000f, -65.00000000f, { "reh_int_placement_sum2_interior_0_dlc_int_03_sum2_milo_" }, {}, { IPL_PROPS_BIKER_UNDERCOVER1 }, false },
 	{ "CEO Warehouse Basement", 850.00000000f, -3000.00000000f, -48.00000000f, { "reh_int_placement_sum2_interior_1_dlc_int_04_sum2_milo_" }, {}, { IPL_PROPS_BIKER_UNDERCOVER1 }, false },
 	{ "Chop Shop Cargoship Bridge", -397.00000000f, -4121.00000000f, 28.00000000f, { "m23_2_cargoship_bridge" }, {}, {}, false },
@@ -342,44 +361,37 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Eclipse Towers Apt 12", -791.29410000f, 338.07100000f, 200.41350000f, { "hw1_blimp_interior_v_apartment_high_milo__12" }, {}, {}, false },
 	{ "Eclipse Towers Apt 13", -764.81310000f, 319.18510000f, 216.05030000f, { "hw1_blimp_interior_v_apartment_high_milo__13" }, {}, {}, false },
 	{ "Eclipse Towers Apt 40", -773.023f, 341.627f, 211.397f },
-	{ "Executive CEO Office: Style 1", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01a" }, {}, {}, false }, //ex_dt1_11_office_01a[b, c....]
-	{ "Executive CEO Office: Style 2 (Messy)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01b" }, {}, { IPL_PROPS_CEO_OFFICE }, false },
-	{ "Executive CEO Office: Style 3", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01c" }, {}, {}, false },
-	{ "Executive CEO Office: Style 4", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02a" }, {}, {}, false },
-	{ "Executive CEO Office: Style 5", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02b" }, {}, {}, false },
-	{ "Executive CEO Office: Style 6", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02c" }, {}, {}, false },
-	{ "Executive CEO Office: Style 7", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03a" }, {}, {}, false },
-	{ "Executive CEO Office: Style 8", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03b" }, {}, {}, false },
-	{ "Executive CEO Office: Style 9", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03c" }, {}, {}, false },
+	{ "Old Spice Warm (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01a" }, {}, {}, false },
+	{ "Old Spice Classical (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01b" }, {}, { IPL_PROPS_CEO_OFFICE }, false },
+	{ "Old Spice Vintage (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01c" }, {}, {}, false },
+	{ "Executive Contrast (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02a" }, {}, {}, false },
+	{ "Executive Rich (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02b" }, {}, {}, false },
+	{ "Executive Cool (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02c" }, {}, {}, false },
+	{ "Power Broker Ice (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03a" }, {}, {}, false },
+	{ "Power Broker Conservative (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03b" }, {}, {}, false },
+	{ "Power Broker Polished (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03c" }, {}, {}, false },
 	{ "Executive Warehouse (Large)", 1010.0f, -3100.0f, -40.0f, { "ex_exec_warehouse_placement_interior_2_int_warehouse_l_dlc_milo_" }, {}, {}, false },
 	{ "Freakshop Brickade Garage", 570.0f, -415.0f, -69.0f, { "xm3_int_placement_xm3_interior_2_dlc_int_03_xm3_milo_" }, {}, {}, false },
-	{ "Gunrunning Regular", 938.3077f, -3196.1120f, -98.0000f, { "gr_grdlc_interior_placement_interior_1_grdlc_int_02_milo_" }, {}, {}, false },
 	{ "Hacker Basement", 745.79560000f, -993.11920000f, -44.37674000f, { "m24_2_int_hacker_basement" }, {}, {}, false },
 	{ "Hacker Garage", 750.90050000f, -990.05500000f, -62.75383000f, { "m24_2_int_hacker_garage" }, {}, {}, false },
 	{ "Hacker Office", 2150.00000000f, 4787.00000000f, -44.37500000f, { "m24_2_int_office_gen" }, {}, {}, false },
-	{ "Hangar", -1292.45f, -3015.19f, -44.0864f, IPL_PROPS_DOOMSDAY_MAIN_BASE, {}, { IPL_PROPS_HANGAR }, false },
 	{ "Humane Labs Lab", 495.0f, -2560.0f, -49.0f, { "xm3_int_placement_xm3_interior_3_dlc_int_04_xm3_milo_" }, {}, {}, false },
 	{ "IAA Server Hub", 2168.08900000f, 2920.89000000f, -85.80049000f, { "xm_x17dlc_int_placement_interior_5_x17dlc_int_facility2_milo_" }, {}, {}, false },
 	{ "IAA Underground Facility", 2047.0f, 2942.0f, -62.90245f, { "xm_x17dlc_int_placement_interior_4_x17dlc_int_facility_milo_" }, {}, {}, false },
 	{ "Lombank Office: Style 1", -1573.84900000f, -571.02540000f, 107.52290000f, { "ex_sm_13_office_01a" }, {}, {}, false },
-	//{ "Mansion Interior A", -1666.36800000f, 478.92710000f, 128.22160000f, { "m25_2_ch1_06e_mansion_interior_a" }, {}, { IPL_PROPS_MANSION }, false },
-	{ "Mansion Interior A", -1666.36800000f, 478.92710000f, 128.22160000f, IPL_PROPS_MANSION, {}, {}, false },
-	{ "Mansion Interior B", -1679.87700000f, 493.59600000f, 112.93510000f, { "m25_2_ch1_06e_mansion_interior_b" }, {}, {}, false },
-	{ "Mansion Interior C", -1649.63000000f, 480.97790000f, 117.36450000f, { "m25_2_ch1_06e_mansion_interior_c" }, {}, {}, false },
-	//{ "Mansion Interior D", -1679.87700000f, 493.59600000f, 56.45711000f, { "m25_2_ch1_06e_mansion_interior_d" }, {}, {}, false },
 	{ "Maze Bank Del Perro Office: Style 1", -1384.56400000f, -478.26990000f, 71.04205000f, { "ex_sm_15_office_01a" }, {}, {}, false },
 	{ "Merryweather R&D Centre", -1876.62100000f, 3750.00000000f, -100.00000000f, { "M23_1_int_placement_m23_1_interior_2_dlc_int_01_m23_1_milo_" }, {}, {}, false },
 	{ "Mission Row Underground Winning Garage", 400.09610000f, -956.67870000f, -100.00000000f},
 	{ "Mug Shot Room", 415.275f, -999.037f, -99.4041f, { "hw1_int_placement_interior_v_mugshot_milo_ " }, {}, {}, false },
 	{ "Music Locker", 1560.3f, 250.239f, -48.0f, { "h4_int_placement_h4_interior_1_dlc_int_02_h4_milo_" }, {}, { IPLS_MUSIC_LOCKER }, false },
-	{ "Penthouse: Style 1", -786.168f, 334.319f, 211.197f, { "apa_v_mp_h_01_a", "apa_v_mp_h_01_b", "apa_v_mp_h_01_c" }, {}, {}, false },
-	{ "Penthouse: Style 2", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_02_a", "apa_v_mp_h_02_b", "apa_v_mp_h_02_c" }, {}, {}, false },
-	{ "Penthouse: Style 3", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_03_a", "apa_v_mp_h_03_b", "apa_v_mp_h_03_c" }, {}, {}, false },
-	{ "Penthouse: Style 4", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_04_a", "apa_v_mp_h_04_b", "apa_v_mp_h_04_c" }, {}, {}, false },
-	{ "Penthouse: Style 5", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_05_a", "apa_v_mp_h_05_b", "apa_v_mp_h_05_c" }, {}, {}, false },
-	{ "Penthouse: Style 6", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_06_a", "apa_v_mp_h_06_b", "apa_v_mp_h_06_c" }, {}, {}, false },
-	{ "Penthouse: Style 7", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_07_a", "apa_v_mp_h_07_b", "apa_v_mp_h_07_c" }, {}, {}, false },
-	{ "Penthouse: Style 8", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_08_a", "apa_v_mp_h_08_b", "apa_v_mp_h_08_c" }, {}, {}, false },
+	{ "Penthouse: Modern", -786.168f, 334.319f, 211.197f, { "apa_v_mp_h_01_a", "apa_v_mp_h_01_b", "apa_v_mp_h_01_c" }, {}, {}, false },
+	{ "Penthouse: Moody", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_02_a", "apa_v_mp_h_02_b", "apa_v_mp_h_02_c" }, {}, {}, false },
+	{ "Penthouse: Vibrant", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_03_a", "apa_v_mp_h_03_b", "apa_v_mp_h_03_c" }, {}, {}, false },
+	{ "Penthouse: Sharp", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_04_a", "apa_v_mp_h_04_b", "apa_v_mp_h_04_c" }, {}, {}, false },
+	{ "Penthouse: Monochrome", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_05_a", "apa_v_mp_h_05_b", "apa_v_mp_h_05_c" }, {}, {}, false },
+	{ "Penthouse: Seductive", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_06_a", "apa_v_mp_h_06_b", "apa_v_mp_h_06_c" }, {}, {}, false },
+	{ "Penthouse: Regal", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_07_a", "apa_v_mp_h_07_b", "apa_v_mp_h_07_c" }, {}, {}, false },
+	{ "Penthouse: Aqua", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_08_a", "apa_v_mp_h_08_b", "apa_v_mp_h_08_c" }, {}, {}, false },
 	{ "Red's Autoparts", 1088.00000000f, -2275.00000000f, -50.00000000f, { "m23_2_int_placement_m23_2_interior_2_dlc_int_salvage_milo_" }, {}, {}, false },
 	{ "Richards Majestic Apt 2", -915.811f, -379.432f, 113.675f, {}, {}, {}, false },
 	{ "Richards Majestic Apt 10", -925.54970000f, -374.22030000f, 102.23290000f, { "hw1_blimp_interior_v_apartment_high_milo__10" }, {}, {}, false },
@@ -393,7 +405,6 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Tinsel Towers Apt 16", -613.54040000f, 63.04870000f, 100.81960000f, { "hw1_blimp_interior_v_apartment_high_milo__16" }, {}, {}, false },
 	{ "Tinsel Towers Apt 17", -587.82590000f, 44.26880000f, 86.41870000f, { "hw1_blimp_interior_v_apartment_high_milo__17" }, {}, {}, false },
 	{ "Tinsel Towers Apt 42", -614.86f, 40.6783f, 97.6f, {}, {}, {}, false },
-	{ "Upgraded Base", 462.09f, 4820.42f, -59.0f, IPL_PROPS_DOOMSDAY_MAIN_BASE, {}, { IPL_PROPS_FACILITY }, false },
 	{ "Vespucci Boulevard Studio Flat", 342.8157f, -997.4288f, -99.4041f, { "hei_hw1_blimp_interior_v_apart_midspaz_milo_" }, {}, {}, false },
 	{ "Vinewood Club Garage", 649.73970000f, -2688.76200000f, -50.00000000f, { "m24_1_int_placement_m24_1_interior_dlc_int_bounty_milo_" }, {}, {}, false },
 	{ "Weazel Plaza Apt 9", -909.10170000f, -438.19030000f, 114.39970000f, { "hw1_blimp_interior_v_apartment_high_milo__9" }, {}, {}, false },
@@ -764,25 +775,29 @@ const std::vector<tele_location> LOCATIONS_STUNTS = {
 
 const std::string JELLMAN_CAPTION = "Heist Map Updates In SP";
 
-const static std::vector<std::string> MENU_LOCATION_CATEGORIES{ "Safehouses", "Landmarks", "Roof/High Up", "Underwater", "Interiors", "Extra Exterior Scenery", "Online Interiors", "Special Actors/Freaks Locations", "Collectibles", "Stunts" };// <-- not sure what went wrong here, but it don't look right.
+const static std::vector<std::string> MENU_LOCATION_CATEGORIES{ "Collectibles", "Extra Exterior Scenery", "Interiors", "Landmarks", "Online Interiors", "Roof/High Up", "Safehouses", "Special Actors/Freaks Locations", "Stunts", "Underwater" };
 
-static std::vector<tele_location> VOV_LOCATIONS[] = { LOCATIONS_SAFE, LOCATIONS_LANDMARKS, LOCATIONS_HIGH, LOCATIONS_UNDERWATER, LOCATIONS_INTERIORS, LOCATIONS_REQSCEN, LOCATIONS_ONLINE, LOCATIONS_ACTORS, LOCATIONS_COLLECTIBLES, LOCATIONS_STUNTS/*, LOCATIONS_BROKEN, LOCATIONS_JELLMAN*/ };
+static std::vector<tele_location> VOV_LOCATIONS[] = { LOCATIONS_COLLECTIBLES, LOCATIONS_REQSCEN, LOCATIONS_INTERIORS, LOCATIONS_LANDMARKS, LOCATIONS_ONLINE, LOCATIONS_HIGH, LOCATIONS_SAFE, LOCATIONS_ACTORS, LOCATIONS_STUNTS, LOCATIONS_UNDERWATER/*, LOCATIONS_BROKEN, LOCATIONS_JELLMAN*/ };
 
 //3D Marker Symbol
-const std::vector<std::string> TEL_3DMARKER_CAPTIONS{ "1", "2", "3", "4" }; // "0", // "4", "6", , "8" , "5"
-const int TEL_3DMARKER_VALUES[] = { 1, 2, 3, 5 }; // 0, 4, 6, , 22 , 21
+const Option<int> TEL_3DMARKER_OPTIONS[] = { // "0", // "4", "6", , "8" , "5" // 0, 4, 6, , 22 , 21
+	{ "1", 1 },
+	{ "2", 2 },
+	{ "3", 3 },
+	{ "4", 5 }
+};
+const std::vector<std::string> TEL_3DMARKER_CAPTIONS = captionsOf(TEL_3DMARKER_OPTIONS);
+const std::vector<int> TEL_3DMARKER_VALUES = valuesOf(TEL_3DMARKER_OPTIONS);
 int Tel3dmarkerIndexN = 1;
-bool Tel3dmarker_Changed = true;
 
 //Marker Type
 const std::vector<std::string> TEL_3DMARKER_MARTYPE_CAPTIONS{ "Symbol", "Column" };
 int Tel3dmarker_martype_Index = 0;
-bool Tel3dmarker_martype_Changed = true;
 
 void teleport_to_coords(Entity e, Vector3 coords){
 	ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords.x, coords.y, coords.z, 0, 0, 1);
 	WAIT(0);
-	set_status_text("Teleported");
+	set_status_text(tr("TeleportMenu.Teleported", "Teleported"));
 }
 
 void teleport_to_marker(){
@@ -803,7 +818,7 @@ void teleport_to_marker(){
 	for (int i = 0; i < sizeof(groundCheckHeight) / sizeof(float); i++){
 		ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords.x, coords.y, groundCheckHeight[i], 0, 0, 1);
 		WAIT(100);
-		if (GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(coords.x, coords.y, groundCheckHeight[i], &coords.z)){
+		if (MISC::GET_GROUND_Z_FOR_3D_COORD(coords.x, coords.y, groundCheckHeight[i], &coords.z, FALSE, FALSE)){
 			groundFound = true;
 			coords.z += 3.0;
 			break;
@@ -827,15 +842,15 @@ void teleport_to_mission_marker(){
 
 	Vector3 coords_mission;
 	bool blip_mission = false;
-	int blipIterator = UI::IS_WAYPOINT_ACTIVE() ? BlipSpriteWaypoint : BlipSpriteStandard;
+	int blipIterator = HUD::IS_WAYPOINT_ACTIVE() ? BlipSpriteWaypoint : BlipSpriteStandard;
 	Blip myBlip;
 	Entity e = PLAYER::PLAYER_PED_ID();
 	if (PED::IS_PED_IN_ANY_VEHICLE(e, 0)) e = PED::GET_VEHICLE_PED_IS_USING(e);
 	bool blip_been_already = false;
 	
-	for (myBlip = UI::GET_FIRST_BLIP_INFO_ID(blipIterator); UI::DOES_BLIP_EXIST(myBlip) != 0; myBlip = UI::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
-		if ((UI::GET_BLIP_INFO_ID_TYPE(myBlip) == 4 && UI::GET_BLIP_COLOUR(myBlip) == 66) || (UI::GET_BLIP_INFO_ID_TYPE(myBlip) == 4 && UI::GET_BLIP_COLOUR(myBlip) == 5) ||
-			(UI::GET_BLIP_INFO_ID_TYPE(myBlip) == 4 && UI::GET_BLIP_COLOUR(myBlip) == 2)) {
+	for (myBlip = HUD::GET_FIRST_BLIP_INFO_ID(blipIterator); HUD::DOES_BLIP_EXIST(myBlip) != 0; myBlip = HUD::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
+		if ((HUD::GET_BLIP_INFO_ID_TYPE(myBlip) == 4 && HUD::GET_BLIP_COLOUR(myBlip) == 66) || (HUD::GET_BLIP_INFO_ID_TYPE(myBlip) == 4 && HUD::GET_BLIP_COLOUR(myBlip) == 5) ||
+			(HUD::GET_BLIP_INFO_ID_TYPE(myBlip) == 4 && HUD::GET_BLIP_COLOUR(myBlip) == 2)) {
 			//
 			if (!MARATHON_BLIPS.empty()) {
 				for (int i = 0; i < MARATHON_BLIPS.size(); i++) {
@@ -846,7 +861,7 @@ void teleport_to_mission_marker(){
 			if (MARATHON_BLIPS.empty()) MARATHON_BLIPS.push_back(myBlip);
 			//
 			if (blip_been_already == false) {
-				coords_mission = UI::GET_BLIP_INFO_ID_COORD(myBlip);
+				coords_mission = HUD::GET_BLIP_INFO_ID_COORD(myBlip);
 				blip_mission = true;
 				ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords_mission.x, coords_mission.y, coords_mission.z + 2, 0, 0, 1);
 			}
@@ -854,9 +869,9 @@ void teleport_to_mission_marker(){
 		}
 	}
 	if (!blip_mission) {
-		myBlip = UI::GET_FIRST_BLIP_INFO_ID(BlipSpriteRaceFinish);
-		if (UI::DOES_BLIP_EXIST(myBlip) != 0) {
-			coords_mission = UI::GET_BLIP_INFO_ID_COORD(myBlip);
+		myBlip = HUD::GET_FIRST_BLIP_INFO_ID(BlipSpriteRaceFinish);
+		if (HUD::DOES_BLIP_EXIST(myBlip) != 0) {
+			coords_mission = HUD::GET_BLIP_INFO_ID_COORD(myBlip);
 			blip_mission = true;
 			ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, coords_mission.x, coords_mission.y, coords_mission.z + 2, 0, 0, 1);
 		}
@@ -871,7 +886,7 @@ void teleport_to_vehicle_as_passenger() {
 	const int arrSize = numElements * 2 + 2;
 	int nearbyPed[arrSize];
 	nearbyPed[0] = numElements;
-	int count = PED::GET_PED_NEARBY_PEDS(playerPed, nearbyPed, -1);
+	int count = PED::GET_PED_NEARBY_PEDS(playerPed, reinterpret_cast<Any*>(nearbyPed), -1);
 
 	if (nearbyPed != NULL) {
 		for (int i = 0; i < count; i++) {
@@ -899,7 +914,7 @@ void teleport_to_last_vehicle(){
 		}
 	}
 	else{
-		set_status_text("No vehicle found");
+		set_status_text(tr("TeleportMenu.NoVehicleFound", "No vehicle found"));
 	}
 }
 
@@ -918,32 +933,26 @@ void add_coords_generic_settings(std::vector<StringPairSettingDBRow>* results)
 
 void onchange_tel_chauffeur_index(int value, SelectFromListMenuItem *source){
 	TelChauffeurIndex = value;
-	TelChauffeur_Changed = true;
 }
 
 void onchange_tel_3dmarker_index(int value, SelectFromListMenuItem *source){
 	Tel3dmarkerIndexN = value;
-	Tel3dmarker_Changed = true;
 }
 
 void onchange_tel_3dmarker_martype_index(int value, SelectFromListMenuItem *source){
 	Tel3dmarker_martype_Index = value;
-	Tel3dmarker_martype_Changed = true;
 }
 
 void onchange_tel_chauffeur_speed_index(int value, SelectFromListMenuItem *source){
 	TelChauffeur_speed_IndexN = value;
-	TelChauffeur_speed_Changed = true;
 }
 
 void onchange_tel_chauffeur_altitude_index(int value, SelectFromListMenuItem *source){
 	TelChauffeur_altitude_Index = value;
-	TelChauffeur_altitude_Changed = true;
 }
 
 void onchange_tel_chauffeur_drivingstyles_index(int value, SelectFromListMenuItem *source){
 	TelChauffeur_drivingstyles_Index = value;
-	TelChauffeur_drivingstyles_Changed = true;
 }
 
 void handle_generic_settings_teleportation(std::vector<StringPairSettingDBRow>* settings){
@@ -975,7 +984,7 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 {
 	if (choice.value == -6) {
 		keyboard_on_screen_already = true;
-		curr_message = "Enter X, Y, Z coordinates. Use space or comma as a separator. Type 'Random' for a random location.";
+		set_curr_message(tr("TeleportMenu.EnterXYZCoordinatesUseSpaceOrCommaAsASep", "Enter X, Y, Z coordinates. Use space or comma as a separator. Type 'Random' for a random location."));
 		std::string result = show_keyboard("Enter Name Manually", (char*)lastJumpSpawn.c_str());
 		if (!result.empty())
 		{
@@ -984,7 +993,7 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 			
 			result = trim(result);
 			lastJumpSpawn = result;
-			Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
+			Hash hash = MISC::GET_HASH_KEY((char*)result.c_str());
 
 			if (lastJumpSpawn != "random" && lastJumpSpawn != "Random" && lastJumpSpawn != "RANDOM")
 			{
@@ -1030,7 +1039,7 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 				for (int i = 0; i < sizeof(groundCheckHeight) / sizeof(float); i++) {
 					ENTITY::SET_ENTITY_COORDS_NO_OFFSET(e, x_coord, y_coord, groundCheckHeight[i], 0, 0, 1);
 					WAIT(100);
-					if (GAMEPLAY::GET_GROUND_Z_FOR_3D_COORD(x_coord, y_coord, groundCheckHeight[i], &me_coords.z)) {
+					if (MISC::GET_GROUND_Z_FOR_3D_COORD(x_coord, y_coord, groundCheckHeight[i], &me_coords.z, FALSE, FALSE)) {
 						groundFound = true;
 						me_coords.z += 3.0;
 						break;
@@ -1040,7 +1049,7 @@ bool onconfirm_jump_category(MenuItem<int> choice)
 			}
 
 			WAIT(0);
-			set_status_text("Teleported"); 
+			set_status_text(tr("TeleportMenu.Teleported", "Teleported"));
 		}
 		return false;
 	}
@@ -1063,20 +1072,20 @@ void set_3d_marker(){
 	int i = 0;
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enabled";
+	toggleItem->caption = tr("TeleportMenu.Enabled", "Enabled");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &feature3dmarker;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(TEL_3DMARKER_MARTYPE_CAPTIONS, onchange_tel_3dmarker_martype_index);
+	listItem = new SelectFromListMenuItem(&TEL_3DMARKER_MARTYPE_CAPTIONS, onchange_tel_3dmarker_martype_index);
 	listItem->wrap = false;
-	listItem->caption = "Marker Type";
+	listItem->caption = tr("TeleportMenu.MarkerType", "Marker Type");
 	listItem->value = Tel3dmarker_martype_Index;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(TEL_3DMARKER_CAPTIONS, onchange_tel_3dmarker_index);
+	listItem = new SelectFromListMenuItem(&TEL_3DMARKER_CAPTIONS, onchange_tel_3dmarker_index);
 	listItem->wrap = false;
-	listItem->caption = "Marker Symbol";
+	listItem->caption = tr("TeleportMenu.MarkerSymbol", "Marker Symbol");
 	listItem->value = Tel3dmarkerIndexN;
 	menuItems.push_back(listItem);
 
@@ -1106,38 +1115,38 @@ void getTelChauffeurIndex(){
 	int i = 0;
  
 	item = new MenuItem<int>();
-	item->caption = "Drive To Marker";
+	item->caption = tr("TeleportMenu.DriveToMarker", "Drive To Marker");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Land At Destination";
+	toggleItem->caption = tr("TeleportMenu.LandAtDestination", "Land At Destination");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featureLandAtDestination;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(TEL_CHAUFFEUR_SPEED_CAPTIONS, onchange_tel_chauffeur_speed_index);
+	listItem = new SelectFromListMenuItem(&TEL_CHAUFFEUR_SPEED_CAPTIONS, onchange_tel_chauffeur_speed_index);
 	listItem->wrap = false;
-	listItem->caption = "Max Speed (MPH):";
+	listItem->caption = tr("TeleportMenu.MaxSpeedMPH", "Max Speed (MPH):");
 	listItem->value = TelChauffeur_speed_IndexN;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(TEL_CHAUFFEUR_ALTITUDE_CAPTIONS, onchange_tel_chauffeur_altitude_index);
+	listItem = new SelectFromListMenuItem(&TEL_CHAUFFEUR_ALTITUDE_CAPTIONS, onchange_tel_chauffeur_altitude_index);
 	listItem->wrap = false;
-	listItem->caption = "Altitude:";
+	listItem->caption = tr("TeleportMenu.Altitude", "Altitude:");
 	listItem->value = TelChauffeur_altitude_Index;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS, onchange_tel_chauffeur_drivingstyles_index);
+	listItem = new SelectFromListMenuItem(&TEL_CHAUFFEUR_DRIVINGSTYLES_CAPTIONS, onchange_tel_chauffeur_drivingstyles_index);
 	listItem->wrap = false;
-	listItem->caption = "Driving Style";
+	listItem->caption = tr("TeleportMenu.DrivingStyle", "Driving Style");
 	listItem->value = TelChauffeur_drivingstyles_Index;
 	menuItems.push_back(listItem);
 
-	listItem = new SelectFromListMenuItem(SKINS_GENERAL_VALUES, onchange_tel_chauffeur_index);
+	listItem = new SelectFromListMenuItem(&SKINS_GENERAL_VALUES, onchange_tel_chauffeur_index);
 	listItem->wrap = false;
-	listItem->caption = "Chauffeur Model";
+	listItem->caption = tr("TeleportMenu.ChauffeurModel", "Chauffeur Model");
 	listItem->value = TelChauffeurIndex;
 	menuItems.push_back(listItem);
 	
@@ -1188,6 +1197,11 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 
 	tele_location* value = &VOV_LOCATIONS[lastChosenCategory][choice.value];
 
+	// Interiors with a paint/style choice go through the customization framework instead of the normal fixed-scenery teleport below (see interior_customization.cpp).
+	if(begin_interior_customization_for_caption(value->text)){
+		return false;
+	}
+
 	// get entity to teleport
 	Entity e = PLAYER::PLAYER_PED_ID();
 	if (PED::IS_PED_IN_ANY_VEHICLE(e, 0)){
@@ -1207,7 +1221,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 	int interiorID = INTERIOR::GET_INTERIOR_AT_COORDS(coords.x, coords.y, coords.z);
 	if (INTERIOR::IS_VALID_INTERIOR(interiorID))
 	{
-		INTERIOR::_LOAD_INTERIOR(interiorID);
+		INTERIOR::PIN_INTERIOR_IN_MEMORY(interiorID);
 		STREAMING::SET_INTERIOR_ACTIVE(interiorID, true);
 		INTERIOR::DISABLE_INTERIOR(interiorID, false);
 
@@ -1225,7 +1239,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 			
 			if (loc->isLoaded && loc->scenery_required.size() > 0) {
 				if (!unloadedAnything) {
-					set_status_text("Unloading old scenery...");
+					set_status_text(tr("TeleportMenu.UnloadingOldScenery", "Unloading old scenery..."));
 					time = GetTickCount() + 3;
 					while (GetTickCount() < time) {
 						make_periodic_feature_call();
@@ -1236,9 +1250,9 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 				if (ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()))
 				{
 					for each (char* prop in loc->scenery_props) {
-						if (INTERIOR::_IS_INTERIOR_PROP_ENABLED(interiorID, prop))
+						if (INTERIOR::IS_INTERIOR_ENTITY_SET_ACTIVE(interiorID, prop))
 						{
-							INTERIOR::_DISABLE_INTERIOR_PROP(interiorID, prop);
+							INTERIOR::DEACTIVATE_INTERIOR_ENTITY_SET(interiorID, prop);
 						}
 					}
 					for each (const char* scenery in loc->scenery_required) {
@@ -1255,7 +1269,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 	}
 
 	if ((value->scenery_required.size() > 0) && !value->isLoaded){
-		set_status_text("Loading new scenery...");
+		set_status_text(tr("TeleportMenu.LoadingNewScenery", "Loading new scenery..."));
 
 		if (ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()))
 		{
@@ -1275,7 +1289,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 			int interiorID = INTERIOR::GET_INTERIOR_AT_COORDS(coords.x, coords.y, coords.z);
 			if (INTERIOR::IS_VALID_INTERIOR(interiorID))
 			{
-				INTERIOR::_LOAD_INTERIOR(interiorID);
+				INTERIOR::PIN_INTERIOR_IN_MEMORY(interiorID);
 				STREAMING::SET_INTERIOR_ACTIVE(interiorID, true);
 				INTERIOR::DISABLE_INTERIOR(interiorID, false);
 
@@ -1284,15 +1298,15 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 				if (sizeof(value->scenery_props) > 0)
 				{
 					for each (char* prop in value->scenery_props) {
-						if (!INTERIOR::_IS_INTERIOR_PROP_ENABLED(interiorID, prop))
+						if (!INTERIOR::IS_INTERIOR_ENTITY_SET_ACTIVE(interiorID, prop))
 						{
-							INTERIOR::_ENABLE_INTERIOR_PROP(interiorID, prop);
+							INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(interiorID, prop);
 							//DWORD time = GetTickCount() + 3;
 							//while (GetTickCount() < time) {
 							//	make_periodic_feature_call();
 							//	WAIT(0);
 							//}
-							INTERIOR::_SET_INTERIOR_ENTITY_SET_COLOR(interiorID, prop, 1);
+							INTERIOR::SET_INTERIOR_ENTITY_SET_TINT_INDEX(interiorID, prop, 1);
 						}
 					}
 				}
@@ -1309,7 +1323,7 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 			value->scenery_props.shrink_to_fit();
 		}
 		
-		set_status_text("New scenery loaded");
+		set_status_text(tr("TeleportMenu.NewSceneryLoaded", "New scenery loaded"));
 
 		time = GetTickCount() + 3;
 		while (GetTickCount() < time){
@@ -1332,80 +1346,80 @@ bool process_teleport_menu(int categoryIndex){
 		int i = 0;
 
 		MenuItem<int> *markerItem = new MenuItem<int>();
-		markerItem->caption = "Teleport To Marker";
+		markerItem->caption = tr("TeleportMenu.TeleportToMarker", "Teleport To Marker");
 		markerItem->value = -1;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-		toggleItem->caption = "Teleport To Marker Automatically";
+		toggleItem->caption = tr("TeleportMenu.TeleportToMarkerAutomatically", "Teleport To Marker Automatically");
 		toggleItem->value = i++;
 		toggleItem->toggleValue = &featureTeleportAutomatically;
 		menuItems.push_back(toggleItem);
 		
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Go To Mission Marker";
+		markerItem->caption = tr("TeleportMenu.GoToMissionMarker", "Go To Mission Marker");
 		markerItem->value = -2;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Chauffeur To Marker";
+		markerItem->caption = tr("TeleportMenu.ChauffeurToMarker", "Chauffeur To Marker");
 		markerItem->value = -3;
 		markerItem->isLeaf = false;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Go To Last Vehicle";
+		markerItem->caption = tr("TeleportMenu.GoToLastVehicle", "Go To Last Vehicle");
 		markerItem->value = -4;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Go To Nearest Vehicle As Passenger";
+		markerItem->caption = tr("TeleportMenu.GoToNearestVehicleAsPassenger", "Go To Nearest Vehicle As Passenger");
 		markerItem->value = -5;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "Jump To Coordinates";
+		markerItem->caption = tr("TeleportMenu.JumpToCoordinates", "Jump To Coordinates");
 		markerItem->value = -6;
 		markerItem->isLeaf = true;
 		menuItems.push_back(markerItem);
 			
 		ToggleMenuItem<int>* togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Show Coordinates";
+		togItem->caption = tr("TeleportMenu.ShowCoordinates", "Show Coordinates");
 		togItem->value = 1;
 		togItem->toggleValue = &featureShowCoords;
 		menuItems.push_back(togItem);
 
 		markerItem = new MenuItem<int>();
-		markerItem->caption = "3D Marker";
+		markerItem->caption = tr("TeleportMenu.N3DMarker", "3D Marker");
 		markerItem->value = -7;
 		markerItem->isLeaf = false;
 		menuItems.push_back(markerItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Online Map";
+		togItem->caption = tr("TeleportMenu.LoadOnlineMap", "Load Online Map");
 		togItem->value = 8;
-		togItem->toggleValue = &featureMPMap;
-		togItem->toggleValueUpdated = &featureMPMapUpdated;
+		togItem->toggleValue = &featureMPMap.enabled;
+		togItem->toggleValueUpdated = &featureMPMap.updated;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Cayo Perico Island Automatically";
+		togItem->caption = tr("TeleportMenu.AutoTeleportIntoCustomizedInteriors", "Auto-Teleport Into Customized Interiors");
+		togItem->value = 8;
+		togItem->toggleValue = &featureAutoTeleportIntoCustomizedInteriors;
+		menuItems.push_back(togItem);
+
+		togItem = new ToggleMenuItem<int>();
+		togItem->caption = tr("TeleportMenu.LoadCayoPericoIslandAutomatically", "Load Cayo Perico Island Automatically");
 		togItem->value = 8;
 		togItem->toggleValue = &featureCayoPerico;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Houses In The Hills Automatically";
-		togItem->value = 8;
-		togItem->toggleValue = &featureHouseOnHill;
-		menuItems.push_back(togItem);
-
-		togItem = new ToggleMenuItem<int>();
-		togItem->caption = "Load Extra Map Stuff Automatically";
+		togItem->caption = tr("TeleportMenu.LoadExtraMapStuffAutomatically", "Load Extra Map Stuff Automatically");
 		togItem->value = 8;
 		togItem->toggleValue = &featureChoshopCargoship;
 		menuItems.push_back(togItem);
@@ -1450,7 +1464,6 @@ void reset_teleporter_globals()
 	featureLandAtDestination = true;
 	featureShowCoords = false;
 	featureCayoPerico = false;
-	featureHouseOnHill = false;
 	featureChoshopCargoship = false;
 
 	lastChosenCategory = 0;
@@ -1471,7 +1484,6 @@ void add_teleporter_feature_enablements(std::vector<FeatureEnabledLocalDefinitio
 	results->push_back(FeatureEnabledLocalDefinition{"featureTeleportAutomatically", &featureTeleportAutomatically});
 	results->push_back(FeatureEnabledLocalDefinition{"featureLandAtDestination", &featureLandAtDestination});
 	results->push_back(FeatureEnabledLocalDefinition{"featureCayoPerico", &featureCayoPerico});
-	results->push_back(FeatureEnabledLocalDefinition{"featureHouseOnHill", &featureHouseOnHill});
 	results->push_back(FeatureEnabledLocalDefinition{"featureChoshopCargoship", &featureChoshopCargoship});
 	results->push_back(FeatureEnabledLocalDefinition{"featureShowCoords", &featureShowCoords});
 }
@@ -1572,16 +1584,16 @@ void update_teleport_features(){
 		int numActualLines = 0;
 		for (int i = 0; i < 1; i++) {
 			numActualLines++;
-			UI::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
-			UI::_ADD_TEXT_COMPONENT_SCALEFORM((char*)CurrCoordsLines[i].c_str());
+			HUD::BEGIN_TEXT_COMMAND_DISPLAY_TEXT("STRING");
+			HUD::ADD_TEXT_COMPONENT_SUBSTRING_KEYBOARD_DISPLAY((char*)CurrCoordsLines[i].c_str());
 			text_parameters(0.4, 0.4, 255, 242, 0, 255);
-			UI::END_TEXT_COMMAND_DISPLAY_TEXT(0.35, 0.01);
+			HUD::END_TEXT_COMMAND_DISPLAY_TEXT(0.35, 0.01, 0);
 		}
 	}
 
 	/////////////////////////////////////// 3D MARKER /////////////////////////////////////////
 	if (feature3dmarker) {
-		int blip3DIterator = UI::IS_WAYPOINT_ACTIVE() ? BlipSpriteWaypoint : BlipSpriteStandard;
+		int blip3DIterator = HUD::IS_WAYPOINT_ACTIVE() ? BlipSpriteWaypoint : BlipSpriteStandard;
 		Vector3 coords_3Dblip;
 		Vector3 playerPosition = ENTITY::GET_ENTITY_COORDS(playerPed, false);
 		
@@ -1591,17 +1603,17 @@ void update_teleport_features(){
 		
 		// check if marker set
 		bool blipFound = false;
-		int blipIterator = UI::_GET_BLIP_INFO_ID_ITERATOR();
-		for (Blip i = UI::GET_FIRST_BLIP_INFO_ID(blipIterator); UI::DOES_BLIP_EXIST(i) != 0; i = UI::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
-			if (UI::GET_BLIP_INFO_ID_TYPE(i) == 4) {
-				coords_3Dblip = UI::GET_BLIP_INFO_ID_COORD(i);
+		int blipIterator = HUD::GET_WAYPOINT_BLIP_ENUM_ID();
+		for (Blip i = HUD::GET_FIRST_BLIP_INFO_ID(blipIterator); HUD::DOES_BLIP_EXIST(i) != 0; i = HUD::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
+			if (HUD::GET_BLIP_INFO_ID_TYPE(i) == 4) {
+				coords_3Dblip = HUD::GET_BLIP_INFO_ID_COORD(i);
 				blipFound = true;
 				break;
 			}
 		}
 		
 		if (blipFound) {
-			float dist_diff = SYSTEM::VDIST(playerPosition.x, playerPosition.y, playerPosition.z, coords_3Dblip.x, coords_3Dblip.y, coords_3Dblip.z);
+			float dist_diff = BUILTIN::VDIST(playerPosition.x, playerPosition.y, playerPosition.z, coords_3Dblip.x, coords_3Dblip.y, coords_3Dblip.z);
 
 			if (MISC_TRAINERCONTROL_VALUES[Tel3dmarker_martype_Index] == 0) {
 				for (int jk = 0; jk < 10000; jk++) {
@@ -1619,11 +1631,11 @@ void update_teleport_features(){
 	}
 	///////////////////////////////////////////////////////////////////////////////////////
 
-	int blipMarkerIterator = UI::IS_WAYPOINT_ACTIVE() ? BlipSpriteWaypoint : BlipSpriteStandard;
+	int blipMarkerIterator = HUD::IS_WAYPOINT_ACTIVE() ? BlipSpriteWaypoint : BlipSpriteStandard;
 
 	if (blipMarkerIterator != BlipSpriteStandard) {
-		myChauffeurBlip = UI::GET_FIRST_BLIP_INFO_ID(blipMarkerIterator);
-		if (UI::DOES_BLIP_EXIST(myChauffeurBlip) != 0 && UI::GET_BLIP_INFO_ID_TYPE(myChauffeurBlip) == 4) blipDriveFound = true;
+		myChauffeurBlip = HUD::GET_FIRST_BLIP_INFO_ID(blipMarkerIterator);
+		if (HUD::DOES_BLIP_EXIST(myChauffeurBlip) != 0 && HUD::GET_BLIP_INFO_ID_TYPE(myChauffeurBlip) == 4) blipDriveFound = true;
 	}
 
 	if (blipMarkerIterator == 1) {
@@ -1639,32 +1651,32 @@ void update_teleport_features(){
 	}
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(driver_to_marker_pilot, false)) {
-		AI::TASK_SMART_FLEE_PED(driver_to_marker_pilot, PLAYER::PLAYER_PED_ID(), 1000, -1, true, true);
+		TASK::TASK_SMART_FLEE_PED(driver_to_marker_pilot, PLAYER::PLAYER_PED_ID(), 1000, -1, true, true);
 		ENTITY::SET_PED_AS_NO_LONGER_NEEDED(&driver_to_marker_pilot);
 	}
 
 	if (blipDriveFound == true && marker_been_set == true) drive_to_marker();
 	
-	if ((blipDriveFound == false && marker_been_set == true) || (CONTROLS::IS_CONTROL_PRESSED(2, 75) && marker_been_set == true)) {
-		AI::CLEAR_PED_TASKS(driver_to_marker_pilot);
-		VEHICLE::_SET_VEHICLE_JET_ENGINE_ON(curr_veh, false);
-		AI::TASK_LEAVE_VEHICLE(driver_to_marker_pilot, curr_veh, 4160);
+	if ((blipDriveFound == false && marker_been_set == true) || (PAD::IS_CONTROL_PRESSED(2, 75) && marker_been_set == true)) {
+		TASK::CLEAR_PED_TASKS(driver_to_marker_pilot);
+		VEHICLE::SET_VEHICLE_KEEP_ENGINE_ON_WHEN_ABANDONED(curr_veh, false);
+		TASK::TASK_LEAVE_VEHICLE(driver_to_marker_pilot, curr_veh, 4160);
 		marker_been_set = false;
 		blipDriveFound = false;
 		landing = false;
 		altitude_reached = false;
 		planecurrspeed = 0;
-		AI::TASK_SMART_FLEE_PED(driver_to_marker_pilot, PLAYER::PLAYER_PED_ID(), 1000, -1, true, true);
+		TASK::TASK_SMART_FLEE_PED(driver_to_marker_pilot, PLAYER::PLAYER_PED_ID(), 1000, -1, true, true);
 	}
 
 	// Teleport To Marker Automatically
 	if (featureTeleportAutomatically) {
 		Vector3 coords;
 		bool blipFound_m = false;
-		int blipIterator = UI::_GET_BLIP_INFO_ID_ITERATOR();
-		for (Blip i = UI::GET_FIRST_BLIP_INFO_ID(blipIterator); UI::DOES_BLIP_EXIST(i) != 0; i = UI::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
-			if (UI::GET_BLIP_INFO_ID_TYPE(i) == 4) {
-				coords = UI::GET_BLIP_INFO_ID_COORD(i);
+		int blipIterator = HUD::GET_WAYPOINT_BLIP_ENUM_ID();
+		for (Blip i = HUD::GET_FIRST_BLIP_INFO_ID(blipIterator); HUD::DOES_BLIP_EXIST(i) != 0; i = HUD::GET_NEXT_BLIP_INFO_ID(blipIterator)) {
+			if (HUD::GET_BLIP_INFO_ID_TYPE(i) == 4) {
+				coords = HUD::GET_BLIP_INFO_ID_COORD(i);
 				blipFound_m = true;
 				break;
 			}
@@ -1675,7 +1687,7 @@ void update_teleport_features(){
 		}
 	}
 
-	if (GAMEPLAY::GET_MISSION_FLAG() == 0 && !MARATHON_BLIPS.empty()) { // is_marathon == true
+	if (MISC::GET_MISSION_FLAG() == 0 && !MARATHON_BLIPS.empty()) { // is_marathon == true
 		MARATHON_BLIPS.clear();
 		MARATHON_BLIPS.shrink_to_fit();
 	}
@@ -1695,7 +1707,7 @@ void update_teleport_features(){
 			//int CayointeriorID = INTERIOR::GET_INTERIOR_AT_COORDS(4439.82300000f, -4461.71700000f, 4.69976800f); // 5010.101f, -5753.549f, 27.8444f
 			//if (INTERIOR::IS_VALID_INTERIOR(CayointeriorID))
 			//{
-			//	INTERIOR::_LOAD_INTERIOR(CayointeriorID);
+			//	INTERIOR::PIN_INTERIOR_IN_MEMORY(CayointeriorID);
 			//	STREAMING::SET_INTERIOR_ACTIVE(CayointeriorID, true);
 			//	INTERIOR::DISABLE_INTERIOR(CayointeriorID, false);
 			//	if (INTERIOR::IS_INTERIOR_CAPPED(CayointeriorID)) INTERIOR::CAP_INTERIOR(CayointeriorID, 0);
@@ -1707,30 +1719,30 @@ void update_teleport_features(){
 	}
 	if (featureCayoPerico && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && perico_init == true) {
 		Vector3 my_coords = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), 0);
-		float Cayo_dist_diff = SYSTEM::VDIST(my_coords.x, my_coords.y, my_coords.z, 4840.571, -5174.425, 2.0);
+		float Cayo_dist_diff = BUILTIN::VDIST(my_coords.x, my_coords.y, my_coords.z, 4840.571, -5174.425, 2.0);
 
 		if (Cayo_dist_diff < 1200) { // 2000
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_gate_l_03a"), 4987.587f, -5718.635f, 20.78103f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_gate_r_03a"), 4990.681f, -5715.106f, 20.78103f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_gate_l_03a"), 4984.134f, -5709.249f, 20.78103f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_gate_r_03a"), 4981.012f, -5712.747f, 20.78103f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_gate_04a"), 4972.143, -5764.132, 21.08308f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_gate_04a"), 4977.377, -5765.718, 21.08308f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_door_03a"), 4960.498f, -5785.047f, 21.10873f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_door_03a"), 4965.726f, -5787.68f, 21.10873f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_door_03a"), 5085.588f, -5733.124f, 15.9526f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("h4_prop_h4_door_03a"), 5082.088f, -5737.809f, 15.9526f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_gate_l_03a"), 4987.587f, -5718.635f, 20.78103f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_gate_r_03a"), 4990.681f, -5715.106f, 20.78103f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_gate_l_03a"), 4984.134f, -5709.249f, 20.78103f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_gate_r_03a"), 4981.012f, -5712.747f, 20.78103f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_gate_04a"), 4972.143, -5764.132, 21.08308f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_gate_04a"), 4977.377, -5765.718, 21.08308f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_door_03a"), 4960.498f, -5785.047f, 21.10873f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_door_03a"), 4965.726f, -5787.68f, 21.10873f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_door_03a"), 5085.588f, -5733.124f, 15.9526f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("h4_prop_h4_door_03a"), 5082.088f, -5737.809f, 15.9526f, 0, 0.0, 50.0, 0);
 
 			AUDIO::SET_STATIC_EMITTER_ENABLED("se_dlc_hei4_island_beach_party_music_new_01_left", true);
 			AUDIO::SET_STATIC_EMITTER_ENABLED("se_dlc_hei4_island_beach_party_music_new_02_right", true);
 			AUDIO::SET_AMBIENT_ZONE_LIST_STATE_PERSISTENT("AZL_DLC_Hei4_Island_Zones", true, true);
 			AUDIO::SET_AMBIENT_ZONE_LIST_STATE_PERSISTENT("AZL_DLC_Hei4_Island_Disabled_Zones", false, true);
 
-			AI::SET_SCENARIO_GROUP_ENABLED("Heist_Island_Peds", true);
-			INTERIOR::_0xF74B1FFA4A15FBEA(1);
+			TASK::SET_SCENARIO_GROUP_ENABLED("Heist_Island_Peds", true);
+			PATH::SET_ALLOW_STREAM_HEIST_ISLAND_NODES(1);
 			INTERIOR::_0XDD3D5F9CA0C715D0(true);
 
-			if (WORLD_WAVES_VALUES[WorldWavesIndex] == -1) WATER::_SET_WAVES_INTENSITY(0.1); // it doesn't allow waves to clip through the surface
+			if (WORLD_WAVES_VALUES[WorldWavesIndex] == -1) WATER::SET_DEEP_OCEAN_SCALER(0.1); // it doesn't allow waves to clip through the surface
 			on_island = true;
 		}
 		if (Cayo_dist_diff >= 1200 && on_island == true) { // 2000
@@ -1739,127 +1751,17 @@ void update_teleport_features(){
 			AUDIO::SET_STATIC_EMITTER_ENABLED("se_dlc_hei4_island_beach_party_music_new_01_left", false);
 			AUDIO::SET_STATIC_EMITTER_ENABLED("se_dlc_hei4_island_beach_party_music_new_02_right", false);
 
-			AI::SET_SCENARIO_GROUP_ENABLED("Heist_Island_Peds", false);
-			INTERIOR::_0xF74B1FFA4A15FBEA(0);
+			TASK::SET_SCENARIO_GROUP_ENABLED("Heist_Island_Peds", false);
+			PATH::SET_ALLOW_STREAM_HEIST_ISLAND_NODES(0);
 			INTERIOR::_0XDD3D5F9CA0C715D0(false);
 
-			if (WORLD_WAVES_VALUES[WorldWavesIndex] == -1) WATER::_RESET_WAVES_INTENSITY();
+			if (WORLD_WAVES_VALUES[WorldWavesIndex] == -1) WATER::RESET_DEEP_OCEAN_SCALER();
 			on_island = false;
 		}
 	}
-	if ((!featureCayoPerico && cayo_tick > 0) || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) {
+	if ((!featureCayoPerico && cayo_tick > 0) || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) {
 		perico_init = false;
 		cayo_tick = 0;
-	}
-
-	// Load House On The Hill Automatically
-	if (featureHouseOnHill && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && househill_init == false)
-	{
-		househill_tick = househill_tick + 1;
-		if (househill_tick > 400) { // 1000
-			for (int i = 0; i < IPL_PROPS_MANSION.size(); i++) {
-				if (!STREAMING::IS_IPL_ACTIVE(IPL_PROPS_MANSION[i]))
-				{
-					STREAMING::REQUEST_IPL(IPL_PROPS_MANSION[i]);
-				}
-			}
-			int MansionTop = INTERIOR::GET_INTERIOR_AT_COORDS(-1666.36f, 478.92f, 128.22f);
-			int MansionLow = INTERIOR::GET_INTERIOR_AT_COORDS(-1649.63f, 480.97f, 117.36f);
-			int MansionGarage = INTERIOR::GET_INTERIOR_AT_COORDS(-1679.87f, 493.59f, 112.93f);
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "m25_2_ch1_06e_mansion_interior_a");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionLow, "m25_2_ch1_06e_mansion_interior_c");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionGarage, "m25_2_ch1_06e_mansion_interior_b");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_ELEV_LOFT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_LOFT_SHELVING_PLANTER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionLow, "SET_BASE_VAULT_08");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionLow, "SET_ELEV_STD");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionLow, "SET_VAULT_DOOR_OPEN");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_AI_TABLETS_01");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_ART_COASTAL");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_ELEV_LOFT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_LOFT_SHELVING_PLANTER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_LOFT_TROPHY_PLANTER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_STEP_COLLISION");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_STYLE_LOFT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_STYLE_LOFT_TINT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(MansionTop, "SET_WALLPAPER_DECO");
-			
-			INTERIOR::REFRESH_INTERIOR(MansionTop);
-			INTERIOR::REFRESH_INTERIOR(MansionLow);
-			INTERIOR::REFRESH_INTERIOR(MansionGarage);
-
-			int Mansion2Top = INTERIOR::GET_INTERIOR_AT_COORDS(539.7012f, 749.089f, 201.36f);
-			int Mansion2Low = INTERIOR::GET_INTERIOR_AT_COORDS(547.4955f, 734.136f, 190.5f);
-			int Mansion2Garage = INTERIOR::GET_INTERIOR_AT_COORDS(548.6964f, 766.88f, 186.07f);
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "m25_2_ch2_04_mansion_interior_a");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Low, "m25_2_ch2_04_mansion_interior_c");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Garage, "m25_2_ch2_04_mansion_interior_b");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Low, "SET_BASE_VAULT_08");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Low, "SET_ELEV_STD");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Low, "SET_VAULT_DOOR_OPEN");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_AFTERPARTY");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_AI_TABLETS_02");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_ARCADE_BLOCKER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_ELEV_CALI");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_MICHAEL_CARD");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_PET_CAT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_PODIUM_BLOCKER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_REG_SHELVING_PLANTER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_STEP_COLLISION");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_STYLE_CALI");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_STYLE_CALI_TINT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_TROPHY_PLANTER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_WALLPAPER_POPART");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion2Top, "SET_ART_LOFT");
-
-			INTERIOR::REFRESH_INTERIOR(Mansion2Top);
-			INTERIOR::REFRESH_INTERIOR(Mansion2Low);
-			INTERIOR::REFRESH_INTERIOR(Mansion2Garage);
-
-			int Mansion3Top = INTERIOR::GET_INTERIOR_AT_COORDS(-2586.065f, 1909.995f, 166.37f);
-			int Mansion3Low = INTERIOR::GET_INTERIOR_AT_COORDS(-2587.495f, 1893.193f, 155.51f);
-			int Mansion3Garage = INTERIOR::GET_INTERIOR_AT_COORDS(-2568.933f, 1920.202f, 151.08f);
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "m25_2_ch1_09_mansion_interior_a");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Low, "m25_2_ch1_09_mansion_interior_c");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Garage, "m25_2_ch1_09_mansion_interior_b");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Low, "SET_BASE_VAULT_08");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Low, "SET_ELEV_STD");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Low, "SET_VAULT_DOOR_OPEN");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_AI_TABLETS_03");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_ARCADE_BLOCKER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_BIRTHDAY");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_ELEV_HOLLY");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_MICHAEL_CARD");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_PET_DOG");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_PODIUM_BLOCKER");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_STEP_COLLISION");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_STYLE_HOLLY");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_STYLE_REG_TINT");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_TROPHY_SHELVES");
-			INTERIOR::_ENABLE_INTERIOR_PROP(Mansion3Top, "SET_ART_REGENCY");
-						
-			INTERIOR::REFRESH_INTERIOR(Mansion3Top);
-			INTERIOR::REFRESH_INTERIOR(Mansion3Low);
-			INTERIOR::REFRESH_INTERIOR(Mansion3Garage);
-
-			househill_init = true;
-		}
-	}
-	if (featureHouseOnHill && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && househill_init == true) {
-		OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_casino_door_01l"), 520.7849f, 744.874f, 198.984f, 0, 0.0, 50.0, 0);
-		OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_casino_door_01l"), -2604.295f, 1916.571f, 163.9978f, 0, 0.0, 50.0, 0);
-		OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_lrggate_01c_l"), -2559.193f, 1910.86f, 169.0709f, 0, 0.0, 50.0, 0);
-		OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_lrggate_01c_r"), -2556.658f, 1915.716f, 169.0709f, 0, 0.0, 50.0, 0);
-		if (STREAMING::IS_IPL_ACTIVE("apa_ch2_04_props_original")) STREAMING::REMOVE_IPL("apa_ch2_04_props_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_06e_props_original")) STREAMING::REMOVE_IPL("hei_ch1_06e_props_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_09_props_original")) STREAMING::REMOVE_IPL("hei_ch1_09_props_original");
-		if (STREAMING::IS_IPL_ACTIVE("apa_ch2_04_mansion_original")) STREAMING::REMOVE_IPL("apa_ch2_04_mansion_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_06e_mansion_original")) STREAMING::REMOVE_IPL("hei_ch1_06e_mansion_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_09_mansion_original")) STREAMING::REMOVE_IPL("hei_ch1_09_mansion_original");
-	}
-	if ((!featureHouseOnHill && househill_tick > 0) || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) {
-		househill_init = false;
-		househill_tick = 0;
 	}
 
 	// Load Extra Map Stuff Automatically
@@ -1896,11 +1798,11 @@ void update_teleport_features(){
 		}
 		else
 		{
-			set_status_text("The game version is not supported");
+			set_status_text(tr("TeleportMenu.TheGameVersionIsNotSupported", "The game version is not supported"));
 			chopshop_init = true;
 		}
 	}
-	if (featureChoshopCargoship && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && chopshop_init == true && DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) {
+	if (featureChoshopCargoship && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && chopshop_init == true && DLC::GET_IS_LOADING_SCREEN_ACTIVE()) {
 		chopshop_init = false;
 		chopshop_tick = 0;
 	}
@@ -1910,85 +1812,85 @@ void update_teleport_features(){
 		//VER_1_0_3095_0_ 
 		if (version >= 85)
 		{
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fb_doorshortl"), -1045.12f, -232.004f, 39.43794f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fb_doorshortr"), -1046.516f, -229.3581f, 39.43794f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_gtdoor02"), -1042.518f, -240.6915f, 38.11796f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_door_orange"), -1050.967f, -236.6299f, 39.88301f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_docks_ld"), -202.6151f, -2515.309f, 5.047173f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_docks_ld"), -187.3406f, -2515.309f, 5.047173f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_lester_doorfront"), 1273.815f, -1720.697f, 54.92143f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("tr_prop_tr_gate_l_01a"), -2148.653f, 1101.464f, -23.5492f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("tr_prop_tr_gate_r_01a"), -2148.653f, 1110.646f, -23.5492f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_mm_doorm_l"), -816.716f, 179.098f, 72.82738f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_mm_doorm_r"), -816.1068f, 177.5109f, 72.82738f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_bh1_48_backdoor_l"), -796.5657f, 177.2214f, 73.04045f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_bh1_48_backdoor_r"), -794.5051f, 178.0124f, 73.04045f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_bh1_48_backdoor_l"), -793.3943f, 180.5075f, 73.04045f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_bh1_48_backdoor_r"), -794.1853f, 182.568f, 73.04045f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fh_frontdoor"), 7.518359f, 539.5268f, 176.1776f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_trevtraildr"), 1972.769f, 3815.366f, 33.66326f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_docks_ld"), 10.64414f, -2542.213f, 5.047173f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_docks_ld"), 19.40451f, -2529.702f, 5.047173f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fibl_door02"), 106.3793f, -742.6982f, 46.18171f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fibl_door01"), 105.7607f, -746.646f, 46.18266f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_rc_door3_r"), -592.7109f, -1628.986f, 27.15931f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_rc_door3_l"), -592.9376f, -1631.577f, 27.15931f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_rc_door1_st"), -590.8198f, -1621.436f, 33.16059f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_rc_door1_st"), -589.5237f, -1621.55f, 33.16059f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_rc_door3_l"), -608.7289f, -1610.315f, 27.15894f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_rc_door3_r"), -611.32f, -1610.089f, 27.15894f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_roc_door4"), -565.1712f, 276.6259f, 83.28626f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_casino_door_01b"), 2500.835f, -271.2239f, -58.57317f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_ch_service_door_02b"), 2506.721f, -268.5107f, -58.57315f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_ch_service_door_02b"), 2506.721f, -270.5107f, -58.57315f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_ch_gendoor_01"), 2515.308f, -281.5983f, -64.57317f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_ch_tunnel_door_01_l"), 2464.183f, -278.2036f, -71.6943f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_ch_tunnel_door_01_r"), 2464.183f, -280.2885f, -71.6943f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_casino_door_01g"), 2509.743f, -260.3417f, -38.973f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_tort_door"), 134.3954f, -2204.097f, 7.514325f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("ch_prop_casino_door_01c"), 2500.935f, -278.3725f, -58.57317f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_bl_shutter2"), 3627.713f, 3746.716f, 27.69009f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_bl_shutter2"), 3620.843f, 3751.527f, 27.69009f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_bank4door02"), -111.48f, 6463.94f, 31.98499f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_bank4door01"), -109.65f, 6462.11f, 31.98499f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_docks_ld"), 476.3276f, -3115.925f, 5.162354f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_docks_ld"), 492.2758f, -3115.934f, 5.162354f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_epsstoredoor"), 241.3621f, 361.047f, 105.8883f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_ch3_01_trlrdoor_l"), 2333.235f, 2574.973f, 47.03088f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_ch3_01_trlrdoor_r"), 2329.655f, 2576.642f, 47.03088f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_cs_door"), 482.8112f, -1311.953f, 29.35057f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_com_gar_door_01"), 484.5642f, -1315.574f, 30.20331f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_trev_doorfront"), -1149.709f, -1521.088f, 10.78267f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_prison_01"), 1844.998f, 2604.813f, 44.63978f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_gate_prison_01"), 1818.543f, 2604.813f, 44.611f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_ron_door_01"), 1083.547f, -1975.435f, 31.62222f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_ss_door7"), 719.3815f, -975.418f, 25.00606f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_ss_door8"), 716.7805f, -975.4207f, 25.00606f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("p_jewel_door_r1"), -630.4265f, -238.4376f, 38.20653f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("p_jewel_door_l"), -631.9554f, -236.3333f, 38.20653f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fb_door02"), -1080.974f, -259.0203f, 38.1867f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fb_door01"), -1083.62f, -260.4166f, 38.1867f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_roc_door4"), -561.2866f, 293.5044f, 87.77851f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_stad_fdoor"), -259.4862f, -2031.936f, 30.52077f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_stad_fdoor"), -257.4934f, -2029.561f, 30.52077f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_stad_fdoor"), -256.0783f, -2027.875f, 30.52077f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_stad_fdoor"), -254.0855f, -2025.5f, 30.52077f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_stad_fdoor"), -252.6704f, -2023.813f, 30.52077f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_stad_fdoor"), -250.6776f, -2021.438f, 30.52077f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_fa_frontdoor"), -14.86892f, -1441.182f, 31.19323f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_abbmaindoor"), 962.0066f, -2183.816f, 31.06194f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_abbmaindoor2"), 961.705f, -2187.069f, 31.06195f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_janitor_frontdoor"), -107.5373f, -9.018098f, 70.67085f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_com_ls_door_01"), -356.0905f, -134.7714f, 40.01295f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_id2_11_gdoor"), 723.116f, -1088.831f, 23.23201f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("prop_com_ls_door_01"), -1145.898f, -1991.144f, 14.18357f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_carmod3door"), 1174.654f, 2645.222f, 38.63961f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_carmod3door"), 1182.306f, 2645.232f, 38.63961f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_carmod3door"), 108.8502f, 6617.876f, 32.67305f, 0, 0.0, 50.0, 0);
-			OBJECT::_DOOR_CONTROL(GAMEPLAY::GET_HASH_KEY("v_ilev_carmod3door"), 114.3135f, 6623.233f, 32.67305f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fb_doorshortl"), -1045.12f, -232.004f, 39.43794f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fb_doorshortr"), -1046.516f, -229.3581f, 39.43794f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_gtdoor02"), -1042.518f, -240.6915f, 38.11796f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_door_orange"), -1050.967f, -236.6299f, 39.88301f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_docks_ld"), -202.6151f, -2515.309f, 5.047173f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_docks_ld"), -187.3406f, -2515.309f, 5.047173f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_lester_doorfront"), 1273.815f, -1720.697f, 54.92143f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("tr_prop_tr_gate_l_01a"), -2148.653f, 1101.464f, -23.5492f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("tr_prop_tr_gate_r_01a"), -2148.653f, 1110.646f, -23.5492f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_mm_doorm_l"), -816.716f, 179.098f, 72.82738f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_mm_doorm_r"), -816.1068f, 177.5109f, 72.82738f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_bh1_48_backdoor_l"), -796.5657f, 177.2214f, 73.04045f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_bh1_48_backdoor_r"), -794.5051f, 178.0124f, 73.04045f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_bh1_48_backdoor_l"), -793.3943f, 180.5075f, 73.04045f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_bh1_48_backdoor_r"), -794.1853f, 182.568f, 73.04045f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fh_frontdoor"), 7.518359f, 539.5268f, 176.1776f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_trevtraildr"), 1972.769f, 3815.366f, 33.66326f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_docks_ld"), 10.64414f, -2542.213f, 5.047173f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_docks_ld"), 19.40451f, -2529.702f, 5.047173f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fibl_door02"), 106.3793f, -742.6982f, 46.18171f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fibl_door01"), 105.7607f, -746.646f, 46.18266f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_rc_door3_r"), -592.7109f, -1628.986f, 27.15931f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_rc_door3_l"), -592.9376f, -1631.577f, 27.15931f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_rc_door1_st"), -590.8198f, -1621.436f, 33.16059f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_rc_door1_st"), -589.5237f, -1621.55f, 33.16059f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_rc_door3_l"), -608.7289f, -1610.315f, 27.15894f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_rc_door3_r"), -611.32f, -1610.089f, 27.15894f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_roc_door4"), -565.1712f, 276.6259f, 83.28626f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_casino_door_01b"), 2500.835f, -271.2239f, -58.57317f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_ch_service_door_02b"), 2506.721f, -268.5107f, -58.57315f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_ch_service_door_02b"), 2506.721f, -270.5107f, -58.57315f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_ch_gendoor_01"), 2515.308f, -281.5983f, -64.57317f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_ch_tunnel_door_01_l"), 2464.183f, -278.2036f, -71.6943f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_ch_tunnel_door_01_r"), 2464.183f, -280.2885f, -71.6943f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_casino_door_01g"), 2509.743f, -260.3417f, -38.973f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_tort_door"), 134.3954f, -2204.097f, 7.514325f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("ch_prop_casino_door_01c"), 2500.935f, -278.3725f, -58.57317f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_bl_shutter2"), 3627.713f, 3746.716f, 27.69009f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_bl_shutter2"), 3620.843f, 3751.527f, 27.69009f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_bank4door02"), -111.48f, 6463.94f, 31.98499f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_bank4door01"), -109.65f, 6462.11f, 31.98499f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_docks_ld"), 476.3276f, -3115.925f, 5.162354f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_docks_ld"), 492.2758f, -3115.934f, 5.162354f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_epsstoredoor"), 241.3621f, 361.047f, 105.8883f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_ch3_01_trlrdoor_l"), 2333.235f, 2574.973f, 47.03088f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_ch3_01_trlrdoor_r"), 2329.655f, 2576.642f, 47.03088f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_cs_door"), 482.8112f, -1311.953f, 29.35057f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_com_gar_door_01"), 484.5642f, -1315.574f, 30.20331f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_trev_doorfront"), -1149.709f, -1521.088f, 10.78267f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_prison_01"), 1844.998f, 2604.813f, 44.63978f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_gate_prison_01"), 1818.543f, 2604.813f, 44.611f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_ron_door_01"), 1083.547f, -1975.435f, 31.62222f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_ss_door7"), 719.3815f, -975.418f, 25.00606f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_ss_door8"), 716.7805f, -975.4207f, 25.00606f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("p_jewel_door_r1"), -630.4265f, -238.4376f, 38.20653f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("p_jewel_door_l"), -631.9554f, -236.3333f, 38.20653f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fb_door02"), -1080.974f, -259.0203f, 38.1867f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fb_door01"), -1083.62f, -260.4166f, 38.1867f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_roc_door4"), -561.2866f, 293.5044f, 87.77851f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_stad_fdoor"), -259.4862f, -2031.936f, 30.52077f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_stad_fdoor"), -257.4934f, -2029.561f, 30.52077f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_stad_fdoor"), -256.0783f, -2027.875f, 30.52077f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_stad_fdoor"), -254.0855f, -2025.5f, 30.52077f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_stad_fdoor"), -252.6704f, -2023.813f, 30.52077f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_stad_fdoor"), -250.6776f, -2021.438f, 30.52077f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_fa_frontdoor"), -14.86892f, -1441.182f, 31.19323f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_abbmaindoor"), 962.0066f, -2183.816f, 31.06194f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_abbmaindoor2"), 961.705f, -2187.069f, 31.06195f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_janitor_frontdoor"), -107.5373f, -9.018098f, 70.67085f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_com_ls_door_01"), -356.0905f, -134.7714f, 40.01295f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_id2_11_gdoor"), 723.116f, -1088.831f, 23.23201f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_com_ls_door_01"), -1145.898f, -1991.144f, 14.18357f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_carmod3door"), 1174.654f, 2645.222f, 38.63961f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_carmod3door"), 1182.306f, 2645.232f, 38.63961f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_carmod3door"), 108.8502f, 6617.876f, 32.67305f, 0, 0.0, 50.0, 0);
+			OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("v_ilev_carmod3door"), 114.3135f, 6623.233f, 32.67305f, 0, 0.0, 50.0, 0);
 		}
 	}
-	if ((!featureChoshopCargoship && chopshop_tick > 0) || DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) {
+	if ((!featureChoshopCargoship && chopshop_tick > 0) || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) {
 		chopshop_init = false;
 		chopshop_tick = 0;
 	}
@@ -1998,18 +1900,18 @@ void update_teleport_features(){
 		int interiorID = INTERIOR::GET_INTERIOR_AT_COORDS(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z);
 		GRAPHICS::SET_DISABLE_DECAL_RENDERING_THIS_FRAME();
 		if (interiorID == 232705 || interiorID == 231937 || interiorID == 231169 || interiorID == 230401 || interiorID == 229633 || interiorID == 228865 || interiorID == 228097 || interiorID == 227329 ||
-			interiorID == 146945 || interiorID == 40962 || interiorID == 144129 || interiorID == 143873 || interiorID == 61186) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("apa_ss1_11_flats"));
-		if (interiorID == 141313 || interiorID == 147201) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("hei_dt1_03_build1x"));
-		if (interiorID == 143361 || interiorID == 61954 || interiorID == 146177) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("hei_bh1_08_bld2"));
-		if (interiorID == 143617 || interiorID == 52482 || interiorID == 143105 || interiorID == 111618) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("hei_bh1_09_bld_01"));
+			interiorID == 146945 || interiorID == 40962 || interiorID == 144129 || interiorID == 143873 || interiorID == 61186) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("apa_ss1_11_flats"));
+		if (interiorID == 141313 || interiorID == 147201) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("hei_dt1_03_build1x"));
+		if (interiorID == 143361 || interiorID == 61954 || interiorID == 146177) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("hei_bh1_08_bld2"));
+		if (interiorID == 143617 || interiorID == 52482 || interiorID == 143105 || interiorID == 111618) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("hei_bh1_09_bld_01"));
 		if (interiorID == 240641 || interiorID == 240385 || interiorID == 240129 || interiorID == 239873 || interiorID == 239617 || interiorID == 239361 || interiorID == 239105 || interiorID == 238849 ||
-			interiorID == 238593) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("dt1_11_dt1_tower"));
-		if (interiorID == 146689 || interiorID == 145153 || interiorID == 144897 || interiorID == 90882) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("apa_ss1_02_building01"));
-		if (interiorID == 243201) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("hei_sm_15_bld2")); // hei_sm_15_bld2_exshadowlightproxy
-		if (interiorID == 145921 || interiorID == 145665 || interiorID == 145409) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("hei_sm_14_bld2"));
-		if (interiorID == 236289) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("hei_dt1_02"));
-		if (interiorID == 142337 || interiorID == 86018) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("kt1_09_building1"));
-		if (interiorID == 207873) INTERIOR::_HIDE_MAP_OBJECT_THIS_FRAME(GAMEPLAY::GET_HASH_KEY("apa_ch2_09c"));
+			interiorID == 238593) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("dt1_11_dt1_tower"));
+		if (interiorID == 146689 || interiorID == 145153 || interiorID == 144897 || interiorID == 90882) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("apa_ss1_02_building01"));
+		if (interiorID == 243201) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("hei_sm_15_bld2")); // hei_sm_15_bld2_exshadowlightproxy
+		if (interiorID == 145921 || interiorID == 145665 || interiorID == 145409) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("hei_sm_14_bld2"));
+		if (interiorID == 236289) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("hei_dt1_02"));
+		if (interiorID == 142337 || interiorID == 86018) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("kt1_09_building1"));
+		if (interiorID == 207873) INTERIOR::ENABLE_EXTERIOR_CULL_MODEL_THIS_FRAME(MISC::GET_HASH_KEY("apa_ch2_09c"));
 		GRAPHICS::DISABLE_OCCLUSION_THIS_FRAME();
 	}
 	if (teleported_i == true && INTERIOR::GET_INTERIOR_AT_COORDS(ENTITY::GET_ENTITY_COORDS(playerPed, true).x, ENTITY::GET_ENTITY_COORDS(playerPed, true).y, ENTITY::GET_ENTITY_COORDS(playerPed, true).z) == 0) teleported_i = false;

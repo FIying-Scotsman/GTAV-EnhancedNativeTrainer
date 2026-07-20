@@ -4,8 +4,14 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
+// exclude(): ISequentialStream/_FILETIME are already declared via other Windows headers pulled in
+// elsewhere in this translation unit - the importer silently skips redeclaring them regardless,
+// this just makes that explicit instead of emitting a C4192 warning about it.
+#import <msxml6.dll> exclude("ISequentialStream", "_FILETIME") //read the GitHub project readme regarding what you need to make this work
+
 #include "config_io.h"
 #include "keyboard.h"
+#include "controller_buttons.h"
 #include "..\debug\debuglog.h"
 #include "..\ui_support\entcolor.h"
 #include <sstream>
@@ -18,6 +24,19 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 BSTR keyconf_bstr;
 
 TrainerConfig *config = NULL;
+
+// Accepts either a symbolic eButton name ("INPUT_FRONTEND_ACCEPT", "NONE")
+// or a legacy raw numeric string ("201", "-1") for back-compat with
+// existing users' on-disk ent-config.xml files.
+int parse_controller_button_attrib(const std::string& raw) {
+	int value;
+	if (try_button_name_to_val(raw, &value)) return value;
+	try { return std::stoi(raw); }
+	catch (...) {
+		write_text_to_log_file("[ERROR] Unrecognized controller button value: " + raw);
+		return CONTROLLER_BUTTON_NONE;
+	}
+}
 
 /**Read the XML config file. Currently contains keyboard choices.*/
 void read_config_file(){
@@ -124,8 +143,9 @@ void read_config_file(){
 		attribs->get_length(&length_attribs);
 
 		char* attrib_controller_func = NULL;
-		int attrib_button1_v = NULL;
-		int attrib_button2_v = NULL;
+		int attrib_button1_v = CONTROLLER_BUTTON_NONE;
+		int attrib_button2_v = CONTROLLER_BUTTON_NONE;
+		bool attrib_button1_set = false;
 
 		for (long j = 0; j < length_attribs; j++) {
 			IXMLDOMNode* attribNode;
@@ -141,13 +161,14 @@ void read_config_file(){
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
-				attrib_button1_v = std::stoi(_com_util::ConvertBSTRToString(V_BSTR(&var)));
+				attrib_button1_v = parse_controller_button_attrib(_com_util::ConvertBSTRToString(V_BSTR(&var)));
+				attrib_button1_set = true;
 			}
 			else if (wcscmp(keyconf_bstr, L"button2") == 0) {
 				VARIANT var;
 				VariantInit(&var);
 				attribNode->get_nodeValue(&var);
-				attrib_button2_v = std::stoi(_com_util::ConvertBSTRToString(V_BSTR(&var)));
+				attrib_button2_v = parse_controller_button_attrib(_com_util::ConvertBSTRToString(V_BSTR(&var)));
 			}
 
 			SysFreeString(keyconf_bstr);
@@ -157,34 +178,26 @@ void read_config_file(){
 		// here must be a code to store keybinds somewhere.
 		if (attrib_controller_func != NULL) {
  
-			if (attrib_button1_v == NULL)
+			if (!attrib_button1_set)
 			{
-				std::stringstream ss;
-				ss << "[ERROR] Problem reading " << attrib_controller_func << "'s function. Button1's value was NULL! Skipping and the default value(s) will be used instead.";
-				write_text_to_log_file(ss.str());
+				write_text_to_log_file("[ERROR] Problem reading " + std::string(attrib_controller_func) + "'s function. Button1's value was missing! Skipping and the default value(s) will be used instead.");
 				continue;
 			}
 
 			if (controller_binds.find(attrib_controller_func) != controller_binds.end())
 			{
-				std::stringstream ss;
-				ss << "Controller function " << attrib_controller_func << " given value: " << attrib_button1_v << " and " << attrib_button2_v;
-				write_text_to_log_file(ss.str());
-				controller_binds.at(attrib_controller_func) = std::pair(attrib_button1_v, attrib_button2_v);
+				write_text_to_log_file("Controller function " + std::string(attrib_controller_func) + " given value: " + std::to_string(attrib_button1_v) + " and " + std::to_string(attrib_button2_v));
+				controller_binds.at(attrib_controller_func) = ControllerBind{ attrib_button1_v, attrib_button2_v };
 			}
-			else 
+			else
 			{
-				std::stringstream ss;
-				ss << "[ERROR] Could not find controller function " << attrib_controller_func << " in controller bind map. Skipping.";
-				write_text_to_log_file(ss.str());
+				write_text_to_log_file("[ERROR] Could not find controller function " + std::string(attrib_controller_func) + " in controller bind map. Skipping.");
 				continue;
 			}
 		}
 		else
 		{
-			std::stringstream ss;
-			ss << "[ERROR] Controller function with button IDs " << attrib_button1_v << " and " << attrib_button2_v << " was NULL! Skipping.";
-			write_text_to_log_file(ss.str());
+			write_text_to_log_file("[ERROR] Controller function with button IDs " + std::to_string(attrib_button1_v) + " and " + std::to_string(attrib_button2_v) + " was NULL! Skipping.");
 			continue;
 		}
 
@@ -621,48 +634,52 @@ const std::string KeyConfig::KEY_HOT_7 = std::string("hotkey_7");
 const std::string KeyConfig::KEY_HOT_8 = std::string("hotkey_8");
 const std::string KeyConfig::KEY_HOT_9 = std::string("hotkey_9");
 
-//Bind name -> button ID 1 and button ID 2. For keys with only 1 button ID - use -1 as a "no bind" value.
-std::map<std::string, std::pair<int, int>> controller_binds =
+// Bind name -> primary and secondary eButton IDs (see inc/enums.h). For binds
+// with only one button, or none at all, the unused slot(s) are
+// CONTROLLER_BUTTON_NONE. Note: KEY_MENU_SELECT's secondary of
+// INPUT_LOOK_LR looks like a pre-existing mistake (likely meant to be
+// unbound) - preserved as-is rather than silently "fixed" here.
+std::map<std::string, ControllerBind> controller_binds =
 {
-	{ "KEY_TOGGLE_MAIN_MENU", {206, 192} },
-	{ "KEY_TOGGLE_AIRBRAKE", {201, 206} },
-	{ "KEY_MENU_UP", {188, -1} },
-	{ "KEY_MENU_DOWN", {187, -1} },
-	{ "KEY_MENU_LEFT", {189, -1} },
-	{ "KEY_MENU_RIGHT", {190, -1} },
-	{ "KEY_MENU_SELECT", {201, 1} },
-	{ "KEY_MENU_BACK", {202, -1} },
-	{ "KEY_VEH_BOOST", {206, 24} },
-	{ "KEY_VEH_STOP", {205, 25} },
-	{ "KEY_VEH_ROCKETS", {205, 206} },
-	{ "KEY_VEH_LEFTBLINK", {25, -1} },
-	{ "KEY_VEH_RIGHTBLINK", {24, -1} },
-	{ "KEY_VEH_EMERGENCYBLINK", {202, -1} },
-	{ "KEY_VEH_STARTREFUELING", {201, -1} },
-	{ "KEY_VEH_STOPREFUELING", {202, -1} },
-	{ "KEY_VEH_CANREFUELING", {203, -1} },
-	{ "KEY_AIRBRAKE_UP", {25, -1} },
-	{ "KEY_AIRBRAKE_DOWN", {24, -1} },
-	{ "KEY_AIRBRAKE_FORWARD", {32, -1} },
-	{ "KEY_AIRBRAKE_BACK", {33, -1} },
-	{ "KEY_AIRBRAKE_ROTATE_LEFT", {205, -1} },
-	{ "KEY_AIRBRAKE_ROTATE_RIGHT", {206, -1} },
-	{ "KEY_AIRBRAKE_SPEED", {201, -1} },
-	{ "KEY_AIRBRAKE_FREEZE_TIME", {202, -1} },
-	{ "KEY_AIRBRAKE_HELP", {-1, -1} }, //No bind in the XML?
-	{ "KEY_AIRBRAKE_SPACE", {-1, -1} }, //No bind in the XML?
-	{ "KEY_AIRBRAKE_MOUSE_CONTROL", {-1, -1} }, //No bind in the XML?
-	{ "KEY_OBJECTPLACER_UP", {25, -1} },
-	{ "KEY_OBJECTPLACER_DOWN", {24, -1} },
-	{ "KEY_OBJECTPLACER_FORWARD", {32, -1} },
-	{ "KEY_OBJECTPLACER_BACK", {33, -1} },
-	{ "KEY_OBJECTPLACER_ROTATE_LEFT", {205, -1} },
-	{ "KEY_OBJECTPLACER_ROTATE_RIGHT", {206, -1} },
-	{ "KEY_OBJECTPLACER_SPEED_CYCLE", {201, -1} },
-	{ "KEY_OBJECTPLACER_SPEED_UP", {-1, -1} },  //No bind in the XML?
-	{ "KEY_OBJECTPLACER_SPEED_DOWN", {-1, -1} }, //No bind in the XML?
-	{ "KEY_OBJECTPLACER_FREEZE_TIME", {202, -1} },
-	{ "KEY_OBJECTPLACER_FREEZE_POSITION", {192, -1} },
-	{ "KEY_OBJECTPLACER_HELP", {-1, -1} },  //No bind in the XML?
-	{ "KEY_OBJECTPLACER_ALT_MOVE", {-1, -1} }, //No bind in the XML?
+	{ "KEY_TOGGLE_MAIN_MENU", { INPUT_FRONTEND_RB, INPUT_FRONTEND_RUP } },
+	{ "KEY_TOGGLE_AIRBRAKE", { INPUT_FRONTEND_ACCEPT, INPUT_FRONTEND_RB } },
+	{ "KEY_MENU_UP", { INPUT_FRONTEND_UP, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_MENU_DOWN", { INPUT_FRONTEND_DOWN, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_MENU_LEFT", { INPUT_FRONTEND_LEFT, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_MENU_RIGHT", { INPUT_FRONTEND_RIGHT, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_MENU_SELECT", { INPUT_FRONTEND_ACCEPT, INPUT_LOOK_LR } },
+	{ "KEY_MENU_BACK", { INPUT_FRONTEND_CANCEL, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_VEH_BOOST", { INPUT_FRONTEND_RB, INPUT_ATTACK } },
+	{ "KEY_VEH_STOP", { INPUT_FRONTEND_LB, INPUT_AIM } },
+	{ "KEY_VEH_ROCKETS", { INPUT_FRONTEND_LB, INPUT_FRONTEND_RB } },
+	{ "KEY_VEH_LEFTBLINK", { INPUT_AIM, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_VEH_RIGHTBLINK", { INPUT_ATTACK, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_VEH_EMERGENCYBLINK", { INPUT_FRONTEND_CANCEL, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_VEH_STARTREFUELING", { INPUT_FRONTEND_ACCEPT, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_VEH_STOPREFUELING", { INPUT_FRONTEND_CANCEL, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_VEH_CANREFUELING", { INPUT_FRONTEND_X, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_UP", { INPUT_AIM, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_DOWN", { INPUT_ATTACK, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_FORWARD", { INPUT_MOVE_UP_ONLY, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_BACK", { INPUT_MOVE_DOWN_ONLY, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_ROTATE_LEFT", { INPUT_FRONTEND_LB, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_ROTATE_RIGHT", { INPUT_FRONTEND_RB, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_SPEED", { INPUT_FRONTEND_ACCEPT, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_FREEZE_TIME", { INPUT_FRONTEND_CANCEL, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_AIRBRAKE_HELP", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } }, //No bind in the XML?
+	{ "KEY_AIRBRAKE_SPACE", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } }, //No bind in the XML?
+	{ "KEY_AIRBRAKE_MOUSE_CONTROL", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } }, //No bind in the XML?
+	{ "KEY_OBJECTPLACER_UP", { INPUT_AIM, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_DOWN", { INPUT_ATTACK, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_FORWARD", { INPUT_MOVE_UP_ONLY, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_BACK", { INPUT_MOVE_DOWN_ONLY, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_ROTATE_LEFT", { INPUT_FRONTEND_LB, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_ROTATE_RIGHT", { INPUT_FRONTEND_RB, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_SPEED_CYCLE", { INPUT_FRONTEND_ACCEPT, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_SPEED_UP", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } },  //No bind in the XML?
+	{ "KEY_OBJECTPLACER_SPEED_DOWN", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } }, //No bind in the XML?
+	{ "KEY_OBJECTPLACER_FREEZE_TIME", { INPUT_FRONTEND_CANCEL, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_FREEZE_POSITION", { INPUT_FRONTEND_RUP, CONTROLLER_BUTTON_NONE } },
+	{ "KEY_OBJECTPLACER_HELP", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } },  //No bind in the XML?
+	{ "KEY_OBJECTPLACER_ALT_MOVE", { CONTROLLER_BUTTON_NONE, CONTROLLER_BUTTON_NONE } }, //No bind in the XML?
 };

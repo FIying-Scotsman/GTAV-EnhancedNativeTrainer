@@ -11,6 +11,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "vehicles.h"
 #include "..\features\vehmodmenu.h"
 #include "..\debug\debuglog.h"
+#include "..\ui_support\vehicle_stats_widget.h"
+#include "misc.h"
 
 int lastSelectedModValue = 0;
 
@@ -55,124 +57,124 @@ const char* getLocalisedModCategory(int modType)
 	Hash model = ENTITY::GET_ENTITY_MODEL(veh);
 
 	std::string space = " ";
-	std::string combined_name = UI::_GET_LABEL_TEXT("CMM_MOD_G3") + space + UI::_GET_LABEL_TEXT("VEUI_AUD_TIT");
+	std::string combined_name = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_G3") + space + HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("VEUI_AUD_TIT");
 	
 	switch (modType)
 	{
 	case MOD_HOOD:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_HOD");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_HOD");
 	case MOD_ARMOR:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_ARM");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_ARM");
 	case MOD_BRAKES:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_BRA");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_BRA");
 	case MOD_ENGINE:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_ENG");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_ENG");
 	case MOD_SUSPENSION:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_SUS");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_SUS");
 	case MOD_TRANSMISSION:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_TRN");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_TRN");
 	case MOD_HORNS:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_HRN");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_HRN");
 	case MOD_FRONTWHEELS:
 		if (!VEHICLE::IS_THIS_MODEL_A_BIKE(model) && VEHICLE::IS_THIS_MODEL_A_BICYCLE(model))
-			return UI::_GET_LABEL_TEXT("CMOD_MOD_WHEM");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_WHEM");
 		else
-			return UI::_GET_LABEL_TEXT("CMOD_WHE0_0");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_WHE0_0");
 	case MOD_REARWHEELS:
-		return UI::_GET_LABEL_TEXT("CMOD_WHE0_1");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_WHE0_1");
 		//Bennys
 	case MOD_PLATEHOLDER:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S0");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S0");
 	case MOD_VANITYPLATE:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S1");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S1");
 	case MOD_TRIMDESIGN:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S2b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S2b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S2");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S2");
 	case MOD_ORNAMENTS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S3");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S3");
 	case MOD_DASHBOARD:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S4");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S4");
 	case MOD_DIAL:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S5");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S5");
 	case MOD_DOORSPEAKERS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S6");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S6");
 	case MOD_SEATS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S7");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S7");
 	case MOD_STEERINGWHEEL:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S8");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S8");
 	case MOD_SHIFTERLEVER:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S9");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S9");
 	case MOD_PLAQUES:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S10");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S10");
 	case MOD_SPEAKERS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S11");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S11");
 	case MOD_TRUNK:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S12");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S12");
 	case MOD_HYDRAULICS:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S13");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S13");
 	case MOD_ENGINECOVER:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S14");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S14");
 	case MOD_ENGINEFILTER:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S15b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S15b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S15");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S15");
 	case MOD_STRUTS:
 		if (model == 0xEE6024BC /*Sultan RS*/ || model == 0x25C5AF13) /*Banshee 2*/
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S16b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S16b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S16");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S16");
 	case MOD_ARCHCOVER:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S17b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S17b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S17");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S17");
 	case MOD_AERIAL:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S18b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S18b");
 		else if (model == 0xDC19D101) //Btye 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S18c");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S18c");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S18");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S18");
 	case MOD_TRIM:
 		if (model == 0xEE6024BC) //Sultan RS
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19b");
 		else if (model == 0xDC19D101) //Byte 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19c");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19c");
 		else if (model == 0xCA62927A) //Virgo 2
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19d");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19d");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S19");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S19");
 	case MOD_TANK:
 		if (model == 0x42BC5E19) //Slamvan 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S27");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S27");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S20");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S20");
 	case MOD_DOORSEXTRA:
 		if (model == 0xDC19D101) //Byte 3
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S21b");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S21b");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S21");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S21");
 	case MOD_UNKNOWN_47:
 		if (model == 0x42BC5E19) //Slamvan 3
-			return UI::_GET_LABEL_TEXT("SLVAN3_RDOOR");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("SLVAN3_RDOOR");
 		else
-			return UI::_GET_LABEL_TEXT("CMM_MOD_S22");
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S22");
 	case MOD_LIVERY:
-		return UI::_GET_LABEL_TEXT("CMM_MOD_S23");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_S23");
 	case SPECIAL_ID_FOR_WHEEL_CATEGORY:
 		return "Wheel Category";
 	case SPECIAL_ID_FOR_WHEEL_SELECTION:
 		return "Wheel Choice";
 	case SPECIAL_ID_FOR_WINDOW_TINT:
-		return UI::_GET_LABEL_TEXT("CMOD_GLD2_2");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_2");
 	case SPECIAL_ID_FOR_LICENSE_PLATES:
-		return UI::_GET_LABEL_TEXT("CMOD_MOD_PLA");
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_PLA");
 	case SPECIAL_ID_FOR_ENGINE_SOUND:
 	{
-		//std::string label = std::string(UI::_GET_LABEL_TEXT("CMM_MOD_G3")) + " " + std::string(UI::_GET_LABEL_TEXT("VEUI_AUD_TIT"));
+		//std::string label = std::string(HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMM_MOD_G3")) + " " + std::string(HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("VEUI_AUD_TIT"));
 		//return &label[0];
 		return "Engine Sound";
 	}
@@ -183,7 +185,7 @@ const char* getLocalisedModCategory(int modType)
 		if (name == nullptr)
 			return "";
 		if (strstr(name, "_"))
-			return UI::_GET_LABEL_TEXT(name);
+			return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(name);
 		return name;
 	}
 }
@@ -202,7 +204,7 @@ std::string geSpecialItemTitle(int category, int index){
 
 	case SPECIAL_ID_FOR_WINDOW_TINT:
 		std::string engine_label = "CMOD_WIN_" + std::to_string(index);
-		return UI::_GET_LABEL_TEXT(&engine_label[0]);
+		return HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&engine_label[0]);
 	}
 	return std::string();
 }
@@ -269,7 +271,7 @@ std::string getHornTitle(int index){
 		return "Unknown Horn";
 	}
 	else{
-		char* label = UI::_GET_LABEL_TEXT(v_3);
+		const char* label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(v_3);
 		if (label == NULL){
 			return "Unknown Horn";
 		}
@@ -331,13 +333,11 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 
 	if (index == -1){
 		if (category == 16){
-			std::string armour_label = UI::_GET_LABEL_TEXT("CMOD_GLD2_0");
+			std::string armour_label = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_0");
 			modItemNameStr ="No " + armour_label;
 		}
 		else {
-			std::ostringstream ss;
-			ss << "Stock " << mod_slots[lastSelectedModValue];
-			modItemNameStr = ss.str();
+			modItemNameStr = tr("VehModMenu.StockPrefix", "Stock ") + mod_slots[lastSelectedModValue];
 		}
 	}
 	else if (category == 11) //Engine
@@ -345,26 +345,25 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 		//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 		int index_modified = index + 1;
 		std::string engine_label = "CMOD_ENG_" + std::to_string(index_modified + 1);
-		modItemNameStr = UI::_GET_LABEL_TEXT(&engine_label[0]);
+		modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&engine_label[0]);
 	}
 	else if (category == 12 || category == 13 || category == 52) //brakes, trans or aircraft handling
 	{
-		std::ostringstream ss;
 		if (category == 12){
 			//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 			int index_modified = index + 1;
 			std::string brakes_label = "CMOD_BRA_" + std::to_string(index_modified + 1);
-			modItemNameStr = UI::_GET_LABEL_TEXT(&brakes_label[0]);
+			modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&brakes_label[0]);
 		}
 		else if (category == 52)
 		{
-			modItemNameStr = UI::_GET_LABEL_TEXT("CMOD_MOD_HAN");
+			modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_HAN");
 		}
 		else{
 			//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 			int index_modified = index + 1;
 			std::string transmission_label = "CMOD_GBX_" + std::to_string(index_modified + 1);
-			modItemNameStr = UI::_GET_LABEL_TEXT(&transmission_label[0]);
+			modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&transmission_label[0]);
 		}
 		//modItemNameStr = ss.str();
 	}
@@ -377,19 +376,17 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 		//Index is 0, but the label starts at 1 so we've got to bump it up 1 to counter that.
 		int index_modified = index + 1;
 		std::string suspension_label = "CMOD_SUS_" + std::to_string(index_modified + 1);
-		modItemNameStr = UI::_GET_LABEL_TEXT(&suspension_label[0]);
+		modItemNameStr = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(&suspension_label[0]);
 	}
 	else if (category == 16) //Armor
 	{
-		std::ostringstream ss;
-		ss << ((index + 1) * 20) << "% " << UI::_GET_LABEL_TEXT("CMOD_GLD2_0");
-		modItemNameStr = ss.str();
+		modItemNameStr = std::to_string((index + 1) * 20) + "% " + HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_0");
 	}
 	else{ 
-		char* modItemNameChr = VEHICLE::GET_MOD_TEXT_LABEL(veh, category, index);
+		const char* modItemNameChr = VEHICLE::GET_MOD_TEXT_LABEL(veh, category, index);
 		bool foundName = false;
 		if (modItemNameChr != NULL && strlen(modItemNameChr) > 0){
-			char* modItemNameTxt = UI::_GET_LABEL_TEXT(modItemNameChr);
+			const char* modItemNameTxt = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(modItemNameChr);
 			if (modItemNameTxt != NULL){
 				modItemNameStr = std::string(modItemNameTxt);
 				foundName = true;
@@ -397,12 +394,10 @@ std::string getNormalItemTitle(Vehicle veh, int category, int index){
 		}
 
 		if (!foundName){
-			std::ostringstream ss;
 			if(category <= 50 || mod_slots[lastSelectedModValue] != "")
-				ss << mod_slots[lastSelectedModValue] << " Item " << (index + 1);
+				modItemNameStr = mod_slots[lastSelectedModValue] + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(index + 1);
 			else
-				ss <<getLocalisedModCategory(category) << " Item " << (index + 1);
-			modItemNameStr = ss.str();
+				modItemNameStr = getLocalisedModCategory(category) + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(index + 1);
 		}
 	}
 
@@ -417,7 +412,7 @@ void addClanLogoToVehicle(Vehicle vehicle, Ped ped){
 		int alpha = 200;
 		if (modelHash == VEHICLE_WINDSOR)
 			alpha = 255;
-		GRAPHICS::_ADD_CLAN_DECAL_TO_VEHICLE(vehicle, ped, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(vehicle, "chassis_dummy"), x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z, scale, 0, alpha);
+		GRAPHICS::ADD_VEHICLE_CREW_EMBLEM(vehicle, ped, ENTITY::GET_ENTITY_BONE_INDEX_BY_NAME(vehicle, "chassis_dummy"), x.x, x.y, x.z, y.x, y.y, y.z, z.x, z.y, z.z, scale, 0, alpha);
 	}
 }
 
@@ -435,15 +430,15 @@ bool onconfirm_vehmod_wheel_selection(MenuItem<int> choice){
 	case 0:
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23));
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 24));
-		set_status_text("Changed all wheels");
+		set_status_text(tr("VehModMenu.ChangedAllWheels", "Changed all wheels"));
 		break;
 	case 1:
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23));
-		set_status_text("Changed front wheel");
+		set_status_text(tr("VehModMenu.ChangedFrontWheel", "Changed front wheel"));
 		break;
 	case 2:
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, choice.value, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 24));
-		set_status_text("Changed rear wheel");
+		set_status_text(tr("VehModMenu.ChangedRearWheel", "Changed rear wheel"));
 		break;
 	}
 
@@ -462,7 +457,7 @@ bool process_vehmod_wheel_selection(){
 	std::vector<MenuItem<int> *> menuItems;
 
 	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = UI::_GET_LABEL_TEXT("CMOD_WHE_B_0");
+	item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_WHE_B_0");
 	item->value = -1;
 	menuItems.push_back(item);
 
@@ -472,8 +467,8 @@ bool process_vehmod_wheel_selection(){
 
 	for (int a = 0; a < VEHICLE::GET_NUM_VEHICLE_MODS(veh, 23); a++) {
 		item = new MenuItem<int>();
-		//item->caption = UI::_GET_LABEL_TEXT(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
-		if (UI::DOES_TEXT_LABEL_EXIST(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a))) item->caption = UI::_GET_LABEL_TEXT(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
+		//item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
+		if (HUD::DOES_TEXT_LABEL_EXIST(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a))) item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a));
 		else item->caption = VEHICLE::GET_MOD_TEXT_LABEL(veh, MOD_FRONTWHEELS, a);
 		item->value = a;
 
@@ -526,45 +521,33 @@ bool process_vehmod_wheel_selection_menu(){
 	std::vector<MenuItem<int> *> menuItems;
 	MenuItem<int> *item;
 	int count = VEHICLE::GET_NUM_VEHICLE_MODS(veh, 23); // WHEEL_CATEGORY_COUNTS[VEHICLE::GET_VEHICLE_WHEEL_TYPE(veh)];
-	std::ostringstream ss;
+	std::string countSuffix = " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(count) + ")";
 
 	if (is_this_a_motorcycle(veh)){
 		item = new MenuItem<int>();
-		ss << "All ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.All", "All") + countSuffix;
 		item->value = 0;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		item = new MenuItem<int>();
-		ss << "Front ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.Front", "Front") + countSuffix;
 		item->value = 1;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		item = new MenuItem<int>();
-		ss << "Rear ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.Rear", "Rear") + countSuffix;
 		item->value = 2;
 		item->isLeaf = false;
 		menuItems.push_back(item);
-
-		ss.str(""), ss.clear();
 	}
 	else{
 		item = new MenuItem<int>();
-		ss << "All ~HUD_COLOUR_GREYLIGHT~(" << count << ")";
-		item->caption = ss.str();
+		item->caption = tr("VehModMenu.All", "All") + countSuffix;
 		item->value = 0;
 		item->isLeaf = false;
 		menuItems.push_back(item);
-
-		ss.str(""), ss.clear();
 	}
 
 	return draw_generic_menu<int>(menuItems, nullptr, getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_SELECTION), onconfirm_vehmod_wheel_selection_menu, nullptr, nullptr, nullptr);
@@ -581,7 +564,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		return false;
 	}
 
@@ -593,14 +576,12 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		std::string modItemNameStr = getNormalItemTitle(veh, lastSelectedModValue, choice.value);
 
 		VEHICLE::SET_VEHICLE_MOD(veh, lastSelectedModValue, choice.value, 1);
-		std::ostringstream ss;
-		ss << modItemNameStr << " Applied";
-		set_status_text(ss.str());
+		set_status_text(modItemNameStr + tr("VehModMenu.AppliedSuffix", " Applied"));
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_WINDOW_TINT){
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 		VEHICLE::SET_VEHICLE_WINDOW_TINT(veh, choice.value);
-		set_status_text("Changed window tint");
+		set_status_text(tr("VehModMenu.ChangedWindowTint", "Changed window tint"));
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_LICENSE_PLATES){
 		if (choice.value == -2) {
@@ -614,7 +595,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 			VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT_INDEX(veh, choice.value);
 			DefaultPlateIndex = -1;
-			set_status_text("Changed license plate");
+			set_status_text(tr("VehModMenu.ChangedLicensePlate", "Changed license plate"));
 		}
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_ENGINE_SOUND && featureEngineSound) { // pick engine sound through the menu/list
@@ -622,9 +603,9 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		strcpy(currSound, ENGINE_SOUND[choice.value].c_str());
 		current_picked_engine_sound = ENGINE_SOUND[choice.value];
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
-		AUDIO::_SET_VEHICLE_AUDIO(veh, currSound);
+		AUDIO::FORCE_USE_AUDIO_GAME_OBJECT(veh, currSound);
 		if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
-		set_status_text("Changed engine sound");
+		set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		delete currSound;
 	}
 	else if (lastSelectedModValue == SPECIAL_ID_FOR_WHEEL_CATEGORY){
@@ -632,7 +613,7 @@ bool onconfirm_vehmod_category_menu(MenuItem<int> choice){
 		VEHICLE::SET_VEHICLE_WHEEL_TYPE(veh, choice.value);
 		VEHICLE::SET_VEHICLE_MOD(veh, 23, -1, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 23));
 		VEHICLE::SET_VEHICLE_MOD(veh, 24, -1, VEHICLE::GET_VEHICLE_MOD_VARIATION(veh, 24));
-		set_status_text("Changed wheel category");
+		set_status_text(tr("VehModMenu.ChangedWheelCategory", "Changed wheel category"));
 	}
 
 	return false;
@@ -688,7 +669,7 @@ bool process_vehmod_category_special_menu(int category){
 	if (category == SPECIAL_ID_FOR_LICENSE_PLATES/* && i == (values.size() - 1)*/ && !isWeird && !isAircraft) {
 		MenuItem<int>* item = new MenuItem<int>();
 		item = new MenuItem<int>();
-		item->caption = "Customize License Plate";
+		item->caption = tr("VehModMenu.CustomizeLicensePlate", "Customize License Plate");
 		item->value = -2; // 667
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -697,7 +678,7 @@ bool process_vehmod_category_special_menu(int category){
 	if (category == SPECIAL_ID_FOR_LICENSE_PLATES/* && i == (values.size() - 1)*/) {
 		MenuItem<int>* item = new MenuItem<int>();
 		item = new MenuItem<int>();
-		item->caption = "Set Plate Type As Default";
+		item->caption = tr("VehModMenu.SetPlateTypeAsDefault", "Set Plate Type As Default");
 		item->value = -1; // 666
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -710,12 +691,10 @@ bool process_vehmod_category_special_menu(int category){
 			item->caption = specialName;
 		}
 		else if (i == 0 && values.at(i) == -1){
-			item->caption = "Default";
+			item->caption = tr("VehModMenu.Default", "Default");
 		}
 		else{
-			std::ostringstream ss;
-			ss << getLocalisedModCategory(category) << " Item " << i;
-			item->caption = ss.str();
+			item->caption = getLocalisedModCategory(category) + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(i);
 		}
 		item->value = values.at(i);
 		item->isLeaf = true;
@@ -753,12 +732,10 @@ bool process_vehmod_engine_sound() {
 			item->caption = specialName;
 		}
 		else if (i == 0 && values.at(i) == -1) {
-			item->caption = "Default";
+			item->caption = tr("VehModMenu.Default", "Default");
 		}
 		else {
-			std::ostringstream ss;
-			ss << getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND) << " Item " << i;
-			item->caption = ss.str();
+			item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND) + tr("VehModMenu.ItemPrefix", " Item ") + std::to_string(i);
 		}
 		item->value = values.at(i);
 		item->isLeaf = true;
@@ -774,9 +751,9 @@ bool process_custom_engine_multiplier() {
 	std::vector<MenuItem<int>*> menuItems;
 	SelectFromListMenuItem* listItem;
 
-	listItem = new SelectFromListMenuItem(VEH_ENG_POW_CAPTIONS, onchange_custom_eng_pow_index);
+	listItem = new SelectFromListMenuItem(&VEH_ENG_POW_CAPTIONS, onchange_custom_eng_pow_index);
 	listItem->wrap = false;
-	listItem->caption = "Custom Engine Power Multiplier";
+	listItem->caption = tr("VehModMenu.CustomEnginePowerMultiplier", "Custom Engine Power Multiplier");
 	listItem->value = engCustomPowMultIndex;
 	menuItems.push_back(listItem);
 
@@ -793,7 +770,7 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 		Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 
 		keyboard_on_screen_already = true;
-		curr_message = "Enter engine sound name (e.g. adder or random):"; // set an engine sound
+		set_curr_message(tr("VehModMenu.EnterEngineSoundNameEGAdderOrRandom", "Enter engine sound name (e.g. adder or random):")); // set an engine sound
 		std::string result = show_keyboard("Enter Name Manually", (char*)lastEngineSound.c_str());
 		lastEngineSound = result;
 		if (lastEngineSound == "random" || lastEngineSound == "Random" || lastEngineSound == "RANDOM") {
@@ -801,17 +778,17 @@ void set_engine_sound(MenuItem<int> choice) { // pick engine sound via message b
 			current_picked_engine_sound = ENGINE_SOUND[rand_sound];
 			char *keyboardInput = (char*)current_picked_engine_sound.c_str();
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
-			AUDIO::_SET_VEHICLE_AUDIO(veh, keyboardInput);
+			AUDIO::FORCE_USE_AUDIO_GAME_OBJECT(veh, keyboardInput);
 			if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
-			set_status_text("Changed engine sound");
+			set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		}
 		if (lastEngineSound != "random" && lastEngineSound != "Random" && lastEngineSound != "RANDOM") {
 			current_picked_engine_sound = result;
 			char* keyboardInput = (char*)result.c_str();
 			VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
-			AUDIO::_SET_VEHICLE_AUDIO(veh, keyboardInput);
+			AUDIO::FORCE_USE_AUDIO_GAME_OBJECT(veh, keyboardInput);
 			if (featureRememberVehicles && featureRestoreTracked) add_engine_sound(veh);
-			set_status_text("Changed engine sound");
+			set_status_text(tr("VehModMenu.ChangedEngineSound", "Changed engine sound"));
 		}
 	}
 }
@@ -839,28 +816,24 @@ bool process_vehmod_engine_sound_menu() {
 
 	std::vector<MenuItem<int> *> menuItems;
 	MenuItem<int> *item;
-	std::ostringstream ss;
 
 	ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Enable";
+	toggleItem->caption = tr("VehModMenu.Enable", "Enable");
 	toggleItem->value = -1;
 	toggleItem->toggleValue = &featureEngineSound;
 	menuItems.push_back(toggleItem);
 
 	item = new MenuItem<int>();
-	ss << "All ~HUD_COLOUR_GREYLIGHT~(" << ENGINE_SOUND_COUNT << ")";
-	item->caption = ss.str();
+	item->caption = tr("VehModMenu.All", "All") + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(ENGINE_SOUND_COUNT) + ")";
 	item->value = 0;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("VehModMenu.EnterNameManually", "Enter Name Manually");
 	item->value = 1;
 	item->isLeaf = true;
 	menuItems.push_back(item);
-
-	ss.str(""), ss.clear();
 
 	return draw_generic_menu<int>(menuItems, nullptr, getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND), onconfirm_vehmod_engine_sound_menu, nullptr, nullptr, nullptr);
 }
@@ -888,7 +861,7 @@ bool process_vehmod_category_menu(int category){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		return false;
 	}
 
@@ -978,7 +951,7 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
 	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		return false;
 	}
 
@@ -987,21 +960,21 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	switch (choice.value){
 	case -1: //Upgrade Performance
 		fully_tune_vehicle(veh, false);
-		set_status_text("Added all performance upgrades");
+		set_status_text(tr("VehModMenu.AddedAllPerformanceUpgrades", "Added all performance upgrades"));
 		break;
 	case -2: //Upgrade Armor and Tires
 		VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 		VEHICLE::SET_VEHICLE_MOD(veh, MOD_ARMOR, VEHICLE::GET_NUM_VEHICLE_MODS(veh, MOD_ARMOR) - 1, 1); //Armor
 		VEHICLE::SET_VEHICLE_TYRES_CAN_BURST(veh, 0); //Bulletproof Tires
-		set_status_text("Added all armor upgrades and bulletproof tires");
+		set_status_text(tr("VehModMenu.AddedAllArmorUpgradesAndBulletproofTires", "Added all armor upgrades and bulletproof tires"));
 		break;
 	case -3: //Add All Mods Pimp My Ride
 		fully_tune_vehicle(veh);
-		set_status_text("Added all available upgrades");
+		set_status_text(tr("VehModMenu.AddedAllAvailableUpgrades", "Added all available upgrades"));
 		break;
 	case -4: //Remove All Mods
 		reset_vehicle(veh);
-		set_status_text("Removed all upgrades");
+		set_status_text(tr("VehModMenu.RemovedAllUpgrades", "Removed all upgrades"));
 		break;
 	case -5: //Randomize Vehicle Upgrades
 		randomize_vehicle_upgrades(veh);
@@ -1021,8 +994,8 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	case SPECIAL_ID_FOR_XENON_COLOUR:
 		if (VEHICLE::IS_TOGGLE_MOD_ON(veh, 22) && getGameVersion() > 45) process_xenon_colour_menu();
 		else {
-			if (!VEHICLE::IS_TOGGLE_MOD_ON(veh, 22)) set_status_text("~r~Xenon lights are not enabled");
-			if (getGameVersion() < 46) set_status_text("~r~Your game version does not support Xenon colours");
+			if (!VEHICLE::IS_TOGGLE_MOD_ON(veh, 22)) set_status_text(tr("VehModMenu.RXenonLightsAreNotEnabled", "~r~Xenon lights are not enabled"));
+			if (getGameVersion() < 46) set_status_text(tr("VehModMenu.RYourGameVersionDoesNotSupportXenonColou", "~r~Your game version does not support Xenon colours"));
 		}
 		break;
 	case SPECIAL_ID_FOR_CUSTOM_MULTIPLIER:
@@ -1036,16 +1009,49 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	return false;
 }
 
+// Set as the menu's per-frame call while process_vehmod_menu's draw_generic_menu is open, so the stat bars update live as the player equips/removes mods without needing a redraw point of their own (equipping a mod never returns control back to process_vehmod_menu - see onconfirm_vehmod_category_menu).
+// Re-fetches the vehicle every call rather than capturing it once, since this keeps running across nested category submenus.
+void update_vehicle_stats_mod_menu_widget(){
+	if(!is_vehicle_preview_enabled()) return;
+
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) return;
+
+	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+	Hash modelHash = ENTITY::GET_ENTITY_MODEL(veh);
+
+	float estMaxSpeed = VEHICLE::GET_VEHICLE_ESTIMATED_MAX_SPEED(veh);
+	float acceleration = VEHICLE::GET_VEHICLE_ACCELERATION(veh);
+	float braking = VEHICLE::GET_VEHICLE_MAX_BRAKING(veh);
+	float traction = VEHICLE::GET_VEHICLE_MAX_TRACTION(veh);
+	VehicleStatBars stats = normalize_vehicle_stats(estMaxSpeed, acceleration, braking, traction);
+
+	float uiScale = get_menu_ui_scale();
+	int screen_w, screen_h;
+	GRAPHICS::GET_SCREEN_RESOLUTION(&screen_w, &screen_h);
+
+	// Anchored beside the menu box the same way the vehicle spawner's preview image is - right of the box edge, near the top item row.
+	// Width matches the 256px preview image's fixed size (see draw_vehicle_model_stats_widget in vehicles.cpp) even though there's no image on this menu - keeps sizing consistent between both widget call sites.
+	float desiredX = ((35.0f + 350.0f + 8.0f) * uiScale) / (float) screen_w;
+	// The widget's underlying scaleform canvas is much bigger than its visible panel (see compute_stats_widget_box) and extends upward off-screen to place the panel near the top of the screen - close enough to y=0 and the game starts clipping into the visible content itself (not just the empty canvas margin), or culls the draw entirely. The vehicle spawner's widget never hit this because it sits lower down (under the preview image, ~240-330px); keeping this one in a similar range avoids it too, at the cost of sitting further from the title bar than ideal.
+	float desiredY = (200.0f * uiScale) / (float) screen_h;
+	float desiredWidth = 256.0f / (float) screen_w;
+
+	float boxX, boxY, boxWidth, boxHeight;
+	compute_stats_widget_box(desiredX, desiredY, desiredWidth, &boxX, &boxY, &boxWidth, &boxHeight);
+	draw_vehicle_stats_widget(modelHash, stats, boxX, boxY, boxWidth, boxHeight);
+}
+
 bool process_vehmod_menu(){
 	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)){
-		set_status_text("~r~Player isn't in a vehicle");
+		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
 		mod_slots.clear();
 		return false;
 	}
 
-	if (!UI::HAS_THIS_ADDITIONAL_TEXT_LOADED("MOD_MNU", 10)) {
-		UI::CLEAR_ADDITIONAL_TEXT(10, true);
-		UI::REQUEST_ADDITIONAL_TEXT("MOD_MNU", 10);
+	if (!HUD::HAS_THIS_ADDITIONAL_TEXT_LOADED("MOD_MNU", 10)) {
+		HUD::CLEAR_ADDITIONAL_TEXT(10, true);
+		HUD::REQUEST_ADDITIONAL_TEXT("MOD_MNU", 10);
 		WAIT(0);
 	}
 
@@ -1060,44 +1066,42 @@ bool process_vehmod_menu(){
 
 	const std::string caption = "Vehicle Mod Options";
 
-	std::ostringstream ss;
-
 	std::vector<MenuItem<int>*> menuItems;
 	
 	if (!isWeird) { //!isWeird && !isAircraft
 		MenuItem<int> *item1 = new MenuItem<int>();
-		item1->caption = "Add All Performance Upgrades";
+		item1->caption = tr("VehModMenu.AddAllPerformanceUpgrades", "Add All Performance Upgrades");
 		item1->value = -1;
 		item1->isLeaf = true;
 		menuItems.push_back(item1);
 
 		MenuItem<int> *item2 = new MenuItem<int>();
-		item2->caption = "Add All Armor Upgrades";
+		item2->caption = tr("VehModMenu.AddAllArmorUpgrades", "Add All Armor Upgrades");
 		item2->value = -2;
 		item2->isLeaf = true;
 		menuItems.push_back(item2);
 
 		MenuItem<int> *item3 = new MenuItem<int>();
-		item3->caption = "Add All Available Upgrades";
+		item3->caption = tr("VehModMenu.AddAllAvailableUpgrades", "Add All Available Upgrades");
 		item3->value = -3;
 		item3->isLeaf = true;
 		menuItems.push_back(item3);
 
 		MenuItem<int> *item4 = new MenuItem<int>();
-		item4->caption = "Remove All Upgrades";
+		item4->caption = tr("VehModMenu.RemoveAllUpgrades", "Remove All Upgrades");
 		item4->value = -4;
 		item4->isLeaf = true;
 		menuItems.push_back(item4);
 
 		MenuItem<int> *item5 = new MenuItem<int>();
-		item5->caption = "Randomize Upgrades";
+		item5->caption = tr("VehModMenu.RandomizeUpgrades", "Randomize Upgrades");
 		item5->value = -5;
 		item5->isLeaf = true;
 		menuItems.push_back(item5);
 
 		if (!isWeird && !isAircraft){
 			MenuItem<int> *item6 = new MenuItem<int>();
-			item6->caption = UI::_GET_LABEL_TEXT("CANDC_COLOR");
+			item6->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CANDC_COLOR");
 			item6->value = -6;
 			item6->isLeaf = false;
 			menuItems.push_back(item6);
@@ -1118,14 +1122,10 @@ bool process_vehmod_menu(){
 
 				int mods = VEHICLE::GET_NUM_VEHICLE_MODS(veh, i);
 				if (mods > 0) {
-					ss.str(""), ss.clear();
-					if(mod_slots[i] != "")
-						ss << mod_slots[i] << " ~HUD_COLOUR_GREYLIGHT~(" << (mods + 1) << ")";
-					else 
-						ss << getLocalisedModCategory(i) << " ~HUD_COLOUR_GREYLIGHT~(" << (mods + 1) << ")";
+					std::string label = (mod_slots[i] != "") ? mod_slots[i] : getLocalisedModCategory(i);
 
 					MenuItem<int>* item = new MenuItem<int>();
-					item->caption = ss.str();
+					item->caption = label + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(mods + 1) + ")";
 					item->value = compIndex;
 					item->isLeaf = false;
 					menuItems.push_back(item);
@@ -1136,36 +1136,25 @@ bool process_vehmod_menu(){
 			mod_slots.clear();
 		}
 
-		ss.str(""), ss.clear();
-
 		int tintCount = VEHICLE::GET_NUM_VEHICLE_WINDOW_TINTS();
 		MenuItem<int> *item = new MenuItem<int>();
-		ss << getLocalisedModCategory(SPECIAL_ID_FOR_WINDOW_TINT) << " ~HUD_COLOUR_GREYLIGHT~(" << tintCount << ")";
-		item->caption = ss.str();
+		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_WINDOW_TINT) + tr("VehModMenu.CountSuffixPrefix", " ~HUD_COLOUR_GREYLIGHT~(") + std::to_string(tintCount) + ")";
 		item->value = SPECIAL_ID_FOR_WINDOW_TINT;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		int plateCount = VEHICLE::GET_NUMBER_OF_VEHICLE_NUMBER_PLATES();
 		item = new MenuItem<int>();
-		ss << getLocalisedModCategory(SPECIAL_ID_FOR_LICENSE_PLATES) << " ~HUD_COLOUR_GREYLIGHT~(" << plateCount << ")";
-		item->caption = ss.str();
+		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_LICENSE_PLATES) + tr("VehModMenu.CountSuffixPrefix", " ~HUD_COLOUR_GREYLIGHT~(") + std::to_string(plateCount) + ")";
 		item->value = SPECIAL_ID_FOR_LICENSE_PLATES;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-
 		item = new MenuItem<int>();
-		ss << getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_CATEGORY) << " ~HUD_COLOUR_GREYLIGHT~(" << wheel_names.size() << ")";
-		item->caption = ss.str();
+		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_CATEGORY) + tr("VehModMenu.CountSuffixPrefix", " ~HUD_COLOUR_GREYLIGHT~(") + std::to_string(wheel_names.size()) + ")";
 		item->value = SPECIAL_ID_FOR_WHEEL_CATEGORY;
 		item->isLeaf = false;
 		menuItems.push_back(item);
-
-		ss.str(""), ss.clear();
 
 		item = new MenuItem<int>();
 		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_WHEEL_SELECTION);
@@ -1173,8 +1162,6 @@ bool process_vehmod_menu(){
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
-		ss.str(""), ss.clear();
-		
 		item = new MenuItem<int>();
 		item->caption = getLocalisedModCategory(SPECIAL_ID_FOR_ENGINE_SOUND);
 		item->value = SPECIAL_ID_FOR_ENGINE_SOUND;
@@ -1184,26 +1171,26 @@ bool process_vehmod_menu(){
 
 	if (isCar || isBike){
 		MenuItem<int> * item = new MenuItem<int>();
-		item->caption = UI::_GET_LABEL_TEXT("PIM_PVEO_004");
+		item->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("PIM_PVEO_004");
 		item->value = SPECIAL_ID_FOR_NEON_LIGHTS;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
-		item->caption = "Tire Smoke Menu";
+		item->caption = tr("VehModMenu.TireSmokeMenu", "Tire Smoke Menu");
 		item->value = SPECIAL_ID_FOR_TIRE_SMOKE;
 		item->isLeaf = false;
 		menuItems.push_back(item);
 	}
 
 	MenuItem<int> * item = new MenuItem<int>();
-	item->caption = "Xenon Colour Menu";
+	item->caption = tr("VehModMenu.XenonColourMenu", "Xenon Colour Menu");
 	item->value = SPECIAL_ID_FOR_XENON_COLOUR;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Custom Engine Power Multiplier";
+	item->caption = tr("VehModMenu.CustomEnginePowerMultiplier", "Custom Engine Power Multiplier");
 	item->value = SPECIAL_ID_FOR_CUSTOM_MULTIPLIER;
 	item->isLeaf = false;
 	menuItems.push_back(item);
@@ -1212,7 +1199,7 @@ bool process_vehmod_menu(){
 
 	if (!isWeird){ //if(!isWeird && !isAircraft){
 		toggleItem = new FunctionDrivenToggleMenuItem<int>();
-		toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_MOD_TUR");
+		toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_MOD_TUR");
 		toggleItem->getter_call = is_turbocharged;
 		toggleItem->setter_call = set_turbocharged;
 		toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
@@ -1220,28 +1207,28 @@ bool process_vehmod_menu(){
 
 		if (!isWeird && !isAircraft) {
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_LGT_1");
+			toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_LGT_1");
 			toggleItem->getter_call = is_xenon_headlights;
 			toggleItem->setter_call = set_xenon_headlights;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 			menuItems.push_back(toggleItem);
 
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_GLD2_1");
+			toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_GLD2_1");
 			toggleItem->getter_call = is_bulletproof_tyres;
 			toggleItem->setter_call = set_bulletproof_tyres;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 			menuItems.push_back(toggleItem);
 
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = UI::_GET_LABEL_TEXT("CMOD_TYR_1");
+			toggleItem->caption = HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION("CMOD_TYR_1");
 			toggleItem->getter_call = is_custom_tyres;
 			toggleItem->setter_call = set_custom_tyres;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 			menuItems.push_back(toggleItem);
 
 			toggleItem = new FunctionDrivenToggleMenuItem<int>();
-			toggleItem->caption = "Low Grip Tyres";
+			toggleItem->caption = tr("VehModMenu.LowGripTyres", "Low Grip Tyres");
 			toggleItem->getter_call = is_low_grip_tyres;
 			toggleItem->setter_call = set_low_grip_tyres;
 			toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
@@ -1254,23 +1241,23 @@ bool process_vehmod_menu(){
 			continue;
 		}
 
-		ss << "Toggle Extra #" << a;
 		toggleItem = new FunctionDrivenToggleMenuItem<int>();
-		toggleItem->caption = ss.str();
+		toggleItem->caption = tr("VehModMenu.ToggleExtraPrefix", "Toggle Extra #") + std::to_string(a);
 		toggleItem->getter_call = is_extra_enabled;
 		toggleItem->setter_call = set_extra_enabled;
 		toggleItem->value = SPECIAL_ID_FOR_TOGGLE_VARIATIONS;
 		toggleItem->extra_arguments.push_back(a);
 		menuItems.push_back(toggleItem);
-		ss.str(""), ss.clear();
 	}
 	
 	if (menuItems.size() == 0){
-		set_status_text("No relevant mods for this vehicle");
+		set_status_text(tr("VehModMenu.NoRelevantModsForThisVehicle", "No relevant mods for this vehicle"));
 		return false;
 	}
 
+	set_menu_per_frame_call(update_vehicle_stats_mod_menu_widget);
 	draw_generic_menu<int>(menuItems, 0, "Vehicle Mods", onconfirm_vehmod_menu, NULL, NULL, vehicle_menu_interrupt);
+	clear_menu_per_frame_call();
 	return false;
 }
 
@@ -1279,16 +1266,16 @@ void set_plate_text(){ // MenuItem<int> choice
 	VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 	keyboard_on_screen_already = true;
 	char* existingText = "";
-	curr_message = "Enter plate text (type 'random' for random text):"; // set plate text
-	if (result != "random" && result != "Random" && result != "RANDOM") existingText = VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh);
+	set_curr_message(tr("VehModMenu.EnterPlateTextTypeRandomForRandomText", "Enter plate text (type 'random' for random text):")); // set plate text
+	if (result != "random" && result != "Random" && result != "RANDOM") existingText = const_cast<char*>(VEHICLE::GET_VEHICLE_NUMBER_PLATE_TEXT(veh));
 	if (result == "random" || result == "Random" || result == "RANDOM") existingText = (char*)result.c_str();
 	result = show_keyboard("Enter Name Manually", existingText); // CMOD_MOD_18_D
 	if (!result.empty()){
 		//
 		if (result == "random" || result == "Random" || result == "RANDOM") {
-			set_status_text("Press jump to cancel");
+			set_status_text(tr("VehModMenu.PressJumpToCancel", "Press jump to cancel"));
 			std::string random_t = "AAAAAAAA";
-			while (CONTROLS::IS_CONTROL_RELEASED(2, 22)/* && !IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE) && !CONTROLS::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && CONTROLS::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_CANCEL)*/) { // jump
+			while (PAD::IS_CONTROL_RELEASED(2, 22)/* && !IsKeyDown(KeyConfig::KEY_MENU_BACK) && !IsKeyDown(VK_ESCAPE) && !PAD::IS_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_PAUSE) && PAD::IS_DISABLED_CONTROL_JUST_PRESSED(2, INPUT_FRONTEND_CANCEL)*/) { // jump
 				for (int aa = 0; aa < 9; aa++) {
 					VEHICLE::SET_VEHICLE_NUMBER_PLATE_TEXT(veh, (char*)random_t.c_str());
 					//WAIT(100);
@@ -1322,6 +1309,12 @@ bool is_custom_tyres(std::vector<int> extras){
 void set_custom_tyres(bool applied, std::vector<int> extras){
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 	int currmod = VEHICLE::GET_VEHICLE_MOD(veh, 23);
+
+	// With no wheel mod installed (stock wheels, index -1), there's no mod for the custom-tires flag to attach to and the toggle silently does nothing - let the player know instead of it just appearing broken.
+	if(currmod == -1){
+		set_status_text(tr("VehModMenu.RSelectAWheelTypeFirst", "~r~Select a wheel type first"));
+		return;
+	}
 
 	VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 	VEHICLE::SET_VEHICLE_MOD(veh, 23, currmod, applied); //Add Custom Tires
@@ -1372,12 +1365,12 @@ void set_xenon_headlights(bool applied, std::vector<int> extras){
 
 bool is_low_grip_tyres(std::vector<int> extras) {
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	return VEHICLE::_GET_VEHICLE_HAS_LOW_GRIP_TYRES(veh) ? true : false;
+	return VEHICLE::GET_DRIFT_TYRES_SET(veh) ? true : false;
 }
 
 void set_low_grip_tyres (bool applied, std::vector<int> extras) {
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
-	VEHICLE::_SET_VEHICLE_HAS_LOW_GRIP_TYRES(veh, applied); //Slicks
+	VEHICLE::SET_DRIFT_TYRES(veh, applied); //Slicks
 }
 
 bool vehicle_menu_interrupt(){
@@ -1422,14 +1415,14 @@ void randomize_vehicle_upgrades(Vehicle veh) {
 	VEHICLE::SET_VEHICLE_WINDOW_TINT(veh, rand_tint);
 	for (int a = 0; a < 4; a++) {
 		int rand_toggle = (rand() % 1 + 0);
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, a, rand_toggle);
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, a, rand_toggle);
 	}
 	int temp_colour = rand() % 12 + 0;
 	NeonLightsColor npc_whichcolor = NEON_COLORS[temp_colour];
 	
-	VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, npc_whichcolor.rVal, npc_whichcolor.gVal, npc_whichcolor.bVal);
+	VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, npc_whichcolor.rVal, npc_whichcolor.gVal, npc_whichcolor.bVal);
 	for (int loc = 0; loc <= 3; loc++) {
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, loc, true); //int rand_toggle = (rand() % 1 + 0); // rand_toggle
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, loc, true); //int rand_toggle = (rand() % 1 + 0); // rand_toggle
 	}
 
 	for (int a = 0; a < 16; a++) {
@@ -1446,7 +1439,7 @@ void randomize_vehicle_upgrades(Vehicle veh) {
 	if (getGameVersion() > 45) {
 		int rand_xenon = (rand() % 13 + 0);
 		XenonColour whichcolor = XENON_COLOURS[rand_xenon];
-		VEHICLE::SET_VEHICLE_XENON_COLOUR(veh, whichcolor.colour);
+		VEHICLE::SET_VEHICLE_XENON_LIGHT_COLOR_INDEX(veh, whichcolor.colour);
 		VEHICLE::TOGGLE_VEHICLE_MOD(veh, 22, true); // rand_toggle
 	}
 	VEHICLE::SET_VEHICLE_TYRES_CAN_BURST(veh, rand_toggle); //Bulletproof Tires
@@ -1496,9 +1489,9 @@ void fully_tune_vehicle(Vehicle veh, bool optics){
 		VEHICLE::SET_VEHICLE_EXTRA_COLOURS(veh, (rand() % 160 + 1), (rand() % 160 + 1));
 
 		for (int a = 0; a < 4; a++){
-			VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, a, true);
+			VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, a, true);
 		}
-		VEHICLE::_SET_VEHICLE_NEON_LIGHTS_COLOUR(veh, 255, 255, 255);
+		VEHICLE::SET_VEHICLE_NEON_COLOUR(veh, 255, 255, 255);
 
 		apply_dash_colors(68);
 		apply_trim_colors(68);
@@ -1553,7 +1546,7 @@ void reset_vehicle(Vehicle veh){
 	//write_text_to_log_file("reset_vehicle(): vehicle colors complete");
 
 	for (int a = 0; a < 4; a++){
-		VEHICLE::_SET_VEHICLE_NEON_LIGHT_ENABLED(veh, a, false);
+		VEHICLE::SET_VEHICLE_NEON_ENABLED(veh, a, false);
 	}
 	apply_neon_colors(12);
 	//write_text_to_log_file("reset_vehicle(): neon colors complete");

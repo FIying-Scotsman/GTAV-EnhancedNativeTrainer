@@ -10,13 +10,12 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #include "filestream.hpp"
 #include "../storage/database.h"
-
-#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
+#include "../features/interior_customization.h"
 
 bool generate_xml_for_propset(SavedPropSet* props, std::string outputFile);
 
 bool parse_xml_for_propset(std::string inputFile, SavedPropSet* set);
 
-void handle_error(IXMLDOMDocumentPtr doc);
+bool generate_xml_for_interior_customization(SavedInteriorCustomization* data, std::string outputFile);
 
-bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream);
+bool parse_xml_for_interior_customization(std::string inputFile, SavedInteriorCustomization* data);

@@ -10,13 +10,12 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <tchar.h>
 #include <windows.h>
 
-#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
-
 #include <map>
 #include <vector>
 #include <fstream>
 
 #include "keyboard.h"
+#include "..\common\controller_bind.h"
 
 class KeyConfig{
 	public:
@@ -137,4 +136,4 @@ inline TrainerConfig* get_config(){
 	return config;
 }
 
-extern std::map<std::string, std::pair<int, int>> controller_binds;
+extern std::map<std::string, ControllerBind> controller_binds;

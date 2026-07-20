@@ -22,11 +22,7 @@ bool gameInputBlockedByUs = false;
 
 bool trainer_switch_pressed()
 {
-	/*std::stringstream ss;
-	ss << "Map first: " << controller_binds["KEY_TOGGLE_MAIN_MENU"].first << " Map second: " << controller_binds["KEY_TOGGLE_MAIN_MENU"].second;
-	set_status_text_centre_screen(ss.str());*/
-
-	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_TOGGLE_MAIN_MENU"].first) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_TOGGLE_MAIN_MENU"].second)); //INPUT_FRONTEND_RB + INPUT_ENTER (Y)
+	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_MAIN_MENU) || (is_bind_pressed("KEY_TOGGLE_MAIN_MENU") && is_bind_just_pressed("KEY_TOGGLE_MAIN_MENU", 2)); //INPUT_FRONTEND_RB + INPUT_ENTER (Y)
 	if (result)
 	{
 		//avoid repeat of key press
@@ -43,20 +39,20 @@ bool trainer_switch_pressed()
 void get_button_state(bool *a, bool *b, bool *up, bool *down, bool *l, bool *r)
 {
 	KeyInputConfig *keyConf = config->get_key_config();
-	if (a) *a = IsKeyJustUp(KeyConfig::KEY_MENU_SELECT) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_ACCEPT); //A //IS_DISABLED_CONTROL_PRESSED
-	if (b) *b = (is_menu_showing() && !IsKeyJustUp(VK_ESCAPE) && IsKeyJustUp(KeyConfig::KEY_MENU_BACK)) || (is_menu_showing() && (CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_CANCEL) || CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_PAUSE))); //B
+	if (a) *a = IsKeyJustUp(KeyConfig::KEY_MENU_SELECT) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_ACCEPT); //A //IS_DISABLED_CONTROL_PRESSED
+	if (b) *b = (is_menu_showing() && !IsKeyJustUp(VK_ESCAPE) && IsKeyJustUp(KeyConfig::KEY_MENU_BACK)) || (is_menu_showing() && (PAD::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_CANCEL) || PAD::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_PAUSE))); //B
 
 	if (MISC_TRAINERCONTROL_VALUES[TrainerControlIndex] == 1) { // press
-		if (up) *up = IsKeyDown(KeyConfig::KEY_MENU_UP) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_UP); //Dpad up
-		if (down) *down = IsKeyDown(KeyConfig::KEY_MENU_DOWN) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_DOWN); //Dpad down
-		if (r) *r = IsKeyDown(KeyConfig::KEY_MENU_RIGHT) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_RIGHT); //Dpad right
-		if (l) *l = IsKeyDown(KeyConfig::KEY_MENU_LEFT) || CONTROLS::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_LEFT); //Dpad left
+		if (up) *up = IsKeyDown(KeyConfig::KEY_MENU_UP) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_UP); //Dpad up
+		if (down) *down = IsKeyDown(KeyConfig::KEY_MENU_DOWN) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_DOWN); //Dpad down
+		if (r) *r = IsKeyDown(KeyConfig::KEY_MENU_RIGHT) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_RIGHT); //Dpad right
+		if (l) *l = IsKeyDown(KeyConfig::KEY_MENU_LEFT) || PAD::IS_DISABLED_CONTROL_PRESSED(2, INPUT_FRONTEND_LEFT); //Dpad left
 	}
 	if (MISC_TRAINERCONTROL_VALUES[TrainerControlIndex] == 0) { // release
-		if (up) *up = IsKeyJustUp(KeyConfig::KEY_MENU_UP) || CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_UP);
-		if (down) *down = IsKeyJustUp(KeyConfig::KEY_MENU_DOWN) || CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_DOWN);
-		if (r) *r = IsKeyJustUp(KeyConfig::KEY_MENU_RIGHT) || CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_RIGHT);
-		if (l) *l = IsKeyJustUp(KeyConfig::KEY_MENU_LEFT) || CONTROLS::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_LEFT);
+		if (up) *up = IsKeyJustUp(KeyConfig::KEY_MENU_UP) || PAD::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_UP);
+		if (down) *down = IsKeyJustUp(KeyConfig::KEY_MENU_DOWN) || PAD::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_DOWN);
+		if (r) *r = IsKeyJustUp(KeyConfig::KEY_MENU_RIGHT) || PAD::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_RIGHT);
+		if (l) *l = IsKeyJustUp(KeyConfig::KEY_MENU_LEFT) || PAD::IS_DISABLED_CONTROL_JUST_RELEASED(2, INPUT_FRONTEND_LEFT);
 	}
 }
 
@@ -68,7 +64,7 @@ bool get_key_pressed(int nVirtKey)
 
 bool airbrake_switch_pressed()
 {
-	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_AIRBRAKE) || (CONTROLS::IS_CONTROL_PRESSED(2, controller_binds["KEY_TOGGLE_AIRBRAKE"].first) && CONTROLS::IS_CONTROL_JUST_PRESSED(2, controller_binds["KEY_TOGGLE_AIRBRAKE"].second)); //INPUT_FRONTEND_ACCEPT (A) + INPUT_FRONTEND_RB (RB)
+	bool result = IsKeyJustUp(KeyConfig::KEY_TOGGLE_AIRBRAKE) || (is_bind_pressed("KEY_TOGGLE_AIRBRAKE") && is_bind_just_pressed("KEY_TOGGLE_AIRBRAKE", 2)); //INPUT_FRONTEND_ACCEPT (A) + INPUT_FRONTEND_RB (RB)
 	if (result)
 	{
 		//avoid repeat of key press
@@ -108,11 +104,11 @@ void setAirbrakeRelatedInputToBlocked(bool blocked, bool force)
 		void(*function)(int index, int control, BOOL enable);
 		if (blocked)
 		{
-			function = CONTROLS::DISABLE_CONTROL_ACTION;
+			function = PAD::DISABLE_CONTROL_ACTION;
 		}
 		else
 		{
-			function = CONTROLS::ENABLE_CONTROL_ACTION;
+			function = PAD::ENABLE_CONTROL_ACTION;
 		}
 		
 		function(2, 332, 1); //radio wheel up

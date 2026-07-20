@@ -4,6 +4,11 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
+// exclude(): ISequentialStream/_FILETIME are already declared via other Windows headers pulled in
+// elsewhere in this translation unit - the importer silently skips redeclaring them regardless,
+// this just makes that explicit instead of emitting a C4192 warning about it.
+#import <msxml6.dll> exclude("ISequentialStream", "_FILETIME") //read the GitHub project readme regarding what you need to make this work
+
 #include "xml_import_export.h"
 #include "..\version.h"
 #include "..\features\script.h"
@@ -11,9 +16,14 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\debug\debuglog.h"
 
 // A global Windows "basic string". Actual memory is allocated by the
-// COM methods used by MSXML which take &keyconf_bstr. We must use SysFreeString() 
+// COM methods used by MSXML which take &keyconf_bstr. We must use SysFreeString()
 // to free this memory before subsequent uses, to prevent a leak.
 BSTR xmlParser_bstr;
+
+// Internal helpers - not used outside this file, so the COM types they take
+// don't need to leak into xml_import_export.h (and its #import with them).
+static void handle_error(IXMLDOMDocumentPtr doc);
+static bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream);
 
 bool generate_xml_for_propset(SavedPropSet* props, std::string outputFile)
 {
@@ -306,7 +316,253 @@ bool parse_xml_for_propset(std::string inputFile, SavedPropSet* set)
 	return true;
 }
 
-void handle_error(IXMLDOMDocumentPtr doc)
+bool generate_xml_for_interior_customization(SavedInteriorCustomization* data, std::string outputFile)
+{
+	IXMLDOMDocumentPtr pXMLDoc;
+	HRESULT hr = pXMLDoc.CreateInstance(__uuidof(MSXML2::DOMDocument60));
+	if (FAILED(hr))
+	{
+		write_text_to_log_file("Failed to create the XML class instance");
+		return false;
+	}
+
+	VARIANT_BOOL bIsSuccessful;
+	if (FAILED(pXMLDoc->loadXML(L"<interior-customization></interior-customization>", &bIsSuccessful)))
+	{
+		write_text_to_log_file("Root creation failed");
+		handle_error(pXMLDoc);
+		return false;
+	}
+
+	IXMLDOMProcessingInstructionPtr pXMLProcessingNode;
+	pXMLDoc->createProcessingInstruction(L"xml", L" version=\"1.0\" encoding=\"UTF-8\"", &pXMLProcessingNode);
+
+	IXMLDOMElementPtr pXMLRootElem;
+	pXMLDoc->get_documentElement(&pXMLRootElem);
+
+	_variant_t vtObject;
+	vtObject.vt = VT_DISPATCH;
+	vtObject.pdispVal = pXMLRootElem;
+	vtObject.pdispVal->AddRef();
+	pXMLDoc->insertBefore(pXMLProcessingNode, vtObject, 0);
+
+	pXMLRootElem->setAttribute(L"interior-name", _variant_t(data->interiorName.c_str()));
+	pXMLRootElem->setAttribute(L"ent-version", _variant_t(VERSION_STRING.c_str()));
+
+	for (const SavedInteriorCategorySelection& category : data->categories)
+	{
+		IXMLDOMElementPtr categoryNode;
+		pXMLDoc->createElement(L"category", &categoryNode);
+
+		categoryNode->setAttribute(L"name", _variant_t(category.categoryName.c_str()));
+		categoryNode->setAttribute(L"option", _variant_t(category.selectedOptionName.c_str()));
+		categoryNode->setAttribute(L"tint", _variant_t(category.tint));
+
+		pXMLRootElem->appendChild(categoryNode, 0);
+	}
+
+	for (const SavedInteriorPropSelection& prop : data->props)
+	{
+		IXMLDOMElementPtr propNode;
+		pXMLDoc->createElement(L"prop", &propNode);
+
+		propNode->setAttribute(L"name", _variant_t(prop.propName.c_str()));
+		propNode->setAttribute(L"active", _variant_t(prop.active));
+
+		pXMLRootElem->appendChild(propNode, 0);
+	}
+
+	FileStream* output;
+	std::wstring ws;
+	ws.assign(outputFile.begin(), outputFile.end());
+	BSTR bs = SysAllocStringLen(ws.data(), ws.size());
+
+	bool result = true;
+	if (FAILED(FileStream::OpenFile(bs, &output, true)))
+	{
+		write_text_to_log_file("Opening output failed");
+		result = false;
+	}
+	else
+	{
+		if (!format_dom_document(pXMLDoc, output))
+		{
+			write_text_to_log_file("Save failed");
+			write_text_to_log_file(outputFile);
+			handle_error(pXMLDoc);
+			result = false;
+		}
+		else
+		{
+			write_text_to_log_file("Save complete");
+			write_text_to_log_file(outputFile);
+			result = true;
+		}
+
+		int count = 0;
+		do
+		{
+			count = output->Release();
+		} while (count > 0);
+	}
+	return result;
+}
+
+bool parse_xml_for_interior_customization(std::string inputFile, SavedInteriorCustomization* data)
+{
+	CoInitialize(NULL);
+
+	MSXML2::IXMLDOMDocumentPtr spXMLDoc;
+	spXMLDoc.CreateInstance(__uuidof(MSXML2::DOMDocument60));
+	if (!spXMLDoc->load(inputFile.c_str()))
+	{
+		write_text_to_log_file("No XML file found");
+		return false;
+	}
+
+	IXMLDOMNodeListPtr topNodes = spXMLDoc->selectNodes(L"//interior-customization");
+	{
+		IXMLDOMNode *node;
+		topNodes->get_item(0, &node);
+
+		IXMLDOMNamedNodeMap *attribs;
+		node->get_attributes(&attribs);
+		long length_attribs;
+		attribs->get_length(&length_attribs);
+
+		for (long j = 0; j < length_attribs; j++)
+		{
+			IXMLDOMNode *attribNode;
+			attribs->get_item(j, &attribNode);
+			attribNode->get_nodeName(&xmlParser_bstr);
+			if (wcscmp(xmlParser_bstr, L"interior-name") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				data->interiorName = _com_util::ConvertBSTRToString(V_BSTR(&var));
+			}
+
+			SysFreeString(xmlParser_bstr);
+			attribNode->Release();
+		}
+
+		attribs->Release();
+		node->Release();
+	}
+
+	IXMLDOMNodeListPtr categoryNodes = spXMLDoc->selectNodes(L"//interior-customization/category");
+	long categoryCount;
+	categoryNodes->get_length(&categoryCount);
+	for (int i = 0; i < categoryCount; i++)
+	{
+		WAIT(0);
+		make_periodic_feature_call();
+
+		IXMLDOMNode *node;
+		categoryNodes->get_item(i, &node);
+		IXMLDOMNamedNodeMap *attribs;
+		node->get_attributes(&attribs);
+
+		SavedInteriorCategorySelection category;
+
+		long length_attribs;
+		attribs->get_length(&length_attribs);
+
+		for (long j = 0; j < length_attribs; j++)
+		{
+			IXMLDOMNode *attribNode;
+			attribs->get_item(j, &attribNode);
+			attribNode->get_nodeName(&xmlParser_bstr);
+			if (wcscmp(xmlParser_bstr, L"name") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				category.categoryName = _com_util::ConvertBSTRToString(V_BSTR(&var));
+			}
+			else if (wcscmp(xmlParser_bstr, L"option") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				category.selectedOptionName = _com_util::ConvertBSTRToString(V_BSTR(&var));
+			}
+			else if (wcscmp(xmlParser_bstr, L"tint") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				VariantChangeType(&var, &var, 0, VT_INT);
+				category.tint = var.intVal;
+			}
+
+			SysFreeString(xmlParser_bstr);
+			attribNode->Release();
+		}
+
+		data->categories.push_back(category);
+
+		attribs->Release();
+		node->Release();
+	}
+
+	IXMLDOMNodeListPtr propNodes = spXMLDoc->selectNodes(L"//interior-customization/prop");
+	long propCount;
+	propNodes->get_length(&propCount);
+	for (int i = 0; i < propCount; i++)
+	{
+		WAIT(0);
+		make_periodic_feature_call();
+
+		IXMLDOMNode *node;
+		propNodes->get_item(i, &node);
+		IXMLDOMNamedNodeMap *attribs;
+		node->get_attributes(&attribs);
+
+		SavedInteriorPropSelection prop;
+
+		long length_attribs;
+		attribs->get_length(&length_attribs);
+
+		for (long j = 0; j < length_attribs; j++)
+		{
+			IXMLDOMNode *attribNode;
+			attribs->get_item(j, &attribNode);
+			attribNode->get_nodeName(&xmlParser_bstr);
+			if (wcscmp(xmlParser_bstr, L"name") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				prop.propName = _com_util::ConvertBSTRToString(V_BSTR(&var));
+			}
+			else if (wcscmp(xmlParser_bstr, L"active") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				VariantChangeType(&var, &var, 0, VT_INT);
+				prop.active = var.intVal != 0;
+			}
+
+			SysFreeString(xmlParser_bstr);
+			attribNode->Release();
+		}
+
+		data->props.push_back(prop);
+
+		attribs->Release();
+		node->Release();
+	}
+
+	spXMLDoc.Release();
+	CoUninitialize();
+
+	return true;
+}
+
+static void handle_error(IXMLDOMDocumentPtr doc)
 {
 	std::ostringstream ss;
 	IXMLDOMParseError* pError;
@@ -325,7 +581,7 @@ void handle_error(IXMLDOMDocumentPtr doc)
 	write_text_to_log_file(ss.str());
 }
 
-bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream)
+static bool format_dom_document(IXMLDOMDocument *pDoc, IStream *pStream)
 {
 	// Create the writer
 	MSXML2::IMXWriterPtr pMXWriter;

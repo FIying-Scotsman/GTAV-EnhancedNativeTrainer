@@ -27,7 +27,9 @@ bool featurepersprops = false;
 // auto skin variables
 bool auto_skin = false;
 bool reset_skin = false;
-int skin_tick, skin_tick_secs_passed, skin_tick_secs_curr = 0;
+int skin_tick = 0;
+int skin_tick_secs_passed = 0;
+int skin_tick_secs_curr = 0;
 Ped oldplayerSkin = -1;
 
 int skinDetailMenuIndex = 0;
@@ -63,12 +65,10 @@ int clear_props_m = -2;
 
 // Reset Player Model On Death
 int ResetSkinOnDeathIdx = 0;
-bool ResetSkinOnDeathChanged = true;
 
 // Auto Apply Last Saved Skin
 const std::vector<std::string> SKINS_AUTO_SKIN_SAVED_CAPTIONS{ "OFF", "Restore Character", "Saved Character Only" };
 int AutoApplySkinSavedIndex = 0;
-bool AutoApplySkinSavedChanged = true;
 
 /***
 * METHODS
@@ -76,12 +76,10 @@ bool AutoApplySkinSavedChanged = true;
 
 void onchange_skins_reset_skin_ondeath_index(int value, SelectFromListMenuItem* source) {
 	ResetSkinOnDeathIdx = value;
-	ResetSkinOnDeathChanged = true;
 }
 
 void onchange_auto_apply_skin_saved_index(int value, SelectFromListMenuItem* source) {
 	AutoApplySkinSavedIndex = value;
-	AutoApplySkinSavedChanged = true;
 }
 
 void reset_skin_globals()
@@ -101,7 +99,7 @@ void reset_skin_globals()
 
 bool applyChosenSkin(std::string skinName)
 {
-	DWORD model = GAMEPLAY::GET_HASH_KEY((char *)skinName.c_str());
+	DWORD model = MISC::GET_HASH_KEY((char *)skinName.c_str());
 	return applyChosenSkin(model);
 }
 
@@ -260,29 +258,29 @@ void update_skin_features() {
 	if (featurenoblood) PED::CLEAR_PED_BLOOD_DAMAGE(PLAYER::PLAYER_PED_ID()); 
 
 	// Persistent Props
-	if (featurepersprops && ENTITY::IS_ENTITY_IN_WATER(PLAYER::PLAYER_PED_ID()) == 0/* && (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) > -1 || PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) > -1)*/) {
-		if ((ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) == -1) || (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) == -1)) {
+	if (featurepersprops && ENTITY::IS_ENTITY_IN_WATER(PLAYER::PLAYER_PED_ID()) == 0/* && (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) > -1 || PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) > -1)*/) {
+		if ((ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) == -1) || (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) == -1)) {
 			Vector3 me_c = ENTITY::GET_ENTITY_COORDS(PLAYER::PLAYER_PED_ID(), true);
-			GAMEPLAY::CLEAR_AREA_OF_OBJECTS(me_c.x, me_c.y, me_c.z, 1.0, 0);
+			MISC::CLEAR_AREA_OF_OBJECTS(me_c.x, me_c.y, me_c.z, 1.0, 0);
 		}
-		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) > -1) ped_prop_idx_0 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0);
-		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) > -1) ped_prop_idx_1 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1);
-		if (ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, ped_prop_idx_0, 0, 0);
-		if (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, ped_prop_idx_1, 0, 0);
+		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) > -1) ped_prop_idx_0 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0);
+		if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) > -1) ped_prop_idx_1 = PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0);
+		if (ped_prop_idx_0 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, ped_prop_idx_0, 0, 0, 0);
+		if (ped_prop_idx_1 > -1 && PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) == -1) PED::SET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, ped_prop_idx_1, 0, 0, 0);
 		
 		if (choicevalue == -1 && skinPropsCategoryValueC == 0) {
 			ped_prop_idx_0 = -1;
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0, 0);
 		}
 		if (choicevalue == -1 && skinPropsCategoryValueC == 1) {
 			ped_prop_idx_1 = -1;
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1, 0);
 		}
 		if (clear_props_m == -1) {
 			ped_prop_idx_0 = -1;
 			ped_prop_idx_1 = -1;
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0);
-			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 0, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 0, 0);
+			if (PED::GET_PED_PROP_INDEX(PLAYER::PLAYER_PED_ID(), 1, 0) != -1) PED::CLEAR_PED_PROP(PLAYER::PLAYER_PED_ID(), 1, 0);
 			clear_props_m = -2;
 		}
 	}
@@ -302,7 +300,7 @@ void update_skin_features() {
 				if (!savedSkins.empty()) {
 					Hash model = -1;
 					if (reset_skin == false) {
-						GAMEPLAY::_RESET_LOCALPLAYER_STATE();
+						MISC::FORCE_GAME_STATE_PLAYING();
 						reset_skin = true;
 						model = 1;
 					}
@@ -323,9 +321,9 @@ void update_skin_features() {
 								for each (SavedSkinComponentDBRow * comp in savedSkin->components) {
 									PED::SET_PED_COMPONENT_VARIATION(ped, comp->slotID, comp->drawable, comp->texture, 0);
 								}
-								PED::CLEAR_ALL_PED_PROPS(ped);
+								PED::CLEAR_ALL_PED_PROPS(ped, 0);
 								for each (SavedSkinPropDBRow * prop in savedSkin->props) {
-									PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0);
+									PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0, 0);
 								}
 								for (std::vector<SavedSkinDBRow*>::iterator it = savedSkins.begin(); it != savedSkins.end(); ++it) {
 									delete (*it);
@@ -345,7 +343,7 @@ void update_skin_features() {
 
 		if (PLAYER::PLAYER_PED_ID() != oldplayerSkin) auto_skin = false;
 		if ((time_since_d > -1 && time_since_d < 2000) || (player_died == true && !featureNoAutoRespawn)) auto_skin = false;
-		if (DLC2::GET_IS_LOADING_SCREEN_ACTIVE()) auto_skin = false;
+		if (DLC::GET_IS_LOADING_SCREEN_ACTIVE()) auto_skin = false;
 
 	} // end of featureautoskin
 }
@@ -372,10 +370,8 @@ bool process_skinchanger_texture_menu(std::string caption)
 		int textures = PED::GET_NUMBER_OF_PED_TEXTURE_VARIATIONS(PLAYER::PLAYER_PED_ID(), skinDetailMenuValue, currentDrawable);
 		for (int i = 0; i < textures; i++)
 		{
-			std::ostringstream ss;
-			ss << "Texture #" << i;
 			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = ss.str();
+			item->caption = "Texture #" + std::to_string(i);
 			item->value = i;
 			menuItems.push_back(item);
 		}
@@ -383,11 +379,8 @@ bool process_skinchanger_texture_menu(std::string caption)
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 	}
 
-	std::ostringstream ss;
-	ss << "Available Textures";
-
 	int currentTexture = PED::GET_PED_TEXTURE_VARIATION(PLAYER::PLAYER_PED_ID(), skinDetailMenuValue);
-	draw_generic_menu<int>(menuItems, &currentTexture, ss.str(), onconfirm_skinchanger_texture_menu, onhighlight_skinchanger_texture_menu, onexit_skinchanger_texture_menu);
+	draw_generic_menu<int>(menuItems, &currentTexture, "Available Textures", onconfirm_skinchanger_texture_menu, onhighlight_skinchanger_texture_menu, onexit_skinchanger_texture_menu);
 	return false;
 }
 
@@ -442,11 +435,9 @@ bool process_skinchanger_drawable_menu(std::string caption, int component)
 		for (int i = 0; i < drawables; i++)
 		{
 			int textures = PED::GET_NUMBER_OF_PED_TEXTURE_VARIATIONS(PLAYER::PLAYER_PED_ID(), component, i);
-			std::ostringstream ss;
-			ss << "Drawable #" << i << " ~HUD_COLOUR_GREYLIGHT~(" << textures << ")";
 
 			MenuItem<int> *item = new MenuItem<int>();
-			item->caption = ss.str();
+			item->caption = "Drawable #" + std::to_string(i) + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(textures) + ")";
 			item->value = i;
 			item->isLeaf = (textures <= 1);
 			menuItems.push_back(item);
@@ -455,11 +446,8 @@ bool process_skinchanger_drawable_menu(std::string caption, int component)
 		STREAMING::SET_MODEL_AS_NO_LONGER_NEEDED(model);
 	}
 
-	std::ostringstream ss;
-	ss << "Available Drawables";
-
 	int currentDrawable = PED::GET_PED_DRAWABLE_VARIATION(PLAYER::PLAYER_PED_ID(), component);
-	draw_generic_menu<int>(menuItems, &currentDrawable, ss.str(), onconfirm_skinchanger_drawable_menu, onhighlight_skinchanger_drawable_menu, onexit_skinchanger_drawable_menu);
+	draw_generic_menu<int>(menuItems, &currentDrawable, "Available Drawables", onconfirm_skinchanger_drawable_menu, onhighlight_skinchanger_drawable_menu, onexit_skinchanger_drawable_menu);
 	return false;
 }
 
@@ -521,12 +509,10 @@ bool process_skinchanger_detail_menu()
 			}
 			if (drawables > 1 || textures != 0)
 			{
-				std::ostringstream ss;
 				std::string itemText = getSkinDetailAttribDescription(compIndex);
-				ss << "Slot " << (compIndex + 1) << ": " << itemText << " ~HUD_COLOUR_GREYLIGHT~(" << drawables << ")";
 
 				MenuItem<int> *item = new MenuItem<int>();
-				item->caption = ss.str();
+				item->caption = "Slot " + std::to_string(compIndex + 1) + ": " + itemText + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(drawables) + ")";
 				item->value = compIndex;
 				item->isLeaf = false;
 				menuItems.push_back(item);
@@ -717,18 +703,16 @@ bool onconfirm_skinchanger_category_menu(MenuItem<int> choice)
 		case 4: //Custom entry
 		{
 			keyboard_on_screen_already = true;
-			curr_message = "Enter model skin name (e.g. csb_agent):"; // change your skin
+			set_curr_message(tr("SkinsMenu.EnterModelSkinNameEGCsbAgent", "Enter model skin name (e.g. csb_agent):")); // change your skin
 			std::string result = show_keyboard("Enter Name Manually", (char*)lastCustomSkinSpawn.c_str());
 			if (!result.empty())
 			{
 				result = trim(result);
 				lastCustomSkinSpawn = result;
-				Hash hash = GAMEPLAY::GET_HASH_KEY((char*)result.c_str());
+				Hash hash = MISC::GET_HASH_KEY((char*)result.c_str());
 				if (!STREAMING::IS_MODEL_IN_CDIMAGE(hash) || !STREAMING::IS_MODEL_VALID(hash))
 				{
-					std::ostringstream ss;
-					ss << "Couldn't find model '" << result << "'";
-					set_status_text(ss.str());
+					set_status_text(tr("SkinsMenu.CouldntFindModelPrefix", "Couldn't find model '") + result + tr("SkinsMenu.CouldntFindModelSuffix", "'"));
 					return false;
 				}
 				else
@@ -745,8 +729,6 @@ bool onconfirm_skinchanger_category_menu(MenuItem<int> choice)
 bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	std::ostringstream ss;
-	int index = PED::GET_PED_PROP_INDEX(playerPed, 0);
 
 	switch (activeLineIndexSkinChanger) { // choice.value
 		case 0:
@@ -763,28 +745,28 @@ bool onconfirm_skinchanger_menu(MenuItem<int> choice)
 			break;
 		case 4: //Reset
 			PED::SET_PED_DEFAULT_COMPONENT_VARIATION(playerPed);
-			set_status_text("Using default model skin");
+			set_status_text(tr("SkinsMenu.UsingDefaultModelSkin", "Using default model skin"));
 			break;
 		case 5:
-			PED::CLEAR_ALL_PED_PROPS(playerPed);
+			PED::CLEAR_ALL_PED_PROPS(playerPed, 0);
 			clear_props_m = -1;
 			ped_prop_idx = -1;
 			break;
 		case 6:
-			PED::CLEAR_ALL_PED_PROPS(playerPed);
+			PED::CLEAR_ALL_PED_PROPS(playerPed, 0);
 			PED::SET_PED_RANDOM_COMPONENT_VARIATION(playerPed, true);
 			PED::SET_PED_RANDOM_PROPS(playerPed);
 			break;
 		case 7:
-			PED::CLEAR_ALL_PED_PROPS(playerPed);
+			PED::CLEAR_ALL_PED_PROPS(playerPed, 0);
 			PED::SET_PED_RANDOM_PROPS(playerPed);
 			break;
 		case 8:
 			if (helmet_on == false) {
 				Hash model = -1;
-				if (PED::GET_PED_TYPE(playerPed) == 0) model = GAMEPLAY::GET_HASH_KEY("player_zero");
-				if (PED::GET_PED_TYPE(playerPed) == 1) model = GAMEPLAY::GET_HASH_KEY("player_one");
-				if (PED::GET_PED_TYPE(playerPed) == 2 || PED::GET_PED_TYPE(playerPed) == 3) model = GAMEPLAY::GET_HASH_KEY("player_two");
+				if (PED::GET_PED_TYPE(playerPed) == 0) model = MISC::GET_HASH_KEY("player_zero");
+				if (PED::GET_PED_TYPE(playerPed) == 1) model = MISC::GET_HASH_KEY("player_one");
+				if (PED::GET_PED_TYPE(playerPed) == 2 || PED::GET_PED_TYPE(playerPed) == 3) model = MISC::GET_HASH_KEY("player_two");
 				applyChosenSkin(model);
 				helmet_on = true;
 			}
@@ -805,31 +787,31 @@ bool process_skinchanger_category_menu()
 	int i = 0;
 
 	item = new MenuItem<int>();
-	item->caption = "Players";
+	item->caption = tr("SkinsMenu.Players", "Players");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Animals";
+	item->caption = tr("SkinsMenu.Animals", "Animals");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "NPCs";
+	item->caption = tr("SkinsMenu.NPCs", "NPCs");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Online NPCs";
+	item->caption = tr("SkinsMenu.OnlineNPCs", "Online NPCs");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Enter Name Manually";
+	item->caption = tr("SkinsMenu.EnterNameManually", "Enter Name Manually");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
@@ -847,80 +829,80 @@ bool process_skinchanger_menu()
 	int i = 0;
 
 	item = new MenuItem<int>();
-	item->caption = "Saved Appearances";
+	item->caption = tr("SkinsMenu.SavedAppearances", "Saved Appearances");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Change Skin";
+	item->caption = tr("SkinsMenu.ChangeSkin", "Change Skin");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Modify Current Skin";
+	item->caption = tr("SkinsMenu.ModifyCurrentSkin", "Modify Current Skin");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Modify Props";
+	item->caption = tr("SkinsMenu.ModifyProps", "Modify Props");
 	item->value = i++;
 	item->isLeaf = false;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Reset Current Skin";
+	item->caption = tr("SkinsMenu.ResetCurrentSkin", "Reset Current Skin");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Clear Props";
+	item->caption = tr("SkinsMenu.ClearProps", "Clear Props");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 	
 	item = new MenuItem<int>();
-	item->caption = "Randomize Appearance";
+	item->caption = tr("SkinsMenu.RandomizeAppearance", "Randomize Appearance");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Randomize Head Accessories";
+	item->caption = tr("SkinsMenu.RandomizeHeadAccessories", "Randomize Head Accessories");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
-	item->caption = "Give Helmet";
+	item->caption = tr("SkinsMenu.GiveHelmet", "Give Helmet");
 	item->value = i++;
 	item->isLeaf = true;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "Persistent Props";
+	toggleItem->caption = tr("SkinsMenu.PersistentProps", "Persistent Props");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurepersprops;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(SKINS_RESET_SKIN_ONDEATH_CAPTIONS, onchange_skins_reset_skin_ondeath_index);
+	listItem = new SelectFromListMenuItem(&SKINS_RESET_SKIN_ONDEATH_CAPTIONS, onchange_skins_reset_skin_ondeath_index);
 	listItem->wrap = false;
-	listItem->caption = "Player Model";
+	listItem->caption = tr("SkinsMenu.PlayerModel", "Player Model");
 	listItem->value = ResetSkinOnDeathIdx;
 	menuItems.push_back(listItem);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = "No Blood And Bullet Holes";
+	toggleItem->caption = tr("SkinsMenu.NoBloodAndBulletHoles", "No Blood And Bullet Holes");
 	toggleItem->value = i++;
 	toggleItem->toggleValue = &featurenoblood;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(SKINS_AUTO_SKIN_SAVED_CAPTIONS, onchange_auto_apply_skin_saved_index);
+	listItem = new SelectFromListMenuItem(&SKINS_AUTO_SKIN_SAVED_CAPTIONS, onchange_auto_apply_skin_saved_index);
 	listItem->wrap = false;
-	listItem->caption = "Auto Apply Last Saved Skin";
+	listItem->caption = tr("SkinsMenu.AutoApplyLastSavedSkin", "Auto Apply Last Saved Skin");
 	listItem->value = AutoApplySkinSavedIndex;
 	menuItems.push_back(listItem);
 
@@ -940,7 +922,7 @@ bool onconfirm_props_texture_menu(MenuItem<int> choice)
 void onhighlight_props_texture_menu(MenuItem<int> choice)
 {
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, skinPropsDrawablePosition[skinPropsCategoryValue]-1, choice.value, 0);
+	PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, skinPropsDrawablePosition[skinPropsCategoryValue]-1, choice.value, 0, 0);
 }
 
 bool process_prop_texture_menu()
@@ -958,11 +940,7 @@ bool process_prop_texture_menu()
 		int compIndex = i;
 
 		MenuItem<int> *item = new MenuItem<int>();
-
-		std::ostringstream ss;
-		ss << "Texture #" << (i + 1);
-		item->caption = ss.str();
-
+		item->caption = "Texture #" + std::to_string(i + 1);
 		item->value = i;
 		item->isLeaf = true;
 		menuItems.push_back(item);
@@ -992,13 +970,13 @@ void onhighlight_props_drawable_menu(MenuItem<int> choice)
 	skinPropsDrawablePosition[skinPropsCategoryValue] = choice.currentMenuIndex;
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
-	int currentProp = PED::GET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue);
+	int currentProp = PED::GET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, 0);
 	if (currentProp != choice.value) //if the selected drawable is not what we have now
 	{
-		PED::CLEAR_PED_PROP(playerPed, skinPropsCategoryValue);
+		PED::CLEAR_PED_PROP(playerPed, skinPropsCategoryValue, 0);
 		if (choice.value != -1)
 		{
-			PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, choice.value, 0, 0);
+			PED::SET_PED_PROP_INDEX(playerPed, skinPropsCategoryValue, choice.value, 0, 0, 0);
 		}
 	}
 
@@ -1029,14 +1007,12 @@ bool process_prop_drawable_menu()
 
 			if (i == -1)
 			{
-				item->caption = "Nothing";
+				item->caption = tr("SkinsMenu.Nothing", "Nothing");
 				item->isLeaf = true;
 			}
 			else
 			{
-				std::ostringstream ss;
-				ss << "Prop Item #" << (i + 1);
-				item->caption = ss.str();
+				item->caption = "Prop Item #" + std::to_string(i + 1);
 				int textures = PED::GET_NUMBER_OF_PED_PROP_TEXTURE_VARIATIONS(PLAYER::PLAYER_PED_ID(), skinPropsCategoryValue, i);
 				item->isLeaf = (textures <= 1);
 			}
@@ -1078,11 +1054,8 @@ bool process_prop_menu()
 		{
 			MenuItem<int> *item = new MenuItem<int>();
 
-			std::ostringstream ss;
-			
-				std::string itemText = getPropDetailAttribDescription(compIndex);
-				ss << "Slot " << (compIndex + 1) << ": " << itemText << " ~HUD_COLOUR_GREYLIGHT~(" << drawables << ")";
-				item->caption = ss.str();
+			std::string itemText = getPropDetailAttribDescription(compIndex);
+			item->caption = "Slot " + std::to_string(compIndex + 1) + ": " + itemText + " ~HUD_COLOUR_GREYLIGHT~(" + std::to_string(drawables) + ")";
 
 			item->value = compIndex;
 			item->isLeaf = false;
@@ -1093,7 +1066,7 @@ bool process_prop_menu()
 
 	if (count == 0)
 	{
-		set_status_text("Nothing available for this model");
+		set_status_text(tr("SkinsMenu.NothingAvailableForThisModel", "Nothing available for this model"));
 		return false;
 	}
 
@@ -1154,7 +1127,7 @@ bool onconfirm_savedskin_slot_menu(MenuItem<int> choice)
 	case 3: //rename
 	{
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a new name:"; // rename a saved skin
+		set_curr_message(tr("SkinsMenu.EnterANewName", "Enter a new name:")); // rename a saved skin
 		std::string result = show_keyboard("Enter Name Manually", (char*)activeSavedSkinSlotName.c_str());
 		if (!result.empty())
 		{
@@ -1200,7 +1173,7 @@ bool process_savedskin_menu()
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
-		item->caption = "Create New Skin Save";
+		item->caption = tr("SkinsMenu.CreateNewSkinSave", "Create New Skin Save");
 		menuItems.push_back(item);
 
 		for each (SavedSkinDBRow *sv in savedSkins)
@@ -1236,25 +1209,25 @@ bool process_savedskin_slot_menu(int slot)
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 1;
-		item->caption = "Apply To Player";
+		item->caption = tr("SkinsMenu.ApplyToPlayer", "Apply To Player");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 2;
-		item->caption = "Overwrite With Current";
+		item->caption = tr("SkinsMenu.OverwriteWithCurrent", "Overwrite With Current");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 3;
-		item->caption = "Rename";
+		item->caption = tr("SkinsMenu.Rename", "Rename");
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = 4;
-		item->caption = "Delete";
+		item->caption = tr("SkinsMenu.Delete", "Delete");
 		menuItems.push_back(item);
 
 		draw_generic_menu<int>(menuItems, 0, activeSavedSkinSlotName, onconfirm_savedskin_slot_menu, NULL, NULL, skin_save_slot_menu_interrupt);
@@ -1280,10 +1253,10 @@ bool spawn_saved_skin(int slot, std::string caption)
 		PED::SET_PED_COMPONENT_VARIATION( ped, comp->slotID, comp->drawable, comp->texture, 0);
 	}
 
-	PED::CLEAR_ALL_PED_PROPS(ped);
+	PED::CLEAR_ALL_PED_PROPS(ped, 0);
 	for each (SavedSkinPropDBRow *prop in savedSkin->props)
 	{
-		PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0);
+		PED::SET_PED_PROP_INDEX(ped, prop->propID, prop->drawable, prop->texture, 0, 0);
 	}
 
 	for (std::vector<SavedSkinDBRow*>::iterator it = savedSkins.begin(); it != savedSkins.end(); ++it)
@@ -1302,19 +1275,10 @@ void save_current_skin(int slot)
 
 	if (bPlayerExists)
 	{
-		std::ostringstream ss;
-		if (slot != -1)
-		{
-			ss << activeSavedSkinSlotName;
-		}
-		else
-		{
-			ss << "Saved Skin " << (lastKnownSavedSkinCount + 1);
-		}
+		std::string existingText = (slot != -1) ? activeSavedSkinSlotName : (tr("SkinsMenu.SavedSkinPrefix", "Saved Skin ") + std::to_string(lastKnownSavedSkinCount + 1));
 
 		keyboard_on_screen_already = true;
-		curr_message = "Enter a save name:"; // save a skin
-		auto existingText = ss.str();
+		set_curr_message(tr("SkinsMenu.EnterASaveName", "Enter a save name:")); // save a skin
 		std::string result = show_keyboard("Enter Name Manually", (char*)existingText.c_str());
 		if (!result.empty())
 		{
@@ -1323,11 +1287,11 @@ void save_current_skin(int slot)
 			if (database->save_skin(playerPed, result, slot))
 			{
 				activeSavedSkinSlotName = result;
-				set_status_text("Saved skin");
+				set_status_text(tr("SkinsMenu.SavedSkin", "Saved skin"));
 			}
 			else
 			{
-				set_status_text("Save error");
+				set_status_text(tr("SkinsMenu.SaveError", "Save error"));
 			}
 		}
 	}

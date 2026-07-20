@@ -274,10 +274,10 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		toggle_tractioncontrol();
 		break;
 	case HKEY_DELETE_CHECKPOINT:
-		UI::SET_WAYPOINT_OFF();
+		HUD::SET_WAYPOINT_OFF();
 		break;
 	case HKEY_CLEAR_PROPS:
-		PED::CLEAR_ALL_PED_PROPS(PLAYER::PLAYER_PED_ID());
+		PED::CLEAR_ALL_PED_PROPS(PLAYER::PLAYER_PED_ID(), 0);
 		break;
 	case HKEY_ENTER_DAMAGED_V:
 		enter_damaged_vehicle();
@@ -314,8 +314,8 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		break;
 	case HKEY_BODYGUARD_DIS_ARMED:
 		c_armed = !c_armed;
-		if (c_armed) set_status_text("Armed");
-		else set_status_text("Disarmed");
+		if (c_armed) set_status_text(tr("HotkeysMenu.Armed", "Armed"));
+		else set_status_text(tr("HotkeysMenu.Disarmed", "Disarmed"));
 		break;
 	case HKEY_SPAWN_SAVED_CAR:
 		hotkey_held_saved_veh_spawn = false;
@@ -346,9 +346,7 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		break;
 	default:
 	{
-		std::ostringstream ss;
-		ss << "Hotkey " << (hotkey + 1) << " has unrecognised function";
-		set_status_text(ss.str());
+		set_status_text(tr("HotkeysMenu.HotkeyPrefix", "Hotkey ") + std::to_string(hotkey + 1) + tr("HotkeysMenu.HasUnrecognisedFunctionSuffix", " has unrecognised function"));
 		break;
 	}
 	}
@@ -403,9 +401,7 @@ void add_hotkey_generic_settings(std::vector<StringPairSettingDBRow>* results)
 {
 	for (int i = 0; i < MAX_HOTKEYS; i++)
 	{
-		std::ostringstream ss;
-		ss << "hotkey_" << i;
-		results->push_back(StringPairSettingDBRow{ ss.str(), std::to_string(functionIDs[i]) });
+		results->push_back(StringPairSettingDBRow{ "hotkey_" + std::to_string(i), std::to_string(functionIDs[i]) });
 	}
 }
 

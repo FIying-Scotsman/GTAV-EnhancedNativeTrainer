@@ -72,44 +72,54 @@
 
 <!--Controller Keys-->
   <controller_keys>
-    <controller function="KEY_TOGGLE_MAIN_MENU" button1="206" button2="192"/>
-    
-	<controller function="KEY_MENU_UP" button1="188" button2="-1"/>
-    <controller function="KEY_MENU_DOWN" button1="187" button2="-1"/>
-	<controller function="KEY_MENU_LEFT" button1="189" button2="-1"/>
-    <controller function="KEY_MENU_RIGHT" button1="190" button2="-1"/>
-    <controller function="KEY_MENU_SELECT" button1="201" button2="-1"/>
-	<controller function="KEY_MENU_BACK" button1="202" button2="-1"/>
-	
-	<controller function="KEY_VEH_BOOST" button1="206" button2="24"/>
-	<controller function="KEY_VEH_STOP" button1="205" button2="25"/>
-	<controller function="KEY_VEH_ROCKETS" button1="205" button2="206"/>
-	<controller function="KEY_VEH_LEFTBLINK" button1="25" button2="-1"/>
-	<controller function="KEY_VEH_RIGHTBLINK" button1="24" button2="-1"/>
-	<controller function="KEY_VEH_EMERGENCYBLINK" button1="202" button2="-1"/>
-	<controller function="KEY_VEH_STARTREFUELING" button1="201" button2="-1"/>
-	<controller function="KEY_VEH_STOPREFUELING" button1="202" button2="-1"/>
-  <controller function="KEY_VEH_CANREFUELING" button1="203" button2="-1"/>
-	
-	<controller function="KEY_TOGGLE_AIRBRAKE" button1="201" button2="206"/>
-	<controller function="KEY_AIRBRAKE_UP" button1="25" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_DOWN" button1="24" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_FORWARD" button1="32" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_BACK" button1="33" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_ROTATE_LEFT" button1="205" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_ROTATE_RIGHT" button1="206" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_SPEED" button1="201" button2="-1"/>
-	<controller function="KEY_AIRBRAKE_FREEZE_TIME" button1="202" button2="-1"/>
-	
-	<controller function="KEY_OBJECTPLACER_UP" button1="25" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_DOWN" button1="24" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_FORWARD" button1="32" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_BACK" button1="33" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_ROTATE_LEFT" button1="205" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_ROTATE_RIGHT" button1="206" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_SPEED_CYCLE" button1="201" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_FREEZE_TIME" button1="202" button2="-1"/>
-	<controller function="KEY_OBJECTPLACER_FREEZE_POSITION" button1="192" button2="-1"/>
+    <!--
+    Button values are the names from GTA V's own eButton control enum (see
+    inc/enums.h in the source, e.g. INPUT_FRONTEND_ACCEPT, INPUT_AIM). Raw
+    numeric IDs are still accepted for back-compat with older config files,
+    but names are recommended since they're self-documenting.
+
+    Use NONE to signify no assignment for a given button slot.
+
+    If you cock up this file and enter an invalid value, the default will be used instead.
+    -->
+    <controller function="KEY_TOGGLE_MAIN_MENU" button1="INPUT_FRONTEND_RB" button2="INPUT_FRONTEND_RUP"/>
+
+	<controller function="KEY_MENU_UP" button1="INPUT_FRONTEND_UP" button2="NONE"/>
+    <controller function="KEY_MENU_DOWN" button1="INPUT_FRONTEND_DOWN" button2="NONE"/>
+	<controller function="KEY_MENU_LEFT" button1="INPUT_FRONTEND_LEFT" button2="NONE"/>
+    <controller function="KEY_MENU_RIGHT" button1="INPUT_FRONTEND_RIGHT" button2="NONE"/>
+    <controller function="KEY_MENU_SELECT" button1="INPUT_FRONTEND_ACCEPT" button2="NONE"/>
+	<controller function="KEY_MENU_BACK" button1="INPUT_FRONTEND_CANCEL" button2="NONE"/>
+
+	<controller function="KEY_VEH_BOOST" button1="INPUT_FRONTEND_RB" button2="INPUT_ATTACK"/>
+	<controller function="KEY_VEH_STOP" button1="INPUT_FRONTEND_LB" button2="INPUT_AIM"/>
+	<controller function="KEY_VEH_ROCKETS" button1="INPUT_FRONTEND_LB" button2="INPUT_FRONTEND_RB"/>
+	<controller function="KEY_VEH_LEFTBLINK" button1="INPUT_AIM" button2="NONE"/>
+	<controller function="KEY_VEH_RIGHTBLINK" button1="INPUT_ATTACK" button2="NONE"/>
+	<controller function="KEY_VEH_EMERGENCYBLINK" button1="INPUT_FRONTEND_CANCEL" button2="NONE"/>
+	<controller function="KEY_VEH_STARTREFUELING" button1="INPUT_FRONTEND_ACCEPT" button2="NONE"/>
+	<controller function="KEY_VEH_STOPREFUELING" button1="INPUT_FRONTEND_CANCEL" button2="NONE"/>
+  <controller function="KEY_VEH_CANREFUELING" button1="INPUT_FRONTEND_X" button2="NONE"/>
+
+	<controller function="KEY_TOGGLE_AIRBRAKE" button1="INPUT_FRONTEND_ACCEPT" button2="INPUT_FRONTEND_RB"/>
+	<controller function="KEY_AIRBRAKE_UP" button1="INPUT_AIM" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_DOWN" button1="INPUT_ATTACK" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_FORWARD" button1="INPUT_MOVE_UP_ONLY" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_BACK" button1="INPUT_MOVE_DOWN_ONLY" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_ROTATE_LEFT" button1="INPUT_FRONTEND_LB" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_ROTATE_RIGHT" button1="INPUT_FRONTEND_RB" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_SPEED" button1="INPUT_FRONTEND_ACCEPT" button2="NONE"/>
+	<controller function="KEY_AIRBRAKE_FREEZE_TIME" button1="INPUT_FRONTEND_CANCEL" button2="NONE"/>
+
+	<controller function="KEY_OBJECTPLACER_UP" button1="INPUT_AIM" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_DOWN" button1="INPUT_ATTACK" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_FORWARD" button1="INPUT_MOVE_UP_ONLY" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_BACK" button1="INPUT_MOVE_DOWN_ONLY" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_ROTATE_LEFT" button1="INPUT_FRONTEND_LB" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_ROTATE_RIGHT" button1="INPUT_FRONTEND_RB" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_SPEED_CYCLE" button1="INPUT_FRONTEND_ACCEPT" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_FREEZE_TIME" button1="INPUT_FRONTEND_CANCEL" button2="NONE"/>
+	<controller function="KEY_OBJECTPLACER_FREEZE_POSITION" button1="INPUT_FRONTEND_RUP" button2="NONE"/>
 </controller_keys>
 
  <!--Weather Order-->
