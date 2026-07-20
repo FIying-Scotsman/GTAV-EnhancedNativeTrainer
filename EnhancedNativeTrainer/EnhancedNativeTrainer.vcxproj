@@ -55,6 +55,7 @@
     <ClCompile Include="src\ui_support\entcolor.cpp" />
     <ClCompile Include="src\ui_support\menu_functions.cpp" />
     <ClCompile Include="src\ui_support\vehicle_stats_widget.cpp" />
+    <ClCompile Include="src\features\interior_customization.cpp" />
     <ClCompile Include="src\features\paintmenu.cpp" />
     <ClCompile Include="src\features\script.cpp" />
     <ClCompile Include="src\features\skins.cpp" />
@@ -88,6 +89,7 @@
     <ClInclude Include="src\features\drive_to_marker.h" />
     <ClInclude Include="src\features\enginedegrade.h" />
     <ClInclude Include="src\features\fuel.h" />
+    <ClInclude Include="src\features\interior_customization.h" />
     <ClInclude Include="src\features\interior_props.h" />
     <ClInclude Include="src\features\peds_dont_like_weapons.h" />
     <ClInclude Include="src\features\prison_break.h" />

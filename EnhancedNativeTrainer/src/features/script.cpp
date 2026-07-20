@@ -31,6 +31,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "road_laws.h"
 #include "vehicles.h"
 #include "weapons.h"
+#include "interior_customization.h"
 #include "../version.h"
 #include "../utils.h"
 #include "../ui_support/file_dialog.h"
@@ -894,6 +895,10 @@ void update_features(){
 	maintain_bodyguards();
 
 	update_props_pending_dialogs();
+
+	update_interior_customization_pending_dialogs();
+
+	update_nightclub_tv_projector();
 
 	update_area_effects(playerPed);
 	
@@ -2903,6 +2908,8 @@ std::vector<FeatureEnabledLocalDefinition> get_feature_enablements(){
 	add_bodyguards_feature_enablements(&results);
 
 	add_areaeffect_feature_enablements(&results);
+
+	add_interior_customization_feature_enablements(&results);
 
 	return results;
 }

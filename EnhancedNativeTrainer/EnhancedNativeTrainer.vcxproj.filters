@@ -67,6 +67,9 @@
     <ClCompile Include="src\features\teleportation.cpp">
       <Filter>src\features</Filter>
     </ClCompile>
+    <ClCompile Include="src\features\interior_customization.cpp">
+      <Filter>src\features</Filter>
+    </ClCompile>
     <ClCompile Include="src\features\time.cpp">
       <Filter>src\features</Filter>
     </ClCompile>
@@ -295,6 +298,9 @@
       <Filter>inc\features</Filter>
     </ClInclude>
     <ClInclude Include="src\features\interior_props.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\interior_customization.h">
       <Filter>inc\features</Filter>
     </ClInclude>
     <ClInclude Include="src\features\enginedegrade.h" />

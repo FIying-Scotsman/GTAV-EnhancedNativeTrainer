@@ -16,6 +16,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\debug\debuglog.h"
 #include "..\ent-enums.h"
 #include "interior_props.h"
+#include "interior_customization.h"
 #include "script.h"
 #include <iostream>   // std::cout
 #include <string>     // std::string, std::stof
@@ -37,11 +38,6 @@ bool featureChoshopCargoship = false;
 int chopshop_tick = 0;
 bool chopshop_init = false;
 bool on_island = false;
-
-//Load House On The Hill Automatically
-bool featureHouseOnHill = false;
-int househill_tick = 0;
-bool househill_init = false;
 
 struct tele_location{
 	std::string text;
@@ -301,20 +297,44 @@ const std::vector<tele_location> LOCATIONS_REQSCEN = {
 
 /* Name, coords, IPL name, scenary (props) required, scenary to remove, bool isloaded*/
 const std::vector<tele_location> LOCATIONS_ONLINE = {
+	// Kept at the top rather than mixed in with the rest of this list below - these all route into the customization framework (interior_customization.cpp) instead of a plain teleport (or, for the Kortz Center entries, are plain teleports pending that), and get used often enough while iterating on paint/style choices that paging through the rest of the alphabetical list isn't worth it. Coords/shell IPLs here are for display only; loading is handled by interior_customization.cpp (see onconfirm_teleport_location's caption checks below). This block is itself alphabetical, same as the rest of the list.
+	{ OFFICE_AUTOSHOP_ARCADIUS_CAPTION, -144.2712f, -593.0843f, 167.0001f, {}, {}, {}, false },
+	{ OFFICE_AUTOSHOP_LOMBANK_WEST_CAPTION, -1574.5394f, -571.2640f, 105.2001f, {}, {}, {}, false },
+	{ OFFICE_AUTOSHOP_MAZEBANK_BUILDING_CAPTION, -73.9068f, -815.3940f, 285.0001f, {}, {}, {}, false },
+	{ OFFICE_AUTOSHOP_MAZEBANK_WEST_CAPTION, -1389.9446f, -480.1762f, 78.2001f, {}, {}, {}, false },
+	{ BIKER_CLUBHOUSE_1FLOOR_CAPTION, 1109.1124f, -3164.1536f, -37.5186f, {}, {}, {}, false },
+	{ BIKER_CLUBHOUSE_2FLOORS_CAPTION, 998.3676f, -3164.6531f, -38.9073f, {}, {}, {}, false },
+	{ BUNKER_CUSTOMIZATION_CAPTION, 938.3077f, -3196.112f, -98.0f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION, 1093.6f, -3196.6f, -38.5f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_COUNTERFEIT_CASH_CAPTION, 1124.6f, -3196.6f, -38.5f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_DOCUMENT_FORGERY_CAPTION, 1165.0f, -3196.6f, -38.2f, {}, {}, {}, false },
+	{ DOOMSDAY_FACILITY_CAPTION, 462.09f, 4820.42f, -59.0f, {}, {}, {}, false },
+	{ HANGAR_CUSTOMIZATION_CAPTION, -1253.66f, -2998.80f, -48.49f, {}, {}, {}, false },
+	// Plain teleports only, not wired into the customization framework yet - coords/interior type confirmed via decompiled finale_heist1.c, shell IPLs as supplied. Rest of the Kortz Center Heist target building.
+	{ "Kortz Center: Exhibition Basement", 2631.4f, 5893.9f, -61.0f, { "M26_1_int_placement_interior_int_exhibition_basement_milo_" }, {}, {}, false },
+	{ "Kortz Center: Exhibition Room", 2603.2f, 5903.8f, -49.0f, { "M26_1_int_placement_interior_int_exhibition_room_milo_" }, {}, {}, false },
+	{ "Kortz Center: Loading Bay Tunnel", 2693.7f, 5877.5f, -61.0f, { "M26_1_int_placement_interior_int_loading_bay_tunnel_milo_" }, {}, {}, false },
+	{ "Kortz Center: Sewers Access", 2675.3f, 5927.8f, -65.6f, { "M26_1_int_placement_interior_int_sewers_access_milo_" }, {}, {}, false },
+	{ MANSION_CAPTION, -1666.368f, 478.9271f, 128.2216f, {}, {}, {}, false },
+	{ ART_WORKSHOP_CAPTION, 2588.177f, 5959.916f, -47.935f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_METH_LAB_CAPTION, 1009.5f, -3196.6f, -38.5f, {}, {}, {}, false },
+	{ NIGHTCLUB_CAPTION, -1569.25f, -3017.39f, -73.22f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_ARCADIUS_CAPTION, -197.5016f, -579.3605f, 136.0005f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_LOMBANK_WEST_CAPTION, -1585.6804f, -561.9070f, 86.5005f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_MAZEBANK_BUILDING_CAPTION, -90.7866f, -821.2824f, 222.0005f, {}, {}, {}, false },
+	{ OFFICE_GARAGE_MAZEBANK_WEST_CAPTION, -1395.2725f, -480.5121f, 57.1005f, {}, {}, {}, false },
+	{ IE_VEHICLE_BUNKER_CAPTION, 1001.2706f, -2997.8494f, -47.6470f, {}, {}, {}, false },
+	{ IE_WAREHOUSE_CAPTION, 973.5615f, -2999.5610f, -39.6470f, {}, {}, {}, false },
+	{ BIKER_BUSINESS_WEED_FARM_CAPTION, 1049.6f, -3196.6f, -38.5f, {}, {}, {}, false },
 	{ "2 Car Garage", 173.1176f, -1003.279f, -99.000f, { "hw1_blimp_interior_v_garages_milo_" }, {}, {}, false },
 	{ "4 Integrity Way Apt 10", -32.17249000f, -579.01830000f, 82.90740000f, { "hei_hw1_blimp_interior_10_dlc_apart_high_new_milo_" }, {}, {}, false },
 	{ "4 Integrity Way Apt 28", -14.7964f, -581.709f, 79.4307f, {}, {}, {}, false },
 	{ "6 Car Garage", 199.9716f, -999.6678f, -99.000f, { "hw1_blimp_interior_v_garagem_milo_" }, {}, {}, false },
 	{ "7302 San Andreas Avenue Apt 6", -460.61330000f, -691.55620000f, 69.87947000f, { "hw1_blimp_interior_v_apartment_high_milo__6" }, {}, {}, false },
 	{ "10 Car Garage Bay", 228.135f, -995.350f, -99.000f, { "hw1_blimp_interior_v_garagel_milo_" }, {}, {}, false },
-	{ "Arcadius Business Center Office: Style 1", -139.53950000f, -629.07570000f, 167.82040000f, { "ex_dt1_02_office_01a" }, {}, {}, false },
+	{ "Old Spice Warm (Arcadius Business Centre)", -139.53950000f, -629.07570000f, 167.82040000f, { "ex_dt1_02_office_01a" }, {}, {}, false },
 	{ "Benny's Garage", -209.759f, -1319.617f, 30.08367f }, 
-	{ "Biker Club Garage 1", 1005.861f, -3156.162f, -39.90727f, { "bkr_biker_interior_placement_interior_1_biker_dlc_int_02_milo_" }, {}, { IPL_PROPS_BIKER_CLUBHOUSE }, false },
 	{ "Bikers 'Lost' Safehouse", 981.211f, -101.864f, 75.8451f, { "bkr_bi_hw1_13_int" }, {}, {}, false },
-	{ "Biker Warehouse: Forgery 2", 1165.001f, -3196.597f, -39.99353f, { "bkr_biker_interior_placement_interior_6_biker_dlc_int_ware05_milo_" }, {}, { IPL_PROPS_BIKER_FORGERY_WAREHOUSE }, false },
-	{ "Biker Warehouse: Money Printer 1", 1009.545f, -3196.597f, -39.99353f, { "bkr_biker_interior_placement_interior_2_biker_dlc_int_ware01_milo_" }, {}, {}, false },
-	{ "Biker Warehouse: Money Printer 2", 1124.734f, -3196.597f, -39.99353f, { "bkr_biker_interior_placement_interior_5_biker_dlc_int_ware04_milo_" }, {}, { IPL_PROPS_BIKER_FAKE_CASH_WAREHOUSE }, false },
-	{ "Biker Warehouse: Weed Farm", 1059.028f, -3201.89f, -39.99353f, { "bkr_biker_interior_placement_interior_3_biker_dlc_int_ware02_milo_" }, {}, { IPL_PROPS_BIKER_WEED_WAREHOUSE }, false },
 	{ "Brickade Acid Lab", 485.0f, -2625.0f, -49.0f, { "xm3_int_placement_xm3_interior_0_dlc_int_01_xm3_milo_" }, {}, {}, false },
 	{ "Casino Back", 2523.36100000f, -270.00000000f, -59.72315000f, { "ch_int_placement_ch_interior_3_dlc_casino_back_milo_" }, {}, {}, false },
 	{ "Casino Carpark", 1380.0000, 200.0000, -50.0000f, { "vw_casino_carpark" }, {}, {}, false },
@@ -328,7 +348,6 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Casino Utility", 2519.87600000f, -255.30270000f, -25.11497000f, { "ch_int_placement_ch_interior_7_dlc_casino_utility_milo_" }, {}, {}, false },
 	{ "Casino Vault", 2488.34800000f, -267.36370000f, -71.64563000f, { "ch_int_placement_ch_interior_6_dlc_casino_vault_milo_" }, {}, {}, false },
 	{ "Cayo Perico Mansion", 5010.101f, -5753.549f, 27.8444f, { "h4_islandx_mansion_office" }, {}, {}, false }, // h4_dlc_island_office
-	{ "CEO Garage Modshop", -77.42f, -827.27f, 285.00f, { "imp_dt1_11_modgarage" }, {}, {}, false }, // 730.0f, -2990.0f, -40.0f // imp_impexp_interior_placement_interior_2_imptexp_mod_int_01_milo_
 	{ "CEO Warehouse", 800.00000000f, -3000.00000000f, -65.00000000f, { "reh_int_placement_sum2_interior_0_dlc_int_03_sum2_milo_" }, {}, { IPL_PROPS_BIKER_UNDERCOVER1 }, false },
 	{ "CEO Warehouse Basement", 850.00000000f, -3000.00000000f, -48.00000000f, { "reh_int_placement_sum2_interior_1_dlc_int_04_sum2_milo_" }, {}, { IPL_PROPS_BIKER_UNDERCOVER1 }, false },
 	{ "Chop Shop Cargoship Bridge", -397.00000000f, -4121.00000000f, 28.00000000f, { "m23_2_cargoship_bridge" }, {}, {}, false },
@@ -342,44 +361,37 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Eclipse Towers Apt 12", -791.29410000f, 338.07100000f, 200.41350000f, { "hw1_blimp_interior_v_apartment_high_milo__12" }, {}, {}, false },
 	{ "Eclipse Towers Apt 13", -764.81310000f, 319.18510000f, 216.05030000f, { "hw1_blimp_interior_v_apartment_high_milo__13" }, {}, {}, false },
 	{ "Eclipse Towers Apt 40", -773.023f, 341.627f, 211.397f },
-	{ "Executive CEO Office: Style 1", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01a" }, {}, {}, false }, //ex_dt1_11_office_01a[b, c....]
-	{ "Executive CEO Office: Style 2 (Messy)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01b" }, {}, { IPL_PROPS_CEO_OFFICE }, false },
-	{ "Executive CEO Office: Style 3", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01c" }, {}, {}, false },
-	{ "Executive CEO Office: Style 4", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02a" }, {}, {}, false },
-	{ "Executive CEO Office: Style 5", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02b" }, {}, {}, false },
-	{ "Executive CEO Office: Style 6", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02c" }, {}, {}, false },
-	{ "Executive CEO Office: Style 7", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03a" }, {}, {}, false },
-	{ "Executive CEO Office: Style 8", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03b" }, {}, {}, false },
-	{ "Executive CEO Office: Style 9", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03c" }, {}, {}, false },
+	{ "Old Spice Warm (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01a" }, {}, {}, false },
+	{ "Old Spice Classical (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01b" }, {}, { IPL_PROPS_CEO_OFFICE }, false },
+	{ "Old Spice Vintage (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01c" }, {}, {}, false },
+	{ "Executive Contrast (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02a" }, {}, {}, false },
+	{ "Executive Rich (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02b" }, {}, {}, false },
+	{ "Executive Cool (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02c" }, {}, {}, false },
+	{ "Power Broker Ice (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03a" }, {}, {}, false },
+	{ "Power Broker Conservative (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03b" }, {}, {}, false },
+	{ "Power Broker Polished (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03c" }, {}, {}, false },
 	{ "Executive Warehouse (Large)", 1010.0f, -3100.0f, -40.0f, { "ex_exec_warehouse_placement_interior_2_int_warehouse_l_dlc_milo_" }, {}, {}, false },
 	{ "Freakshop Brickade Garage", 570.0f, -415.0f, -69.0f, { "xm3_int_placement_xm3_interior_2_dlc_int_03_xm3_milo_" }, {}, {}, false },
-	{ "Gunrunning Regular", 938.3077f, -3196.1120f, -98.0000f, { "gr_grdlc_interior_placement_interior_1_grdlc_int_02_milo_" }, {}, {}, false },
 	{ "Hacker Basement", 745.79560000f, -993.11920000f, -44.37674000f, { "m24_2_int_hacker_basement" }, {}, {}, false },
 	{ "Hacker Garage", 750.90050000f, -990.05500000f, -62.75383000f, { "m24_2_int_hacker_garage" }, {}, {}, false },
 	{ "Hacker Office", 2150.00000000f, 4787.00000000f, -44.37500000f, { "m24_2_int_office_gen" }, {}, {}, false },
-	{ "Hangar", -1292.45f, -3015.19f, -44.0864f, IPL_PROPS_DOOMSDAY_MAIN_BASE, {}, { IPL_PROPS_HANGAR }, false },
 	{ "Humane Labs Lab", 495.0f, -2560.0f, -49.0f, { "xm3_int_placement_xm3_interior_3_dlc_int_04_xm3_milo_" }, {}, {}, false },
 	{ "IAA Server Hub", 2168.08900000f, 2920.89000000f, -85.80049000f, { "xm_x17dlc_int_placement_interior_5_x17dlc_int_facility2_milo_" }, {}, {}, false },
 	{ "IAA Underground Facility", 2047.0f, 2942.0f, -62.90245f, { "xm_x17dlc_int_placement_interior_4_x17dlc_int_facility_milo_" }, {}, {}, false },
 	{ "Lombank Office: Style 1", -1573.84900000f, -571.02540000f, 107.52290000f, { "ex_sm_13_office_01a" }, {}, {}, false },
-	//{ "Mansion Interior A", -1666.36800000f, 478.92710000f, 128.22160000f, { "m25_2_ch1_06e_mansion_interior_a" }, {}, { IPL_PROPS_MANSION }, false },
-	{ "Mansion Interior A", -1666.36800000f, 478.92710000f, 128.22160000f, IPL_PROPS_MANSION, {}, {}, false },
-	{ "Mansion Interior B", -1679.87700000f, 493.59600000f, 112.93510000f, { "m25_2_ch1_06e_mansion_interior_b" }, {}, {}, false },
-	{ "Mansion Interior C", -1649.63000000f, 480.97790000f, 117.36450000f, { "m25_2_ch1_06e_mansion_interior_c" }, {}, {}, false },
-	//{ "Mansion Interior D", -1679.87700000f, 493.59600000f, 56.45711000f, { "m25_2_ch1_06e_mansion_interior_d" }, {}, {}, false },
 	{ "Maze Bank Del Perro Office: Style 1", -1384.56400000f, -478.26990000f, 71.04205000f, { "ex_sm_15_office_01a" }, {}, {}, false },
 	{ "Merryweather R&D Centre", -1876.62100000f, 3750.00000000f, -100.00000000f, { "M23_1_int_placement_m23_1_interior_2_dlc_int_01_m23_1_milo_" }, {}, {}, false },
 	{ "Mission Row Underground Winning Garage", 400.09610000f, -956.67870000f, -100.00000000f},
 	{ "Mug Shot Room", 415.275f, -999.037f, -99.4041f, { "hw1_int_placement_interior_v_mugshot_milo_ " }, {}, {}, false },
 	{ "Music Locker", 1560.3f, 250.239f, -48.0f, { "h4_int_placement_h4_interior_1_dlc_int_02_h4_milo_" }, {}, { IPLS_MUSIC_LOCKER }, false },
-	{ "Penthouse: Style 1", -786.168f, 334.319f, 211.197f, { "apa_v_mp_h_01_a", "apa_v_mp_h_01_b", "apa_v_mp_h_01_c" }, {}, {}, false },
-	{ "Penthouse: Style 2", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_02_a", "apa_v_mp_h_02_b", "apa_v_mp_h_02_c" }, {}, {}, false },
-	{ "Penthouse: Style 3", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_03_a", "apa_v_mp_h_03_b", "apa_v_mp_h_03_c" }, {}, {}, false },
-	{ "Penthouse: Style 4", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_04_a", "apa_v_mp_h_04_b", "apa_v_mp_h_04_c" }, {}, {}, false },
-	{ "Penthouse: Style 5", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_05_a", "apa_v_mp_h_05_b", "apa_v_mp_h_05_c" }, {}, {}, false },
-	{ "Penthouse: Style 6", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_06_a", "apa_v_mp_h_06_b", "apa_v_mp_h_06_c" }, {}, {}, false },
-	{ "Penthouse: Style 7", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_07_a", "apa_v_mp_h_07_b", "apa_v_mp_h_07_c" }, {}, {}, false },
-	{ "Penthouse: Style 8", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_08_a", "apa_v_mp_h_08_b", "apa_v_mp_h_08_c" }, {}, {}, false },
+	{ "Penthouse: Modern", -786.168f, 334.319f, 211.197f, { "apa_v_mp_h_01_a", "apa_v_mp_h_01_b", "apa_v_mp_h_01_c" }, {}, {}, false },
+	{ "Penthouse: Moody", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_02_a", "apa_v_mp_h_02_b", "apa_v_mp_h_02_c" }, {}, {}, false },
+	{ "Penthouse: Vibrant", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_03_a", "apa_v_mp_h_03_b", "apa_v_mp_h_03_c" }, {}, {}, false },
+	{ "Penthouse: Sharp", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_04_a", "apa_v_mp_h_04_b", "apa_v_mp_h_04_c" }, {}, {}, false },
+	{ "Penthouse: Monochrome", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_05_a", "apa_v_mp_h_05_b", "apa_v_mp_h_05_c" }, {}, {}, false },
+	{ "Penthouse: Seductive", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_06_a", "apa_v_mp_h_06_b", "apa_v_mp_h_06_c" }, {}, {}, false },
+	{ "Penthouse: Regal", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_07_a", "apa_v_mp_h_07_b", "apa_v_mp_h_07_c" }, {}, {}, false },
+	{ "Penthouse: Aqua", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_08_a", "apa_v_mp_h_08_b", "apa_v_mp_h_08_c" }, {}, {}, false },
 	{ "Red's Autoparts", 1088.00000000f, -2275.00000000f, -50.00000000f, { "m23_2_int_placement_m23_2_interior_2_dlc_int_salvage_milo_" }, {}, {}, false },
 	{ "Richards Majestic Apt 2", -915.811f, -379.432f, 113.675f, {}, {}, {}, false },
 	{ "Richards Majestic Apt 10", -925.54970000f, -374.22030000f, 102.23290000f, { "hw1_blimp_interior_v_apartment_high_milo__10" }, {}, {}, false },
@@ -393,7 +405,6 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Tinsel Towers Apt 16", -613.54040000f, 63.04870000f, 100.81960000f, { "hw1_blimp_interior_v_apartment_high_milo__16" }, {}, {}, false },
 	{ "Tinsel Towers Apt 17", -587.82590000f, 44.26880000f, 86.41870000f, { "hw1_blimp_interior_v_apartment_high_milo__17" }, {}, {}, false },
 	{ "Tinsel Towers Apt 42", -614.86f, 40.6783f, 97.6f, {}, {}, {}, false },
-	{ "Upgraded Base", 462.09f, 4820.42f, -59.0f, IPL_PROPS_DOOMSDAY_MAIN_BASE, {}, { IPL_PROPS_FACILITY }, false },
 	{ "Vespucci Boulevard Studio Flat", 342.8157f, -997.4288f, -99.4041f, { "hei_hw1_blimp_interior_v_apart_midspaz_milo_" }, {}, {}, false },
 	{ "Vinewood Club Garage", 649.73970000f, -2688.76200000f, -50.00000000f, { "m24_1_int_placement_m24_1_interior_dlc_int_bounty_milo_" }, {}, {}, false },
 	{ "Weazel Plaza Apt 9", -909.10170000f, -438.19030000f, 114.39970000f, { "hw1_blimp_interior_v_apartment_high_milo__9" }, {}, {}, false },
@@ -764,9 +775,9 @@ const std::vector<tele_location> LOCATIONS_STUNTS = {
 
 const std::string JELLMAN_CAPTION = "Heist Map Updates In SP";
 
-const static std::vector<std::string> MENU_LOCATION_CATEGORIES{ "Safehouses", "Landmarks", "Roof/High Up", "Underwater", "Interiors", "Extra Exterior Scenery", "Online Interiors", "Special Actors/Freaks Locations", "Collectibles", "Stunts" };// <-- not sure what went wrong here, but it don't look right.
+const static std::vector<std::string> MENU_LOCATION_CATEGORIES{ "Collectibles", "Extra Exterior Scenery", "Interiors", "Landmarks", "Online Interiors", "Roof/High Up", "Safehouses", "Special Actors/Freaks Locations", "Stunts", "Underwater" };
 
-static std::vector<tele_location> VOV_LOCATIONS[] = { LOCATIONS_SAFE, LOCATIONS_LANDMARKS, LOCATIONS_HIGH, LOCATIONS_UNDERWATER, LOCATIONS_INTERIORS, LOCATIONS_REQSCEN, LOCATIONS_ONLINE, LOCATIONS_ACTORS, LOCATIONS_COLLECTIBLES, LOCATIONS_STUNTS/*, LOCATIONS_BROKEN, LOCATIONS_JELLMAN*/ };
+static std::vector<tele_location> VOV_LOCATIONS[] = { LOCATIONS_COLLECTIBLES, LOCATIONS_REQSCEN, LOCATIONS_INTERIORS, LOCATIONS_LANDMARKS, LOCATIONS_ONLINE, LOCATIONS_HIGH, LOCATIONS_SAFE, LOCATIONS_ACTORS, LOCATIONS_STUNTS, LOCATIONS_UNDERWATER/*, LOCATIONS_BROKEN, LOCATIONS_JELLMAN*/ };
 
 //3D Marker Symbol
 const Option<int> TEL_3DMARKER_OPTIONS[] = { // "0", // "4", "6", , "8" , "5" // 0, 4, 6, , 22 , 21
@@ -1186,6 +1197,11 @@ bool onconfirm_teleport_location(MenuItem<int> choice){
 
 	tele_location* value = &VOV_LOCATIONS[lastChosenCategory][choice.value];
 
+	// Interiors with a paint/style choice go through the customization framework instead of the normal fixed-scenery teleport below (see interior_customization.cpp).
+	if(begin_interior_customization_for_caption(value->text)){
+		return false;
+	}
+
 	// get entity to teleport
 	Entity e = PLAYER::PLAYER_PED_ID();
 	if (PED::IS_PED_IN_ANY_VEHICLE(e, 0)){
@@ -1391,15 +1407,15 @@ bool process_teleport_menu(int categoryIndex){
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = tr("TeleportMenu.LoadCayoPericoIslandAutomatically", "Load Cayo Perico Island Automatically");
+		togItem->caption = tr("TeleportMenu.AutoTeleportIntoCustomizedInteriors", "Auto-Teleport Into Customized Interiors");
 		togItem->value = 8;
-		togItem->toggleValue = &featureCayoPerico;
+		togItem->toggleValue = &featureAutoTeleportIntoCustomizedInteriors;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
-		togItem->caption = tr("TeleportMenu.LoadHousesInTheHillsAutomatically", "Load Houses In The Hills Automatically");
+		togItem->caption = tr("TeleportMenu.LoadCayoPericoIslandAutomatically", "Load Cayo Perico Island Automatically");
 		togItem->value = 8;
-		togItem->toggleValue = &featureHouseOnHill;
+		togItem->toggleValue = &featureCayoPerico;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();
@@ -1448,7 +1464,6 @@ void reset_teleporter_globals()
 	featureLandAtDestination = true;
 	featureShowCoords = false;
 	featureCayoPerico = false;
-	featureHouseOnHill = false;
 	featureChoshopCargoship = false;
 
 	lastChosenCategory = 0;
@@ -1469,7 +1484,6 @@ void add_teleporter_feature_enablements(std::vector<FeatureEnabledLocalDefinitio
 	results->push_back(FeatureEnabledLocalDefinition{"featureTeleportAutomatically", &featureTeleportAutomatically});
 	results->push_back(FeatureEnabledLocalDefinition{"featureLandAtDestination", &featureLandAtDestination});
 	results->push_back(FeatureEnabledLocalDefinition{"featureCayoPerico", &featureCayoPerico});
-	results->push_back(FeatureEnabledLocalDefinition{"featureHouseOnHill", &featureHouseOnHill});
 	results->push_back(FeatureEnabledLocalDefinition{"featureChoshopCargoship", &featureChoshopCargoship});
 	results->push_back(FeatureEnabledLocalDefinition{"featureShowCoords", &featureShowCoords});
 }
@@ -1748,116 +1762,6 @@ void update_teleport_features(){
 	if ((!featureCayoPerico && cayo_tick > 0) || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) {
 		perico_init = false;
 		cayo_tick = 0;
-	}
-
-	// Load House On The Hill Automatically
-	if (featureHouseOnHill && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && househill_init == false)
-	{
-		househill_tick = househill_tick + 1;
-		if (househill_tick > 400) { // 1000
-			for (int i = 0; i < IPL_PROPS_MANSION.size(); i++) {
-				if (!STREAMING::IS_IPL_ACTIVE(IPL_PROPS_MANSION[i]))
-				{
-					STREAMING::REQUEST_IPL(IPL_PROPS_MANSION[i]);
-				}
-			}
-			int MansionTop = INTERIOR::GET_INTERIOR_AT_COORDS(-1666.36f, 478.92f, 128.22f);
-			int MansionLow = INTERIOR::GET_INTERIOR_AT_COORDS(-1649.63f, 480.97f, 117.36f);
-			int MansionGarage = INTERIOR::GET_INTERIOR_AT_COORDS(-1679.87f, 493.59f, 112.93f);
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "m25_2_ch1_06e_mansion_interior_a");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionLow, "m25_2_ch1_06e_mansion_interior_c");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionGarage, "m25_2_ch1_06e_mansion_interior_b");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_ELEV_LOFT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_LOFT_SHELVING_PLANTER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionLow, "SET_BASE_VAULT_08");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionLow, "SET_ELEV_STD");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionLow, "SET_VAULT_DOOR_OPEN");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_AI_TABLETS_01");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_ART_COASTAL");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_ELEV_LOFT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_LOFT_SHELVING_PLANTER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_LOFT_TROPHY_PLANTER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_STEP_COLLISION");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_STYLE_LOFT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_STYLE_LOFT_TINT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(MansionTop, "SET_WALLPAPER_DECO");
-			
-			INTERIOR::REFRESH_INTERIOR(MansionTop);
-			INTERIOR::REFRESH_INTERIOR(MansionLow);
-			INTERIOR::REFRESH_INTERIOR(MansionGarage);
-
-			int Mansion2Top = INTERIOR::GET_INTERIOR_AT_COORDS(539.7012f, 749.089f, 201.36f);
-			int Mansion2Low = INTERIOR::GET_INTERIOR_AT_COORDS(547.4955f, 734.136f, 190.5f);
-			int Mansion2Garage = INTERIOR::GET_INTERIOR_AT_COORDS(548.6964f, 766.88f, 186.07f);
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "m25_2_ch2_04_mansion_interior_a");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Low, "m25_2_ch2_04_mansion_interior_c");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Garage, "m25_2_ch2_04_mansion_interior_b");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Low, "SET_BASE_VAULT_08");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Low, "SET_ELEV_STD");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Low, "SET_VAULT_DOOR_OPEN");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_AFTERPARTY");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_AI_TABLETS_02");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_ARCADE_BLOCKER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_ELEV_CALI");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_MICHAEL_CARD");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_PET_CAT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_PODIUM_BLOCKER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_REG_SHELVING_PLANTER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_STEP_COLLISION");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_STYLE_CALI");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_STYLE_CALI_TINT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_TROPHY_PLANTER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_WALLPAPER_POPART");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion2Top, "SET_ART_LOFT");
-
-			INTERIOR::REFRESH_INTERIOR(Mansion2Top);
-			INTERIOR::REFRESH_INTERIOR(Mansion2Low);
-			INTERIOR::REFRESH_INTERIOR(Mansion2Garage);
-
-			int Mansion3Top = INTERIOR::GET_INTERIOR_AT_COORDS(-2586.065f, 1909.995f, 166.37f);
-			int Mansion3Low = INTERIOR::GET_INTERIOR_AT_COORDS(-2587.495f, 1893.193f, 155.51f);
-			int Mansion3Garage = INTERIOR::GET_INTERIOR_AT_COORDS(-2568.933f, 1920.202f, 151.08f);
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "m25_2_ch1_09_mansion_interior_a");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Low, "m25_2_ch1_09_mansion_interior_c");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Garage, "m25_2_ch1_09_mansion_interior_b");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Low, "SET_BASE_VAULT_08");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Low, "SET_ELEV_STD");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Low, "SET_VAULT_DOOR_OPEN");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_AI_TABLETS_03");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_ARCADE_BLOCKER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_BIRTHDAY");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_ELEV_HOLLY");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_MICHAEL_CARD");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_PET_DOG");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_PODIUM_BLOCKER");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_STEP_COLLISION");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_STYLE_HOLLY");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_STYLE_REG_TINT");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_TROPHY_SHELVES");
-			INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET(Mansion3Top, "SET_ART_REGENCY");
-						
-			INTERIOR::REFRESH_INTERIOR(Mansion3Top);
-			INTERIOR::REFRESH_INTERIOR(Mansion3Low);
-			INTERIOR::REFRESH_INTERIOR(Mansion3Garage);
-
-			househill_init = true;
-		}
-	}
-	if (featureHouseOnHill && ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID()) && househill_init == true) {
-		OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_casino_door_01l"), 520.7849f, 744.874f, 198.984f, 0, 0.0, 50.0, 0);
-		OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_casino_door_01l"), -2604.295f, 1916.571f, 163.9978f, 0, 0.0, 50.0, 0);
-		OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_lrggate_01c_l"), -2559.193f, 1910.86f, 169.0709f, 0, 0.0, 50.0, 0);
-		OBJECT::SET_LOCKED_UNSTREAMED_IN_DOOR_OF_TYPE(MISC::GET_HASH_KEY("prop_lrggate_01c_r"), -2556.658f, 1915.716f, 169.0709f, 0, 0.0, 50.0, 0);
-		if (STREAMING::IS_IPL_ACTIVE("apa_ch2_04_props_original")) STREAMING::REMOVE_IPL("apa_ch2_04_props_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_06e_props_original")) STREAMING::REMOVE_IPL("hei_ch1_06e_props_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_09_props_original")) STREAMING::REMOVE_IPL("hei_ch1_09_props_original");
-		if (STREAMING::IS_IPL_ACTIVE("apa_ch2_04_mansion_original")) STREAMING::REMOVE_IPL("apa_ch2_04_mansion_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_06e_mansion_original")) STREAMING::REMOVE_IPL("hei_ch1_06e_mansion_original");
-		if (STREAMING::IS_IPL_ACTIVE("hei_ch1_09_mansion_original")) STREAMING::REMOVE_IPL("hei_ch1_09_mansion_original");
-	}
-	if ((!featureHouseOnHill && househill_tick > 0) || DLC::GET_IS_LOADING_SCREEN_ACTIVE()) {
-		househill_init = false;
-		househill_tick = 0;
 	}
 
 	// Load Extra Map Stuff Automatically

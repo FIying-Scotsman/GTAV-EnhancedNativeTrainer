@@ -501,6 +501,320 @@ Don't forget to add `example.cpp`/`example.h` to `EnhancedNativeTrainer.vcxproj`
 `ClInclude` items) and `.vcxproj.filters` - a new file that isn't registered there won't be
 compiled at all, and MSBuild won't warn you about it.
 
+## Interior customization: the `InteriorCustomizationDef` system
+
+GTA Online's paid interiors (Facility, Hangar, Bunker, Nightclub, Mansion, ...) expose their
+customization through Rockstar's own MLO toggle mechanism - "interior entity sets"
+(`INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET`/`DEACTIVATE_INTERIOR_ENTITY_SET`, and
+`SET_INTERIOR_ENTITY_SET_TINT_INDEX` for tinted ones). Rather than hand-rolling a bespoke menu
+per interior, `src/features/interior_customization.h`/`.cpp` model every customizable interior as
+one `InteriorCustomizationDef` data value - the menu, save/export, and apply logic are all generic
+and driven entirely by that data. Adding a new interior means writing one `InteriorCustomizationDef`
+and wiring it in at four small points; you should not need to touch the generic menu/apply code at
+all.
+
+### The data model
+
+```cpp
+struct InteriorCustomizationOption{
+	std::string name;      // menu caption, e.g. "Utility", "IAA"
+	std::string value;     // entity-set name (or IPL name for IPL_SWAP); empty means "None" - deactivate every other option in the category, activate nothing
+	int maxTints = 0;       // 0 = no tint sub-choice
+	std::vector<std::string> groupValues;   // additional entity sets activated/deactivated alongside value
+};
+
+struct InteriorOptionCategory{
+	std::string name;       // menu row caption, e.g. "Graphics"
+	InteriorOptionMethod method = InteriorOptionMethod::ENTITY_SET;
+	std::vector<InteriorCustomizationOption> options;   // exactly one is ever active
+	std::string tintCaption;   // caption for the tint sub-row - empty falls back to the generic "Tint" label
+};
+
+struct InteriorTogglableProp{
+	std::string name;
+	std::string entitySet;
+};
+
+struct InteriorAdditionalRoom{
+	std::string name;   // menu caption for the "Enter <name>" teleport shortcut, e.g. "Garage"
+	float x, y, z;
+	std::vector<std::string> alwaysOnEntitySets;
+};
+
+struct InteriorCustomizationDef{
+	std::string shellLocationName;    // menu caption for the base "shell" entry
+	float x, y, z;
+	std::vector<const char*> shellIpls;                  // IPLs to REQUEST_IPL for the shell
+	std::vector<InteriorOptionCategory> categories;       // single-select groups
+	std::vector<InteriorTogglableProp> toggleableProps;   // independent multi-select
+	std::vector<std::string> alwaysOnEntitySets;          // no menu entry, always active
+	const char* interiorType = nullptr;                   // non-null: resolve with GET_INTERIOR_AT_COORDS_WITH_TYPE instead of plain GET_INTERIOR_AT_COORDS
+	std::vector<InteriorAdditionalRoom> additionalRooms;  // extra rooms resolved/pinned alongside the main shell
+};
+```
+
+A def breaks down into four kinds of content:
+
+| Field | Shape | Use for |
+|---|---|---|
+| `categories` | mutually-exclusive, cycled with a scroller | Paint/style/graphics choices - exactly one option active at a time |
+| `toggleableProps` | independent on/off | Props with no relationship to each other - trophies, decorations, optional furniture |
+| `alwaysOnEntitySets` | no menu entry | Structural/helper entity sets needed for the rest to render correctly, with no player choice |
+| `additionalRooms` | separate interiors, resolved alongside the main shell | See "Multi-room interiors", below - **read this before assuming a category is the right fit** |
+
+### Scrollers vs. toggles - which one to use for a standalone item
+
+`toggleableProps` is strictly plain on/off - no variant, no tint, nothing to cycle through. **Any
+item that needs to be cycled left/right, even a single standalone one with no real "alternatives,"
+is a `category`, not a `toggleableProp`** - a category with just one option is a completely normal,
+common pattern, not a workaround. Two real examples from Facility's def:
+
+```cpp
+// A category with exactly one option, that exists purely to give this one prop its own tint
+// scroller (maxTints = 10) - there's nothing else to pick, it's not "mutually exclusive" with
+// anything, but it still needs to be a category because toggleableProps has no way to carry a tint.
+{ "Main Shell", InteriorOptionMethod::ENTITY_SET, { { "Normal", "set_int_02_shell", 10 } } },
+
+// A category with nine options, numbered rather than named - still just one physical decal slot
+// being cycled through its variants, not nine different "themes" to choose between. If you catch
+// yourself about to write nine near-identical toggleableProps entries with names like "Graphics 1"
+// through "Graphics 9" for something the player can only ever have one of at a time, this is the
+// pattern to reach for instead.
+{ "Graphics", InteriorOptionMethod::ENTITY_SET, {
+	{ "1", "set_int_02_decal_01" }, { "2", "set_int_02_decal_02" }, { "3", "set_int_02_decal_03" },
+	{ "4", "set_int_02_decal_04" }, { "5", "set_int_02_decal_05" }, { "6", "set_int_02_decal_06" },
+	{ "7", "set_int_02_decal_07" }, { "8", "set_int_02_decal_08" }, { "9", "set_int_02_decal_09" },
+} },
+```
+
+For completeness, here's what actually turns that data into a working scroller - you never write this
+part yourself, it's generic and lives in `process_interior_customization_menu()`, but it's worth
+seeing once so "cycled with a `SelectFromListMenuItem`" isn't just an abstract description. For every
+category in the def, it builds one `SelectFromListMenuItem` whose captions are the category's option
+names, and whose `onValueChangeCallback` fires the moment the player cycles left/right - exactly the
+`SelectFromListMenuItem` pattern from "Adding a `SelectFromListMenuItem`" earlier in this doc, just
+built in a loop instead of hand-written per option:
+
+```cpp
+for(int i = 0; i < (int) state.def->categories.size(); i++){
+	const InteriorOptionCategory& category = state.def->categories[i];
+
+	std::vector<std::string> optionCaptions;
+	for(const InteriorCustomizationOption& opt : category.options){
+		optionCaptions.push_back(opt.name);   // "1".."9" for Graphics, "Normal" for Main Shell, ...
+	}
+
+	int categoryIndex = i;
+	SelectFromListMenuItem* optionItem = new SelectFromListMenuItem(optionCaptions, [categoryIndex](int newIndex, SelectFromListMenuItem* source){
+		g_interiorCustomizationState.selectedOptionIndex[categoryIndex] = newIndex;
+		apply_interior_option_category(g_interiorCustomizationState, categoryIndex);   // deactivates the old option's entity set(s), activates the new one's
+	});
+	optionItem->caption = category.name;   // "Graphics", "Main Shell", ...
+	optionItem->value = state.selectedOptionIndex[i];   // opens on whichever option is currently active
+	menuItems.push_back(optionItem);
+
+	// if the currently-selected option has maxTints > 0, a second SelectFromListMenuItem for "1".."maxTints"
+	// gets pushed right after it here - same shape, its callback calls apply_interior_option_tint() instead.
+}
+```
+
+Cycling "Graphics" from `"3"` to `"4"` calls `apply_interior_option_category`, which deactivates
+`set_int_02_decal_03` and activates `set_int_02_decal_04` on the live interior - that's the entire
+mechanism a scroller drives, regardless of whether the category has one option (Main Shell) or nine
+(Graphics).
+
+The tell: if the source material shows the same prop position getting *replaced* by a different
+entity set (one variant at a time, never two together), that's a category. If it shows two entity
+sets that are genuinely independent of each other - either can be on, off, or both at once, with no
+"only one at a time" constraint - that's `toggleableProps`.
+
+### `InteriorOptionMethod` - the three category shapes
+
+```cpp
+enum class InteriorOptionMethod{
+	ENTITY_SET,           // exactly one option's entity set (+ groupValues) is active
+	IPL_SWAP,              // reserved for a future interior that swaps a whole IPL per option - not yet implemented, don't use this
+	CUMULATIVE_ENTITY_SET  // selecting option N activates every option 1..N in sequence (index 0 is a synthetic "None")
+};
+```
+
+`ENTITY_SET` is what you want for almost everything - a normal free-choice picker. Use
+`CUMULATIVE_ENTITY_SET` only when the real game activates lower tiers alongside a higher one (e.g.
+Biker Business upgrade levels, Nightclub's Booze stock) - modelling that as plain `ENTITY_SET` would
+mean picking tier 3 turns off tiers 1 and 2, which doesn't match how the entity sets actually render.
+`IPL_SWAP` is declared for a future CEO Office/Penthouse "Style N" port but has no apply-logic
+implementation anywhere yet - don't reach for it.
+
+### `groupValues` - one option, several props
+
+Some choices are really a "theme" that switches on more than one entity set at once. `groupValues`
+lists additional entity sets activated/deactivated alongside `value`, as one atomic option. Two real
+examples:
+
+```cpp
+// Nightclub's Club Style pairs a main style prop with its matching podium prop as one choice:
+{ "1", "Int01_ba_Style01", 0, { "Int01_ba_style01_podium" } },
+
+// Mansion's Decor tints a separate companion entity set (SET_INTERIOR_ENTITY_SET_TINT_INDEX applies
+// to whatever's in `value`) while also switching the visible style + its matching elevator/shelving
+// props as groupValues:
+{ "Los Santos Loft", "SET_STYLE_LOFT_TINT", 4, { "SET_STYLE_LOFT", "SET_ELEV_LOFT", "SET_LOFT_SHELVING_PLANTER" } },
+```
+
+That second example is also the pattern to follow whenever `maxTints > 0`: the tint always applies
+to `value` specifically, so if the real game tints a *different* entity set than the one that makes
+the style visible (common - look for a `_TINT`-suffixed companion set in whatever source you're
+working from), put the tint target in `value` and the visible style in `groupValues`, not the other
+way around.
+
+### Multi-room interiors - read this before you ship
+
+**Not every interior is one shell.** Some properties (Mansion is the example that taught this the
+hard way) are physically several separate `INTERIOR::GET_INTERIOR_AT_COORDS` resolutions - a main
+room plus a garage plus a basement, each its own interior ID at its own coordinates, simultaneously
+part of one property. Modelling that as a `categories` choice (as if picking "Garage" vs "Basement"
+were a style option on one room) doesn't just look wrong - it's a real in-game crash: the
+customization menu resolves and pins only the coordinates in `x`/`y`/`z`, so any room you didn't
+also list under `additionalRooms` never gets pinned/capped, and the player can walk into
+unresolved interior geometry.
+
+Before writing a def, check whether your source material references **more than one coordinate
+triple** for what looks like one property. If it does, each extra one is an `InteriorAdditionalRoom`,
+not a category option:
+
+```cpp
+{
+	// Garage
+	{ "Garage", -1679.877f, 493.596f, 117.3644f, { "m25_2_ch1_06e_mansion_interior_b" } },
+	// Low/Vault
+	{ "Low/Vault", -1649.63f, 480.9779f, 117.3645f, { "m25_2_ch1_06e_mansion_interior_c", "SET_BASE_VAULT_08", "SET_ELEV_STD", "SET_VAULT_DOOR_OPEN" } },
+}
+```
+
+`begin_interior_customization()` resolves and disable/pin/re-enable/cap-cycles each additional room
+the same way it does the main shell, activates its `alwaysOnEntitySets`, and `REFRESH_INTERIOR`s it -
+you don't write any of that yourself. The menu also gets an automatic "Enter `<name>`" leaf per
+room, since there's no walkable connection or animated elevator between separate interior IDs (a
+straight teleport is the closest a trainer can get without reverse-engineering the real game's
+elevator/synchronized-scene system, which is a much larger undertaking than this framework is built
+for).
+
+### Sourcing real entity-set names and coordinates - never guess
+
+Every string and coordinate in a def is something the real game actually uses - there is no
+"probably right" here. An invented entity-set name typically just silently does nothing, but an
+invented coordinate or a wrong assumption about the interior's structure (see "Multi-room
+interiors" above) can crash the game. In order of preference:
+
+1. **A verified-working reference implementation**, if one exists for the interior you're adding -
+   another trainer/menu project's source, confirmed to actually work in GTA Online. Port its
+   entity-set strings verbatim rather than re-deriving them yourself.
+2. **Decompiled game scripts**, when no verified reference is available (newer DLC, or an interior
+   nothing else has implemented). These are large, machine-decompiled files, so search rather than
+   read top to bottom - look for:
+   - String literals passed to `INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET`/`DEACTIVATE_INTERIOR_ENTITY_SET`
+     or `SET_INTERIOR_ENTITY_SET_TINT_INDEX` - these are your `value`/`groupValues` entity-set names.
+   - String literals passed to `STREAMING::REQUEST_IPL` near the interior's coordinates - these are
+     your `shellIpls`.
+   - A string literal paired with a coordinate and passed to `INTERIOR::GET_INTERIOR_AT_COORDS_WITH_TYPE`
+     - the string is your `interiorType`, the coordinate is `x`/`y`/`z` (or an `InteriorAdditionalRoom`
+     if there's more than one, per "Multi-room interiors" above).
+
+   Treat data sourced this way as lower-confidence even when the strings themselves are real: the
+   *grouping* of raw entity sets into player-facing categories is still your own interpretation,
+   since the real game often gates activation behind business-progression or mission/heist-plan
+   state that doesn't exist outside an active session. When you find a set of entity sets that are
+   clearly gated behind state like that rather than a free choice, the pattern this codebase uses is
+   to reinterpret each one as an independent toggle instead of trying to replicate the real gating
+   condition (see Nightclub's business items or the Kortz Center Art Studio's heist-board props in
+   `interior_customization.cpp` for worked examples of this).
+3. If neither source has the data, don't invent it - leave that piece out (a category, a toggle, a
+   whole interior) rather than filling the gap with a plausible-looking guess. It's a much smaller
+   problem to leave something undecorated than to ship a wrong coordinate.
+
+Document which of the above a def came from (and its confidence level) in a comment above it - see
+any existing def in `interior_customization.cpp` for the expected level of detail.
+
+### Worked example: adding a new interior end to end
+
+```cpp
+// interior_customization.h - alongside the other externs
+extern const InteriorCustomizationDef EXAMPLE_LOFT_CUSTOMIZATION;
+extern const char* const EXAMPLE_LOFT_CAPTION;
+```
+
+```cpp
+// interior_customization.cpp
+
+// Ported from a verified working reference (see "Sourcing real entity-set names and coordinates" above).
+
+// shellIpls: one or more IPL *names* (strings), passed to STREAMING::REQUEST_IPL as-is - not entity
+// sets, not coordinates. Most interiors need only one; Hangar-shaped ones need a "placement" IPL
+// plus the specific milo (see the real defs in interior_customization.cpp for examples of both).
+const std::vector<const char*> EXAMPLE_LOFT_SHELL_IPL = { "example_loft_interior_milo_" };
+
+// The menu/teleport-list caption - shown to the player, and used as the lookup key that routes a
+// LOCATIONS_ONLINE teleport into this customization flow instead of a plain teleport (see
+// begin_interior_customization_for_caption). Keep this and the LOCATIONS_ONLINE entry's caption
+// identical - they're matched by string equality.
+const char* const EXAMPLE_LOFT_CAPTION = "Example Loft";
+
+const InteriorCustomizationDef EXAMPLE_LOFT_CUSTOMIZATION = {
+	EXAMPLE_LOFT_CAPTION,   // shellLocationName - reuses the caption above
+	100.0f, 200.0f, 30.0f,  // x, y, z - world coordinates used to resolve the interior (INTERIOR::GET_INTERIOR_AT_COORDS)
+	EXAMPLE_LOFT_SHELL_IPL,
+	{
+		// A category: { "<menu caption>", InteriorOptionMethod, { options... } }
+		{ "Wall Colour", InteriorOptionMethod::ENTITY_SET, {
+			// Each option: { "<menu caption>", "<entity-set name passed to ACTIVATE_INTERIOR_ENTITY_SET>" [, maxTints [, { groupValues... }]] }
+			{ "White", "set_walls_white" },
+			{ "Grey", "set_walls_grey" },
+			// maxTints = 4 here means the real game supports SET_INTERIOR_ENTITY_SET_TINT_INDEX on
+			// this entity set with 4 numbered variants - the menu adds a "Tint" sub-row under this
+			// option letting the player pick 1-4 (GTA Online's own tint numbering, 1-based). This
+			// number comes from whatever your source material actually supports; don't guess a
+			// round number - if you don't know how many tints an entity set has, leave maxTints at
+			// its default of 0 (no tint sub-row) rather than invent a count.
+			{ "Black", "set_walls_black", 4 },
+		} },
+	},
+	{
+		// A toggleable prop: { "<menu caption>", "<entity-set name>" } - independent on/off, no
+		// relationship to any category or to each other.
+		{ "Trophy Case", "set_trophy_case" },
+		{ "Bar", "set_bar" },
+	},
+	{ "set_base_props" },   // alwaysOnEntitySets - entity-set name(s) always active, no menu entry
+};
+
+// Register the caption -> def dispatch (CUSTOMIZABLE_INTERIORS[] array, further down this file):
+{ EXAMPLE_LOFT_CAPTION, &EXAMPLE_LOFT_CUSTOMIZATION },
+```
+
+```cpp
+// teleportation.cpp - add one entry to the pinned-at-top block of LOCATIONS_ONLINE:
+// { "<caption, must match ..._CAPTION above>", x, y, z, <scenery IPLs>, <scenery props>, <peds>, <bool> }
+// Scenery fields stay empty and coordinates match the def above - loading is entirely delegated to
+// interior_customization.cpp once begin_interior_customization_for_caption() recognises the caption.
+{ EXAMPLE_LOFT_CAPTION, 100.0f, 200.0f, 30.0f, {}, {}, {}, false },
+```
+
+That's the whole checklist:
+
+1. `extern const InteriorCustomizationDef ..._CUSTOMIZATION;` and
+   `extern const char* const ..._CAPTION;` in `interior_customization.h`.
+2. The def itself plus the caption constant in `interior_customization.cpp`, with a comment stating
+   where the data came from (see "Sourcing real entity-set names and coordinates" above).
+3. One entry in the `CUSTOMIZABLE_INTERIORS[]` dispatch table (same file) - this is the only
+   `teleportation.cpp`-facing glue point, so it doesn't grow an `if`-chain per interior.
+4. One entry in `LOCATIONS_ONLINE` (`teleportation.cpp`) with matching coordinates and empty
+   scenery fields.
+
+Nothing else needs touching - the menu, tint sub-rows, save/export/import, and the auto-teleport
+toggle (`featureAutoTeleportIntoCustomizedInteriors`) all work off the def automatically. If your
+interior spans multiple rooms, add `additionalRooms` per "Multi-room interiors" above; otherwise
+leave it as the default empty vector.
+
 ## Adding translatable strings
 
 Full details, including non-ASCII/translator-facing instructions, live in **`translation.md`** -
