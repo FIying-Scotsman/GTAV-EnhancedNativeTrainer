@@ -275,3 +275,4 @@ __pycache__/
 # tools/
 *.vcxproj
 EnhancedNativeTrainer/inc/types.h
+/.vscode
