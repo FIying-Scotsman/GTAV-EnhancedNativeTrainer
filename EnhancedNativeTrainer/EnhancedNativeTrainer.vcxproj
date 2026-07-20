@@ -54,6 +54,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="src\ui_support\entcolor.cpp" />
     <ClCompile Include="src\ui_support\menu_functions.cpp" />
+    <ClCompile Include="src\ui_support\vehicle_stats_widget.cpp" />
     <ClCompile Include="src\features\paintmenu.cpp" />
     <ClCompile Include="src\features\script.cpp" />
     <ClCompile Include="src\features\skins.cpp" />
@@ -115,6 +116,7 @@
     <ClInclude Include="src\io\keyboard.h" />
     <ClInclude Include="src\ui_support\entcolor.h" />
     <ClInclude Include="src\ui_support\menu_functions.h" />
+    <ClInclude Include="src\ui_support\vehicle_stats_widget.h" />
     <ClInclude Include="src\features\script.h" />
     <ClInclude Include="src\features\skins.h" />
     <ClInclude Include="src\features\teleportation.h" />

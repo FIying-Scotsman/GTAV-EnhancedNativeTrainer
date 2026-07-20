@@ -1303,6 +1303,8 @@ const std::vector<VehicleImage> INGAME_VEH_IMAGES =
 */
 
 std::string get_vehicle_make_and_model(int modelHash);
+std::string get_vehicle_make_name(int modelHash);
+const char* get_class_label(int vehicle_class);
 
 // Resolves the local player's current vehicle. Returns false (leaving *outVeh
 // untouched) if the player ped doesn't exist or isn't currently in a vehicle.
@@ -1631,6 +1633,7 @@ void onchange_vehicles_random_colour_index(int value, SelectFromListMenuItem* so
 void set_old_vehicle_state(bool updatedState);
 
 MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice);
+void draw_vehicle_model_stats_widget(MenuItem<int> choice, float x, float yBelowImage);
 
 void init_vehicle_feature();
 

@@ -806,6 +806,12 @@ void reset_world_globals()
 
 void update_world_features()
 {
+	// The very first pass here (each session) is re-applying whatever was persisted from last time, not a
+	// genuine user action - loading settings marks every feature's "updated" flag so it gets applied once
+	// at startup (see ENTDatabase::load_feature_enabled_pairs), which otherwise makes e.g. Snow print an
+	// "Enabled"/"Disabled" status message on every ENT init even though nothing was actually toggled.
+	static bool firstWorldFeaturesUpdatePass = true;
+
 	if (WORLD_GRAVITY_LEVEL_VALUES[featureGravityLevelIndex] > 0)
 	{
 		MISC::SET_GRAVITY_LEVEL(WORLD_GRAVITY_LEVEL_VALUES[featureGravityLevelIndex]);
@@ -1889,7 +1895,7 @@ void update_world_features()
 	{
 		if (featureSnow.enabled)
 		{
-			EnableSnow(&featureSnow.enabled);
+			EnableSnow(&featureSnow.enabled, firstWorldFeaturesUpdatePass);
 			EnableTracks(true, true, true, true);
 			// THANKS TO ALTSIERRA117 FOR THE ORIGINAL CODE
 			STREAMING::REQUEST_NAMED_PTFX_ASSET("core_snow");
@@ -1899,7 +1905,7 @@ void update_world_features()
 		}
 		else
 		{
-			EnableSnow(&featureSnow.enabled);
+			EnableSnow(&featureSnow.enabled, firstWorldFeaturesUpdatePass);
 			EnableTracks(false, false, false, false);
 
 			STREAMING::REMOVE_NAMED_PTFX_ASSET("core_snow");
@@ -1924,6 +1930,8 @@ void update_world_features()
 		featureMPMap.updated = true;
 		MPMapCounter = 0;
 	}
+
+	firstWorldFeaturesUpdatePass = false;
 }
 
 void add_world_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results)
@@ -2140,7 +2148,9 @@ void EnableTracks(bool tracksVehicle = false, bool tracksPeds = false, bool deep
 // GTA version" failure paths, it's set back to false so the caller (and the menu toggle
 // it's bound to) find out enabling snow silently failed, instead of the toggle staying
 // stuck showing "on" while nothing actually happened.
-void EnableSnow(bool* snowEnabled) {
+// silent suppresses the "Snow Enabled"/"Snow Disabled" status text - used when this is just
+// re-applying the persisted setting on startup rather than a genuine user toggle.
+void EnableSnow(bool* snowEnabled, bool silent) {
 
 	eGameVersion version = getGameVersion();
 
@@ -2235,8 +2245,8 @@ void EnableSnow(bool* snowEnabled) {
 				writeJmp((BYTE*)addr2, (BYTE*)addr2 + 0x1C);
 
 		}
-		set_status_text(tr("WorldMenu.SnowEnabled", "Snow Enabled"));
-	}				
+		if(!silent) set_status_text(tr("WorldMenu.SnowEnabled", "Snow Enabled"));
+	}
 	else
 	{
 		// Older game versions will use the byte patch - so restore
@@ -2254,6 +2264,6 @@ void EnableSnow(bool* snowEnabled) {
 		EnableTracks();
 		MISC::CLEAR_WEATHER_TYPE_PERSIST();
 		MISC::SET_WEATHER_TYPE_NOW("CLEAR");
-		set_status_text(tr("WorldMenu.SnowDisabled", "Snow Disabled"));
+		if(!silent) set_status_text(tr("WorldMenu.SnowDisabled", "Snow Disabled"));
 	}
 }

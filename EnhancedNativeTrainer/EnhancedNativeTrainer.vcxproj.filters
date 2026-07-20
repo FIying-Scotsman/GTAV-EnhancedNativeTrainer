@@ -13,6 +13,9 @@
     <ClCompile Include="src\ui_support\menu_functions.cpp">
       <Filter>src\ui_support</Filter>
     </ClCompile>
+    <ClCompile Include="src\ui_support\vehicle_stats_widget.cpp">
+      <Filter>src\ui_support</Filter>
+    </ClCompile>
     <ClCompile Include="src\storage\database.cpp">
       <Filter>src\storage</Filter>
     </ClCompile>
@@ -199,6 +202,9 @@
       <Filter>inc\ui_support</Filter>
     </ClInclude>
     <ClInclude Include="src\ui_support\menu_functions.h">
+      <Filter>inc\ui_support</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ui_support\vehicle_stats_widget.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
     <ClInclude Include="src\storage\database.h">

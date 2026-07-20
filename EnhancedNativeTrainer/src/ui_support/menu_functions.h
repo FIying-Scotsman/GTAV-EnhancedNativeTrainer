@@ -563,6 +563,8 @@ class MenuParameters{
 	void(*onExit)(bool returnValue) = NULL;
 	bool(*interruptCheck)(void) = NULL;
 	MenuItemImage*(*lineImageProvider)(MenuItem<T> value) = NULL;
+	// Called right after the preview image is drawn, at the position just below it, so callers can attach a small widget (e.g. the vehicle stats bars) to whatever's currently previewed. Only meaningful alongside lineImageProvider - there's nothing to sit "below" without an image.
+	void(*imageStatsProvider)(MenuItem<T> value, float x, float yBelowImage) = NULL;
 
 	int get_menu_selection_index(){
 		return *menuSelectionPtr;
@@ -1242,6 +1244,13 @@ bool draw_generic_menu(MenuParameters<T> params){
 
 				// Only the anchor position tracks the resized menu box edge via lineXGame above. The preview image itself stays a fixed size regardless of Menu Scale.
 				draw_ingame_sprite(image, lineXGame, lineYGame, 256, 128);
+
+				if(params.imageStatsProvider != NULL){
+					float imageHeightGame = 128.0f / (float) screen_h;
+					float widgetGapGame = (90.0f * uiScale) / (float) screen_h; // Generous margin - the stats widget's exact top position vs. the scaleform's own internal canvas is an empirical fit (see compute_stats_widget_box), so this gap absorbs any residual slack rather than risking overlap with the preview image above it.
+					// Use the item at currentSelectionIndex (matches what lineImageProvider was just given), not the "choice" variable below - that's only assigned after this redraw block, on confirm/navigation, and would be stale or NULL here.
+					params.imageStatsProvider(*params.items[currentSelectionIndex], lineXGame, lineYGame + imageHeightGame + widgetGapGame);
+				}
 			}
 
 			if(periodic_feature_call != NULL){

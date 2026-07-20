@@ -11,6 +11,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "vehicles.h"
 #include "..\features\vehmodmenu.h"
 #include "..\debug\debuglog.h"
+#include "..\ui_support\vehicle_stats_widget.h"
+#include "misc.h"
 
 int lastSelectedModValue = 0;
 
@@ -1007,6 +1009,39 @@ bool onconfirm_vehmod_menu(MenuItem<int> choice){
 	return false;
 }
 
+// Set as the menu's per-frame call while process_vehmod_menu's draw_generic_menu is open, so the stat bars update live as the player equips/removes mods without needing a redraw point of their own (equipping a mod never returns control back to process_vehmod_menu - see onconfirm_vehmod_category_menu).
+// Re-fetches the vehicle every call rather than capturing it once, since this keeps running across nested category submenus.
+void update_vehicle_stats_mod_menu_widget(){
+	if(!is_vehicle_preview_enabled()) return;
+
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	if(!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) return;
+
+	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
+	Hash modelHash = ENTITY::GET_ENTITY_MODEL(veh);
+
+	float estMaxSpeed = VEHICLE::GET_VEHICLE_ESTIMATED_MAX_SPEED(veh);
+	float acceleration = VEHICLE::GET_VEHICLE_ACCELERATION(veh);
+	float braking = VEHICLE::GET_VEHICLE_MAX_BRAKING(veh);
+	float traction = VEHICLE::GET_VEHICLE_MAX_TRACTION(veh);
+	VehicleStatBars stats = normalize_vehicle_stats(estMaxSpeed, acceleration, braking, traction);
+
+	float uiScale = get_menu_ui_scale();
+	int screen_w, screen_h;
+	GRAPHICS::GET_SCREEN_RESOLUTION(&screen_w, &screen_h);
+
+	// Anchored beside the menu box the same way the vehicle spawner's preview image is - right of the box edge, near the top item row.
+	// Width matches the 256px preview image's fixed size (see draw_vehicle_model_stats_widget in vehicles.cpp) even though there's no image on this menu - keeps sizing consistent between both widget call sites.
+	float desiredX = ((35.0f + 350.0f + 8.0f) * uiScale) / (float) screen_w;
+	// The widget's underlying scaleform canvas is much bigger than its visible panel (see compute_stats_widget_box) and extends upward off-screen to place the panel near the top of the screen - close enough to y=0 and the game starts clipping into the visible content itself (not just the empty canvas margin), or culls the draw entirely. The vehicle spawner's widget never hit this because it sits lower down (under the preview image, ~240-330px); keeping this one in a similar range avoids it too, at the cost of sitting further from the title bar than ideal.
+	float desiredY = (200.0f * uiScale) / (float) screen_h;
+	float desiredWidth = 256.0f / (float) screen_w;
+
+	float boxX, boxY, boxWidth, boxHeight;
+	compute_stats_widget_box(desiredX, desiredY, desiredWidth, &boxX, &boxY, &boxWidth, &boxHeight);
+	draw_vehicle_stats_widget(modelHash, stats, boxX, boxY, boxWidth, boxHeight);
+}
+
 bool process_vehmod_menu(){
 	if (!PED::IS_PED_IN_ANY_VEHICLE(PLAYER::PLAYER_PED_ID(), 0)){
 		set_status_text(tr("VehModMenu.RPlayerIsnTInAVehicle", "~r~Player isn't in a vehicle"));
@@ -1220,7 +1255,9 @@ bool process_vehmod_menu(){
 		return false;
 	}
 
+	set_menu_per_frame_call(update_vehicle_stats_mod_menu_widget);
 	draw_generic_menu<int>(menuItems, 0, "Vehicle Mods", onconfirm_vehmod_menu, NULL, NULL, vehicle_menu_interrupt);
+	clear_menu_per_frame_call();
 	return false;
 }
 
@@ -1272,6 +1309,12 @@ bool is_custom_tyres(std::vector<int> extras){
 void set_custom_tyres(bool applied, std::vector<int> extras){
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(PLAYER::PLAYER_PED_ID());
 	int currmod = VEHICLE::GET_VEHICLE_MOD(veh, 23);
+
+	// With no wheel mod installed (stock wheels, index -1), there's no mod for the custom-tires flag to attach to and the toggle silently does nothing - let the player know instead of it just appearing broken.
+	if(currmod == -1){
+		set_status_text(tr("VehModMenu.RSelectAWheelTypeFirst", "~r~Select a wheel type first"));
+		return;
+	}
 
 	VEHICLE::SET_VEHICLE_MOD_KIT(veh, 0);
 	VEHICLE::SET_VEHICLE_MOD(veh, 23, currmod, applied); //Add Custom Tires

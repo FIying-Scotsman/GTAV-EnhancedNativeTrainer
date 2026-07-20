@@ -92,7 +92,7 @@ extern bool featureFirstPersonDeathCamera;
 
 void EnableTracks(bool tracksVehicle, bool tracksPeds, bool deepTracksVehicle, bool deepTracksPed);
 
-void EnableSnow(bool* snowEnabled);
+void EnableSnow(bool* snowEnabled, bool silent = false);
 
 extern bool featureBusLight;
 

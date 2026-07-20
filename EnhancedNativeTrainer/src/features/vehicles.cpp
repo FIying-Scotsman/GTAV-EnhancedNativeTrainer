@@ -17,6 +17,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "hotkeys.h"
 #include "script.h"
 #include "..\ui_support\menu_functions.h"
+#include "..\ui_support\vehicle_stats_widget.h"
 #include "..\io\config_io.h"
 #include "..\io\controller.h"
 #include "..\debug\debuglog.h"
@@ -772,6 +773,16 @@ std::string get_vehicle_make_and_model(int modelHash)
 		return model;
 
 	return make + " " + model;
+}
+
+// Just the manufacturer name (e.g. "ANNIS"), not concatenated with the model - used by the vehicle stats widget to look up the manufacturer's logo texture.
+std::string get_vehicle_make_name(int modelHash)
+{
+	std::string make = std::string(HUD::GET_FILENAME_FOR_AUDIO_CONVERSATION(GetVehicleMakeName(modelHash)));
+	if (make == "NULL")
+		return "";
+
+	return make;
 }
 
 // Resolves the local player's current vehicle. Returns false (leaving *outVeh
@@ -5132,6 +5143,7 @@ bool onconfirm_spawn_menu_cars(MenuItem<int> choice){
 	params.menuSelectionPtr = 0;
 	params.onConfirmation = onconfirm_vehlist_menu;
 	params.lineImageProvider = vehicle_image_preview_finder;
+	params.imageStatsProvider = draw_vehicle_model_stats_widget;
 
 	if (choice.value == tmp_menuindex) params.menuSelectionPtr = &curr_c_pos;
 	if (choice.value != tmp_menuindex) {
@@ -5213,7 +5225,8 @@ Vehicle do_spawn_vehicle(DWORD model, std::string modelTitle, bool cleanup){
 		if(cleanup){
 			ENTITY::SET_VEHICLE_AS_NO_LONGER_NEEDED(&veh);
 		}
-		set_status_text(get_vehicle_make_and_model(model) + tr("VehicleMenu.SpawnedSuffix", " spawned!"));
+		// The space is added explicitly here rather than baked into the translation string - translation.ini's loader trims leading/trailing whitespace around "=" (and a translator editing the file might do the same), which would silently swallow a leading space kept only in the translated text.
+		set_status_text(get_vehicle_make_and_model(model) + " " + tr("VehicleMenu.SpawnedSuffix", "spawned!"));
 	
 		return veh;
 	}
@@ -6555,6 +6568,31 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 	write_text_to_log_file("Couldn't find preview for " + std::to_string(choice.value));
 	return NULL;
 }
+
+// Drawn just below the preview image in the vehicle spawner - choice.value is the model hash, the same one vehicle_image_preview_finder above matches on.
+// No live vehicle instance exists yet at this point, so this uses the model-hash-based GET_VEHICLE_MODEL_* natives rather than the instance-based ones used in the mod menu (see update_vehicle_stats_mod_menu_widget in vehmodmenu.cpp).
+void draw_vehicle_model_stats_widget(MenuItem<int> choice, float x, float yBelowImage){
+	if(!is_vehicle_preview_enabled()){
+		return;
+	}
+
+	Hash modelHash = (Hash) choice.value;
+	float estMaxSpeed = VEHICLE::GET_VEHICLE_MODEL_ESTIMATED_MAX_SPEED(modelHash);
+	float acceleration = VEHICLE::GET_VEHICLE_MODEL_ACCELERATION(modelHash);
+	float braking = VEHICLE::GET_VEHICLE_MODEL_MAX_BRAKING(modelHash);
+	float traction = VEHICLE::GET_VEHICLE_MODEL_MAX_TRACTION(modelHash);
+
+	VehicleStatBars stats = normalize_vehicle_stats(estMaxSpeed, acceleration, braking, traction);
+
+	int screen_w, screen_h;
+	GRAPHICS::GET_SCREEN_RESOLUTION(&screen_w, &screen_h);
+	float desiredWidth = 256.0f / (float) screen_w; // Matches draw_ingame_sprite's fixed 256px preview image width, so the two read as one widget.
+
+	float boxX, boxY, boxWidth, boxHeight;
+	compute_stats_widget_box(x, yBelowImage, desiredWidth, &boxX, &boxY, &boxWidth, &boxHeight);
+	draw_vehicle_stats_widget(modelHash, stats, boxX, boxY, boxWidth, boxHeight);
+}
+
 void init_vehicle_feature(){
 	//copy all the ingame images
 	ALL_VEH_IMAGES.insert(ALL_VEH_IMAGES.end(), INGAME_VEH_IMAGES.begin(), INGAME_VEH_IMAGES.end());
