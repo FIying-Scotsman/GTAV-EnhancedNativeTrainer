@@ -39,6 +39,26 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 const int fontHeader = 4, fontItem = 0, fontWanted = 7;
 
+// User-adjustable overall size of the menu (header/item boxes, text, and the toggle checkbox). Index into MENU_SCALE_OPTIONS below.
+// Lives here rather than in misc.h since menu_functions.h is the shared rendering code and must not depend on any single feature file.
+// Uses the same Option<T> table as the rest of the codebase's select-from-list settings (option_table.h), so caption and value can't drift out of sync.
+extern int MenuScaleIndex;
+const Option<float> MENU_SCALE_OPTIONS[] = {
+	{ "50%", 0.50f },
+	{ "75%", 0.75f },
+	{ "90%", 0.90f },
+	{ "100%", 1.00f },
+	{ "110%", 1.10f },
+	{ "125%", 1.25f },
+	{ "150%", 1.50f },
+	{ "175%", 1.75f },
+};
+const std::vector<std::string> MENU_SCALE_CAPTIONS = captionsOf(MENU_SCALE_OPTIONS);
+const std::vector<float> MENU_SCALE_VALUES = valuesOf(MENU_SCALE_OPTIONS);
+inline float get_menu_ui_scale(){
+	return MENU_SCALE_VALUES[MenuScaleIndex];
+}
+
 extern void(*periodic_feature_call)(void);
 
 extern void(*menu_per_frame_call)(void);
@@ -502,6 +522,9 @@ struct StandardOrToggleMenuDef{
 	bool *pUpdated;
 	bool isLeaf;
 	MenuItemType itemType;
+	// Optional per-item handler for plain (non-toggle/CASH/WANTED) entries. Lets draw_menu_from_struct_def-driven menus dispatch by item instead of by raw array position, so entries can be freely reordered without silently breaking a position-based switch elsewhere.
+	// See weapons.cpp's menu for the precedent this follows.
+	void(*onConfirmFunction)(MenuItem<int>) = NULL;
 };
 
 struct StringStandardOrToggleMenuDef{
@@ -601,7 +624,7 @@ inline std::string sanitise_menu_header_text(std::string input){
 }
 
 inline void draw_menu_header_line(std::string caption, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool rescaleText = true, int curPage = 1, int pageCount = 1){
-	float text_scale = rescaleText ? 0.60 : 0.35;
+	float text_scale = (rescaleText ? 0.60f : 0.35f) * get_menu_ui_scale();
 	bool outline = false;
 	bool dropShadow = false;
 
@@ -675,19 +698,22 @@ inline void draw_menu_header_line(std::string caption, float lineWidth, float li
 
 template<typename T>
 void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, float lineTop, float lineLeft, float textLeft, bool active, bool rescaleText){
-	float text_scale = 0.35;
+	float uiScale = get_menu_ui_scale();
+	float text_scale = 0.35f;
 	bool outline = false;
 	bool dropShadow = false;
 
 	// correcting values for active line
 	if(active){
 		if(rescaleText){
-			text_scale = 0.40;
+			text_scale = 0.40f;
 		}
 	}
 	else{
 		outline = true;
 	}
+
+	text_scale *= uiScale;
 
 	int screen_w, screen_h;
 	GRAPHICS::GET_SCREEN_RESOLUTION(&screen_w, &screen_h);
@@ -703,7 +729,13 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 	float leftMarginScaled = textLeftScaled - lineLeftScaled;
 
 	float textHeightScaled = TEXT_HEIGHT_NORMAL / (float) screen_h;
-	float rightMarginScaled = 30.0f / (float) screen_w;
+	float rightMarginScaled = (30.0f * uiScale) / (float) screen_w;
+
+	// DRAW_SPRITE's scaleX/scaleY are each normalized against a different axis (width vs height), so a fixed ratio between them only renders square at one specific aspect ratio.
+	// 0.026/0.034 is a 4:3 ratio, which is why the toggle checkbox looked stretched on a modern 16:9/21:9 monitor.
+	// Deriving the width from the height and the actual screen aspect ratio keeps it square everywhere.
+	float checkboxHeightScaled = 0.034f * uiScale;
+	float checkboxWidthScaled = checkboxHeightScaled * ((float) screen_h / (float) screen_w);
 
 	// this is how it's done in original scripts
 
@@ -775,11 +807,11 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 
 		if(toggleItem->get_toggle_value() == true){
 			//leaderboard_votetick_icon
-			//(char* textureDict, char* textureName, float screenX, float screenY, float scaleX, float scaleY, float heading, int colorR, int colorG, int colorB, int colorA) 
-			GRAPHICS::DRAW_SPRITE("cellphone_badger", "t", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, 0.026, 0.034, 0, 255, 255, 255, 255, FALSE, 0);
+			//(char* textureDict, char* textureName, float screenX, float screenY, float scaleX, float scaleY, float heading, int colorR, int colorG, int colorB, int colorA)
+			GRAPHICS::DRAW_SPRITE("cellphone_badger", "t", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, checkboxWidthScaled, checkboxHeightScaled, 0, 255, 255, 255, 255, FALSE, 0);
 		}
 		else{
-			GRAPHICS::DRAW_SPRITE("cellphone_badger", "u", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, 0.026, 0.034, 0, 0, 0, 0, 255, FALSE, 0);
+			GRAPHICS::DRAW_SPRITE("cellphone_badger", "u", lineLeftScaled + lineWidthScaled - rightMarginScaled, textY + 0.01f, checkboxWidthScaled, checkboxHeightScaled, 0, 0, 0, 0, 255, FALSE, 0);
 		}
 
 		HUD::END_TEXT_COMMAND_DISPLAY_TEXT(lineLeftScaled + lineWidthScaled - rightMarginScaled, textY, 0);
@@ -1165,12 +1197,16 @@ bool draw_generic_menu(MenuParameters<T> params){
 		do{
 			std::string sanit_header = params.sanitiseHeaderText ? sanitise_menu_header_text(params.headerText) : params.headerText;
 
+			// All the box/spacing constants below are tuned in "pixels" at 100%.
+			// Scaling them here, rather than in draw_menu_header_line/draw_menu_item_line individually, keeps the whole menu growing or shrinking as one consistent unit for the Menu Scale setting.
+			float uiScale = get_menu_ui_scale();
+
 			draw_menu_header_line(sanit_header,
-								  350.0f,//line W
-								  50.0f,//line H
-								  15.0f,//line T
-								  35.0f,//line L
-								  45.0f,//text X offset
+								  350.0f * uiScale,//line W
+								  50.0f * uiScale,//line H
+								  15.0f * uiScale,//line T
+								  35.0f * uiScale,//line L
+								  45.0f * uiScale,//text X offset
 								  false,
 								  true,
 								  (currentLine + 1),
@@ -1180,14 +1216,14 @@ bool draw_generic_menu(MenuParameters<T> params){
 			float activeLineY = 0;
 
 			for(int i = 0; i < itemsOnThisLine; i++){
-				float lineSpacingY = 8.0f;
+				float lineSpacingY = 8.0f * uiScale;
 
-				float lineWidth = 350.0f;
-				float lineHeight = 31.0f;
+				float lineWidth = 350.0f * uiScale;
+				float lineHeight = 31.0f * uiScale;
 
-				float lineTop = 75.0 + (i * (lineHeight + lineSpacingY));
-				float lineLeft = 35.0f;
-				float textOffset = 10.0f;
+				float lineTop = (75.0f * uiScale) + (i * (lineHeight + lineSpacingY));
+				float lineLeft = 35.0f * uiScale;
+				float textOffset = 10.0f * uiScale;
 
 				draw_menu_item_line(params.items[lineStartPosition + i], lineWidth, lineHeight, lineTop, lineLeft, textOffset, i == positionOnThisLine, false);
 
@@ -1200,10 +1236,11 @@ bool draw_generic_menu(MenuParameters<T> params){
 				int screen_w, screen_h;
 				GRAPHICS::GET_SCREEN_RESOLUTION(&screen_w, &screen_h);
 
-				float lineXPx = 35.0f + 350.0f + 8.0f;
+				float lineXPx = (35.0f + 350.0f + 8.0f) * uiScale;
 				float lineXGame = lineXPx / (float) screen_w;
 				float lineYGame = activeLineY / (float) screen_h;
 
+				// Only the anchor position tracks the resized menu box edge via lineXGame above. The preview image itself stays a fixed size regardless of Menu Scale.
 				draw_ingame_sprite(image, lineXGame, lineYGame, 256, 128);
 			}
 
@@ -1211,12 +1248,8 @@ bool draw_generic_menu(MenuParameters<T> params){
 				periodic_feature_call();
 			}
 
-			// This inner loop redraws for up to waitTime ms (many real frames)
-			// without looping back to the menu_per_frame_call() above it - any
-			// single-frame native driven from that hook (e.g. the weapon
-			// preview's light/spin/visibility reassertion) would otherwise
-			// only run on the first of those frames and drop out for the rest,
-			// which is visible as a flicker.
+			// This inner loop redraws for up to waitTime ms (many real frames) without looping back to the menu_per_frame_call() above it.
+			// Any single-frame native driven from that hook (e.g. the weapon preview's light/spin/visibility reassertion) would otherwise only run on the first of those frames and drop out for the rest, which is visible as a flicker.
 			if(menu_per_frame_call != NULL){
 				menu_per_frame_call();
 			}
@@ -1393,10 +1426,7 @@ bool draw_generic_menu(MenuParameters<T> params){
 		DWORD maxTickCount = GetTickCount() + waitTime;
 		do{
 			make_periodic_feature_call();
-			// The menu hasn't actually returned to its caller yet, so anything
-			// driven from menu_per_frame_call (e.g. the weapon preview's
-			// light/spin/hide reassertion) still needs to run here too - same
-			// reasoning as the redraw loop above.
+			// The menu hasn't actually returned to its caller yet, so anything driven from menu_per_frame_call (e.g. the weapon preview's light/spin/hide reassertion) still needs to run here too, same reasoning as the redraw loop above.
 			if(menu_per_frame_call != NULL){
 				menu_per_frame_call();
 			}

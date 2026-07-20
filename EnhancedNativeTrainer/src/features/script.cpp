@@ -2217,40 +2217,52 @@ bool process_player_forceshield_menu() {
 	return draw_generic_menu<int>(menuItems, &playerForceshieldMenuIndex, caption, onconfirm_playerForceshield_menu, NULL, NULL);
 }
 
+// Plain per-item handlers for the Player Options entries that open a submenu or fire a one-off action, matching the pattern used for the Weapon Options menu.
+// Each of these wraps a function that itself returns bool (its own draw_generic_menu result), but that return value was never propagated by the old switch(activeLineIndexPlayer) dispatch either, since it was called as a bare statement.
+// Only Player Appearance's result mattered, see below.
+void onconfirm_player_heal(MenuItem<int> choice){
+	heal_player();
+}
+
+void onconfirm_player_wanted_settings(MenuItem<int> choice){
+	maxwantedlevel_menu();
+}
+
+void onconfirm_player_wanted_fugitive(MenuItem<int> choice){
+	mostwanted_menu();
+}
+
+void onconfirm_player_movement_speed_item(MenuItem<int> choice){
+	player_movement_speed();
+}
+
+void onconfirm_player_ragdoll(MenuItem<int> choice){
+	process_ragdoll_menu();
+}
+
+void onconfirm_player_animations(MenuItem<int> choice){
+	process_anims_menu_top();
+}
+
+void onconfirm_player_data(MenuItem<int> choice){
+	process_player_life_menu();
+}
+
+void onconfirm_player_prison(MenuItem<int> choice){
+	process_player_prison_menu();
+}
+
+void onconfirm_player_jedi(MenuItem<int> choice){
+	process_player_forceshield_menu();
+}
+
+// Position of "Player Appearance" in the lines[] array below. It's the one entry here that still needs the switch/onConfirmation fallback rather than a plain onConfirmFunction, since selecting a skin should close the whole Player Options menu tree and drop back to gameplay.
+// Only onConfirmation's return value can signal that; onConfirmFunction is void and MenuItem::onConfirm()'s own return doesn't propagate a close.
+const int PLAYER_MENU_APPEARANCE_INDEX = 5;
+
 bool onconfirm_player_menu(MenuItem<int> choice){
-	switch(activeLineIndexPlayer){
-		case 0:
-			if(process_skinchanger_menu())	return true;
-			break;
-		case 1:
-			heal_player();
-			break;
-		case 7:
-			maxwantedlevel_menu();
-			break;
-		case 8:
-			mostwanted_menu();
-			break;
-		case 12:
-			player_movement_speed();
-			break;
-		case 13:
-			process_ragdoll_menu();
-			break;
-		case 18:
-			process_anims_menu_top();
-			break;
-		case 19:
-			process_player_life_menu();
-			break;
-		case 20:
-			process_player_prison_menu();
-			break;
-		case 21:
-			process_player_forceshield_menu();
-			break;
-		default:
-			break;
+	if(choice.value == PLAYER_MENU_APPEARANCE_INDEX){
+		if(process_skinchanger_menu()) return true;
 	}
 
 	return false;
@@ -2262,35 +2274,50 @@ void process_player_menu(){
 	const std::string caption = "Player Options";
 
 	StandardOrToggleMenuDef lines[lineCount] = {
-		{"Player Appearance", NULL, NULL, false},
-		{"Heal Player", NULL, NULL, true},
+		// --- Health & safety: the first things most players reach for ---
+		{"Heal Player", NULL, NULL, true, STANDARD, onconfirm_player_heal},
 		{"Invincible", &featurePlayerInvincible.enabled, &featurePlayerInvincible.updated, true},
 		{"No Fall Damage", &featureNoFallDamage, NULL, true},
 		{"Fire Proof", &featureFireProof, NULL, true},
 		{"Add or Remove Cash", NULL, NULL, true, CASH},
+
+		// --- Appearance ---
+		{"Player Appearance", NULL, NULL, false}, // see PLAYER_MENU_APPEARANCE_INDEX above
+
+		// --- Wanted level / police ---
 		{"Wanted Level", NULL, NULL, true, WANTED},
-		{"Wanted Level Settings", NULL, NULL, false},
-		{"Wanted Fugitive", NULL, NULL, false},
+		{"Wanted Level Settings", NULL, NULL, false, STANDARD, onconfirm_player_wanted_settings},
+		{"Wanted Fugitive", NULL, NULL, false, STANDARD, onconfirm_player_wanted_fugitive},
+
+		// --- Abilities & movement ---
 		{"Unlimited Ability", &featurePlayerUnlimitedAbility, NULL, true},
-		{"Noiseless", &featurePlayerNoNoise, NULL, true}, 
+		{"Player Movement Speed", NULL, NULL, false, STANDARD, onconfirm_player_movement_speed_item},
 		{"Can Run In Apartments", &featurePlayerRunApartments, NULL, true},
-		{"Player Movement Speed", NULL, NULL, false},
-		{"Ragdoll", NULL, NULL, false},
-		{"Invisibility", &featurePlayerInvisible, NULL, true}, 
-		{"Invisibility In Vehicle", &featurePlayerInvisibleInVehicle, NULL, true }, 
+		{"Noiseless", &featurePlayerNoNoise, NULL, true},
+
+		// --- Visibility & vision ---
+		{"Invisibility", &featurePlayerInvisible, NULL, true},
+		{"Invisibility In Vehicle", &featurePlayerInvisibleInVehicle, NULL, true},
 		{"Night Vision", &featureNightVision, &featureNightVisionUpdated, true},
 		{"Thermal Vision", &featureThermalVision, &featureThermalVisionUpdated, true},
-		{"Animations", NULL, NULL, false},
-		{"Player Data", NULL, NULL, false},
-		{"Prison Break", NULL, NULL, false},
-		{"Jedi Powers", NULL, NULL, false},
-		{"No Whistling For Taxi", &NoTaxiWhistling, NULL, false},
+
+		// --- Ragdoll & damage behaviour ---
+		{"Ragdoll", NULL, NULL, false, STANDARD, onconfirm_player_ragdoll},
 		{"Player Can Be Headshot", &featurePlayerCanBeHeadshot, NULL, false},
-		{"Manual Respawn", &featureNoAutoRespawn, NULL },
+		{"No Scuba Gear Mask", &featureNoScubaGearMask, NULL, true},
+		{"No Scuba Breathing Sound", &featureNoScubaSound, NULL, true},
+
+		// --- Respawn ---
+		{"Manual Respawn", &featureNoAutoRespawn, NULL},
 		{"Instant Respawn On Death/Arrest", &featureRespawnsWhereDied, NULL, false},
-		{"First Person Death/Arrest Camera", &featureFirstPersonDeathCamera, NULL },
-		{"No Scuba Gear Mask", &featureNoScubaGearMask, NULL, true },
-		{"No Scuba Breathing Sound", &featureNoScubaSound, NULL, true },
+		{"First Person Death/Arrest Camera", &featureFirstPersonDeathCamera, NULL},
+
+		// --- Misc / special ---
+		{"Animations", NULL, NULL, false, STANDARD, onconfirm_player_animations},
+		{"Player Data", NULL, NULL, false, STANDARD, onconfirm_player_data},
+		{"Prison Break", NULL, NULL, false, STANDARD, onconfirm_player_prison},
+		{"Jedi Powers", NULL, NULL, false, STANDARD, onconfirm_player_jedi},
+		{"No Whistling For Taxi", &NoTaxiWhistling, NULL, false},
 	};
 
 	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexPlayer, caption, onconfirm_player_menu);

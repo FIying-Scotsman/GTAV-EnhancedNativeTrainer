@@ -363,6 +363,12 @@ void process_misc_trainerconfig_menu(){
 	listItem->value = TrainerControlScrollingIndex;
 	menuItems.push_back(listItem);
 
+	listItem = new SelectFromListMenuItem(&MENU_SCALE_CAPTIONS, onchange_misc_menuscale_index);
+	listItem->wrap = false;
+	listItem->caption = tr("MiscMenu.MenuScale", "Menu Scale");
+	listItem->value = MenuScaleIndex;
+	menuItems.push_back(listItem);
+
 	//ToggleMenuItem<int>* toggleItem = new ToggleMenuItem<int>();
 	//toggleItem->caption = "Lock Controls While In Menu";
 	//toggleItem->toggleValue = &featureBlockInputInMenu;
@@ -942,40 +948,41 @@ void process_hud_settings_menu() {
 
 int activeLineIndexMisc = 0;
 
-bool onconfirm_misc_menu(MenuItem<int> choice){
-	switch(activeLineIndexMisc){
-		case 0:
-			process_misc_trainerconfig_menu();
-			break;
-		case 1:
-			process_radio_settings_menu();
-			break;
-		case 2:
-			process_hud_settings_menu();
-			break;
-		case 3:
-			process_phone_bill_menu();
-			break;
-		case 4:
-			process_def_menutab_menu();
-			break;
-		case 5:
-			process_misc_musicevent_menu();
-			break;
-		case 6:
-			process_misc_cutplayer_menu();
-			break;
-		case 7:
-			process_misc_filters_menu();
-			break;
-		case 15:
-			process_airbrake_global_menu();
-			break;
-		default:
-			// switchable features
-			break;
-	}
-	return false;
+// Plain per-item handlers for the Miscellaneous Options entries that open a submenu, replacing the old switch(activeLineIndexMisc) position dispatch with the pattern used for Player/Weapon Options.
+void onconfirm_misc_trainerconfig(MenuItem<int> choice){
+	process_misc_trainerconfig_menu();
+}
+
+void onconfirm_misc_hudsettings(MenuItem<int> choice){
+	process_hud_settings_menu();
+}
+
+void onconfirm_misc_radiosettings(MenuItem<int> choice){
+	process_radio_settings_menu();
+}
+
+void onconfirm_misc_screenfilters(MenuItem<int> choice){
+	process_misc_filters_menu();
+}
+
+void onconfirm_misc_phonebill(MenuItem<int> choice){
+	process_phone_bill_menu();
+}
+
+void onconfirm_misc_defmenutab(MenuItem<int> choice){
+	process_def_menutab_menu();
+}
+
+void onconfirm_misc_musicevent(MenuItem<int> choice){
+	process_misc_musicevent_menu();
+}
+
+void onconfirm_misc_cutplayer(MenuItem<int> choice){
+	process_misc_cutplayer_menu();
+}
+
+void onconfirm_misc_airbrake(MenuItem<int> choice){
+	process_airbrake_global_menu();
 }
 
 void process_misc_menu(){
@@ -984,25 +991,34 @@ void process_misc_menu(){
 	const std::string caption = "Miscellaneous Options";
 
 	StandardOrToggleMenuDef lines[lineCount] = {
-		{"Trainer Options", NULL, NULL, false},
-		{"Radio Settings", NULL, NULL, false},
-		{"HUD Settings", NULL, NULL, false},
-		{"Phone Settings", NULL, NULL, false},
-		{"Pause Menu Settings", NULL, NULL, false},
-		{"Scripted Music", nullptr, nullptr, false},
-		{"Cutscene Viewer", nullptr, nullptr, false},
-		{"Screen Filters", nullptr, nullptr, false},
-		{"No Wanted Music", &featureWantedMusic, NULL, true}, 
-		{"No Flight Music", &featureFlyingMusic, NULL, true}, 
-		{"No Police Scanner", &featurePoliceScanner, NULL, true }, 
-		{"No 'Mission Passed' Message", &featureNoComleteMessage, NULL, true },
-		{"First Person Stunt Jump Camera", &featureFirstPersonStuntJumpCamera, NULL },
-		{"No Stunt Jumps", &featureNoStuntJumps, NULL },
-		{"FPS Counter", &featureShowFPS, NULL }, 
-		{"Airbrake Menu", NULL, NULL, false},
+		// --- Core settings: the menus most players open first ---
+		{"Trainer Options", NULL, NULL, false, STANDARD, onconfirm_misc_trainerconfig},
+		{"HUD Settings", NULL, NULL, false, STANDARD, onconfirm_misc_hudsettings},
+		{"Radio Settings", NULL, NULL, false, STANDARD, onconfirm_misc_radiosettings},
+
+		// --- Sound ---
+		{"No Wanted Music", &featureWantedMusic, NULL, true},
+		{"No Flight Music", &featureFlyingMusic, NULL, true},
+		{"No Police Scanner", &featurePoliceScanner, NULL, true},
+
+		// --- Messages & camera ---
+		{"No 'Mission Passed' Message", &featureNoComleteMessage, NULL, true},
+		{"First Person Stunt Jump Camera", &featureFirstPersonStuntJumpCamera, NULL},
+		{"No Stunt Jumps", &featureNoStuntJumps, NULL},
+
+		// --- Display ---
+		{"FPS Counter", &featureShowFPS, NULL},
+		{"Screen Filters", nullptr, nullptr, false, STANDARD, onconfirm_misc_screenfilters},
+
+		// --- Other settings menus ---
+		{"Phone Settings", NULL, NULL, false, STANDARD, onconfirm_misc_phonebill},
+		{"Pause Menu Settings", NULL, NULL, false, STANDARD, onconfirm_misc_defmenutab},
+		{"Scripted Music", nullptr, nullptr, false, STANDARD, onconfirm_misc_musicevent},
+		{"Cutscene Viewer", nullptr, nullptr, false, STANDARD, onconfirm_misc_cutplayer},
+		{"Airbrake Menu", NULL, NULL, false, STANDARD, onconfirm_misc_airbrake},
 	};
-	
-	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexMisc, caption, onconfirm_misc_menu);
+
+	draw_menu_from_struct_def(lines, lineCount, &activeLineIndexMisc, caption, NULL);
 }
 
 // THE ORIGINAL CODE IS BY CAMXXCORE
@@ -1059,6 +1075,10 @@ void onchange_misc_trainercontrol_index(int value, SelectFromListMenuItem* sourc
 
 void onchange_misc_trainercontrolscrolling_index(int value, SelectFromListMenuItem* source) {
 	TrainerControlScrollingIndex = value;
+}
+
+void onchange_misc_menuscale_index(int value, SelectFromListMenuItem* source) {
+	MenuScaleIndex = value;
 }
 
 void onchange_misc_def_menutab_index(int value, SelectFromListMenuItem* source) {
@@ -2038,6 +2058,7 @@ void add_misc_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"RadioSwitchingIndex", std::to_string(RadioSwitchingIndex)});
 	results->push_back(StringPairSettingDBRow{"TrainerControlIndex", std::to_string(TrainerControlIndex)});
 	results->push_back(StringPairSettingDBRow{"TrainerControlScrollingIndex", std::to_string(TrainerControlScrollingIndex)});
+	results->push_back(StringPairSettingDBRow{"MenuScaleIndex", std::to_string(MenuScaleIndex)});
 	results->push_back(StringPairSettingDBRow{"PhoneFreeSecondsIndex", std::to_string(PhoneFreeSecondsIndex)});
 	results->push_back(StringPairSettingDBRow{"PhoneBikeAnimationIndex", std::to_string(PhoneBikeAnimationIndex)});
 	results->push_back(StringPairSettingDBRow{"DefMenuTabIndex", std::to_string(DefMenuTabIndex)});
@@ -2067,6 +2088,9 @@ void handle_generic_settings_misc(std::vector<StringPairSettingDBRow>* settings)
 		}
 		else if (setting.name.compare("TrainerControlScrollingIndex") == 0) {
 			TrainerControlScrollingIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("MenuScaleIndex") == 0) {
+			MenuScaleIndex = stoi(setting.value);
 		}
 		else if (setting.name.compare("PhoneFreeSecondsIndex") == 0){
 			PhoneFreeSecondsIndex = stoi(setting.value);

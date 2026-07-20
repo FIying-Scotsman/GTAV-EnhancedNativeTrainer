@@ -11,6 +11,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "menu_functions.h"
 #include "..\features\script.h"
 
+int MenuScaleIndex = 3; // 100%, see MENU_SCALE_OPTIONS in menu_functions.h
+
 std::string centreScreenStatusText;
 DWORD centreScreenStatusTextDrawTicksMax;
 bool centreScreenStatusTextGxtEntry;
@@ -203,6 +205,7 @@ void draw_menu_from_struct_def(StandardOrToggleMenuDef defs[], int lineCount, in
 			item->caption = defs[i].text;
 			item->value = i;
 			item->isLeaf = defs[i].isLeaf;
+			item->onConfirmFunction = defs[i].onConfirmFunction;
 			menuItems.push_back(item);
 		}
 	}

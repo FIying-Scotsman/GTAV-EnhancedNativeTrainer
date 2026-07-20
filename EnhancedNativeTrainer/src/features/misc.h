@@ -135,6 +135,8 @@ void onchange_misc_trainercontrol_index(int value, SelectFromListMenuItem* sourc
 
 void onchange_misc_trainercontrolscrolling_index(int value, SelectFromListMenuItem* source);
 
+void onchange_misc_menuscale_index(int value, SelectFromListMenuItem* source);
+
 void onchange_misc_def_menutab_index(int value, SelectFromListMenuItem* source);
 
 void onchange_misc_phone_freeseconds_index(int value, SelectFromListMenuItem* source);

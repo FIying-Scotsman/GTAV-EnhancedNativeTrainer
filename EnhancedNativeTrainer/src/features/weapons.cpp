@@ -204,6 +204,9 @@ void PopulateAddonWeaponsArray() {
 		if (seenHashes.count(data.weaponHash) > 0) continue; // Rockstar's own list contains duplicates
 		seenHashes.insert(data.weaponHash);
 		if (knownHashes.count(data.weaponHash) > 0) continue;
+		// Some DLC weapon metadata entries are placeholder/broken slots that aren't backed by a real weapon (wrong or garbage nameLabel, no working model).
+		// Equipping one showed as invisible, did nothing, and risked crashing the game later - IS_WEAPON_VALID filters those out before they ever reach the list.
+		if (!WEAPON::IS_WEAPON_VALID(data.weaponHash)) continue;
 
 		AddonWeaponEntry entry;
 		entry.hash = data.weaponHash;
@@ -622,11 +625,8 @@ int get_current_revolver_appearance(){
 	return 0;
 }
 
-// MK2 weapons can take any one of several mutually-exclusive camo attachments
-// (COMPONENT_*_MK2_CAMO, _02, _03, ... _IND_01, and _SLIDE variants for weapons
-// that have one) - there's no single fixed "the" camo component per weapon, so
-// scan the weapon's own component list (VOV_WEAPONMOD_VALUES[moddableIndex]) for
-// whichever "_CAMO" variant the player actually has equipped right now.
+// MK2 weapons can take any one of several mutually-exclusive camo attachments (COMPONENT_*_MK2_CAMO, _02, _03, ... _IND_01, and _SLIDE variants for weapons that have one), so there's no single fixed "the" camo component per weapon.
+// Scan the weapon's own component list instead, for whichever "_CAMO" variant the player actually has equipped right now.
 bool get_equipped_camo_component(Ped playerPed, Hash weaponHash, const std::vector<std::string> &components, char** outCompHash){
 	for(int i = 0; i < components.size(); i++){
 		const std::string &componentName = components.at(i);
@@ -641,21 +641,16 @@ bool get_equipped_camo_component(Ped playerPed, Hash weaponHash, const std::vect
 	return false;
 }
 
-// "Enhanced Customisation" - an opt-in live preview of the weapon being
-// customized, shown under its own camera the same way the in-game weapon shop
-// previews a weapon before you buy it. Scoped to a single
-// process_individual_weapon_menu call: created on entry, torn down on exit.
-// Tint/component changes made anywhere in that menu tree are mirrored onto
-// previewWeaponObject alongside the existing ped-facing calls.
+// "Weapon Preview" is an opt-in live preview of the weapon being customized, shown under its own camera the same way the in-game weapon shop previews a weapon before you buy it.
+// Scoped to a single process_individual_weapon_menu call: created on entry, torn down on exit.
+// Tint/component changes made anywhere in that menu tree are mirrored onto previewWeaponObject alongside the existing ped-facing calls.
 bool featureEnhancedWeaponCustomisation = false;
 Object previewWeaponObject = 0;
 Cam previewWeaponCam = 0;
 
 void update_weapon_preview(){
-	// Block discrete/digital movement (keyboard WASD, D-pad-as-movement) every
-	// frame - these need re-asserting each tick, unlike SET_PLAYER_CONTROL.
-	// Blocks the analogue stick too (not just keyboard/D-pad-as-movement) so a
-	// controller player can't wander into an NPC or traffic while previewing.
+	// These movement natives need re-asserting every frame, unlike SET_PLAYER_CONTROL.
+	// This also blocks the analogue stick, so a controller player can't wander into traffic while previewing.
 	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_LEFT, TRUE);
 	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_RIGHT, TRUE);
 	PAD::DISABLE_CONTROL_ACTION(0, INPUT_MOVE_UP, TRUE);
@@ -673,9 +668,8 @@ void update_weapon_preview(){
 	Vector3 rot = ENTITY::GET_ENTITY_ROTATION(previewWeaponObject, 2);
 	ENTITY::SET_ENTITY_ROTATION(previewWeaponObject, rot.x, rot.y, rot.z + 0.6f, 2, TRUE);
 
-	// A script light so the weapon stays clearly visible regardless of time of
-	// day or ambient lighting - has to be redrawn every frame like the other
-	// GRAPHICS::DRAW_* natives.
+	// Keeps the weapon visible regardless of time of day or ambient lighting.
+	// Like other GRAPHICS::DRAW_* natives, it must be redrawn every frame.
 	Vector3 weaponCoords = ENTITY::GET_ENTITY_COORDS(previewWeaponObject, TRUE);
 	GRAPHICS::DRAW_LIGHT_WITH_RANGE(weaponCoords.x, weaponCoords.y, weaponCoords.z + 1.0f, 255, 255, 255, 3.0f, 8.0f);
 }
@@ -686,12 +680,8 @@ void apply_weapon_preview_components(Hash weaponHash, int moddableIndex);
 void start_weapon_preview(Hash weaponHash, int moddableIndex){
 	if(!featureEnhancedWeaponCustomisation) return;
 
-	// Guard against being called again before a previous session's cleanup ran
-	// (e.g. the "Equip" toggle re-entering process_individual_weapon_menu via
-	// its redraw loop) - without this, the old camera handle gets silently
-	// overwritten below and leaked: orphaned, possibly still active, and never
-	// destroyed, which is how the camera got stuck rendering a weapon that had
-	// already been deleted.
+	// Guards against being called again before a previous session's cleanup ran, e.g. the "Equip" toggle re-entering this function via its redraw loop.
+	// Without this the old camera handle gets overwritten and leaked, which is how the camera got stuck rendering a weapon that had already been deleted.
 	if(CAMERA::DOES_CAM_EXIST(previewWeaponCam)){
 		CAMERA::RENDER_SCRIPT_CAMS(FALSE, FALSE, 0, TRUE, FALSE, 0);
 		CAMERA::DETACH_CAM(previewWeaponCam);
@@ -705,35 +695,23 @@ void start_weapon_preview(Hash weaponHash, int moddableIndex){
 
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 
-	// Hide the player too - the camera sits behind/beside the player to frame
-	// the floating weapon, so the player model can otherwise be in shot even
-	// with movement blocked (see update_weapon_preview). A full
-	// setGameInputToEnabled(false) was tried first but risked getting a player
-	// stuck unable to back out of the menu, so this is purely cosmetic.
-	// The held weapon renders independently of the ped's own visibility flag,
-	// so it needs hiding separately. Both are also re-asserted every frame in
-	// update_weapon_preview() - HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE doesn't
-	// reliably stick from a single call here.
+	// Hides the player too, since the camera sits behind/beside them to frame the floating weapon and can otherwise catch the player model in shot even with movement blocked (see update_weapon_preview).
+	// A full setGameInputToEnabled(false) was tried first but risked getting the player stuck unable to back out of the menu.
+	// The held weapon renders independently of the ped's visibility flag, so it needs hiding separately.
+	// Both are re-asserted every frame in update_weapon_preview(), since HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE doesn't reliably stick from a single call.
 	ENTITY::SET_ENTITY_VISIBLE(playerPed, FALSE, FALSE);
 	WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(playerPed, TRUE);
 
-	// Starting offsets only - not visually tuned yet, see plan notes.
 	Vector3 weaponPos = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, 0.4f, 1.0f, 0.3f);
 	Vector3 camPos = ENTITY::GET_OFFSET_FROM_ENTITY_IN_WORLD_COORDS(playerPed, -0.3f, -0.3f, 0.6f);
 
-	// Lifting the scene a few metres up clears typical street-level obstacles
-	// (cars, peds, small props) that were causing the camera to clip into
-	// nearby geometry and render blank until backing out and moving away -
-	// without going so high that ambient lighting becomes unpredictable (open
-	// sky at night, etc). See update_weapon_preview for the light that keeps
-	// the weapon visible regardless of time of day/surroundings.
+	// Lifting the scene a few metres up clears street-level obstacles (cars, peds, props) that caused the camera to clip into nearby geometry and render blank.
+	// It's not high enough for ambient lighting to become unpredictable; update_weapon_preview's light covers that anyway.
 	weaponPos.z += 5.0f;
 	camPos.z += 5.0f;
 
-	// CREATE_WEAPON_OBJECT can silently produce an object with no visible
-	// model if the weapon's own asset isn't streamed in yet (same class of
-	// issue as the per-component streaming below) - this is why the preview
-	// sometimes needed reopening a few times before the gun actually showed.
+	// CREATE_WEAPON_OBJECT can silently produce an object with no visible model if the weapon's own asset isn't streamed in yet, the same issue as the per-component streaming below.
+	// This is why the preview sometimes needed reopening a few times before the gun actually showed.
 	if(!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponHash)){
 		WEAPON::REQUEST_WEAPON_ASSET(weaponHash, 31, 0);
 		int attempts = 0;
@@ -747,8 +725,7 @@ void start_weapon_preview(Hash weaponHash, int moddableIndex){
 	previewWeaponObject = WEAPON::CREATE_WEAPON_OBJECT(weaponHash, 1, weaponPos.x, weaponPos.y, weaponPos.z, TRUE, 1.0f, 0, 0, 0);
 	ENTITY::SET_ENTITY_COLLISION(previewWeaponObject, FALSE, FALSE);
 	ENTITY::FREEZE_ENTITY_POSITION(previewWeaponObject, TRUE);
-	// Weapons spawn pointing at/away from the camera by default - rotate so it
-	// displays side-on (horizontal to the player) instead.
+	// Weapons spawn facing the camera by default - rotate so it displays side-on instead.
 	ENTITY::SET_ENTITY_HEADING(previewWeaponObject, ENTITY::GET_ENTITY_HEADING(playerPed) + 90.0f);
 	apply_weapon_preview_components(weaponHash, moddableIndex);
 
@@ -764,10 +741,8 @@ void start_weapon_preview(Hash weaponHash, int moddableIndex){
 void stop_weapon_preview(){
 	clear_menu_per_frame_call();
 
-	// If a redraw is about to happen (e.g. a camo toggle rebuilding the whole
-	// page), start_weapon_preview() is about to run again immediately and will
-	// re-hide the player/weapon anyway - restoring visibility here first would
-	// just cause a visible flash between the restore and the re-hide.
+	// If a redraw is about to happen (e.g. a camo toggle rebuilding the page), start_weapon_preview() will re-hide the player/weapon again immediately.
+	// Restoring visibility here first would just cause a visible flash.
 	if(!redrawWeaponMenuAfterEquipChange){
 		ENTITY::SET_ENTITY_VISIBLE(PLAYER::PLAYER_PED_ID(), TRUE, FALSE);
 		WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(PLAYER::PLAYER_PED_ID(), FALSE);
@@ -786,11 +761,8 @@ void stop_weapon_preview(){
 	}
 }
 
-// Applies every component the ped currently has equipped for weaponHash (plus
-// current tint) onto the already-existing previewWeaponObject. Doesn't touch
-// the object's lifecycle or the camera - called by both start_weapon_preview
-// (fresh object) and refresh_weapon_preview_object (recreated object) right
-// after they create it.
+// Applies every component the ped currently has equipped for weaponHash, plus the current tint, onto the already-existing previewWeaponObject.
+// Doesn't touch the object's lifecycle or the camera. Called by both start_weapon_preview and refresh_weapon_preview_object right after they create the object.
 void apply_weapon_preview_components(Hash weaponHash, int moddableIndex){
 	if(!ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) return;
 
@@ -799,20 +771,15 @@ void apply_weapon_preview_components(Hash weaponHash, int moddableIndex){
 			Hash compHash = MISC::GET_HASH_KEY((char*)compName.c_str());
 			if(!WEAPON::HAS_PED_GOT_WEAPON_COMPONENT(equip_ped, weaponHash, compHash)) continue;
 
-			// The ped-attach path streams a component's model in automatically;
-			// a bare script-created object doesn't, which is why some
-			// components silently failed to render - request it explicitly and
-			// give it a bounded wait rather than assume it's already resident.
+			// Giving a component to a ped streams its model automatically, but a bare script-created object doesn't, which is why some components silently failed to render.
+			// Request it explicitly with a bounded wait instead of assuming it's already resident.
 			Hash compModel = WEAPON::GET_WEAPON_COMPONENT_TYPE_MODEL(compHash);
 			if(compModel != 0 && !STREAMING::HAS_MODEL_LOADED(compModel)){
 				STREAMING::REQUEST_MODEL(compModel);
 				int attempts = 0;
 				while(!STREAMING::HAS_MODEL_LOADED(compModel) && attempts < 50){
-					// This wait happens outside draw_generic_menu's own loop
-					// (called synchronously from a menu item's onConfirm), so
-					// nothing re-asserts the preview's per-frame state
-					// (light/spin/player-hide) unless done explicitly here -
-					// that gap was the flicker on component apply.
+					// This wait happens outside draw_generic_menu's own loop, so nothing re-asserts the preview's per-frame state (light/spin/player-hide) unless done explicitly here.
+					// That gap was the flicker on component apply.
 					update_weapon_preview();
 					WAIT(0);
 					attempts++;
@@ -826,23 +793,16 @@ void apply_weapon_preview_components(Hash weaponHash, int moddableIndex){
 	WEAPON::SET_WEAPON_OBJECT_TINT_INDEX(previewWeaponObject, WEAPON::GET_PED_WEAPON_TINT_INDEX(equip_ped, weaponHash));
 }
 
-// Attachment components don't visually refresh on the preview object when
-// given incrementally to an object that's already spawned and rendering
-// (unlike SET_WEAPON_OBJECT_TINT_INDEX, which is just a material property and
-// applies immediately either way) - rebuilding the object from scratch is the
-// reliable way to get a new attachment to actually render. Only the preview
-// object is recreated here, not the whole menu page/camera - most mod toggles
-// don't trigger a page redraw (see set_weaponmod_equipped), so this is what
-// keeps the preview in sync for those.
+// Attachment components don't visually refresh when given incrementally to an object that's already spawned and rendering, unlike SET_WEAPON_OBJECT_TINT_INDEX, which applies immediately either way.
+// Rebuilding the object from scratch is the reliable way to make a new attachment render.
+// Only the preview object is recreated here, not the whole menu page or camera, since most mod toggles don't trigger a page redraw (see set_weaponmod_equipped).
 void refresh_weapon_preview_object(Hash weaponHash, int moddableIndex){
 	if(!ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)) return;
 
 	Vector3 pos = ENTITY::GET_ENTITY_COORDS(previewWeaponObject, TRUE);
 	OBJECT::DELETE_OBJECT(&previewWeaponObject);
 
-	// See start_weapon_preview - same asset-streaming guard, cheap no-op here
-	// since the weapon itself hasn't changed, just defensive against the
-	// asset somehow not being resident anymore.
+	// Same asset-streaming guard as start_weapon_preview. It's a cheap no-op here since the weapon hasn't changed, just defensive in case the asset somehow isn't resident anymore.
 	if(!WEAPON::HAS_WEAPON_ASSET_LOADED(weaponHash)){
 		WEAPON::REQUEST_WEAPON_ASSET(weaponHash, 31, 0);
 		int attempts = 0;
@@ -866,13 +826,9 @@ void refresh_weapon_preview_object(Hash weaponHash, int moddableIndex){
 	}
 }
 
-// Weapon components cached once at load, the same way PopulateVehicleModelsArray
-// caches vehicle models - real names and hashes sourced straight from the
-// game's own metadata instead of the hand-transcribed WCT_* static tables,
-// which can be (and have been) wrong. Keyed by weapon hash. Weapons not
-// covered by this cache (empty entry, or no entry at all) fall back to the
-// original static-table-driven mod list in process_individual_weapon_menu, so
-// gaps in native coverage degrade gracefully instead of breaking anything.
+// Weapon components cached once at load, the same way PopulateVehicleModelsArray caches vehicle models.
+// Names and hashes come straight from the game's own metadata instead of the hand-transcribed WCT_* static tables, which can be (and have been) wrong. Keyed by weapon hash.
+// Weapons not covered by this cache fall back to the static-table-driven mod list in process_individual_weapon_menu, so gaps degrade gracefully.
 struct WeaponComponentEntry {
 	Hash hash;
 	std::string caption;
@@ -906,10 +862,8 @@ void PopulateWeaponComponentsArray(){
 
 		if(!components.empty()) g_weaponComponents[weaponData.weaponHash] = components;
 
-		// Yield once per weapon rather than hammering the native dispatch with
-		// thousands of unyielded calls across every weapon's every component -
-		// that stalled the game badly enough to freeze rendering (screen went
-		// black while audio kept playing).
+		// Yields once per weapon rather than hammering the native dispatch with thousands of unyielded calls.
+		// Without this the game froze rendering (screen went black while audio kept playing).
 		WAIT(0);
 	}
 }
@@ -1121,11 +1075,9 @@ bool process_individual_weapon_menu(int weaponIndex, int* selectionIndexPtr){
 }
 
 bool weapon_reequip_interrupt(){
-	// Also fires when the whole menu is closed via the trainer toggle key
-	// (not just backing out normally) - draw_generic_menu doesn't return on
-	// its own in that case, it just spins waiting for the menu to reopen, so
-	// without this the preview cam/object were never torn down and stayed
-	// stuck rendering until the menu was reopened and backed out of properly.
+	// Also fires when the whole menu is closed via the trainer toggle key, not just when backing out normally.
+	// draw_generic_menu doesn't return on its own in that case, it just spins waiting for the menu to reopen.
+	// Without this the preview cam/object were never torn down and stayed stuck rendering until the menu was reopened and backed out of properly.
 	return redrawWeaponMenuAfterEquipChange || !is_menu_showing();
 }
 
@@ -1844,9 +1796,20 @@ void onconfirm_fill_all_ammo(MenuItem<int> choice){
 			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
 			if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, weaponHash, FALSE)){
 				WEAPON::GIVE_WEAPON_TO_PED(playerPed, weaponHash, 10000, false, false);
+
+				// GIVE_WEAPON_TO_PED's ammo count doesn't reach the MK2 ammo-type pool (see set_weapon_equipped) - top that up separately for every weapon the ped is carrying.
+				Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weaponHash);
+				int maxTypeAmmo = 0;
+				WEAPON::GET_MAX_AMMO_BY_TYPE(playerPed, ammoType, &maxTypeAmmo);
+				WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxTypeAmmo);
 			}
 		}
 	}
+
+	// Only the ped's currently-drawn weapon can be reloaded here - MAKE_PED_RELOAD only ever acts on the active weapon, and there's no practical way to cycle through and reload every weapon just given.
+	// Its reserve pool is now correct like everything else looped over above, so switching to any of them and reloading (or pulling the trigger) will pick up the right ammo from here on.
+	WEAPON::MAKE_PED_RELOAD(playerPed);
+	WEAPON::REFILL_AMMO_INSTANTLY(playerPed);
 
 	if(WEAPON::HAS_PED_GOT_WEAPON(playerPed, PARACHUTE_ID, FALSE)){
 		PLAYER::SET_PLAYER_HAS_RESERVE_PARACHUTE(player);
@@ -1862,11 +1825,9 @@ void onconfirm_remove_all_ammo(MenuItem<int> choice){
 		for(int b = 0; b < VOV_WEAPON_VALUES[a].size(); b++){
 			char *weaponName = (char *) VOV_WEAPON_VALUES[a].at(b).c_str();
 			Hash weaponHash = MISC::GET_HASH_KEY(weaponName);
-			// SET_PED_AMMO only clears the reserve pool, not whatever's
-			// currently loaded in the clip - leaving ammo loaded against a
-			// zeroed reserve is what made the ped try (and fail) to reload.
-			// Also clear the clip directly and the MK2 ammo-type pool (see
-			// set_weapon_equipped/fill_weapon_ammo for the same fix).
+			// SET_PED_AMMO only clears the reserve pool, not whatever's currently loaded in the clip.
+			// Leaving ammo loaded against a zeroed reserve is what made the ped try and fail to reload.
+			// Also clear the clip directly and the MK2 ammo-type pool (see set_weapon_equipped/fill_weapon_ammo for the same fix).
 			WEAPON::SET_PED_AMMO(playerPed, weaponHash, 0, FALSE);
 			WEAPON::SET_AMMO_IN_CLIP(playerPed, weaponHash, 0);
 			Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weaponHash);
@@ -3303,13 +3264,15 @@ void set_weapon_equipped(bool equipped, std::vector<int> extras){
 
 		//fill the clip and one spare
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
-		// MK2 weapons draw ammo from a pool keyed by the currently-equipped
-		// clip's ammo type (FMJ/AP/Incendiary/etc, not just the weapon itself)
-		// - the plain weapon-hash-keyed SET_PED_AMMO doesn't reach that pool,
-		// which is why MK2 weapons equipped with 0 ammo.
+		// MK2 weapons draw ammo from a pool keyed by the currently-equipped clip's ammo type (FMJ/AP/Incendiary/etc), not just the weapon itself.
+		// The plain weapon-hash-keyed SET_PED_AMMO doesn't reach that pool, which is why MK2 weapons equipped with 0 ammo.
 		Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
 		WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxClipAmmo);
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
+		// SET_AMMO_IN_CLIP alone doesn't reliably stick for MK2 ammo-type pool weapons - the HUD keeps showing an empty clip until an actual reload happens.
+		// MAKE_PED_RELOAD starts that reload (pulling from the reserve pool we just set) and REFILL_AMMO_INSTANTLY finishes it on the same frame instead of playing out the animation.
+		WEAPON::MAKE_PED_RELOAD(playerPed);
+		WEAPON::REFILL_AMMO_INSTANTLY(playerPed);
 	}
 	else{
 		WEAPON::REMOVE_WEAPON_FROM_PED(playerPed, MISC::GET_HASH_KEY(weaponChar));
@@ -3365,39 +3328,34 @@ void set_weaponmod_equipped(bool equipped, std::vector<int> extras){
 	else{
 		WEAPON::GIVE_WEAPON_COMPONENT_TO_PED(playerPed, weapHash, componentHash);
 		int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
-		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
 
-		// MK2 weapons draw ammo from a pool keyed by the currently-equipped
-		// clip's ammo type (see set_weapon_equipped/fill_weapon_ammo) -
-		// switching to a clip whose ammo type the player has never had
-		// defaults that reserve pool to 0, leaving nothing to reload with
-		// once the single clip just filled above runs out. Top it up
-		// whenever the newly-equipped component is a clip.
+		// MK2 weapons draw ammo from a pool keyed by the currently-equipped clip's ammo type (see set_weapon_equipped/fill_weapon_ammo).
+		// Switching to a clip whose ammo type the player has never had defaults that reserve pool to 0, leaving nothing to reload with once the single clip just filled above runs out.
+		// Top it up whenever the newly-equipped component is a clip, and do it before SET_AMMO_IN_CLIP below - the clip can't hold more than the reserve pool has, so setting it first (as this used to do) silently failed to fill it.
 		if(componentName.find("_CLIP_") != std::string::npos){
 			Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
 			int maxTypeAmmo = 0;
 			WEAPON::GET_MAX_AMMO_BY_TYPE(playerPed, ammoType, &maxTypeAmmo);
 			WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxTypeAmmo);
 		}
+
+		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
+		// See set_weapon_equipped - SET_AMMO_IN_CLIP alone doesn't stick for MK2 pool weapons, an actual reload is needed to pull the ammo in.
+		WEAPON::MAKE_PED_RELOAD(playerPed);
+		WEAPON::REFILL_AMMO_INSTANTLY(playerPed);
 	}
 
 	if(ENTITY::DOES_ENTITY_EXIST(previewWeaponObject)){
 		refresh_weapon_preview_object(weapHash, extras.at(2));
 
-		// GIVE/REMOVE_WEAPON_COMPONENT_FROM_PED appears to reset the ped's
-		// hide-for-cutscene state as a side effect - re-assert immediately
-		// (same script tick, before this frame renders) rather than waiting for
-		// the next per-frame reassertion in update_weapon_preview, which was
-		// one frame too late and caused a visible flash of the real weapon.
+		// GIVE/REMOVE_WEAPON_COMPONENT_FROM_PED appears to reset the ped's hide-for-cutscene state as a side effect.
+		// Re-assert it immediately, in the same script tick, rather than waiting for the next per-frame reassertion in update_weapon_preview, which was one frame too late and caused a visible flash of the real weapon.
 		ENTITY::SET_ENTITY_VISIBLE(playerPed, FALSE, FALSE);
 		WEAPON::HIDE_PED_WEAPON_FOR_SCRIPTED_CUTSCENE(playerPed, TRUE);
 	}
 
-	// Only camo toggles need a full page rebuild - they can change whether
-	// "Weapon Livery Colours" should be shown, so this makes that show up
-	// without needing to back all the way out first. Every other mod would
-	// just cause the whole page (and preview) to flash and rebuild for no
-	// reason, which is what refresh_weapon_preview_object above is for.
+	// Only camo toggles need a full page rebuild. They can change whether "Weapon Livery Colours" should be shown, so this makes it appear without backing all the way out first.
+	// Every other mod would just cause the whole page (and preview) to flash and rebuild for no reason, which is what refresh_weapon_preview_object above is for.
 	if(componentName.find("_CAMO") != std::string::npos){
 		redrawWeaponMenuAfterEquipChange = true;
 	}
@@ -3409,18 +3367,27 @@ void give_weapon_clip(MenuItem<int> choice){
 	char *weaponChar = (char*) weaponValue.c_str();
 	int weapHash = MISC::GET_HASH_KEY(weaponChar);
 
-	int curAmmo = WEAPON::GET_AMMO_IN_PED_WEAPON(playerPed, weapHash);
 	int curClipAmmo = 0;
 	WEAPON::GET_AMMO_IN_CLIP(playerPed, weapHash, &curClipAmmo);
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
+	Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
 
 	if(curClipAmmo < maxClipAmmo){
 		set_status_text(tr("WeaponMenu.ClipFilled", "Clip filled"));
+		// MK2 weapons can't load more into the clip than the reserve pool holds of that ammo type - make sure there's enough before setting the clip, same fix as fill_weapon_ammo.
+		int curTypeAmmo = WEAPON::GET_PED_AMMO_BY_TYPE(playerPed, ammoType);
+		if(curTypeAmmo < maxClipAmmo){
+			WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxClipAmmo);
+		}
 		WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
+		// See set_weapon_equipped - SET_AMMO_IN_CLIP alone doesn't stick for MK2 pool weapons, an actual reload is needed to pull the ammo in.
+		WEAPON::MAKE_PED_RELOAD(playerPed);
+		WEAPON::REFILL_AMMO_INSTANTLY(playerPed);
 	}
 	else{
 		set_status_text(tr("WeaponMenu.ExtraClipAdded", "Extra clip added"));
-		WEAPON::SET_PED_AMMO(playerPed, weapHash, curAmmo + maxClipAmmo, FALSE);
+		// ADD_PED_AMMO_BY_TYPE reaches the MK2 ammo-type pool directly, unlike the old SET_PED_AMMO(weapHash, ...) which never reached it.
+		WEAPON::ADD_PED_AMMO_BY_TYPE(playerPed, ammoType, maxClipAmmo);
 	}
 }
 
@@ -3434,11 +3401,14 @@ void fill_weapon_ammo(MenuItem<int> choice){
 	WEAPON::GET_MAX_AMMO(playerPed, weapHash, &maxAmmo);
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, weapHash, false);
 
-	WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
-	// See set_weapon_equipped - MK2 weapons need their ammo set via the
-	// currently-equipped clip's ammo type, not the plain weapon hash.
+	// See set_weapon_equipped. MK2 weapons need their ammo set via the currently-equipped clip's ammo type, not the plain weapon hash.
+	// The reserve pool has to be set before SET_AMMO_IN_CLIP - the clip can't hold more than the reserve has, so setting it first (as this used to do) silently failed to fill it.
 	Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, weapHash);
 	WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxAmmo);
+	WEAPON::SET_AMMO_IN_CLIP(playerPed, weapHash, maxClipAmmo);
+	// See set_weapon_equipped - SET_AMMO_IN_CLIP alone doesn't stick for MK2 pool weapons, an actual reload is needed to pull the ammo in.
+	WEAPON::MAKE_PED_RELOAD(playerPed);
+	WEAPON::REFILL_AMMO_INSTANTLY(playerPed);
 
 	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }
@@ -3454,8 +3424,13 @@ void fill_weapon_ammo_hotkey()
 
 	int maxClipAmmo = WEAPON::GET_MAX_AMMO_IN_CLIP(playerPed, tempWep, false);
 
+	// See fill_weapon_ammo - same MK2 ammo-type pool and ordering fix applies here.
+	Hash ammoType = WEAPON::GET_PED_AMMO_TYPE_FROM_WEAPON(playerPed, tempWep);
+	WEAPON::SET_PED_AMMO_BY_TYPE(playerPed, ammoType, maxAmmo);
 	WEAPON::SET_AMMO_IN_CLIP(playerPed, tempWep, maxClipAmmo);
-	WEAPON::SET_PED_AMMO(playerPed, tempWep, maxAmmo, FALSE);
+	// See set_weapon_equipped - SET_AMMO_IN_CLIP alone doesn't stick for MK2 pool weapons, an actual reload is needed to pull the ammo in.
+	WEAPON::MAKE_PED_RELOAD(playerPed);
+	WEAPON::REFILL_AMMO_INSTANTLY(playerPed);
 
 	set_status_text(tr("WeaponMenu.AmmoFilled", "Ammo filled"));
 }

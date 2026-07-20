@@ -2308,77 +2308,83 @@ void process_road_laws_menu(){
 	draw_generic_menu<int>(menuItems, &activeLineIndexRoadLaws, caption, onconfirm_road_laws_menu, NULL, NULL);
 }
 
-bool onconfirm_veh_menu(MenuItem<int> choice){
-	// common variables
-	Ped playerPed = PLAYER::PLAYER_PED_ID();
+// Plain per-item handlers for the Vehicle Options entries that open a submenu or fire a one-off action, replacing the old switch(activeLineIndexVeh) position dispatch with the pattern used for Weapon/Player Options.
+// Each wraps a function that returns its own draw_generic_menu result, but that return value was never propagated by the old switch either - every case fell through to a bare "return false" regardless, so nothing here changes behaviour.
+void onconfirm_veh_fix(MenuItem<int> choice){
+	fix_vehicle();
+}
 
-	switch(activeLineIndexVeh){
-		case 0:
-			if(process_carspawn_menu()) return false;
-			break;
-		case 1:
-			if(process_savedveh_menu()) return false;
-			break;
-		case 2: // fix
-			fix_vehicle();
-			break;
-		case 4: // clean
-			clean_vehicle();
-			break;
-		case 6: // paint
-			if(process_paint_menu()) return false;
-			break;
-		case 7: // mods
-			if(process_vehmod_menu()) return false;
-			break;
-		case 20: // speed and altitude menu
-			process_speed_menu();
-			break;
-		case 21: // speed limit
-			process_speedlimit_menu();
-			break;
-		case 22: // door menu
-			if(process_veh_door_menu()) return false;
-			break;
-		case 23: // seat menu
-			if (PED::IS_PED_SITTING_IN_ANY_VEHICLE(playerPed))
-				if(process_veh_seat_menu()) return false;
-			break;
-		case 24: // vehicle indicators menu
-			process_visualize_menu();
-			break;
-		case 27: // fuel menu
-			process_fuel_menu();
-			break;
-		case 28: // remember vehicles menu
-			process_remember_vehicles_menu();
-			break;
-		case 29: // road laws menu
-			process_road_laws_menu();
-			break;
-		case 30: // engine can degrade
-			process_engine_degrade_menu();
-			break;
-		case 47: // plane bombs
-		{
-			if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
-				set_status_text(tr("VehicleMenu.PlayerNotInVehicle", "Player not in vehicle"));
-				//return true;
-			}
-			Hash currVehModel = ENTITY::GET_ENTITY_MODEL(PED::GET_VEHICLE_PED_IS_USING(playerPed));
-			if (MISC::GET_HASH_KEY("CUBAN800") == currVehModel) {
-				if (process_veh_weapons_menu()) return false;
-			}
-			else set_status_text(tr("VehicleMenu.RErrorWBombDoorsRequireCuban800", "~r~Error: ~w~ Bomb doors require Cuban 800"));
-		}
-			break;
-		case 51: // car thief
-			process_routine_of_ringer_menu();
-			break;
-		default:
-			break;
+void onconfirm_veh_clean(MenuItem<int> choice){
+	clean_vehicle();
+}
+
+void onconfirm_veh_spawner(MenuItem<int> choice){
+	process_carspawn_menu();
+}
+
+void onconfirm_veh_saved(MenuItem<int> choice){
+	process_savedveh_menu();
+}
+
+void onconfirm_veh_paint(MenuItem<int> choice){
+	process_paint_menu();
+}
+
+void onconfirm_veh_mods(MenuItem<int> choice){
+	process_vehmod_menu();
+}
+
+void onconfirm_veh_speed_altitude(MenuItem<int> choice){
+	process_speed_menu();
+}
+
+void onconfirm_veh_speedlimiter(MenuItem<int> choice){
+	process_speedlimit_menu();
+}
+
+void onconfirm_veh_fuel(MenuItem<int> choice){
+	process_fuel_menu();
+}
+
+void onconfirm_veh_enginedamage(MenuItem<int> choice){
+	process_engine_degrade_menu();
+}
+
+void onconfirm_veh_control(MenuItem<int> choice){
+	process_veh_door_menu();
+}
+
+void onconfirm_veh_seats(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	if(PED::IS_PED_SITTING_IN_ANY_VEHICLE(playerPed)) process_veh_seat_menu();
+}
+
+void onconfirm_veh_indicators(MenuItem<int> choice){
+	process_visualize_menu();
+}
+
+void onconfirm_veh_dropbombs(MenuItem<int> choice){
+	Ped playerPed = PLAYER::PLAYER_PED_ID();
+	if (!PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) {
+		set_status_text(tr("VehicleMenu.PlayerNotInVehicle", "Player not in vehicle"));
 	}
-	return false;
+	Hash currVehModel = ENTITY::GET_ENTITY_MODEL(PED::GET_VEHICLE_PED_IS_USING(playerPed));
+	if (MISC::GET_HASH_KEY("CUBAN800") == currVehModel) {
+		process_veh_weapons_menu();
+	}
+	else set_status_text(tr("VehicleMenu.RErrorWBombDoorsRequireCuban800", "~r~Error: ~w~ Bomb doors require Cuban 800"));
+}
+
+void onconfirm_veh_tracking(MenuItem<int> choice){
+	process_remember_vehicles_menu();
+}
+
+void onconfirm_veh_roadlaws(MenuItem<int> choice){
+	process_road_laws_menu();
+}
+
+void onconfirm_veh_carthief(MenuItem<int> choice){
+	process_routine_of_ringer_menu();
 }
 
 void process_veh_menu(){
@@ -2397,97 +2403,57 @@ void process_veh_menu(){
 		WAIT(0);
 	}
 
+	// --- Quick actions: the things most players reach for first ---
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.Fix", "Fix");
+	item->value = i++;
+	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_veh_fix;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.Clean", "Clean");
+	item->value = i++;
+	item->isLeaf = true;
+	item->onConfirmFunction = onconfirm_veh_clean;
+	menuItems.push_back(item);
+
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.VehicleSpawner", "Vehicle Spawner");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_spawner;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.SavedVehicles", "Saved Vehicles");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_saved;
 	menuItems.push_back(item);
 
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.Fix", "Fix");
-	item->value = i++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	listItem = new SelectFromListMenuItem(&VEH_INVINC_MODE_CAPTIONS, onchange_veh_invincibility_mode);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.VehicleInvincibility", "Vehicle Invincibility");
-	listItem->value = VehInvincibilityIndex;
-	menuItems.push_back(listItem);
-
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.Clean", "Clean");
-	item->value = i++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	listItem = new SelectFromListMenuItem(&WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_veh_never_dirty);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.VehicleNeverGetsDirty", "Vehicle Never Gets Dirty");
-	listItem->value = featureNeverDirty;
-	menuItems.push_back(listItem);
-	
+	// --- Appearance ---
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.Paint", "Paint");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_paint;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.Modifications", "Modifications");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_mods;
 	menuItems.push_back(item);
 
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.NoFallingOffOut", "No Falling Off/Out");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureNoVehFallOff;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.DonTWearHelmet", "Don't Wear Helmet");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureWearHelmetOff.enabled;
-	toggleItem->toggleValueUpdated = &featureWearHelmetOff.updated;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.SpawnIntoVehicle", "Spawn Into Vehicle");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureVehSpawnInto;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.SpawnVehiclesFullyTuned", "Spawn Vehicles Fully Tuned");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureVehSpawnTuned; 
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.SpawnVehiclesFullyPimped", "Spawn Vehicles Fully Pimped");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureVehSpawnOptic;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.DisableDespawnOfDLCVehicles", "Disable Despawn Of DLC Vehicles");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureDespawnScriptDisabled.enabled;
-	menuItems.push_back(toggleItem);
-
-	listItem = new SelectFromListMenuItem(&VEH_MASS_CAPTIONS, onchange_veh_mass_index);
+	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_veh_invisibility_index);
 	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.VehicleForceShield", "Vehicle Force Shield");
-	listItem->value = VehMassMultIndex;
+	listItem->caption = tr("VehicleMenu.VehicleInvisibility", "Vehicle Invisibility");
+	listItem->value = VehInvisIndexN;
 	menuItems.push_back(listItem);
 
+	// --- Performance ---
 	listItem = new SelectFromListMenuItem(&VEH_SPEED_BOOST_CAPTIONS, onchange_veh_speed_boost_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.SpeedBoost", "Speed Boost");
@@ -2498,12 +2464,6 @@ void process_veh_menu(){
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.EnginePowerMultiplier", "Engine Power Multiplier");
 	listItem->value = engPowMultIndex;
-	menuItems.push_back(listItem);
-
-	listItem = new SelectFromListMenuItem(&VEH_INFINITEBOOST_CAPTIONS, onchange_veh_infiniteboost_index);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.InfiniteRocketBoost", "Infinite Rocket Boost");
-	listItem->value = InfiniteBoostIndex;
 	menuItems.push_back(listItem);
 
 	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_veh_nitrous_index);
@@ -2518,36 +2478,107 @@ void process_veh_menu(){
 	listItem->value = NitrousPowerIndex;
 	menuItems.push_back(listItem);
 
+	listItem = new SelectFromListMenuItem(&VEH_INFINITEBOOST_CAPTIONS, onchange_veh_infiniteboost_index);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.InfiniteRocketBoost", "Infinite Rocket Boost");
+	listItem->value = InfiniteBoostIndex;
+	menuItems.push_back(listItem);
+
+	listItem = new SelectFromListMenuItem(&VEH_MASS_CAPTIONS, onchange_veh_mass_index);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.VehicleForceShield", "Vehicle Force Shield");
+	listItem->value = VehMassMultIndex;
+	menuItems.push_back(listItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.TractionControl", "Traction Control");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureTractionControl;
+	menuItems.push_back(toggleItem);
+
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.SpeedAltitude", "Speed / Altitude");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_speed_altitude;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.SpeedLimiter", "Speed Limiter");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_speedlimiter;
 	menuItems.push_back(item);
 
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.VehicleControl", "Vehicle Control");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
-	
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.VehicleSeats", "Vehicle Seats");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_heavy_veh_index);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.HeavyVehicle", "Heavy Vehicle");
+	listItem->value = HeavyVehIndex;
+	menuItems.push_back(listItem);
 
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.VehicleIndicators", "Vehicle Indicators");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
+	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_veh_jumpy_index);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.VehicleJump", "Vehicle Jump");
+	listItem->value = JumpyVehIndex;
+	menuItems.push_back(listItem);
 
+	listItem = new SelectFromListMenuItem(&VEH_HYDRAULICS_CAPTIONS, onchange_veh_hydraulics_index);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.SuspensionHeight", "Suspension Height");
+	listItem->value = HydraulicsIndex;
+	menuItems.push_back(listItem);
+
+	// --- Durability & handling ---
+	listItem = new SelectFromListMenuItem(&VEH_INVINC_MODE_CAPTIONS, onchange_veh_invincibility_mode);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.VehicleInvincibility", "Vehicle Invincibility");
+	listItem->value = VehInvincibilityIndex;
+	menuItems.push_back(listItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.NoFallingOffOut", "No Falling Off/Out");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureNoVehFallOff;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.RealisticCrashes", "Realistic Crashes");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureNoVehFlip;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.StickVehicleToGround", "Stick Vehicle To Ground");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureSticktoground;
+	menuItems.push_back(toggleItem);
+
+	// --- Spawning behaviour ---
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.SpawnIntoVehicle", "Spawn Into Vehicle");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureVehSpawnInto;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.SpawnVehiclesFullyTuned", "Spawn Vehicles Fully Tuned");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureVehSpawnTuned;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.SpawnVehiclesFullyPimped", "Spawn Vehicles Fully Pimped");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureVehSpawnOptic;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.DisableDespawnOfDLCVehicles", "Disable Despawn Of DLC Vehicles");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureDespawnScriptDisabled.enabled;
+	menuItems.push_back(toggleItem);
+
+	// --- Engine & fuel ---
 	listItem = new SelectFromListMenuItem(&VEH_ENGINERUNNING_CAPTIONS, onchange_veh_enginerunning_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.KeepEngineRunning", "Keep Engine Running");
@@ -2564,32 +2595,56 @@ void process_veh_menu(){
 	item->caption = tr("VehicleMenu.FuelConsumption", "Fuel Consumption");
 	item->value = i++;
 	item->isLeaf = false;
-	menuItems.push_back(item);
-	
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.VehicleTracking", "Vehicle Tracking");
-	item->value = i++;
-	item->isLeaf = false;
-	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.RoadLaws", "Road Laws");
-	item->value = i++;
-	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_fuel;
 	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.EngineDamage", "Engine Damage");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_enginedamage;
 	menuItems.push_back(item);
 
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.RealisticCrashes", "Realistic Crashes");
+	toggleItem->caption = tr("VehicleMenu.DisableIgnition", "Disable Ignition");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureNoVehFlip;
+	toggleItem->toggleValue = &featureDisableIgnition;
 	menuItems.push_back(toggleItem);
 
+	// --- Doors, seats & controls ---
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.VehicleControl", "Vehicle Control");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_control;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.VehicleSeats", "Vehicle Seats");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_seats;
+	menuItems.push_back(item);
+
+	listItem = new SelectFromListMenuItem(&VEH_SPEEDLIMITER_CAPTIONS, onchange_door_autolock_index);
+	listItem->wrap = false;
+	listItem->caption = tr("VehicleMenu.AutolockDriverDoorAt", "Autolock Driver Door At");
+	listItem->value = DoorAutolockIndex;
+	menuItems.push_back(listItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.RollDriverWindowDownWhenShooting", "Roll Driver Window Down When Shooting");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureRollWhenShoot;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.DisableReverseWhenBraking", "Disable Reverse When Braking");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureReverseWhenBraking;
+	menuItems.push_back(toggleItem);
+
+	// --- Lights & visuals ---
 	listItem = new SelectFromListMenuItem(&VEH_LIGHTSOFF_CAPTIONS, onchange_veh_lightsOff_index);
 	listItem->wrap = false;
 	listItem->caption = tr("VehicleMenu.VehicleLightsOffByDefault", "Vehicle Lights Off By Default");
@@ -2615,60 +2670,14 @@ void process_veh_menu(){
 	toggleItem->toggleValue = &featureSeasharkLights;
 	menuItems.push_back(toggleItem);
 
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.RememberWheelAngle", "Remember Wheel Angle");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureVehSteerAngle;
-	menuItems.push_back(toggleItem);
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.VehicleIndicators", "Vehicle Indicators");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_indicators;
+	menuItems.push_back(item);
 
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.ShowCurrentMileage", "Show Current Mileage");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureMileage;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.RollDriverWindowDownWhenShooting", "Roll Driver Window Down When Shooting");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureRollWhenShoot;
-	menuItems.push_back(toggleItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.TractionControl", "Traction Control");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureTractionControl;
-	menuItems.push_back(toggleItem);
-
-	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_veh_jumpy_index);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.VehicleJump", "Vehicle Jump");
-	listItem->value = JumpyVehIndex;
-	menuItems.push_back(listItem);
-
-	listItem = new SelectFromListMenuItem(&VEH_HYDRAULICS_CAPTIONS, onchange_veh_hydraulics_index);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.SuspensionHeight", "Suspension Height");
-	listItem->value = HydraulicsIndex;
-	menuItems.push_back(listItem);
-
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.StickVehicleToGround", "Stick Vehicle To Ground");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureSticktoground;
-	menuItems.push_back(toggleItem);
-
-	listItem = new SelectFromListMenuItem(&VEH_TURN_SIGNALS_ACCELERATION_CAPTIONS, onchange_heavy_veh_index);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.HeavyVehicle", "Heavy Vehicle");
-	listItem->value = HeavyVehIndex;
-	menuItems.push_back(listItem);
-
-	listItem = new SelectFromListMenuItem(&VEH_SPEEDLIMITER_CAPTIONS, onchange_door_autolock_index);
-	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.AutolockDriverDoorAt", "Autolock Driver Door At");
-	listItem->value = DoorAutolockIndex;
-	menuItems.push_back(listItem);
-	
+	// --- Weapons & mayhem ---
 	toggleItem = new ToggleMenuItem<int>();
 	toggleItem->caption = tr("VehicleMenu.DropRoadSpikes", "Drop Road Spikes");
 	toggleItem->value = i++;
@@ -2685,33 +2694,57 @@ void process_veh_menu(){
 	item->caption = tr("VehicleMenu.DropBombs", "Drop Bombs");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_dropbombs;
 	menuItems.push_back(item);
 
+	// --- Misc ---
 	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.DisableReverseWhenBraking", "Disable Reverse When Braking");
+	toggleItem->caption = tr("VehicleMenu.DonTWearHelmet", "Don't Wear Helmet");
 	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureReverseWhenBraking;
+	toggleItem->toggleValue = &featureWearHelmetOff.enabled;
+	toggleItem->toggleValueUpdated = &featureWearHelmetOff.updated;
 	menuItems.push_back(toggleItem);
 
-	listItem = new SelectFromListMenuItem(&FUEL_COLOURS_R_CAPTIONS, onchange_veh_invisibility_index);
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.RememberWheelAngle", "Remember Wheel Angle");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureVehSteerAngle;
+	menuItems.push_back(toggleItem);
+
+	toggleItem = new ToggleMenuItem<int>();
+	toggleItem->caption = tr("VehicleMenu.ShowCurrentMileage", "Show Current Mileage");
+	toggleItem->value = i++;
+	toggleItem->toggleValue = &featureMileage;
+	menuItems.push_back(toggleItem);
+
+	listItem = new SelectFromListMenuItem(&WORLD_REDUCEDGRIP_SNOWING_CAPTIONS, onchange_veh_never_dirty);
 	listItem->wrap = false;
-	listItem->caption = tr("VehicleMenu.VehicleInvisibility", "Vehicle Invisibility");
-	listItem->value = VehInvisIndexN;
+	listItem->caption = tr("VehicleMenu.VehicleNeverGetsDirty", "Vehicle Never Gets Dirty");
+	listItem->value = featureNeverDirty;
 	menuItems.push_back(listItem);
 
-	toggleItem = new ToggleMenuItem<int>();
-	toggleItem->caption = tr("VehicleMenu.DisableIgnition", "Disable Ignition");
-	toggleItem->value = i++;
-	toggleItem->toggleValue = &featureDisableIgnition;
-	menuItems.push_back(toggleItem);
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.VehicleTracking", "Vehicle Tracking");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_tracking;
+	menuItems.push_back(item);
+
+	item = new MenuItem<int>();
+	item->caption = tr("VehicleMenu.RoadLaws", "Road Laws");
+	item->value = i++;
+	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_roadlaws;
+	menuItems.push_back(item);
 
 	item = new MenuItem<int>();
 	item->caption = tr("VehicleMenu.CarThief", "Car Thief");
 	item->value = i++;
 	item->isLeaf = false;
+	item->onConfirmFunction = onconfirm_veh_carthief;
 	menuItems.push_back(item);
 
-	draw_generic_menu<int>(menuItems, &activeLineIndexVeh, caption, onconfirm_veh_menu, NULL, NULL);
+	draw_generic_menu<int>(menuItems, &activeLineIndexVeh, caption, NULL, NULL, NULL);
 }
 
 void speedlimiter_switching(){

@@ -530,6 +530,7 @@ void process_world_menu()
 	SelectFromListMenuItem *listItem;
 	ToggleMenuItem<int>* togItem;
 
+	// --- Categories: the sub-menus most players open first ---
 	MenuItem<int> *item = new MenuItem<int>();
 	item->isLeaf = false;
 	item->caption = tr("WorldMenu.People", "People");
@@ -559,13 +560,8 @@ void process_world_menu()
 	item->caption = tr("WorldMenu.Clouds", "Clouds");
 	item->value = -5;
 	menuItems.push_back(item);
-	
-	listItem = new SelectFromListMenuItem(&WORLD_GRAVITY_LEVEL_CAPTIONS, onchange_gravity_level_index);
-	listItem->wrap = false;
-	listItem->caption = tr("WorldMenu.GravityLevel", "Gravity Level");
-	listItem->value = featureGravityLevelIndex;
-	menuItems.push_back(listItem);
 
+	// --- Traffic & population ---
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.NoPedestrians", "No Pedestrians");
 	togItem->value = 1;
@@ -578,7 +574,7 @@ void process_world_menu()
 	togItem->toggleValue = &featureWorldNoTraffic.enabled;
 	togItem->toggleValueUpdated = &featureWorldNoTraffic.updated;
 	menuItems.push_back(togItem);
-	
+
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.NoPlanesHelicopters", "No Planes/Helicopters");
 	togItem->value = 1;
@@ -589,37 +585,6 @@ void process_world_menu()
 	togItem->caption = tr("WorldMenu.NoAnimals", "No Animals");
 	togItem->value = 1;
 	togItem->toggleValue = &featureNoAnimals;
-	menuItems.push_back(togItem);
-
-	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.NoFireDepartmentDispatch", "No Fire Department Dispatch");
-	togItem->value = 1;
-	togItem->toggleValue = &featureWorldNoFireTruck.enabled;
-	menuItems.push_back(togItem);
-
-	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.NoAmbulanceDepartmentDispatch", "No Ambulance Department Dispatch");
-	togItem->value = 1;
-	togItem->toggleValue = &featureWorldNoAmbulance.enabled;
-	menuItems.push_back(togItem);
-
-	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.NoPoliceBlips", "No Police Blips");
-	togItem->value = 1;
-	togItem->toggleValue = &featureNoPoliceBlips;
-	menuItems.push_back(togItem);
-
-	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_cop_blips_perm_index);
-	listItem->wrap = false;
-	listItem->caption = tr("WorldMenu.ShowPoliceBlipsPermanently", "Show Police Blips Permanently");
-	listItem->value = CopBlipPermIndex;
-	menuItems.push_back(listItem);
-
-	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.RandomCops", "Random Cops");
-	togItem->value = 2;
-	togItem->toggleValue = &featureWorldRandomCops.enabled;
-	togItem->toggleValueUpdated = &featureWorldRandomCops.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -649,6 +614,26 @@ void process_world_menu()
 	togItem->toggleValueUpdated = &featureWorldGarbageTrucks.updated;
 	menuItems.push_back(togItem);
 
+	// --- Police & emergency services ---
+	togItem = new ToggleMenuItem<int>();
+	togItem->caption = tr("WorldMenu.NoPoliceBlips", "No Police Blips");
+	togItem->value = 1;
+	togItem->toggleValue = &featureNoPoliceBlips;
+	menuItems.push_back(togItem);
+
+	listItem = new SelectFromListMenuItem(&LIMP_IF_INJURED_CAPTIONS, onchange_cop_blips_perm_index);
+	listItem->wrap = false;
+	listItem->caption = tr("WorldMenu.ShowPoliceBlipsPermanently", "Show Police Blips Permanently");
+	listItem->value = CopBlipPermIndex;
+	menuItems.push_back(listItem);
+
+	togItem = new ToggleMenuItem<int>();
+	togItem->caption = tr("WorldMenu.RandomCops", "Random Cops");
+	togItem->value = 2;
+	togItem->toggleValue = &featureWorldRandomCops.enabled;
+	togItem->toggleValueUpdated = &featureWorldRandomCops.updated;
+	menuItems.push_back(togItem);
+
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.RestrictedZones", "Restricted Zones");
 	togItem->value = 6;
@@ -656,22 +641,41 @@ void process_world_menu()
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.Blackout", "Blackout");
-	togItem->value = 6;
-	togItem->toggleValue = &featureBlackout.enabled;
-	togItem->toggleValueUpdated = &featureBlackout.updated;
+	togItem->caption = tr("WorldMenu.NoFireDepartmentDispatch", "No Fire Department Dispatch");
+	togItem->value = 1;
+	togItem->toggleValue = &featureWorldNoFireTruck.enabled;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.HeadlightsDuringBlackout", "Headlights During Blackout");
-	togItem->value = 6;
-	togItem->toggleValue = &featureHeadlightsBlackout;
+	togItem->caption = tr("WorldMenu.NoAmbulanceDepartmentDispatch", "No Ambulance Department Dispatch");
+	togItem->value = 1;
+	togItem->toggleValue = &featureWorldNoAmbulance.enabled;
 	menuItems.push_back(togItem);
 
+	// --- Map & HUD ---
 	togItem = new ToggleMenuItem<int>();
 	togItem->caption = tr("WorldMenu.ShowFullMap", "Show Full Map");
 	togItem->value = 1;
 	togItem->toggleValue = &featureFullMap;
+	menuItems.push_back(togItem);
+
+	listItem = new SelectFromListMenuItem(&WORLD_RADAR_MAP_CAPTIONS, onchange_world_radar_map_index);
+	listItem->wrap = false;
+	listItem->caption = tr("WorldMenu.RadarMapSize", "Radar Map Size");
+	listItem->value = RadarMapIndexN;
+	menuItems.push_back(listItem);
+
+	togItem = new ToggleMenuItem<int>();
+	togItem->caption = tr("WorldMenu.NoMinimapRotation", "No Minimap Rotation");
+	togItem->value = 1;
+	togItem->toggleValue = &featureNoMinimapRot.enabled;
+	togItem->toggleValueUpdated = &featureNoMinimapRot.updated;
+	menuItems.push_back(togItem);
+
+	togItem = new ToggleMenuItem<int>();
+	togItem->caption = tr("WorldMenu.NoWaypointGPSLine", "No Waypoint GPS Line");
+	togItem->value = 1;
+	togItem->toggleValue = &featureNoWaypoint;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
@@ -695,25 +699,27 @@ void process_world_menu()
 	togItem->toggleValueUpdated = &featureCayoPericoMap.updated;
 	menuItems.push_back(togItem);
 
-	listItem = new SelectFromListMenuItem(&WORLD_RADAR_MAP_CAPTIONS, onchange_world_radar_map_index);
+	// --- Environment & physics ---
+	listItem = new SelectFromListMenuItem(&WORLD_GRAVITY_LEVEL_CAPTIONS, onchange_gravity_level_index);
 	listItem->wrap = false;
-	listItem->caption = tr("WorldMenu.RadarMapSize", "Radar Map Size");
-	listItem->value = RadarMapIndexN;
-	menuItems.push_back(listItem); 
+	listItem->caption = tr("WorldMenu.GravityLevel", "Gravity Level");
+	listItem->value = featureGravityLevelIndex;
+	menuItems.push_back(listItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.NoMinimapRotation", "No Minimap Rotation");
-	togItem->value = 1;
-	togItem->toggleValue = &featureNoMinimapRot.enabled;
-	togItem->toggleValueUpdated = &featureNoMinimapRot.updated;
+	togItem->caption = tr("WorldMenu.Blackout", "Blackout");
+	togItem->value = 6;
+	togItem->toggleValue = &featureBlackout.enabled;
+	togItem->toggleValueUpdated = &featureBlackout.updated;
 	menuItems.push_back(togItem);
 
 	togItem = new ToggleMenuItem<int>();
-	togItem->caption = tr("WorldMenu.NoWaypointGPSLine", "No Waypoint GPS Line");
-	togItem->value = 1;
-	togItem->toggleValue = &featureNoWaypoint;
+	togItem->caption = tr("WorldMenu.HeadlightsDuringBlackout", "Headlights During Blackout");
+	togItem->value = 6;
+	togItem->toggleValue = &featureHeadlightsBlackout;
 	menuItems.push_back(togItem);
 
+	// --- Freeroam & misc ---
 	listItem = new SelectFromListMenuItem(&WORLD_FREEROAM_ACTIVITIES_CAPTIONS, onchange_freeroam_activities_index);
 	listItem->wrap = false;
 	listItem->caption = tr("WorldMenu.NoFreeroamActivities", "No Freeroam Activities");
