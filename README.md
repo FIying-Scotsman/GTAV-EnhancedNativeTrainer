@@ -29,6 +29,7 @@ Feel free to raise [issues](https://github.com/FIying-Scotsman/GTAV-EnhancedNati
 ### For contributors
 
 - **[Contributing](CONTRIBUTING.md)** — a practical guide to adding new menu options and features: the menu framework, the translation system, and build configuration notes (including how to reduce/revert the build's size-vs-speed tradeoffs).
+- **[Scaleform and native gotchas](scaleform-and-native-gotchas.md)** — undocumented GTA V native behavior found the hard way, including `DRAW_SCALEFORM_MOVIE`'s positioning quirks and why MK2 weapon ammo needs a real reload to update.
 - **[License](LICENSE.md)** — full GPL license terms (see the TL;DR below for the short version).
 
 **TL;DR LICENSE REMINDER FOR DEVELOPERS:** You can do [almost anything](LICENSE.md) you like with this code, including trying to sell it and not giving us credit for the work, but if you release something based on it, you need to make your code open source too. That's what the GPL means. If you don't manage to do this, I will come after you in a deeply tedious fashion.
