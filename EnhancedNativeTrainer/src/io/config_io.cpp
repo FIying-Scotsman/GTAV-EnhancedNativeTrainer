@@ -4,7 +4,10 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 (C) Rob Pridham and fellow contributors 2015
 */
 
-#import <msxml6.dll> //read the GitHub project readme regarding what you need to make this work
+// exclude(): ISequentialStream/_FILETIME are already declared via other Windows headers pulled in
+// elsewhere in this translation unit - the importer silently skips redeclaring them regardless,
+// this just makes that explicit instead of emitting a C4192 warning about it.
+#import <msxml6.dll> exclude("ISequentialStream", "_FILETIME") //read the GitHub project readme regarding what you need to make this work
 
 #include "config_io.h"
 #include "keyboard.h"

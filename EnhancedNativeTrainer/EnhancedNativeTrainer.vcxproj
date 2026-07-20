@@ -48,6 +48,10 @@
            no FTS/RTREE/virtual tables, extension loading, or the Tcl/authorizer/incremental-blob
            APIs, so their SQLite subsystems can be compiled out. -->
       <PreprocessorDefinitions>SQLITE_OMIT_LOAD_EXTENSION;SQLITE_OMIT_DEPRECATED;SQLITE_OMIT_SHARED_CACHE;SQLITE_OMIT_AUTHORIZATION;SQLITE_OMIT_INCRBLOB;SQLITE_OMIT_GET_TABLE;SQLITE_OMIT_COMPLETE;SQLITE_OMIT_PROGRESS_CALLBACK;SQLITE_OMIT_TRACE;SQLITE_OMIT_TCL_VARIABLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- Unreferenced-local-variable warnings in code paths that only exist for the SQLITE_OMIT'd
+           subsystems above (auth callbacks, trace hooks) - upstream SQLite's own code, not worth
+           hand-editing a vendored amalgamation file to silence. -->
+      <DisableSpecificWarnings>4101;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <ClCompile Include="src\io\io.cpp" />
     <ClCompile Include="src\io\keyboard.cpp" />

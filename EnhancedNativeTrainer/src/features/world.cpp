@@ -1062,7 +1062,7 @@ void update_world_features()
 		if (startup_w == true) {
 			if (w_seconds <= (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] - 5) && !lastWeather.empty() && NPC_RAGDOLL_VALUES[WeatherMethodIndexN] == 0) MISC::SET_WEATHER_TYPE_NOW_PERSIST((char*)lastWeather.c_str());
 			if (w_seconds <= (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] - 5) && lastWeather.empty() && NPC_RAGDOLL_VALUES[WeatherMethodIndexN] == 0) MISC::SET_WEATHER_TYPE_NOW_PERSIST((char*)cur_w.c_str());
-			if (w_seconds <= (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] - 5) && NPC_RAGDOLL_VALUES[WeatherMethodIndexN] == 2) MISC::SET_WEATHER_TYPE_NOW_PERSIST((char*)cur_w.c_str()); ((char*)cur_w.c_str());
+			if (w_seconds <= (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] - 5) && NPC_RAGDOLL_VALUES[WeatherMethodIndexN] == 2) MISC::SET_WEATHER_TYPE_NOW_PERSIST((char*)cur_w.c_str());
 			if (w_seconds <= (MISC_WEATHER_CHANGE_VALUES[WeatherChangeIndex] - 5) && NPC_RAGDOLL_VALUES[WeatherMethodIndexN] == 1)
 				MISC::SET_CURR_WEATHER_STATE(MISC::GET_HASH_KEY((char*)mixed_w1.c_str()), MISC::GET_HASH_KEY((char*)mixed_w2.c_str()), 0.50f);
 
