@@ -275,3 +275,7 @@ __pycache__/
 # tools/
 *.vcxproj
 EnhancedNativeTrainer/inc/types.h
+
+# Local-only release helper (not part of the project, see RELEASE_PROCESS.md)
+/release.ps1
+/RELEASE_PROCESS.md
