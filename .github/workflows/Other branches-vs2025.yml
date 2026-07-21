@@ -1,0 +1,66 @@
+name: Nightly Build
+
+on:
+  push:
+    branches-ignore:
+      - master
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOLUTION_FILE_PATH: ./EnhancedNativeTrainer.sln
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  build:
+    runs-on: windows-2025
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+        with:
+          vs-version: "[18.0,)"
+
+      - name: Show Visual Studio installation
+        shell: pwsh
+        run: |
+          & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -all
+
+      - name: Get Version
+        id: version
+        shell: bash
+        run: |
+          VERSION=$(grep -oP 'VERSION_STRING\s*=\s*"\K[^"]+' version.sh || echo "unknown")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+      - name: Build
+        run: >
+          msbuild ${{ env.SOLUTION_FILE_PATH }}
+          /restore
+          /m
+          /p:Configuration=${{ env.BUILD_CONFIGURATION }}
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path EnhancedNativeTrainer/bin/Release/* `
+            -DestinationPath EnhancedNativeTrainer-nightly-${{ steps.version.outputs.version }}-${{ github.sha }}.zip
+
+      - name: Upload Nightly Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EnhancedNativeTrainer-nightly-${{ github.sha }}
+          path: EnhancedNativeTrainer-nightly-*.zip
+          retention-days: 14
+          if-no-files-found: error
