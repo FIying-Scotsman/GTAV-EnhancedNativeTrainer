@@ -633,7 +633,7 @@ sets that are genuinely independent of each other - either can be on, off, or bo
 ```cpp
 enum class InteriorOptionMethod{
 	ENTITY_SET,           // exactly one option's entity set (+ groupValues) is active
-	IPL_SWAP,              // reserved for a future interior that swaps a whole IPL per option - not yet implemented, don't use this
+	IPL_SWAP,              // exactly one option's whole milo IPL is active, swapped via REQUEST_IPL/REMOVE_IPL instead of an entity set
 	CUMULATIVE_ENTITY_SET  // selecting option N activates every option 1..N in sequence (index 0 is a synthetic "None")
 };
 ```
@@ -642,8 +642,23 @@ enum class InteriorOptionMethod{
 `CUMULATIVE_ENTITY_SET` only when the real game activates lower tiers alongside a higher one (e.g.
 Biker Business upgrade levels, Nightclub's Booze stock) - modelling that as plain `ENTITY_SET` would
 mean picking tier 3 turns off tiers 1 and 2, which doesn't match how the entity sets actually render.
-`IPL_SWAP` is declared for a future CEO Office/Penthouse "Style N" port but has no apply-logic
-implementation anywhere yet - don't reach for it.
+
+`IPL_SWAP` is for interiors where each option is a genuinely separate milo IPL rather than an entity
+set inside one shared MLO - the CEO Office's "Style" picker (`interior_customization.cpp`'s
+`CEO_OFFICE_*_CUSTOMIZATION` defs) is the reference example. Apply-logic works the same way as
+`ENTITY_SET` (deactivate every option in the category, then activate the selected one) except it
+calls `STREAMING::REQUEST_IPL`/`REMOVE_IPL` on the option's `value` instead of
+`INTERIOR::ACTIVATE_INTERIOR_ENTITY_SET` - see `activate_ipl_swap_option`/
+`deactivate_ipl_option_if_active`. `maxTints` has no meaning for an `IPL_SWAP` option; leave it at 0.
+
+One real wrinkle: if a def's categories are *entirely* `IPL_SWAP` (as CEO Office's are), it needs no
+`shellIpls` of its own - the selected style's milo **is** the whole interior, not decoration layered
+on top of a separate placement IPL. `begin_interior_customization` handles this by additionally
+pre-loading each `IPL_SWAP` category's default-selected option before it starts polling
+`GET_INTERIOR_AT_COORDS` for a valid interior; without that, an empty-`shellIpls`, all-`IPL_SWAP` def
+would poll for up to 8 seconds for an interior that never streams in. If your interior mixes
+`IPL_SWAP` with a real separate shell (unlike CEO Office), you can still set `shellIpls` normally -
+the pre-load loop only requests what isn't already active.
 
 ### `groupValues` - one option, several props
 

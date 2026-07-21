@@ -27,6 +27,10 @@ const char* const OFFICE_GARAGE_ARCADIUS_CAPTION = "Office Garage: Arcadius Busi
 const char* const OFFICE_GARAGE_MAZEBANK_BUILDING_CAPTION = "Office Garage: Maze Bank Building";
 const char* const OFFICE_GARAGE_LOMBANK_WEST_CAPTION = "Office Garage: Lombank West";
 const char* const OFFICE_GARAGE_MAZEBANK_WEST_CAPTION = "Office Garage: Maze Bank West";
+const char* const CEO_OFFICE_ARCADIUS_CAPTION = "CEO Office: Arcadius Business Centre";
+const char* const CEO_OFFICE_MAZEBANK_BUILDING_CAPTION = "CEO Office: Maze Bank Building";
+const char* const CEO_OFFICE_LOMBANK_WEST_CAPTION = "CEO Office: Lombank West";
+const char* const CEO_OFFICE_MAZEBANK_WEST_CAPTION = "CEO Office: Maze Bank West";
 const char* const BIKER_BUSINESS_METH_LAB_CAPTION = "Meth Lab";
 const char* const BIKER_BUSINESS_WEED_FARM_CAPTION = "Weed Farm";
 const char* const BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION = "Cocaine Warehouse";
@@ -356,6 +360,71 @@ const InteriorCustomizationDef OFFICE_GARAGE_MAZEBANK_WEST_CUSTOMIZATION = {
 	{}
 };
 
+// Sourced from Rockstar's decompiled am_mp_property_int.c (calamity-inc/GTA-V-Decompiled-Scripts, senpai branch) - the same generic MP-property script the Mansion def was cross-checked against. Confirmed real: the game does exactly a STREAMING::REMOVE_IPL(old)/REQUEST_IPL(new) swap between 9 whole milo IPLs per building (no re-resolution of the interior around the swap - same interior ID, different milo content), gated by a property-ID + 1-9 style-index pair; func_7646 in that script is the coordinate table keyed by the same property IDs (87=Lombank West, 88=Maze Bank West, 89=Arcadius, 90=Maze Bank Building), which also confirmed the 3 coordinates already used by ENT's older plain-teleport entries for these captions. This is the exact "swap a whole IPL per option" shape IPL_SWAP was reserved for, so it's the first def to use it. shellIpls is empty for all 4 - unlike Facility/Hangar/Bunker's dedicated milo, these office rooms have no separate placement IPL of their own; the selected Style option's milo is the entire interior (confirmed: ENT's own prior plain-teleport entries for these captions already resolved GET_INTERIOR_AT_COORDS off nothing but the style IPL). Style names are carried over from ENT's own pre-existing (now-removed) Maze Bank Building plain-teleport entries, reused across all 4 buildings since the underlying 1-9 index scheme is confirmed generic per-building in func_7646's own property-ID switch - the index-to-IPL mapping is decompiled-verified per building, the display names themselves are community naming, not Rockstar-string-verified. "Chairs" (office_chairs) is the only toggleable prop that shows up as a real, confirmed entity set in the same script (owner-gated seating in the real game, reinterpreted as a free toggle - same pattern as Nightclub's business items). The real game also shows progression-driven cash-pile/swag-loot props here, but those are dynamically STREAMING::CREATE_OBJECT'd based on the player's actual MP cash balance (func_9047), not entity sets, and this trainer has no existing code that reads a player's stored cash balance - deliberately left out rather than guessed at.
+const std::vector<InteriorTogglableProp> CEO_OFFICE_TOGGLEABLE_PROPS = {
+	{ "Chairs", "office_chairs" },
+};
+
+const std::vector<InteriorOptionCategory> CEO_OFFICE_ARCADIUS_CATEGORIES = {
+	{ "Style", InteriorOptionMethod::IPL_SWAP, {
+		{ "Old Spice Warm", "ex_dt1_02_office_01a" }, { "Old Spice Classical", "ex_dt1_02_office_01b" }, { "Old Spice Vintage", "ex_dt1_02_office_01c" },
+		{ "Executive Contrast", "ex_dt1_02_office_02a" }, { "Executive Rich", "ex_dt1_02_office_02b" }, { "Executive Cool", "ex_dt1_02_office_02c" },
+		{ "Power Broker Ice", "ex_dt1_02_office_03a" }, { "Power Broker Conservative", "ex_dt1_02_office_03b" }, { "Power Broker Polished", "ex_dt1_02_office_03c" },
+	} },
+};
+const InteriorCustomizationDef CEO_OFFICE_ARCADIUS_CUSTOMIZATION = {
+	CEO_OFFICE_ARCADIUS_CAPTION, -139.5395f, -629.0757f, 167.8204f,
+	{},
+	CEO_OFFICE_ARCADIUS_CATEGORIES,
+	CEO_OFFICE_TOGGLEABLE_PROPS,
+	{}
+};
+
+const std::vector<InteriorOptionCategory> CEO_OFFICE_MAZEBANK_BUILDING_CATEGORIES = {
+	{ "Style", InteriorOptionMethod::IPL_SWAP, {
+		{ "Old Spice Warm", "ex_dt1_11_office_01a" }, { "Old Spice Classical", "ex_dt1_11_office_01b" }, { "Old Spice Vintage", "ex_dt1_11_office_01c" },
+		{ "Executive Contrast", "ex_dt1_11_office_02a" }, { "Executive Rich", "ex_dt1_11_office_02b" }, { "Executive Cool", "ex_dt1_11_office_02c" },
+		{ "Power Broker Ice", "ex_dt1_11_office_03a" }, { "Power Broker Conservative", "ex_dt1_11_office_03b" }, { "Power Broker Polished", "ex_dt1_11_office_03c" },
+	} },
+};
+const InteriorCustomizationDef CEO_OFFICE_MAZEBANK_BUILDING_CUSTOMIZATION = {
+	CEO_OFFICE_MAZEBANK_BUILDING_CAPTION, -73.7992f, -818.958f, 242.3858f,
+	{},
+	CEO_OFFICE_MAZEBANK_BUILDING_CATEGORIES,
+	CEO_OFFICE_TOGGLEABLE_PROPS,
+	{}
+};
+
+const std::vector<InteriorOptionCategory> CEO_OFFICE_LOMBANK_WEST_CATEGORIES = {
+	{ "Style", InteriorOptionMethod::IPL_SWAP, {
+		{ "Old Spice Warm", "ex_sm_13_office_01a" }, { "Old Spice Classical", "ex_sm_13_office_01b" }, { "Old Spice Vintage", "ex_sm_13_office_01c" },
+		{ "Executive Contrast", "ex_sm_13_office_02a" }, { "Executive Rich", "ex_sm_13_office_02b" }, { "Executive Cool", "ex_sm_13_office_02c" },
+		{ "Power Broker Ice", "ex_sm_13_office_03a" }, { "Power Broker Conservative", "ex_sm_13_office_03b" }, { "Power Broker Polished", "ex_sm_13_office_03c" },
+	} },
+};
+const InteriorCustomizationDef CEO_OFFICE_LOMBANK_WEST_CUSTOMIZATION = {
+	CEO_OFFICE_LOMBANK_WEST_CAPTION, -1573.849f, -571.0254f, 107.5229f,
+	{},
+	CEO_OFFICE_LOMBANK_WEST_CATEGORIES,
+	CEO_OFFICE_TOGGLEABLE_PROPS,
+	{}
+};
+
+const std::vector<InteriorOptionCategory> CEO_OFFICE_MAZEBANK_WEST_CATEGORIES = {
+	{ "Style", InteriorOptionMethod::IPL_SWAP, {
+		{ "Old Spice Warm", "ex_sm_15_office_01a" }, { "Old Spice Classical", "ex_sm_15_office_01b" }, { "Old Spice Vintage", "ex_sm_15_office_01c" },
+		{ "Executive Contrast", "ex_sm_15_office_02a" }, { "Executive Rich", "ex_sm_15_office_02b" }, { "Executive Cool", "ex_sm_15_office_02c" },
+		{ "Power Broker Ice", "ex_sm_15_office_03a" }, { "Power Broker Conservative", "ex_sm_15_office_03b" }, { "Power Broker Polished", "ex_sm_15_office_03c" },
+	} },
+};
+const InteriorCustomizationDef CEO_OFFICE_MAZEBANK_WEST_CUSTOMIZATION = {
+	CEO_OFFICE_MAZEBANK_WEST_CAPTION, -1384.564f, -478.2699f, 71.0421f,
+	{},
+	CEO_OFFICE_MAZEBANK_WEST_CATEGORIES,
+	CEO_OFFICE_TOGGLEABLE_PROPS,
+	{}
+};
+
 // Ported from Menyoo SP's Submenus/Teleport/BikerInteriors.cpp (Businesses namespace) - a single CUMULATIVE_ENTITY_SET category per location, since these are upgrade-level build-outs rather than a mutually-exclusive style choice. Fixed a missing-comma bug in Menyoo's own Document Forgery list (its "interior_upgrade" and "equipment_upgrade" string literals were adjacent with no comma, silently concatenating into one bogus entity-set name) by restoring them as two entries.
 const std::vector<const char*> BIKER_BUSINESS_METH_LAB_SHELL_IPL = { "bkr_biker_interior_placement_interior_2_biker_dlc_int_ware01_milo_" };
 const InteriorCustomizationDef BIKER_BUSINESS_METH_LAB_CUSTOMIZATION = {
@@ -619,11 +688,20 @@ static void deactivate_entity_set_if_active(int interiorID, const std::string& e
 	}
 }
 
-// Deactivates every option in one category, not just whatever was previously selected - this guarantees only one paint/style is ever active at once (or, for CUMULATIVE_ENTITY_SET, that no stale earlier-session stage lingers), since a stale activation from an earlier session/import can never linger. IPL_SWAP categories have nothing to deactivate here - their "options" are whole IPLs, not entity sets.
-static void deactivate_all_options_in_category(int interiorID, const InteriorOptionCategory& category){
-	if(category.method == InteriorOptionMethod::IPL_SWAP) return;
+// Deactivates every option in one category, not just whatever was previously selected - this guarantees only one paint/style is ever active at once (or, for CUMULATIVE_ENTITY_SET, that no stale earlier-session stage lingers), since a stale activation from an earlier session/import can never linger. IPL_SWAP categories loop the same way but remove any active option's whole IPL instead of deactivating an entity set - see deactivate_ipl_option_if_active.
+static void deactivate_ipl_option_if_active(const std::string& ipl){
+	if(ipl.empty()) return;
+	if(STREAMING::IS_IPL_ACTIVE(ipl.c_str())){
+		STREAMING::REMOVE_IPL(ipl.c_str());
+	}
+}
 
+static void deactivate_all_options_in_category(int interiorID, const InteriorOptionCategory& category){
 	for(const InteriorCustomizationOption& opt : category.options){
+		if(category.method == InteriorOptionMethod::IPL_SWAP){
+			deactivate_ipl_option_if_active(opt.value);
+			continue;
+		}
 		deactivate_entity_set_if_active(interiorID, opt.value);
 		for(const std::string& groupValue : opt.groupValues){
 			deactivate_entity_set_if_active(interiorID, groupValue);
@@ -664,6 +742,30 @@ static void activate_option_with_tint(int interiorID, const InteriorCustomizatio
 	}
 }
 
+// IPL_SWAP's IS_IPL_ACTIVE equivalent of wait_for_entity_set_to_stream_in - a whole milo can take longer than an entity set to stream, but 250ms matches that function's own timeout since begin_interior_customization's own 8-second polling loop (which runs after this, while resolving the interior) absorbs anything slower on first load.
+static void wait_for_ipl_to_stream_in(const std::string& ipl){
+	if(ipl.empty()) return;
+
+	DWORD activeTimeout = GetTickCount() + 250;
+	while(GetTickCount() < activeTimeout){
+		if(STREAMING::IS_IPL_ACTIVE(ipl.c_str())) break;
+		WAIT(0);
+	}
+}
+
+// IPL_SWAP's equivalent of activate_option_with_tint - REQUEST_IPL the option's whole milo instead of activating an entity set. No tint concept applies (IPL_SWAP options never set maxTints), but groupValues is still honoured for symmetry with the other methods even though no current IPL_SWAP def needs it.
+static void activate_ipl_swap_option(const InteriorCustomizationOption& option){
+	if(option.value.empty()) return;
+
+	STREAMING::REQUEST_IPL(option.value.c_str());
+	wait_for_ipl_to_stream_in(option.value);
+	for(const std::string& groupValue : option.groupValues){
+		if(groupValue.empty()) continue;
+		STREAMING::REQUEST_IPL(groupValue.c_str());
+		wait_for_ipl_to_stream_in(groupValue);
+	}
+}
+
 // CUMULATIVE_ENTITY_SET: activates every stage from index 1 through stageIndex in order (index 0 is always the synthetic empty "None"), matching Menyoo's Biker Business upgrade levels where a higher level implies every lower one is still active.
 static void activate_cumulative_stages(int interiorID, const InteriorOptionCategory& category, int stageIndex){
 	if(stageIndex <= 0) return;
@@ -690,6 +792,13 @@ static void apply_interior_option_category(InteriorCustomizationState& state, in
 	}
 	else if(category.method == InteriorOptionMethod::CUMULATIVE_ENTITY_SET){
 		activate_cumulative_stages(state.interiorID, category, state.selectedOptionIndex[categoryIndex]);
+	}
+	else if(category.method == InteriorOptionMethod::IPL_SWAP){
+		const InteriorCustomizationOption& option = category.options[state.selectedOptionIndex[categoryIndex]];
+		if(!option.value.empty()){
+			set_status_text(tr("InteriorCustomizationMenu.ApplyingCustomization", "Applying customization..."));
+		}
+		activate_ipl_swap_option(option);
 	}
 
 	INTERIOR::REFRESH_INTERIOR(state.interiorID);
@@ -749,6 +858,9 @@ static void apply_full_interior_customization(InteriorCustomizationState& state)
 		}
 		else if(category.method == InteriorOptionMethod::CUMULATIVE_ENTITY_SET){
 			activate_cumulative_stages(state.interiorID, category, state.selectedOptionIndex[i]);
+		}
+		else if(category.method == InteriorOptionMethod::IPL_SWAP){
+			activate_ipl_swap_option(category.options[state.selectedOptionIndex[i]]);
 		}
 	}
 
@@ -999,6 +1111,15 @@ void begin_interior_customization(const InteriorCustomizationDef& def){
 		}
 	}
 
+	// An IPL_SWAP category's selected option is the whole interior's milo, not additive decoration on top of shellIpls (CEO Office has no separate placement IPL at all - shellIpls is empty) - without this, GET_INTERIOR_AT_COORDS below would poll for up to 8 seconds for an interior that never streams in.
+	for(size_t i = 0; i < def.categories.size(); i++){
+		if(def.categories[i].method != InteriorOptionMethod::IPL_SWAP) continue;
+		const std::string& ipl = def.categories[i].options[state.selectedOptionIndex[i]].value;
+		if(!ipl.empty() && !STREAMING::IS_IPL_ACTIVE(ipl.c_str())){
+			STREAMING::REQUEST_IPL(ipl.c_str());
+		}
+	}
+
 	set_status_text(tr("TeleportMenu.LoadingNewScenery", "Loading new scenery..."));
 
 	// A shell this size can take far longer than a couple of frames to stream in cold - poll for a valid interior handle instead of guessing a fixed delay (the old fixed ~3ms wait was effectively a single frame and regularly lost this race, leaving interiorID at -1 forever).
@@ -1083,6 +1204,10 @@ static const struct{ const char* caption; const InteriorCustomizationDef* def; }
 	{ OFFICE_GARAGE_MAZEBANK_BUILDING_CAPTION, &OFFICE_GARAGE_MAZEBANK_BUILDING_CUSTOMIZATION },
 	{ OFFICE_GARAGE_LOMBANK_WEST_CAPTION, &OFFICE_GARAGE_LOMBANK_WEST_CUSTOMIZATION },
 	{ OFFICE_GARAGE_MAZEBANK_WEST_CAPTION, &OFFICE_GARAGE_MAZEBANK_WEST_CUSTOMIZATION },
+	{ CEO_OFFICE_ARCADIUS_CAPTION, &CEO_OFFICE_ARCADIUS_CUSTOMIZATION },
+	{ CEO_OFFICE_MAZEBANK_BUILDING_CAPTION, &CEO_OFFICE_MAZEBANK_BUILDING_CUSTOMIZATION },
+	{ CEO_OFFICE_LOMBANK_WEST_CAPTION, &CEO_OFFICE_LOMBANK_WEST_CUSTOMIZATION },
+	{ CEO_OFFICE_MAZEBANK_WEST_CAPTION, &CEO_OFFICE_MAZEBANK_WEST_CUSTOMIZATION },
 	{ BIKER_BUSINESS_METH_LAB_CAPTION, &BIKER_BUSINESS_METH_LAB_CUSTOMIZATION },
 	{ BIKER_BUSINESS_WEED_FARM_CAPTION, &BIKER_BUSINESS_WEED_FARM_CUSTOMIZATION },
 	{ BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION, &BIKER_BUSINESS_COCAINE_WAREHOUSE_CUSTOMIZATION },

@@ -15,7 +15,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 //   - InteriorTogglableProp: an independent on/off prop, unrelated to any category.
 // Ported from a verified working reference: Menyoo SP's Submenus/Teleport/Facilities.cpp.
 
-// IPL_SWAP is for a later interior (CEO Office/Penthouse's "Style N" choices, which swap a whole IPL instead of toggling an entity set) - added now so the enum doesn't need retrofitting into every call site later. CUMULATIVE_ENTITY_SET is Biker Business upgrade levels: selecting option N activates every option from index 1 through N in sequence (index 0 is always a synthetic empty "None"), rather than just N alone like ENTITY_SET.
+// IPL_SWAP is the CEO Office's "Style" picker (and any future interior shaped the same way): each option is a whole separate milo IPL rather than an entity set inside one shared MLO, swapped live via STREAMING::REQUEST_IPL/REMOVE_IPL - see interior_customization.cpp's activate_ipl_swap_option/deactivate_ipl_option_if_active. A def whose categories are entirely IPL_SWAP needs no shellIpls of its own (CEO Office has none): begin_interior_customization additionally pre-loads each IPL_SWAP category's selected option before resolving GET_INTERIOR_AT_COORDS, since for these interiors the style IPL *is* the shell. CUMULATIVE_ENTITY_SET is Biker Business upgrade levels: selecting option N activates every option from index 1 through N in sequence (index 0 is always a synthetic empty "None"), rather than just N alone like ENTITY_SET.
 enum class InteriorOptionMethod{
 	ENTITY_SET,
 	IPL_SWAP,
@@ -101,6 +101,10 @@ extern const InteriorCustomizationDef OFFICE_GARAGE_ARCADIUS_CUSTOMIZATION;
 extern const InteriorCustomizationDef OFFICE_GARAGE_MAZEBANK_BUILDING_CUSTOMIZATION;
 extern const InteriorCustomizationDef OFFICE_GARAGE_LOMBANK_WEST_CUSTOMIZATION;
 extern const InteriorCustomizationDef OFFICE_GARAGE_MAZEBANK_WEST_CUSTOMIZATION;
+extern const InteriorCustomizationDef CEO_OFFICE_ARCADIUS_CUSTOMIZATION;
+extern const InteriorCustomizationDef CEO_OFFICE_MAZEBANK_BUILDING_CUSTOMIZATION;
+extern const InteriorCustomizationDef CEO_OFFICE_LOMBANK_WEST_CUSTOMIZATION;
+extern const InteriorCustomizationDef CEO_OFFICE_MAZEBANK_WEST_CUSTOMIZATION;
 extern const InteriorCustomizationDef BIKER_BUSINESS_METH_LAB_CUSTOMIZATION;
 extern const InteriorCustomizationDef BIKER_BUSINESS_WEED_FARM_CUSTOMIZATION;
 extern const InteriorCustomizationDef BIKER_BUSINESS_COCAINE_WAREHOUSE_CUSTOMIZATION;
@@ -130,6 +134,10 @@ extern const char* const OFFICE_GARAGE_ARCADIUS_CAPTION;
 extern const char* const OFFICE_GARAGE_MAZEBANK_BUILDING_CAPTION;
 extern const char* const OFFICE_GARAGE_LOMBANK_WEST_CAPTION;
 extern const char* const OFFICE_GARAGE_MAZEBANK_WEST_CAPTION;
+extern const char* const CEO_OFFICE_ARCADIUS_CAPTION;
+extern const char* const CEO_OFFICE_MAZEBANK_BUILDING_CAPTION;
+extern const char* const CEO_OFFICE_LOMBANK_WEST_CAPTION;
+extern const char* const CEO_OFFICE_MAZEBANK_WEST_CAPTION;
 extern const char* const BIKER_BUSINESS_METH_LAB_CAPTION;
 extern const char* const BIKER_BUSINESS_WEED_FARM_CAPTION;
 extern const char* const BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION;
