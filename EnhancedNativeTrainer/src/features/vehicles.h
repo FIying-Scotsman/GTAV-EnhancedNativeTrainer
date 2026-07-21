@@ -29,7 +29,7 @@ struct PaintColor{
 	std::string name;
 };
 
-extern const std::vector<PaintColor> PAINTS_BY_TYPE[7];
+extern std::vector<PaintColor> PAINTS_BY_TYPE[7];
 
 struct NeonLightsColor{
 	std::string colorString;
@@ -1318,8 +1318,6 @@ void process_visualize_menu();
 
 bool process_savedveh_menu();
 
-bool process_savedveh_sort_menu();
-
 bool process_savedveh_slot_menu(int slot);
 
 bool process_vehmod_menu();
@@ -1410,6 +1408,10 @@ void onhighlight_color_menu_selection(MenuItem<int> choice);
 
 void apply_paint(PaintColor whichpaint);
 
+void add_paintmenu_generic_settings(std::vector<StringPairSettingDBRow>* results);
+
+void handle_generic_settings_paintmenu(std::vector<StringPairSettingDBRow>* settings);
+
 //Vehicle mod getters and setters
 
 bool is_custom_tyres(std::vector<int> extras);
@@ -1447,8 +1449,6 @@ int find_menu_index_to_restore(int category, int actualCategory, Vehicle veh);
 bool vehicle_menu_interrupt();
 
 bool vehicle_save_menu_interrupt();
-
-bool vehicle_save_sort_menu_interrupt();
 
 bool vehicle_save_slot_menu_interrupt();
 

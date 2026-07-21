@@ -64,6 +64,7 @@ public:
 	int rowID;
 	int dbSize; //size as returned by database
 	std::string saveName;
+	sqlite3_int64 savedAt = 0;
 
 	inline SavedPropSet()
 	{
@@ -139,7 +140,8 @@ public:
 	std::string engineSound;
 	int xenonColour;
 	int powerMultiplier;
-	
+	sqlite3_int64 savedAt = 0;
+
 	std::vector<SavedVehicleExtraDBRow*> extras;
 	std::vector<SavedVehicleModDBRow*> mods;
 
@@ -302,6 +304,7 @@ public:
 	DWORD bcomp5;
 	DWORD bcomp6;
 	DWORD bw_tint;
+	sqlite3_int64 savedAt = 0;
 
 	std::vector<SavedBodSkinComponentDBRow*> components;
 	std::vector<SavedBodSkinPropDBRow*> props;
@@ -342,6 +345,7 @@ public:
 	DWORD comp5;
 	DWORD comp6;
 	DWORD w_tint;
+	sqlite3_int64 savedAt = 0;
 
 	inline ~SavedWeaponDBRow()
 	{
@@ -372,6 +376,7 @@ public:
 	DWORD scustomr;
 	DWORD scustomg;
 	DWORD scustomb;
+	sqlite3_int64 savedAt = 0;
 
 	/*inline ~SavedVehColourDBRow()
 	{
@@ -400,6 +405,7 @@ public:
 	int rowID;
 	std::string saveName;
 	DWORD model;
+	sqlite3_int64 savedAt = 0;
 
 	std::vector<SavedSkinComponentDBRow*> components;
 	std::vector<SavedSkinPropDBRow*> props;

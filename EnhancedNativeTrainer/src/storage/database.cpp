@@ -12,13 +12,14 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #include <string>
 #include <sstream>
+#include <ctime>
 
 #pragma warning(disable : 4267) // size_t conversion
 
 /**This value should be increased whenever you change the schema and a release is made.
 However you must also put in code to upgrade from older versions, in ENTDatabase::handle_version,
 as they will be deployed in the wild already.*/
-const int DATABASE_VERSION = 17;
+const int DATABASE_VERSION = 18;
 
 static int singleIntResultCallback(void *data, int count, char **rows, char **azColName)
 {
@@ -713,6 +714,31 @@ void ENTDatabase::handle_version(int oldVersion)
 			sqlite3_free(zErrMsg);
 		}
 	}
+
+	if (oldVersion < 18)
+	{
+		// savedAt is a unix timestamp (seconds), defaulting to 0 for pre-existing rows saved before this
+		// column existed - they sort as "oldest" under a Date Saved sort, per design.
+		char* queries[]
+		{
+			"ALTER TABLE ENT_SAVED_VEHICLES ADD savedAt INTEGER DEFAULT 0",
+			"ALTER TABLE ENT_SAVED_VEH_COLOURS ADD savedAt INTEGER DEFAULT 0",
+			"ALTER TABLE ENT_SAVED_SKINS ADD savedAt INTEGER DEFAULT 0",
+			"ALTER TABLE ENT_SAVED_BOD_SKINS ADD savedAt INTEGER DEFAULT 0",
+			"ALTER TABLE ENT_SAVED_WEAPON ADD savedAt INTEGER DEFAULT 0",
+			"ALTER TABLE ENT_PROP_SETS ADD savedAt INTEGER DEFAULT 0"
+		};
+
+		for each (char* q in queries)
+		{
+			int savedAtAddition = sqlite3_exec(db, q, NULL, 0, &zErrMsg);
+			if (savedAtAddition != SQLITE_OK)
+			{
+				write_text_to_log_file("Couldn't add v18 savedAt column");
+				sqlite3_free(zErrMsg);
+			}
+		}
+	}
 }
 
 bool ENTDatabase::open()
@@ -1170,7 +1196,7 @@ bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 
 
 	std::stringstream ss;
 	ss << "INSERT OR REPLACE INTO ENT_SAVED_VEHICLES VALUES (";
-	for (int i = 0; i < 43; i++)
+	for (int i = 0; i < 44; i++)
 	{
 		if (i > 0)
 		{
@@ -1359,6 +1385,8 @@ bool ENTDatabase::save_vehicle(Vehicle veh, std::string saveName, sqlite3_int64 
 		}
 		sqlite3_bind_int(stmt, index++, powerMultiplier);
 
+		sqlite3_bind_int64(stmt, index++, (sqlite3_int64) time(nullptr));
+
 		// commit
 		sqlite3_step(stmt);
 		sqlite3_finalize(stmt);
@@ -1471,7 +1499,7 @@ bool ENTDatabase::save_skin(Ped ped, std::string saveName, sqlite3_int64 slot)
 	mutex_lock();
 
 	std::stringstream ss;
-	ss << "INSERT OR REPLACE INTO ENT_SAVED_SKINS VALUES (?, ?, ?);";
+	ss << "INSERT OR REPLACE INTO ENT_SAVED_SKINS VALUES (?, ?, ?, ?);";
 
 	sqlite3_stmt *stmt;
 	const char *pzTest;
@@ -1497,6 +1525,7 @@ bool ENTDatabase::save_skin(Ped ped, std::string saveName, sqlite3_int64 slot)
 	}
 	sqlite3_bind_text(stmt, index++, saveName.c_str(), saveName.length(), 0); //save name
 	sqlite3_bind_int(stmt, index++, ENTITY::GET_ENTITY_MODEL(ped)); //model
+	sqlite3_bind_int64(stmt, index++, (sqlite3_int64) time(nullptr));
 
 	// commit
 	sqlite3_step(stmt);
@@ -1729,7 +1758,7 @@ bool ENTDatabase::save_bod_skin(Ped ped, std::string saveName, sqlite3_int64 slo
 	mutex_lock();
 
 	std::stringstream ss;
-	ss << "INSERT OR REPLACE INTO ENT_SAVED_BOD_SKINS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+	ss << "INSERT OR REPLACE INTO ENT_SAVED_BOD_SKINS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
 	Hash bcomp0 = -1;
 	Hash bcomp1 = -1;
@@ -1795,6 +1824,7 @@ bool ENTDatabase::save_bod_skin(Ped ped, std::string saveName, sqlite3_int64 slo
 	sqlite3_bind_int(stmt, index++, bcomp5); // weapon component
 	sqlite3_bind_int(stmt, index++, bcomp6); // weapon component
 	sqlite3_bind_int(stmt, index++, bw_tint); // weapon tint
+	sqlite3_bind_int64(stmt, index++, (sqlite3_int64) time(nullptr));
 
 	// commit
 	sqlite3_step(stmt);
@@ -1919,6 +1949,7 @@ std::vector<SavedBodSkinDBRow*> ENTDatabase::get_saved_bod_skins(int index)
 			skin->bcomp5 = sqlite3_column_int(stmt, index++);
 			skin->bcomp6 = sqlite3_column_int(stmt, index++);
 			skin->bw_tint = sqlite3_column_int(stmt, index++);
+			skin->savedAt = sqlite3_column_int64(stmt, index++);
 
 			results.push_back(skin);
 
@@ -1944,7 +1975,7 @@ bool ENTDatabase::save_weapon(Ped ped, std::string saveName, sqlite3_int64 slot)
 	mutex_lock();
 
 	std::stringstream ss;
-	ss << "INSERT OR REPLACE INTO ENT_SAVED_WEAPON VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+	ss << "INSERT OR REPLACE INTO ENT_SAVED_WEAPON VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
 	Hash comp0 = -1;
 	Hash comp1 = -1;
@@ -2009,7 +2040,8 @@ bool ENTDatabase::save_weapon(Ped ped, std::string saveName, sqlite3_int64 slot)
 	sqlite3_bind_int(stmt, index++, comp5); // weapon component
 	sqlite3_bind_int(stmt, index++, comp6); // weapon component
 	sqlite3_bind_int(stmt, index++, w_tint); // weapon tint
-	
+	sqlite3_bind_int64(stmt, index++, (sqlite3_int64) time(nullptr));
+
 	// commit
 	sqlite3_step(stmt);
 	sqlite3_finalize(stmt);
@@ -2123,6 +2155,7 @@ std::vector<SavedWeaponDBRow*> ENTDatabase::get_saved_weapon(int index)
 			skin->comp5 = sqlite3_column_int(stmt, index++);
 			skin->comp6 = sqlite3_column_int(stmt, index++);
 			skin->w_tint = sqlite3_column_int(stmt, index++);
+			skin->savedAt = sqlite3_column_int64(stmt, index++);
 
 			results.push_back(skin);
 
@@ -2247,6 +2280,8 @@ std::vector<SavedVehColourDBRow*> ENTDatabase::get_saved_veh_colours(int index)
 			skin->scustomg = sqlite3_column_int(stmt, index++);
 			skin->scustomb = sqlite3_column_int(stmt, index++);
 
+			skin->savedAt = sqlite3_column_int64(stmt, index++);
+
 			results.push_back(skin);
 
 			r = sqlite3_step(stmt);
@@ -2269,7 +2304,7 @@ bool ENTDatabase::save_veh_colour(Ped ped, std::string saveName, sqlite3_int64 s
 	mutex_lock();
 
 	std::stringstream ss;
-	ss << "INSERT OR REPLACE INTO ENT_SAVED_VEH_COLOURS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
+	ss << "INSERT OR REPLACE INTO ENT_SAVED_VEH_COLOURS VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
 
 	sqlite3_stmt *stmt;
 	const char *pzTest;
@@ -2310,6 +2345,8 @@ bool ENTDatabase::save_veh_colour(Ped ped, std::string saveName, sqlite3_int64 s
 	sqlite3_bind_int(stmt, index++, scustomr); //secondary R colour
 	sqlite3_bind_int(stmt, index++, scustomg); //secondary G colour
 	sqlite3_bind_int(stmt, index++, scustomb); //secondary B colour
+
+	sqlite3_bind_int64(stmt, index++, (sqlite3_int64) time(nullptr));
 
 	// commit
 	sqlite3_step(stmt);
@@ -2371,7 +2408,8 @@ std::vector<SavedSkinDBRow*> ENTDatabase::get_saved_skins(int index)
 			skin->rowID = sqlite3_column_int(stmt, index++);
 			skin->saveName = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, index++)));
 			skin->model = sqlite3_column_int(stmt, index++);
-			
+			skin->savedAt = sqlite3_column_int64(stmt, index++);
+
 			results.push_back(skin);
 
 			r = sqlite3_step(stmt);
@@ -2478,6 +2516,8 @@ std::vector<SavedVehicleDBRow*> ENTDatabase::get_saved_vehicles(int index)
 			veh->xenonColour = sqlite3_column_int(stmt, index++);
 
 			veh->powerMultiplier = sqlite3_column_int(stmt, index++);
+
+			veh->savedAt = sqlite3_column_int64(stmt, index++);
 
 			results.push_back(veh);
 
@@ -3034,7 +3074,7 @@ std::vector<SavedPropSet*> ENTDatabase::get_saved_prop_sets(int index)
 	const char *pzTest;
 
 	std::stringstream ss;
-	ss << "SELECT s.id, s.name, COUNT(i.id) AS size FROM ENT_PROP_SETS s LEFT JOIN ENT_PROP_INSTANCES i ON s.id = i.parentId ";
+	ss << "SELECT s.id, s.name, COUNT(i.id) AS size, s.savedAt FROM ENT_PROP_SETS s LEFT JOIN ENT_PROP_INSTANCES i ON s.id = i.parentId ";
 	if (index != -1)
 	{
 		ss << " WHERE s.id = ? ";
@@ -3065,6 +3105,7 @@ std::vector<SavedPropSet*> ENTDatabase::get_saved_prop_sets(int index)
 			set->rowID = sqlite3_column_int(stmt, index++);
 			set->saveName = std::string(reinterpret_cast<const char*>(sqlite3_column_text(stmt, index++)));
 			set->dbSize = sqlite3_column_int(stmt, index++);;
+			set->savedAt = sqlite3_column_int64(stmt, index++);
 
 			results.push_back(set);
 
@@ -3095,7 +3136,7 @@ bool ENTDatabase::save_props(std::vector<SavedPropDBRow*> props, std::string sav
 	begin_transaction();
 
 	std::stringstream ss_set;
-	ss_set << "INSERT OR REPLACE INTO ENT_PROP_SETS VALUES (?, ?);";
+	ss_set << "INSERT OR REPLACE INTO ENT_PROP_SETS VALUES (?, ?, ?);";
 	sqlite3_stmt *set_stmt;
 	const char *pzTest;
 	auto ss_set_str = ss_set.str();
@@ -3123,7 +3164,8 @@ bool ENTDatabase::save_props(std::vector<SavedPropDBRow*> props, std::string sav
 		}
 
 		sqlite3_bind_text(set_stmt, index++, saveName.c_str(), saveName.length(), 0); //save name
-		
+		sqlite3_bind_int64(set_stmt, index++, (sqlite3_int64) time(nullptr));
+
 		// commit
 		sqlite3_step(set_stmt);
 		sqlite3_finalize(set_stmt);

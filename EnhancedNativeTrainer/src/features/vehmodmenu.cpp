@@ -485,6 +485,12 @@ bool process_vehmod_wheel_selection(){
 		menuItems.push_back(item);
 	}
 
+	// Leave the pinned "stock/none" sentinel (index 0) in place and sort the real wheel options
+	// alphabetically - item->value already holds the real native mod index, so reordering is safe.
+	std::stable_sort(menuItems.begin() + 1, menuItems.end(), [](const MenuItem<int> *a, const MenuItem<int> *b){
+		return a->caption < b->caption;
+	});
+
 	//for (int a = 0; a < VEHICLE::GET_NUM_VEHICLE_MODS(veh, 23); a++) { // WHEEL_CATEGORY_COUNTS[wheelType]
 	//	if (a < WHEEL_CATEGORY_COUNTS[wheelType] && WHEELS_BY_TYPE[wheelType].at(a).wheelIndex == wheel){
 	//		modChoiceMenuIndex = a + 1;

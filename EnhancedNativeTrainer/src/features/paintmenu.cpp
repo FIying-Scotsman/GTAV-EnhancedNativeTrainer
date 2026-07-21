@@ -25,6 +25,7 @@ bool vehcolourSaveMenuInterrupt = false;
 bool vehcolourSaveSlotMenuInterrupt = false;
 bool requireRefreshOfVehColourSaveSlots = false;
 bool requireRefreshOfVehColourSlotMenu = false;
+int savedVehColourListSortMethod = 0;
 
 //Parts
 const std::vector<std::string> MENU_PAINT_WHAT{ "Primary", "Secondary", "Primary & Secondary", "Pearlescent", "Wheels", "Interior", "Dash" };
@@ -213,7 +214,11 @@ const std::vector<PaintColor> PAINTS_CHROME{
 	{120, "Chrome"}
 };
 
-const std::vector<PaintColor> PAINTS_BY_TYPE[7]{
+// Not const: sorted alphabetically in place on first use by ensure_paint_tables_sorted(). Every consumer
+// (menu-build, onhighlight/onconfirm colour lookups, apply_paint, random colour picks) reads this same
+// array by index, so sorting it once here keeps every one of those index-based lookups consistent -
+// sorting a local copy at menu-build time only would desync them.
+std::vector<PaintColor> PAINTS_BY_TYPE[7]{
 	PAINTS_CLASSIC,
 	PAINTS_CLASSIC,
 	PAINTS_MATTE,
@@ -222,6 +227,19 @@ const std::vector<PaintColor> PAINTS_BY_TYPE[7]{
 	PAINTS_WORN,
 	PAINTS_CHROME
 };
+
+void ensure_paint_tables_sorted(){
+	static bool sorted = false;
+	if(sorted){
+		return;
+	}
+	for(auto &table : PAINTS_BY_TYPE){
+		std::sort(table.begin(), table.end(), [](const PaintColor &a, const PaintColor &b){
+			return a.name < b.name;
+		});
+	}
+	sorted = true;
+}
 
 bool onconfirm_paintdirt(MenuItem<float> choice){
 	return true;
@@ -375,8 +393,21 @@ bool process_paint_menu_liveries(){
 		menuItems.push_back(item);
 	}
 
-	int currentSelection = VEHICLE::GET_VEHICLE_LIVERY(veh);
-	//int currentSelection = VEHICLE::GET_VEHICLE_MOD(veh, 48);
+	std::stable_sort(menuItems.begin(), menuItems.end(), [](const MenuItem<int> *a, const MenuItem<int> *b){
+		return a->caption < b->caption;
+	});
+
+	// currentSelection is a position in menuItems, not a native livery index - find the sorted position of
+	// the item whose value matches the vehicle's current livery, now that the list is alphabetical rather
+	// than in native index order.
+	int currentLivery = VEHICLE::GET_VEHICLE_LIVERY(veh);
+	int currentSelection = 0;
+	for(int i = 0; i < (int) menuItems.size(); i++){
+		if(menuItems[i]->value == currentLivery){
+			currentSelection = i;
+			break;
+		}
+	}
 	return draw_generic_menu<int>(menuItems, &currentSelection, "Liveries", onconfirm_livery, onhighlight_livery, NULL, vehicle_menu_interrupt);
 }
 
@@ -567,10 +598,24 @@ bool process_veh_savedcolour_menu()
 
 		std::vector<MenuItem<int>*> menuItems;
 
+		std::vector<std::string> sortCaptions{
+			tr("PaintMenu.SortBySaveOrder", "Save Order"),
+			tr("PaintMenu.SortByName", "Name"),
+			tr("PaintMenu.SortByDateSaved", "Date Saved")
+		};
+		SelectFromListMenuItem *sortItem = build_sort_mode_scroller(sortCaptions, savedVehColourListSortMethod, [](int value){
+			savedVehColourListSortMethod = value;
+			requireRefreshOfVehColourSaveSlots = true;
+			vehcolourSaveMenuInterrupt = true;
+		});
+		sortItem->sortval = -2;
+		menuItems.push_back(sortItem);
+
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
 		item->caption = tr("PaintMenu.CreateNewColourSet", "Create New Colour Set");
+		item->sortval = -1;
 		menuItems.push_back(item);
 
 		for each (SavedVehColourDBRow *sv in savedVehColours)
@@ -579,8 +624,23 @@ bool process_veh_savedcolour_menu()
 			item->isLeaf = false;
 			item->value = sv->rowID;
 			item->caption = sv->saveName;
+			switch(savedVehColourListSortMethod){
+				case 0:
+					item->sortval = sv->rowID;
+					break;
+				case 1:
+					item->sortkey = sv->saveName;
+					break;
+				case 2:
+					item->sortval = INT_MAX - (int) sv->savedAt;
+					break;
+				default:
+					break;
+			}
 			menuItems.push_back(item);
 		}
+
+		sort_menu_items_pinned(menuItems);
 
 		draw_generic_menu<int>(menuItems, 0, "Saved Colour Sets", onconfirm_veh_savedcolor_menu, NULL, NULL, veh_colour_menu_interrupt);
 
@@ -748,6 +808,8 @@ bool process_paint_menu(){
 }
 
 bool onconfirm_paint_menu_type(MenuItem<int> choice){
+	ensure_paint_tables_sorted();
+
 	std::string category = choice.caption;
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
@@ -1002,5 +1064,22 @@ void apply_paint(PaintColor whichpaint){
 	}
 	else{
 		set_status_text(tr("PaintMenu.PlayerIsnTInAVehicle", "Player isn't in a vehicle"));
+	}
+}
+
+void add_paintmenu_generic_settings(std::vector<StringPairSettingDBRow>* results)
+{
+	results->push_back(StringPairSettingDBRow{ "savedVehColourListSortMethod", std::to_string(savedVehColourListSortMethod) });
+}
+
+void handle_generic_settings_paintmenu(std::vector<StringPairSettingDBRow>* settings)
+{
+	for (int i = 0; i < settings->size(); i++)
+	{
+		StringPairSettingDBRow setting = settings->at(i);
+		if (setting.name.compare("savedVehColourListSortMethod") == 0)
+		{
+			savedVehColourListSortMethod = stoi(setting.value);
+		}
 	}
 }

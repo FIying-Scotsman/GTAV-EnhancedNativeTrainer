@@ -473,7 +473,6 @@ int doorOptionsMenuIndex = 0;
 int vehSeatIndexMenuIndex = 0;
 
 int savedVehicleListSortMethod = 0;
-bool vehSaveSortMenuInterrupt = false;
 
 typedef __int64(*GetModelInfo_t)(unsigned int modelHash, int* index);
 GetModelInfo_t GetModelInfo = (GetModelInfo_t)FindPatternJACCO("\x0F\xB7\x05\x00\x00\x00\x00\x45\x33\xC9\x4C\x8B\xDA\x66\x85\xC0\x0F\x84\x00\x00\x00\x00\x44\x0F\xB7\xC0\x33\xD2\x8B\xC1\x41\xF7\xF0\x48\x8B\x05\x00\x00\x00\x00\x4C\x8B\x14\xD0\xEB\x09\x41\x3B\x0A\x74\x54", "xxx????xxxxxxxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxx");
@@ -5678,38 +5677,6 @@ bool process_savedveh_slot_menu(int slot){
 	return false;
 }
 
-bool onconfirm_savedveh_sort_menu(MenuItem<int> choice){
-	savedVehicleListSortMethod = choice.value;
-	requireRefreshOfVehSaveSlots = vehSaveMenuInterrupt = vehSaveSortMenuInterrupt = true;
-
-	return false;
-}
-
-bool process_savedveh_sort_menu(){
-	std::vector<MenuItem<int> *> menuItems;
-	int method = 0;
-
-	MenuItem<int> *item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.BySaveOrderDefault", "By Save Order (Default)");
-	item->value = method++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.BySavedName", "By Saved Name");
-	item->value = method++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	item = new MenuItem<int>();
-	item->caption = tr("VehicleMenu.ByClassThenSavedName", "By Class, then Saved Name");
-	item->value = method++;
-	item->isLeaf = true;
-	menuItems.push_back(item);
-
-	return draw_generic_menu<int>(menuItems, nullptr, "Sort Saved Vehicles List", onconfirm_savedveh_sort_menu, nullptr, nullptr, vehicle_save_sort_menu_interrupt);
-}
-
 void save_current_vehicle(int slot){
 	BOOL bPlayerExists = ENTITY::DOES_ENTITY_EXIST(PLAYER::PLAYER_PED_ID());
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
@@ -5760,10 +5727,6 @@ bool onconfirm_savedveh_menu(MenuItem<int> choice){
 		return false;
 	}
 
-	if(choice.value == -2){
-		return process_savedveh_sort_menu();
-	}
-
 	activeSavedVehicleIndex = choice.value;
 	activeSavedVehicleSlotName = choice.caption;
 
@@ -5783,18 +5746,26 @@ bool process_savedveh_menu(){
 
 		std::vector<MenuItem<int>*> menuItems;
 
+		std::vector<std::string> sortCaptions{
+			tr("VehicleMenu.SortBySaveOrder", "Save Order"),
+			tr("VehicleMenu.SortByName", "Name"),
+			tr("VehicleMenu.SortByMake", "Make"),
+			tr("VehicleMenu.SortByModel", "Model"),
+			tr("VehicleMenu.SortByDateSaved", "Date Saved")
+		};
+		SelectFromListMenuItem *sortItem = build_sort_mode_scroller(sortCaptions, savedVehicleListSortMethod, [](int value){
+			savedVehicleListSortMethod = value;
+			requireRefreshOfVehSaveSlots = true;
+			vehSaveMenuInterrupt = true;
+		});
+		sortItem->sortval = -3;
+		menuItems.push_back(sortItem);
+
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = false;
 		item->value = -1;
 		item->caption = tr("VehicleMenu.CreateNewVehicleSave", "Create New Vehicle Save");
 		item->sortval = -2;
-		menuItems.push_back(item);
-
-		item = new MenuItem<int>();
-		item->caption = tr("VehicleMenu.SortSavedVehicles", "Sort Saved Vehicles");
-		item->value = -2;
-		item->isLeaf = false;
-		item->sortval = -1;
 		menuItems.push_back(item);
 
 		for each (SavedVehicleDBRow *sv in savedVehs){
@@ -5807,40 +5778,26 @@ bool process_savedveh_menu(){
 					item->sortval = sv->rowID;
 					break;
 				case 1:
-					item->sortval = 0;
+					item->sortkey = sv->saveName;
 					break;
 				case 2:
-					item->sortval = VEHICLE::GET_VEHICLE_CLASS_FROM_NAME(sv->model);
+					item->sortkey = get_vehicle_make_name(sv->model);
+					break;
+				case 3:
+					item->sortkey = GetVehicleModelName(sv->model);
+					break;
+				case 4:
+					// Most recently saved first; savedAt is 0 for pre-existing rows saved before this
+					// column existed, so they naturally sort as "oldest".
+					item->sortval = INT_MAX - (int) sv->savedAt;
 					break;
 				default:
-					item->sortval = 0;
 					break;
 			}
 			menuItems.push_back(item);
 		}
 
-		switch(savedVehicleListSortMethod){
-			case 0:
-				std::stable_sort(menuItems.begin(), menuItems.end(),
-								 [](const MenuItem<int> *a, const MenuItem<int> *b) -> bool{
-					return a->sortval < b->sortval;
-				});
-				break;
-			case 1:
-				std::stable_sort(menuItems.begin(), menuItems.end(),
-								 [](const MenuItem<int> *a, const MenuItem<int> *b) -> bool{
-					return a->sortval == b->sortval ? a->caption < b->caption : (a->sortval < b->sortval);
-				});
-				break;
-			case 2:
-				std::stable_sort(menuItems.begin(), menuItems.end(),
-								 [](const MenuItem<int> *a, const MenuItem<int> *b) -> bool{
-					return a->sortval == b->sortval ? a->caption < b->caption : (a->sortval < b->sortval);
-				});
-				break;
-			default:
-				break;
-		}
+		sort_menu_items_pinned(menuItems);
 
 		draw_generic_menu<int>(menuItems, 0, "Saved Vehicles", onconfirm_savedveh_menu, NULL, NULL, vehicle_save_menu_interrupt);
 
@@ -5860,10 +5817,6 @@ bool vehicle_save_menu_interrupt(){
 		return true;
 	}
 	return false;
-}
-
-bool vehicle_save_sort_menu_interrupt(){
-	return vehSaveSortMenuInterrupt ? vehSaveSortMenuInterrupt = false, true : false;
 }
 
 bool vehicle_save_slot_menu_interrupt(){

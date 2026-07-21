@@ -52,6 +52,7 @@ bool skinSaveMenuInterrupt = false;
 bool skinSaveSlotMenuInterrupt = false;
 bool requireRefreshOfSkinSaveSlots = false;
 bool requireRefreshOfSkinSlotMenu = false;
+int savedSkinListSortMethod = 0;
 
 std::string lastCustomSkinSpawn;
 
@@ -1170,10 +1171,24 @@ bool process_savedskin_menu()
 
 		std::vector<MenuItem<int>*> menuItems;
 
+		std::vector<std::string> sortCaptions{
+			tr("SkinsMenu.SortBySaveOrder", "Save Order"),
+			tr("SkinsMenu.SortByName", "Name"),
+			tr("SkinsMenu.SortByDateSaved", "Date Saved")
+		};
+		SelectFromListMenuItem *sortItem = build_sort_mode_scroller(sortCaptions, savedSkinListSortMethod, [](int value){
+			savedSkinListSortMethod = value;
+			requireRefreshOfSkinSaveSlots = true;
+			skinSaveMenuInterrupt = true;
+		});
+		sortItem->sortval = -2;
+		menuItems.push_back(sortItem);
+
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
 		item->caption = tr("SkinsMenu.CreateNewSkinSave", "Create New Skin Save");
+		item->sortval = -1;
 		menuItems.push_back(item);
 
 		for each (SavedSkinDBRow *sv in savedSkins)
@@ -1182,8 +1197,23 @@ bool process_savedskin_menu()
 			item->isLeaf = false;
 			item->value = sv->rowID;
 			item->caption = sv->saveName;
+			switch(savedSkinListSortMethod){
+				case 0:
+					item->sortval = sv->rowID;
+					break;
+				case 1:
+					item->sortkey = sv->saveName;
+					break;
+				case 2:
+					item->sortval = INT_MAX - (int) sv->savedAt;
+					break;
+				default:
+					break;
+			}
 			menuItems.push_back(item);
 		}
+
+		sort_menu_items_pinned(menuItems);
 
 		draw_generic_menu<int>(menuItems, 0, "Saved Skins", onconfirm_savedskin_menu, NULL, NULL, skin_save_menu_interrupt);
 
@@ -1302,6 +1332,7 @@ void add_skin_generic_settings(std::vector<StringPairSettingDBRow>* results)
 	results->push_back(StringPairSettingDBRow{ "lastCustomSkinSpawn", lastCustomSkinSpawn });
 	results->push_back(StringPairSettingDBRow{ "ResetSkinOnDeathIdx", std::to_string(ResetSkinOnDeathIdx) });
 	results->push_back(StringPairSettingDBRow{ "AutoApplySkinSavedIndex", std::to_string(AutoApplySkinSavedIndex) });
+	results->push_back(StringPairSettingDBRow{ "savedSkinListSortMethod", std::to_string(savedSkinListSortMethod) });
 }
 
 void add_player_skin_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* results) {
@@ -1323,6 +1354,9 @@ void handle_generic_settings_skin(std::vector<StringPairSettingDBRow>* settings)
 		}
 		else if (setting.name.compare("AutoApplySkinSavedIndex") == 0) {
 			AutoApplySkinSavedIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("savedSkinListSortMethod") == 0) {
+			savedSkinListSortMethod = stoi(setting.value);
 		}
 	}
 }

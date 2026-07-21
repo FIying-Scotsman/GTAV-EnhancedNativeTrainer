@@ -53,6 +53,7 @@ bool WeaponSaveSlotMenuInterrupt = false;
 bool requireRefreshOfWeaponSaveSlots = false;
 int lastKnownSavedWeaponCount = 0;
 bool WeaponSaveMenuInterrupt = false;
+int savedWeaponListSortMethod = 0;
 int activeSavedWeaponIndex = -1;
 bool requireRefreshOfWeaponSlotMenu = false;
 
@@ -1662,10 +1663,24 @@ bool process_saveweapon_menu()
 
 		std::vector<MenuItem<int>*> menuItems;
 
+		std::vector<std::string> sortCaptions{
+			tr("WeaponMenu.SortBySaveOrder", "Save Order"),
+			tr("WeaponMenu.SortByName", "Name"),
+			tr("WeaponMenu.SortByDateSaved", "Date Saved")
+		};
+		SelectFromListMenuItem* sortItem = build_sort_mode_scroller(sortCaptions, savedWeaponListSortMethod, [](int value){
+			savedWeaponListSortMethod = value;
+			requireRefreshOfWeaponSaveSlots = true;
+			WeaponSaveMenuInterrupt = true;
+		});
+		sortItem->sortval = -2;
+		menuItems.push_back(sortItem);
+
 		MenuItem<int>* item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
 		item->caption = tr("WeaponMenu.CreateNewWeaponSave", "Create New Weapon Save");
+		item->sortval = -1;
 		menuItems.push_back(item);
 
 		for each (SavedWeaponDBRow * sv in savedWeapon)
@@ -1674,8 +1689,23 @@ bool process_saveweapon_menu()
 			item->isLeaf = false;
 			item->value = sv->rowID;
 			item->caption = sv->saveName;
+			switch(savedWeaponListSortMethod){
+				case 0:
+					item->sortval = sv->rowID;
+					break;
+				case 1:
+					item->sortkey = sv->saveName;
+					break;
+				case 2:
+					item->sortval = INT_MAX - (int) sv->savedAt;
+					break;
+				default:
+					break;
+			}
 			menuItems.push_back(item);
 		}
+
+		sort_menu_items_pinned(menuItems);
 
 		draw_generic_menu<int>(menuItems, 0, "Saved Weapons", onconfirm_weapon_save_menu, NULL, NULL, weapon_save_menu_interrupt);
 
@@ -3621,6 +3651,7 @@ void add_weapons_generic_settings(std::vector<StringPairSettingDBRow>* results){
 	results->push_back(StringPairSettingDBRow{"lastCustomWeapon", lastCustomWeapon});
 	results->push_back(StringPairSettingDBRow{"lastPowerWeapon", lastPowerWeapon});
 	results->push_back(StringPairSettingDBRow{"weapDmgModIndex", std::to_string(weapDmgModIndex)});
+	results->push_back(StringPairSettingDBRow{"savedWeaponListSortMethod", std::to_string(savedWeaponListSortMethod)});
 }
 
 void handle_generic_settings_weapons(std::vector<StringPairSettingDBRow>* settings){
@@ -3628,6 +3659,9 @@ void handle_generic_settings_weapons(std::vector<StringPairSettingDBRow>* settin
 		StringPairSettingDBRow setting = settings->at(i);
 		if(setting.name.compare("weapDmgModIndex") == 0){
 			weapDmgModIndex = stoi(setting.value);
+		}
+		else if (setting.name.compare("savedWeaponListSortMethod") == 0){
+			savedWeaponListSortMethod = stoi(setting.value);
 		}
 		else if (setting.name.compare("CopCurrArmedIndex") == 0){
 			CopCurrArmedIndex = stoi(setting.value);

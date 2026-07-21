@@ -23,6 +23,7 @@ bool propInstanceMenuInterruptFlag = false;
 
 bool requireRefreshOfPropsSlotMenu = false;
 bool requireRefreshOfPropsSaveSlots = false;
+int savedPropSetListSortMethod = 0;
 
 static std::vector<SpawnedPropInstance> propsWeCreated;
 
@@ -637,6 +638,7 @@ void add_props_generic_settings(std::vector<StringPairSettingDBRow>* results)
 {
 	results->push_back(StringPairSettingDBRow{ "propCreationAlphaIndex", std::to_string(propCreationAlphaIndex)});
 	results->push_back(StringPairSettingDBRow{ "lastCustomPropSpawn", lastCustomPropSpawn });
+	results->push_back(StringPairSettingDBRow{ "savedPropSetListSortMethod", std::to_string(savedPropSetListSortMethod) });
 }
 
 void handle_generic_settings_props(std::vector<StringPairSettingDBRow>* settings)
@@ -651,6 +653,10 @@ void handle_generic_settings_props(std::vector<StringPairSettingDBRow>* settings
 		else if (setting.name.compare("lastCustomPropSpawn") == 0)
 		{
 			lastCustomPropSpawn = setting.value;
+		}
+		else if (setting.name.compare("savedPropSetListSortMethod") == 0)
+		{
+			savedPropSetListSortMethod = stoi(setting.value);
 		}
 	}
 }
@@ -1426,16 +1432,30 @@ bool process_savedprops_menu()
 
 		std::vector<MenuItem<int>*> menuItems;
 
+		std::vector<std::string> sortCaptions{
+			tr("PropsMenu.SortBySaveOrder", "Save Order"),
+			tr("PropsMenu.SortByName", "Name"),
+			tr("PropsMenu.SortByDateSaved", "Date Saved")
+		};
+		SelectFromListMenuItem *sortItem = build_sort_mode_scroller(sortCaptions, savedPropSetListSortMethod, [](int value){
+			savedPropSetListSortMethod = value;
+			requireRefreshOfPropsSaveSlots = true;
+		});
+		sortItem->sortval = -3;
+		menuItems.push_back(sortItem);
+
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = false;
 		item->value = -1;
 		item->caption = tr("PropsMenu.CreateNewSavedObjectSet", "Create New Saved Object Set");
+		item->sortval = -2;
 		menuItems.push_back(item);
 
 		item = new MenuItem<int>();
 		item->isLeaf = false;
 		item->value = -2;
 		item->caption = tr("PropsMenu.ImportObjectSetFromXML", "Import Object Set From XML");
+		item->sortval = -1;
 		menuItems.push_back(item);
 
 		for each (SavedPropSet *sv in savedSets)
@@ -1444,8 +1464,23 @@ bool process_savedprops_menu()
 			item->isLeaf = false;
 			item->value = sv->rowID;
 			item->caption = sv->saveName + " (" + std::to_string(sv->dbSize) + ")";
+			switch(savedPropSetListSortMethod){
+				case 0:
+					item->sortval = sv->rowID;
+					break;
+				case 1:
+					item->sortkey = sv->saveName;
+					break;
+				case 2:
+					item->sortval = INT_MAX - (int) sv->savedAt;
+					break;
+				default:
+					break;
+			}
 			menuItems.push_back(item);
 		}
+
+		sort_menu_items_pinned(menuItems);
 
 		draw_generic_menu<int>(menuItems, 0, "Saved Object Sets", onconfirm_savedprops_menu, NULL, NULL, props_save_slots_menu_interrupt);
 

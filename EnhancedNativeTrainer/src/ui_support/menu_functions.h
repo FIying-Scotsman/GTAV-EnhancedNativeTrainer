@@ -88,6 +88,9 @@ class MenuItem{
 	bool isLeaf = true;
 	void(*onConfirmFunction)(const MenuItem<T> choice) = NULL;
 	int sortval = 0;
+	// Secondary sort comparison, used for alphabetical sort modes (see sort_menu_items_pinned) where sortval alone can't
+	// express a text ordering. Left empty by callers that don't need it.
+	std::string sortkey;
 
 	/**
 	Handle the on-item confirmation press.
@@ -224,6 +227,22 @@ class SelectFromListMenuItem: public MenuItem <int>{
 	std::vector<std::string> ownedCaptions;
 	const std::vector<std::string>* itemCaptions = nullptr;
 };
+
+// Stable-sorts items by (sortval, sortkey). Give "pinned" items (a sort scroller, "Create New...", etc.)
+// a negative sortval so they always sort ahead of real entries - whose sortval is expected to be >= 0 -
+// regardless of which sort mode/comparison the caller is using for the real entries.
+template<typename T>
+void sort_menu_items_pinned(std::vector<MenuItem<T>*>& items){
+	std::stable_sort(items.begin(), items.end(), [](const MenuItem<T>* a, const MenuItem<T>* b){
+		return a->sortval != b->sortval ? a->sortval < b->sortval : a->sortkey < b->sortkey;
+	});
+}
+
+// Builds a horizontal scroller ("<< Name >>") menu item for choosing a saved-list sort mode - the same
+// SelectFromListMenuItem widget already used for settings like Menu Scale (press Enter to lock in, then
+// Left/Right to change). Caller is responsible for pinning it (a negative sortval) so it sorts ahead of
+// the real list entries.
+SelectFromListMenuItem* build_sort_mode_scroller(std::vector<std::string> modeCaptions, int currentValue, std::function<void(int)> onChange);
 
 template<class T>
 class CashItem: public MenuItem <T>{

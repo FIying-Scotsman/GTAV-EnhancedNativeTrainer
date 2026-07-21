@@ -404,7 +404,11 @@ bool SelectFromListMenuItem::onConfirm(){
 
 	MenuItem::onConfirm();
 
-	return locked;
+	// Always report the confirm as handled, on both the locking and unlocking press. State changes for
+	// this widget go through onValueChangeCallback, not the parent menu's onConfirmation dispatch - if it
+	// returned "locked" here, unlocking would fall through to onConfirmation with this item's current
+	// value (its list index), which for value-keyed dispatch menus can collide with an unrelated item's ID.
+	return true;
 }
 
 bool SelectFromListMenuItem::isAbsorbingLeftAndRightEvents(){
@@ -441,6 +445,16 @@ void SelectFromListMenuItem::handleRightPress(){
 
 std::string SelectFromListMenuItem::getCurrentCaption(){
 	return this->captions().at(this->value);
+}
+
+SelectFromListMenuItem* build_sort_mode_scroller(std::vector<std::string> modeCaptions, int currentValue, std::function<void(int)> onChange){
+	SelectFromListMenuItem* item = new SelectFromListMenuItem(std::move(modeCaptions), [onChange](int value, SelectFromListMenuItem* source){
+		onChange(value);
+	});
+	item->caption = tr("Common.SortBy", "Sort By");
+	item->value = currentValue;
+	item->isLeaf = true;
+	return item;
 }
 
 void draw_ingame_sprite(MenuItemImage *image, float x, float y, int w, int h){

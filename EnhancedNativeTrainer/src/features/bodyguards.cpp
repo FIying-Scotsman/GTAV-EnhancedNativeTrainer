@@ -100,6 +100,7 @@ bool bodskinSaveMenuInterrupt = false;
 bool bodskinSaveSlotMenuInterrupt = false;
 bool requireRefreshOfBodSkinSaveSlots = false;
 bool requireRefreshOfBodSkinSlotMenu = false;
+int savedBodSkinListSortMethod = 0;
 int bodskinDetailMenuIndex = 0;
 int bodskinDetailMenuValue = 0;
 bool load_saved_bodyguard = false;
@@ -892,10 +893,24 @@ bool process_bod_savedskin_menu()
 
 		std::vector<MenuItem<int>*> menuItems;
 
+		std::vector<std::string> sortCaptions{
+			tr("BodyguardMenu.SortBySaveOrder", "Save Order"),
+			tr("BodyguardMenu.SortByName", "Name"),
+			tr("BodyguardMenu.SortByDateSaved", "Date Saved")
+		};
+		SelectFromListMenuItem *sortItem = build_sort_mode_scroller(sortCaptions, savedBodSkinListSortMethod, [](int value){
+			savedBodSkinListSortMethod = value;
+			requireRefreshOfBodSkinSaveSlots = true;
+			bodskinSaveMenuInterrupt = true;
+		});
+		sortItem->sortval = -2;
+		menuItems.push_back(sortItem);
+
 		MenuItem<int> *item = new MenuItem<int>();
 		item->isLeaf = true;
 		item->value = -1;
 		item->caption = tr("BodyguardMenu.CreateNewBodyguardSave", "Create New Bodyguard Save");
+		item->sortval = -1;
 		menuItems.push_back(item);
 
 		for each (SavedBodSkinDBRow *sv in savedBodSkins)
@@ -904,8 +919,23 @@ bool process_bod_savedskin_menu()
 			item->isLeaf = false;
 			item->value = sv->rowID;
 			item->caption = sv->saveName;
+			switch(savedBodSkinListSortMethod){
+				case 0:
+					item->sortval = sv->rowID;
+					break;
+				case 1:
+					item->sortkey = sv->saveName;
+					break;
+				case 2:
+					item->sortval = INT_MAX - (int) sv->savedAt;
+					break;
+				default:
+					break;
+			}
 			menuItems.push_back(item);
 		}
+
+		sort_menu_items_pinned(menuItems);
 
 		draw_generic_menu<int>(menuItems, 0, "Saved Bodyguards", onconfirm_bod_savedskin_menu, NULL, NULL, bod_skin_save_menu_interrupt);
 
@@ -2722,6 +2752,7 @@ void add_bodyguards_generic_settings(std::vector<StringPairSettingDBRow>* result
 	results->push_back(StringPairSettingDBRow{"skinTypesBodyguardMenuLastConfirmed1", std::to_string(skinTypesBodyguardMenuLastConfirmed[1])});
 	results->push_back(StringPairSettingDBRow{"lastCustomBodyguardSpawn", lastCustomBodyguardSpawn});
 	results->push_back(StringPairSettingDBRow{"selBodyWeapons", selBodyWeapons});
+	results->push_back(StringPairSettingDBRow{"savedBodSkinListSortMethod", std::to_string(savedBodSkinListSortMethod)});
 }
 
 void handle_generic_settings_bodyguards(std::vector<StringPairSettingDBRow>* settings){
@@ -2777,6 +2808,9 @@ void handle_generic_settings_bodyguards(std::vector<StringPairSettingDBRow>* set
 		}
 		else if (setting.name.compare("selBodyWeapons") == 0) {
 			selBodyWeapons = setting.value;
+		}
+		else if (setting.name.compare("savedBodSkinListSortMethod") == 0) {
+			savedBodSkinListSortMethod = stoi(setting.value);
 		}
 	}
 }
