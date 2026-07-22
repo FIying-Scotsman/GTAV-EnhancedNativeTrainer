@@ -26,6 +26,8 @@ assume you know anything about this codebase's own conventions - that's what thi
   - [`InteriorOptionMethod` - the three category shapes](#interioroptionmethod---the-three-category-shapes)
   - [`groupValues` - one option, several props](#groupvalues---one-option-several-props)
   - [Multi-room interiors - read this before you ship](#multi-room-interiors---read-this-before-you-ship)
+  - [`removeIpls`: clearing a vanilla/unowned exterior](#removeipls-clearing-a-vanillaunowned-exterior)
+  - [Interior customization strings are translatable, automatically](#interior-customization-strings-are-translatable-automatically)
   - [Sourcing real entity-set names and coordinates - never guess](#sourcing-real-entity-set-names-and-coordinates---never-guess)
   - [Worked example: adding a new interior end to end](#worked-example-adding-a-new-interior-end-to-end)
 - [Dual-game (Legacy/Enhanced) compatibility](#dual-game-legacyenhanced-compatibility)
@@ -573,6 +575,7 @@ struct InteriorAdditionalRoom{
 	std::string name;   // menu caption for the "Enter <name>" teleport shortcut, e.g. "Garage"
 	float x, y, z;
 	std::vector<std::string> alwaysOnEntitySets;
+	std::vector<InteriorOptionCategory> categories;   // this room's own single-select groups - same shape as InteriorCustomizationDef::categories, applied to this room's own interior ID instead of the main shell's (Mansion's Low/Vault "Vault Type"/"Vault Door")
 };
 
 struct InteriorCustomizationDef{
@@ -584,10 +587,11 @@ struct InteriorCustomizationDef{
 	std::vector<std::string> alwaysOnEntitySets;          // no menu entry, always active
 	const char* interiorType = nullptr;                   // non-null: resolve with GET_INTERIOR_AT_COORDS_WITH_TYPE instead of plain GET_INTERIOR_AT_COORDS
 	std::vector<InteriorAdditionalRoom> additionalRooms;  // extra rooms resolved/pinned alongside the main shell
+	std::vector<const char*> removeIpls;                  // IPLs to REMOVE_IPL once the shell's resolved and customized - see "removeIpls" below
 };
 ```
 
-A def breaks down into four kinds of content:
+A def breaks down into five kinds of content:
 
 | Field | Shape | Use for |
 |---|---|---|
@@ -595,6 +599,7 @@ A def breaks down into four kinds of content:
 | `toggleableProps` | independent on/off | Props with no relationship to each other - trophies, decorations, optional furniture |
 | `alwaysOnEntitySets` | no menu entry | Structural/helper entity sets needed for the rest to render correctly, with no player choice |
 | `additionalRooms` | separate interiors, resolved alongside the main shell | See "Multi-room interiors", below - **read this before assuming a category is the right fit** |
+| `removeIpls` | IPLs removed after the shell's up | See "`removeIpls`: clearing a vanilla/unowned exterior", below - most interiors don't need this |
 
 ### Scrollers vs. toggles - which one to use for a standalone item
 
@@ -718,10 +723,11 @@ not a category option:
 
 ```cpp
 {
-	// Garage
-	{ "Garage", -1679.877f, 493.596f, 117.3644f, { "m25_2_ch1_06e_mansion_interior_b" } },
-	// Low/Vault
-	{ "Low/Vault", -1649.63f, 480.9779f, 117.3645f, { "m25_2_ch1_06e_mansion_interior_c", "SET_BASE_VAULT_08", "SET_ELEV_STD", "SET_VAULT_DOOR_OPEN" } },
+	// Garage - a room with no choices of its own, just fixed content
+	{ "Mansion: Garage", -1679.877f, 493.596f, 117.3644f, { "m25_2_ch1_06e_mansion_interior_b" } },
+	// Low/Vault - this room has its own real choices (Vault Type/Vault Door), so it gets a
+	// categories vector too - see the paragraph below.
+	{ "Mansion: Vault", -1649.63f, 480.9779f, 117.3645f, { "m25_2_ch1_06e_mansion_interior_c", "SET_ELEV_STD" }, MANSION_VAULT_CATEGORIES },
 }
 ```
 
@@ -732,6 +738,68 @@ room, since there's no walkable connection or animated elevator between separate
 straight teleport is the closest a trainer can get without reverse-engineering the real game's
 elevator/synchronized-scene system, which is a much larger undertaking than this framework is built
 for).
+
+**A room can have its own real choices, not just fixed always-on content.** `InteriorAdditionalRoom`
+has its own `categories` field, same `InteriorOptionCategory` shape as the main shell's - Mansion's
+Low/Vault is the real example: `SET_BASE_VAULT_00` through `SET_BASE_VAULT_09` used to be hardcoded
+as a single always-on entity set (`SET_BASE_VAULT_08`) with no player choice at all, when the real
+game actually exposes all ten as a genuine "Vault Type" pick, plus a separate "Vault Door"
+open/closed pick. Applying a room's own category selection targets that room's own interior ID, not
+the main shell's - `apply_room_option_category`/`apply_room_option_tint` (mirroring
+`apply_interior_option_category`/`apply_interior_option_tint` for the main shell) handle this, and
+the menu automatically renders a room's categories indented directly under its "Enter `<name>`" item.
+Save/export round-trips these the same way as main-shell categories, via an optional `room`
+attribute on the saved `<category>` XML element (absent/empty means the main shell, for backward
+compatibility with exports from before this existed).
+
+### `removeIpls`: clearing a vanilla/unowned exterior
+
+Most interiors only ever need to *request* IPLs (`shellIpls`) - the vanilla/unowned version of the
+property either doesn't exist as a separate thing, or simply isn't loaded until you ask for the
+owned one. Mansion (specifically Richman Villa, The Vinewood Residence, and The Tongva Estate - GTA
+Online actually has three of this property, sharing identical interior content but different
+per-property shell/IPL prefixes) is the exception this field exists for: the vanilla/unowned
+exterior is active *by default*, and never goes away just because you've requested the owned
+interior's IPLs alongside it - it has to be explicitly removed once the owned interior's entity sets
+are confirmed up, or it's left sitting there unremoved, occluding/conflicting with the owned exterior
+underneath. Forgetting this specifically caused an invisible hole in the map where Richman Villa's
+exterior should have been, found and fixed in live testing:
+
+```cpp
+const std::vector<const char*> MANSION_REMOVE_IPL = {
+	"hei_ch1_06e_mansion_original", "hei_ch1_06f_mansion_original", "hei_ch1_06e_props_original",
+};
+```
+
+`begin_interior_customization()` calls `STREAMING::REMOVE_IPL` on each of these right after
+`apply_full_interior_customization()` - i.e. after the shell's resolved *and* its default
+categories/props are already applied, matching the order the retired `featureHouseOnHill`
+auto-loader (this Mansion customization's own predecessor, `teleportation.cpp`, before this
+framework existed) used. If you're not sure whether your interior needs this, it probably doesn't -
+check whether your source material ever calls `STREAMING::REMOVE_IPL` on something that's active
+without ever being requested first; if it doesn't, leave `removeIpls` as the default empty vector.
+
+### Interior customization strings are translatable, automatically
+
+Every category/option/toggleable-prop/room name across every `InteriorCustomizationDef` goes through
+translation at display time - you don't wrap anything in `tr()` yourself in the def. A single
+function, `tr_interior()` in `interior_customization.cpp`, does this for the whole framework at once:
+
+```cpp
+static std::string tr_interior(const std::string& englishText){
+	if(englishText.empty()) return englishText;
+	return tr("InteriorCustomizationMenu." + englishText, englishText);
+}
+```
+
+The English text itself is both the translation key's suffix and its default - so write plain
+English strings in your def exactly as shown throughout this section, and translation happens for
+free. One consequence worth knowing: two different interiors that happen to use the identical
+English name (e.g. "Christmas Decorations" in both Mansion and Nightclub) share one translation
+entry rather than needing translating twice - this is deliberate, the same way the generic "Tint"
+fallback label already works for every interior. If you ever need a name to translate differently in
+two different interiors despite sharing English text, give it slightly different English text (a
+real, displayed difference) rather than trying to work around the shared-key behavior.
 
 ### Sourcing real entity-set names and coordinates - never guess
 

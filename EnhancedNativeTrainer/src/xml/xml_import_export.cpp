@@ -357,6 +357,12 @@ bool generate_xml_for_interior_customization(SavedInteriorCustomization* data, s
 		categoryNode->setAttribute(L"name", _variant_t(category.categoryName.c_str()));
 		categoryNode->setAttribute(L"option", _variant_t(category.selectedOptionName.c_str()));
 		categoryNode->setAttribute(L"tint", _variant_t(category.tint));
+		// Absent on a main-shell category (roomName empty) - older exports with no "room"
+		// attribute at all parse back to an empty roomName too, so this stays backward compatible.
+		if (!category.roomName.empty())
+		{
+			categoryNode->setAttribute(L"room", _variant_t(category.roomName.c_str()));
+		}
 
 		pXMLRootElem->appendChild(categoryNode, 0);
 	}
@@ -495,6 +501,13 @@ bool parse_xml_for_interior_customization(std::string inputFile, SavedInteriorCu
 				attribNode->get_nodeValue(&var);
 				VariantChangeType(&var, &var, 0, VT_INT);
 				category.tint = var.intVal;
+			}
+			else if (wcscmp(xmlParser_bstr, L"room") == 0)
+			{
+				VARIANT var;
+				VariantInit(&var);
+				attribNode->get_nodeValue(&var);
+				category.roomName = _com_util::ConvertBSTRToString(V_BSTR(&var));
 			}
 
 			SysFreeString(xmlParser_bstr);

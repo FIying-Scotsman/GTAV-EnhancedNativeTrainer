@@ -8,9 +8,25 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\ui_support\menu_functions.h"
 #include "..\ui_support\file_dialog.h"
 #include "..\xml\xml_import_export.h"
+#include "..\io\translation.h"
 #include "teleportation.h"
 #include "script.h"
 #include <set>
+
+// Category/option/toggleable-prop/room names across every InteriorCustomizationDef (Mansion's
+// and every other interior's) are stored as plain English text in their data tables, not
+// individually wrapped in tr() the way most of the trainer's UI text is - there'd be hundreds
+// of near-identical tr() calls scattered across every interior definition otherwise. Routing
+// them all through this one function at display time instead makes every interior's
+// customization menu translatable via one mechanism, not per-interior special-casing - and
+// since the English text itself is both the key suffix and the default, semantically identical
+// names shared across different interiors (e.g. "Christmas Decorations") correctly resolve to
+// one shared translation rather than needing translating separately per interior, matching how
+// the generic "Tint" fallback label already works.
+static std::string tr_interior(const std::string& englishText){
+	if(englishText.empty()) return englishText;
+	return tr("InteriorCustomizationMenu." + englishText, englishText);
+}
 
 const char* const DOOMSDAY_FACILITY_CAPTION = "Doomsday Facility";
 const char* const HANGAR_CUSTOMIZATION_CAPTION = "Hangar";
@@ -32,7 +48,14 @@ const char* const BIKER_BUSINESS_WEED_FARM_CAPTION = "Weed Farm";
 const char* const BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION = "Cocaine Warehouse";
 const char* const BIKER_BUSINESS_COUNTERFEIT_CASH_CAPTION = "Counterfeit Cash Factory";
 const char* const BIKER_BUSINESS_DOCUMENT_FORGERY_CAPTION = "Document Forgery Office";
-const char* const MANSION_CAPTION = "Mansion";
+// Renamed from the generic "Mansion" now that there are three of these properties (see the
+// MANSION_CATEGORIES comment further down) - "Mansion: <real in-game name>" both surfaces the
+// actual name and, matching the existing "Autoshop: X"/"Office Garage: X" convention already
+// used elsewhere in the teleport list, keeps all three sorted together instead of scattered
+// across the alphabet by their individual names.
+const char* const MANSION_CAPTION = "Mansion: Richman Villa";
+const char* const MANSION_CH2_04_CAPTION = "Mansion: The Vinewood Residence";
+const char* const MANSION_CH1_09_CAPTION = "Mansion: The Tongva Estate";
 const char* const NIGHTCLUB_CAPTION = "Nightclub";
 
 bool featureAutoTeleportIntoCustomizedInteriors = false;
@@ -429,7 +452,54 @@ const InteriorCustomizationDef BIKER_BUSINESS_DOCUMENT_FORGERY_CUSTOMIZATION = {
 	{}
 };
 
+// GTA Online actually has three of these properties - Richman Villa (ch1_06e, below), The
+// Vinewood Residence (ch2_04), and The Tongva Estate (ch1_09) - confirmed by name and IPL
+// prefix against a third-party reference (root-cause's mansion property gist) that lines up
+// exactly with what this file already had from am_mp_mansion.c/featureHouseOnHill for the
+// coordinates and interior_a/b/c IPLs. All three share identical interior content (Decor/
+// Pattern/Pet/toggleable props all use the same plain, unprefixed entity-set names) - only
+// the shell/removal IPLs and room coordinates differ per property, chapter-prefixed per
+// location (hei_ch1_06e_*, apa_ch2_04_*, hei_ch1_09_*).
+//
 // Cross-checked against two decompiled sources: the older, generic am_mp_property_int.c (used for the initial port) and the newer, mansion-dedicated am_mp_mansion.c (calamity-inc/GTA-V-Decompiled-Scripts, senpai branch) that superseded it. The dedicated script confirmed the crash-causing structure the older one only hinted at: Top (main house, at these coordinates), Garage, and Low/Vault are three physically separate rooms, each its own INTERIOR::GET_INTERIOR_AT_COORDS resolution (func_125 in that script returns three distinct coordinate triples for the same property ID) - not alternate styles of one room, which is what the original port wrongly assumed. It also revealed real player-facing choices the older script didn't show: a Decor pick (SET_STYLE_LOFT/CALI/HOLLY, each with its own tint variant) and an independent Pattern pick (six set_wallpaper_* entity sets) on the Top room - these were previously baked in below as fixed always-on content, now exposed as real categories instead. Private Room/Furniture/Firepit/Railings remain genuinely independent optional props on Top.
+//
+// Shared across all three properties - see the comment above.
+const std::vector<InteriorOptionCategory> MANSION_CATEGORIES = {
+	// Tint targets the style's separate "_TINT" companion entity set (SET_INTERIOR_ENTITY_SET_TINT_INDEX applies to that, not the base style set) - confirmed against a second, independent source (Sjaak327's SimpleNativeTrainer) that also showed the elevator/shelving-planter/trophy-planter props are paired per style rather than fixed to one, corrected below via groupValues.
+	// Art entity sets (SET_ART_LOFT/COASTAL/REGENCY) were tried here, grouped into each style
+	// alongside the above - reproduced the exact same crash-on-turn the original PROXY-based
+	// "Art" category attempt had, just walking around with no further interaction, confirmed by
+	// live testing (2026-07-22). So root-cause's gist was wrong about these three being safe to
+	// activate directly, or there's some other precondition neither source captured - reverted,
+	// same as the PROXY attempt before it. Do not re-add without a real fix for whatever's
+	// actually unsafe about activating any SET_ART_* entity set on this interior.
+	{ "Decor", InteriorOptionMethod::ENTITY_SET, {
+		{ "Los Santos Loft", "SET_STYLE_LOFT_TINT", 4, { "SET_STYLE_LOFT", "SET_ELEV_LOFT", "SET_LOFT_SHELVING_PLANTER", "SET_LOFT_TROPHY_PLANTER" } },
+		{ "San Andreas Coastal", "SET_STYLE_CALI_TINT", 4, { "SET_STYLE_CALI", "SET_ELEV_CALI", "SET_SHELVING_PLANTER" } },
+		{ "Vinewood Regency", "SET_STYLE_REG_TINT", 4, { "SET_STYLE_HOLLY", "SET_ELEV_HOLLY", "SET_REG_SHELVING_PLANTER" } },
+	}, "Wall Colour" },
+	// Also independently tintable - the same shared tint value the real game applies to Decor's tint set is applied to whichever wallpaper entity set is active too, via the same native. Modelled here as its own independent tint control rather than trying to keep two categories' tints in sync automatically.
+	{ "Pattern", InteriorOptionMethod::ENTITY_SET, {
+		{ "Deco", "set_wallpaper_deco", 4 }, { "Coastal", "set_wallpaper_coastal", 4 }, { "Pop Art", "set_wallpaper_popart", 4 },
+		{ "Rustic", "set_wallpaper_rustic", 4 }, { "Safari", "set_wallpaper_safari", 4 }, { "Subtle", "set_wallpaper_subtle", 4 },
+	}, "Pattern Tint" },
+	// Old featureHouseOnHill hardcoded SET_PET_CAT for the Vinewood Residence and SET_PET_DOG for the Tongva Estate as fixed always-on content rather than a real choice - root-cause's gist lists both as one "Pets" pick, so modelled as a real mutually-exclusive category here instead, same options for all three properties, defaulting to None like every other category.
+	{ "Pet", InteriorOptionMethod::ENTITY_SET, {
+		{ "None", "" }, { "Cat", "SET_PET_CAT" }, { "Dog", "SET_PET_DOG" },
+	} },
+};
+// Low/Vault's own picks - shared across all three properties, same reasoning as MANSION_CATEGORIES above. Previously SET_BASE_VAULT_08/SET_VAULT_DOOR_OPEN were hardcoded always-on entity sets on the room instead of real choices - root-cause's gist lists 10 vault styles (SET_BASE_VAULT_00-09) and an open/closed door state as genuine picks.
+const std::vector<InteriorOptionCategory> MANSION_VAULT_CATEGORIES = {
+	{ "Vault Type", InteriorOptionMethod::ENTITY_SET, {
+		{ "1", "SET_BASE_VAULT_00" }, { "2", "SET_BASE_VAULT_01" }, { "3", "SET_BASE_VAULT_02" }, { "4", "SET_BASE_VAULT_03" },
+		{ "5", "SET_BASE_VAULT_04" }, { "6", "SET_BASE_VAULT_05" }, { "7", "SET_BASE_VAULT_06" }, { "8", "SET_BASE_VAULT_07" },
+		{ "9", "SET_BASE_VAULT_08" }, { "10", "SET_BASE_VAULT_09" },
+	} },
+	{ "Vault Door", InteriorOptionMethod::ENTITY_SET, {
+		{ "Open", "SET_VAULT_DOOR_OPEN" }, { "Closed", "SET_VAULT_DOOR_CLOSED" },
+	} },
+};
+
 // "m25_2_int_placement" alone (like Hangar's placement IPL) isn't enough to resolve a valid interior here - unlike Hangar/Facility/Bunker's single milo IPL, this shell is spread across many supporting IPLs (original/shared/private/bounds/lodlights layers). The full list below is copied from ENT's pre-existing "House On The Hill" auto-load feature (teleportation.cpp's featureHouseOnHill, using interior_props.h's IPL_PROPS_MANSION) which is confirmed to actually load this same interior at these same coordinates - the single-IPL version above regularly left GET_INTERIOR_AT_COORDS returning -1 forever.
 const std::vector<const char*> MANSION_SHELL_IPL = {
 	"m25_2_int_placement", "hei_ch1_06e_mansion_railings_m",
@@ -440,43 +510,33 @@ const std::vector<const char*> MANSION_SHELL_IPL = {
 	"hei_ch1_06e_mansion_firepit", "hei_ch1_06e_mansion_firepit_lodlights", "hei_ch1_06e_mansion_firepit_distantlights",
 	"hei_ch1_06e_mansion_private_lodlights", "hei_ch1_06e_mansion_private_distantlights",
 	"hei_ch1_06e_mansion_shared_lodlights", "hei_ch1_06e_mansion_shared_distantlights",
-	"m25_2_mansion_gym", "m25_2_dog_house", "hei_ch1_06f_mansion_original",
+	"m25_2_mansion_gym", "m25_2_dog_house",
 	"hei_ch1_06e_mansion_ground", "hei_ch1_06e_original_terrain"
 };
 // The vanilla/unowned exterior - active by default, so never requested above, only removed
 // once the owned exterior's entity sets are up. Retired featureHouseOnHill (teleportation.cpp,
-// before this port) removed exactly these two once its interior was active; this port had been
-// requesting them alongside the shell (redundant, since they're already active by default) and
-// never removing them, leaving the vanilla exterior these represent sitting there unremoved -
-// an invisible hole where the owned mansion's exterior should be on the map.
+// before this port) removed exactly these two (mansion_original/props_original) once its
+// interior was active; this port had been requesting them alongside the shell (redundant,
+// since they're already active by default) and never removing them, leaving the vanilla
+// exterior these represent sitting there unremoved - an invisible hole where the owned
+// mansion's exterior should be on the map. hei_ch1_06f_mansion_original is the same kind of
+// vanilla-exterior IPL for the paired "06f" shell layer (see MANSION_SHELL_IPL's
+// hei_ch1_06f_mansion_shared) - root-cause's gist lists it alongside the other two under
+// "unload original", so it needed the same treatment; this port had been requesting it as part
+// of the shell instead (same bug, one more IPL).
 const std::vector<const char*> MANSION_REMOVE_IPL = {
-	"hei_ch1_06e_mansion_original", "hei_ch1_06e_props_original",
+	"hei_ch1_06e_mansion_original", "hei_ch1_06f_mansion_original", "hei_ch1_06e_props_original",
 };
 const InteriorCustomizationDef MANSION_CUSTOMIZATION = {
-	"Mansion", -1666.368f, 478.9271f, 128.2216f,
+	"Richman Villa", -1666.368f, 478.9271f, 128.2216f,
 	MANSION_SHELL_IPL,
-	{
-		// Tint targets the style's separate "_TINT" companion entity set (SET_INTERIOR_ENTITY_SET_TINT_INDEX applies to that, not the base style set) - confirmed against a second, independent source (Sjaak327's SimpleNativeTrainer) that also showed the elevator and shelving-planter props are paired per style rather than fixed to one, corrected below via groupValues.
-		{ "Decor", InteriorOptionMethod::ENTITY_SET, {
-			{ "Los Santos Loft", "SET_STYLE_LOFT_TINT", 4, { "SET_STYLE_LOFT", "SET_ELEV_LOFT", "SET_LOFT_SHELVING_PLANTER" } },
-			{ "San Andreas Coastal", "SET_STYLE_CALI_TINT", 4, { "SET_STYLE_CALI", "SET_ELEV_CALI", "SET_SHELVING_PLANTER" } },
-			{ "Vinewood Regency", "SET_STYLE_REG_TINT", 4, { "SET_STYLE_HOLLY", "SET_ELEV_HOLLY", "SET_REG_SHELVING_PLANTER" } },
-		}, "Wall Colour" },
-		// Also independently tintable - the same shared tint value the real game applies to Decor's tint set is applied to whichever wallpaper entity set is active too, via the same native. Modelled here as its own independent tint control rather than trying to keep two categories' tints in sync automatically.
-		{ "Pattern", InteriorOptionMethod::ENTITY_SET, {
-			{ "Deco", "set_wallpaper_deco", 4 }, { "Coastal", "set_wallpaper_coastal", 4 }, { "Pop Art", "set_wallpaper_popart", 4 },
-			{ "Rustic", "set_wallpaper_rustic", 4 }, { "Safari", "set_wallpaper_safari", 4 }, { "Subtle", "set_wallpaper_subtle", 4 },
-		}, "Pattern Tint" },
-		// Pulled temporarily (2026-07-20) after a real in-game crash-on-turn immediately following this round's changes - "PROXY" in Rockstar's naming usually means a placeholder anchor a different script system dynamically attaches the real art prop to, not a complete mesh safe to activate alone. Prime suspect, not yet confirmed; re-add once verified safe.
-		/*{ "Art", InteriorOptionMethod::ENTITY_SET, {
-			{ "1", "SET_ART_PROXY" }, { "2", "SET_ART_PROXY002" }, { "3", "SET_ART_PROXY003" },
-		} },*/
-	},
+	MANSION_CATEGORIES,
 	{
 		{ "Private Room", "hei_ch1_06e_mansion_private" },
 		{ "Furniture", "hei_ch1_06e_mansion_furniture" },
 		{ "Firepit", "hei_ch1_06e_mansion_firepit" },
 		{ "Railings", "hei_ch1_06e_mansion_railings_p" },
+		{ "Shutters", "hei_ch1_06e_mansion_shutters" },
 		{ "Christmas Decorations", "SET_XMAS" },
 		{ "Lunar New Year Decorations", "SET_LUNAR" },
 		{ "Halloween Decorations", "SET_HALLOWEEN" },
@@ -484,16 +544,116 @@ const InteriorCustomizationDef MANSION_CUSTOMIZATION = {
 	},
 	{
 		"m25_2_mansion_props", "m25_2_ch1_06e_mansion_interior_a",
-		"SET_AI_TABLETS_01", "SET_ART_COASTAL", "SET_LOFT_TROPHY_PLANTER", "SET_STEP_COLLISION",
+		"SET_AI_TABLETS_01", "SET_STEP_COLLISION",
 	},
 	nullptr,
 	{
 		// Garage - Z corrected to 117.3644 per am_mp_mansion.c's func_125(178, 1); the older featureHouseOnHill/master-branch value (112.9351) doesn't match this newer source.
-		{ "Garage", -1679.877f, 493.596f, 117.3644f, { "m25_2_ch1_06e_mansion_interior_b" } },
-		// Low/Vault
-		{ "Low/Vault", -1649.63f, 480.9779f, 117.3645f, { "m25_2_ch1_06e_mansion_interior_c", "SET_BASE_VAULT_08", "SET_ELEV_STD", "SET_VAULT_DOOR_OPEN" } },
+		{ "Mansion: Garage", -1679.877f, 493.596f, 117.3644f, { "m25_2_ch1_06e_mansion_interior_b" } },
+		{ "Mansion: Vault", -1649.63f, 480.9779f, 117.3645f, { "m25_2_ch1_06e_mansion_interior_c", "SET_ELEV_STD" }, MANSION_VAULT_CATEGORIES },
 	},
 	MANSION_REMOVE_IPL
+};
+
+// The Vinewood Residence - apa_ch2_04, a different top-level DLC chapter from Richman Villa's
+// ch1_06e/ch1_09, hence the "apa_" (not "hei_") prefix throughout. Coordinates and interior/
+// room IPLs confirmed against the retired featureHouseOnHill (teleportation.cpp, before this
+// port); the rest of the shell/removal list is root-cause's gist for this property specifically
+// - unlike Richman Villa this hasn't had any of it confirmed by live testing yet, so treat it
+// the same way as Nightclub's customization: expect this to need real in-game correction. No
+// hei_ch1_roads_original/hei_ch1_roads_mansion equivalent is requested/removed here - that pair
+// is ch1-specific by name and this property isn't ch1 content, and the gist doesn't list a
+// roads entry for it at all. Gym/dog house use an "_east_" infix here rather than Richman
+// Villa's unprefixed m25_2_mansion_gym/m25_2_dog_house - per the gist, not a guess.
+const std::vector<const char*> MANSION_CH2_04_SHELL_IPL = {
+	"m25_2_int_placement", "apa_ch2_04_mansion_railings_m",
+	"m25_2_ch2_04_mansion_interior_a", "m25_2_ch2_04_mansion_interior_b", "m25_2_ch2_04_mansion_interior_c",
+	"apa_ch2_04_mansion_shared", "apa_ch2_04_mansion_private",
+	"apa_ch2_04_mansion_player_bounds", "apa_ch2_04_mansion_furniture",
+	"apa_ch2_04_mansion_firepit", "apa_ch2_04_mansion_firepit_lodlights", "apa_ch2_04_mansion_firepit_distantlights",
+	"apa_ch2_04_mansion_private_lodlights", "apa_ch2_04_mansion_private_distantlights",
+	"apa_ch2_04_mansion_shared_lodlights", "apa_ch2_04_mansion_shared_distantlights",
+	"m25_2_east_mansion_gym", "m25_2_east_dog_house",
+};
+const std::vector<const char*> MANSION_CH2_04_REMOVE_IPL = {
+	"apa_ch2_04_mansion_original", "apa_ch2_04_props_original", "apa_ch2_04_mansion_grass",
+};
+const InteriorCustomizationDef MANSION_CH2_04_CUSTOMIZATION = {
+	"The Vinewood Residence", 539.7012f, 749.089f, 201.36f,
+	MANSION_CH2_04_SHELL_IPL,
+	MANSION_CATEGORIES,
+	{
+		{ "Private Room", "apa_ch2_04_mansion_private" },
+		{ "Furniture", "apa_ch2_04_mansion_furniture" },
+		{ "Firepit", "apa_ch2_04_mansion_firepit" },
+		{ "Railings", "apa_ch2_04_mansion_railings_p" },
+		{ "Shutters", "apa_ch2_04_mansion_shutters" },
+		{ "Christmas Decorations", "SET_XMAS" },
+		{ "Lunar New Year Decorations", "SET_LUNAR" },
+		{ "Halloween Decorations", "SET_HALLOWEEN" },
+		{ "Birthday Decorations", "SET_BIRTHDAY" },
+	},
+	{
+		"m25_2_mansion_props", "m25_2_ch2_04_mansion_interior_a",
+		"SET_AI_TABLETS_02", "SET_STEP_COLLISION",
+	},
+	nullptr,
+	{
+		// Coordinates confirmed against featureHouseOnHill's Mansion2Garage/Mansion2Low.
+		{ "Mansion: Garage", 548.6964f, 766.88f, 186.07f, { "m25_2_ch2_04_mansion_interior_b" } },
+		{ "Mansion: Vault", 547.4955f, 734.136f, 190.5f, { "m25_2_ch2_04_mansion_interior_c", "SET_ELEV_STD" }, MANSION_VAULT_CATEGORIES },
+	},
+	MANSION_CH2_04_REMOVE_IPL
+};
+
+// The Tongva Estate - hei_ch1_09, the third mansion property. Coordinates and interior/room
+// IPLs confirmed against the retired featureHouseOnHill; the rest of the shell/removal list is
+// root-cause's gist for this property specifically, same "expect this to need real in-game
+// correction" caveat as The Vinewood Residence above - neither has had the live-testing pass
+// Richman Villa has. Unlike Richman Villa's original/props_original pair, the gist lists this
+// property's original/props_original each with their own _lodlights/_distantlights companions
+// to remove too - trusted as-is rather than assumed symmetric with Richman Villa's simpler
+// pair, since the gist was specific enough to differentiate them. Also no roads IPL listed here
+// either, same as The Vinewood Residence. Gym/dog house use a "_tongva_" infix, per the gist.
+const std::vector<const char*> MANSION_CH1_09_SHELL_IPL = {
+	"m25_2_int_placement", "hei_ch1_09_mansion_railings_m",
+	"m25_2_ch1_09_mansion_interior_a", "m25_2_ch1_09_mansion_interior_b", "m25_2_ch1_09_mansion_interior_c",
+	"hei_ch1_09_mansion_shared", "hei_ch1_09_mansion_shared_distantlights", "hei_ch1_09_mansion_shared_lodlights",
+	"hei_ch1_09_mansion_private", "hei_ch1_09_mansion_private_distantlights", "hei_ch1_09_mansion_private_lodlights",
+	"hei_ch1_09_mansion_player_bounds", "hei_ch1_09_mansion_furniture",
+	"hei_ch1_09_mansion_firepit", "hei_ch1_09_mansion_firepit_lodlights", "hei_ch1_09_mansion_firepit_distantlights",
+	"m25_2_tongva_mansion_gym", "m25_2_tongva_dog_house",
+};
+const std::vector<const char*> MANSION_CH1_09_REMOVE_IPL = {
+	"hei_ch1_09_mansion_original", "hei_ch1_09_mansion_original_distantlights", "hei_ch1_09_mansion_original_lodlights",
+	"hei_ch1_09_props_original", "hei_ch1_09_props_original_distantlights", "hei_ch1_09_props_original_lodlights",
+};
+const InteriorCustomizationDef MANSION_CH1_09_CUSTOMIZATION = {
+	"The Tongva Estate", -2586.065f, 1909.995f, 166.37f,
+	MANSION_CH1_09_SHELL_IPL,
+	MANSION_CATEGORIES,
+	{
+		{ "Private Room", "hei_ch1_09_mansion_private" },
+		{ "Furniture", "hei_ch1_09_mansion_furniture" },
+		{ "Firepit", "hei_ch1_09_mansion_firepit" },
+		{ "Railings", "hei_ch1_09_mansion_railings_p" },
+		{ "Shutters", "hei_ch1_09_mansion_shutters" },
+		{ "Christmas Decorations", "SET_XMAS" },
+		{ "Lunar New Year Decorations", "SET_LUNAR" },
+		{ "Halloween Decorations", "SET_HALLOWEEN" },
+		{ "Birthday Decorations", "SET_BIRTHDAY" },
+	},
+	{
+		"m25_2_mansion_props", "m25_2_ch1_09_mansion_interior_a",
+		"SET_AI_TABLETS_03", "SET_STEP_COLLISION",
+	},
+	nullptr,
+	{
+		// Coordinates confirmed against featureHouseOnHill's Mansion3Garage/Mansion3Low; Garage also independently confirmed by root-cause's gist.
+		{ "Mansion: Garage", -2568.933f, 1920.202f, 151.08f, { "m25_2_ch1_09_mansion_interior_b" } },
+		{ "Mansion: Vault", -2587.495f, 1893.193f, 155.5183f, { "m25_2_ch1_09_mansion_interior_c", "SET_ELEV_STD" }, MANSION_VAULT_CATEGORIES },
+	},
+	MANSION_CH1_09_REMOVE_IPL
 };
 
 // Entity-set names and shell coords/IPL come from Rockstar's decompiled am_mp_nightclub.c (func_7360 for the name table, func_7362 for the interior type string). The real game gates these behind business-progression state (security upgrades bought, DJ hired, popularity tier) rather than exposing them as a free style picker, so the grouping below is this port's own interpretation of the same entity-set ingredients, not a verified-correct mapping - expect this to need real in-game correction, the same way Facility's texture issues did. See the "Nightclub customization" plan for the full breakdown, including what's deliberately deferred (DJ Lights, the basement business floor).
@@ -765,6 +925,74 @@ static void apply_full_interior_customization(InteriorCustomizationState& state)
 	INTERIOR::REFRESH_INTERIOR(state.interiorID);
 }
 
+// Room-scoped equivalents of apply_interior_option_category/apply_interior_option_tint above -
+// same logic, targeting one of def->additionalRooms' own interior IDs/categories instead of the
+// main shell's, since a room's categories are never mixed into state.def->categories itself
+// (e.g. Mansion's Low/Vault "Vault Type"/"Vault Door" only ever apply to the vault's own
+// interior, not the main house). Kept as separate functions rather than parametrizing the
+// functions above, since every existing call site already reaches into state.def->categories/
+// state.selectedOptionIndex directly rather than passing values through - duplicating the small
+// amount of logic here was lower-risk than reshaping those call sites.
+static void apply_room_option_category(InteriorCustomizationState& state, int roomIndex, int categoryIndex){
+	if(state.def == nullptr || roomIndex < 0 || roomIndex >= (int) state.additionalRoomInteriorIDs.size()) return;
+	int interiorID = state.additionalRoomInteriorIDs[roomIndex];
+	if(interiorID == -1) return;
+
+	const InteriorOptionCategory& category = state.def->additionalRooms[roomIndex].categories[categoryIndex];
+	deactivate_all_options_in_category(interiorID, category);
+
+	if(category.method == InteriorOptionMethod::ENTITY_SET){
+		const InteriorCustomizationOption& option = category.options[state.additionalRoomSelectedOptionIndex[roomIndex][categoryIndex]];
+		if(!option.value.empty()){
+			set_status_text(tr("InteriorCustomizationMenu.ApplyingCustomization", "Applying customization..."));
+		}
+		activate_option_with_tint(interiorID, option, state.additionalRoomSelectedTint[roomIndex][categoryIndex]);
+	}
+	else if(category.method == InteriorOptionMethod::CUMULATIVE_ENTITY_SET){
+		activate_cumulative_stages(interiorID, category, state.additionalRoomSelectedOptionIndex[roomIndex][categoryIndex]);
+	}
+
+	INTERIOR::REFRESH_INTERIOR(interiorID);
+}
+
+static void apply_room_option_tint(InteriorCustomizationState& state, int roomIndex, int categoryIndex){
+	if(state.def == nullptr || roomIndex < 0 || roomIndex >= (int) state.additionalRoomInteriorIDs.size()) return;
+	int interiorID = state.additionalRoomInteriorIDs[roomIndex];
+	if(interiorID == -1) return;
+
+	const InteriorOptionCategory& category = state.def->additionalRooms[roomIndex].categories[categoryIndex];
+	const InteriorCustomizationOption& option = category.options[state.additionalRoomSelectedOptionIndex[roomIndex][categoryIndex]];
+	if(option.value.empty() || category.method != InteriorOptionMethod::ENTITY_SET) return;
+
+	INTERIOR::SET_INTERIOR_ENTITY_SET_TINT_INDEX(interiorID, option.value.c_str(), state.additionalRoomSelectedTint[roomIndex][categoryIndex]);
+	INTERIOR::REFRESH_INTERIOR(interiorID);
+}
+
+// Room equivalent of apply_full_interior_customization - used once, right after a room's
+// interior ID first resolves, to bring its categories to their current/default selection.
+static void apply_full_room_customization(InteriorCustomizationState& state, int roomIndex){
+	if(state.def == nullptr || roomIndex < 0 || roomIndex >= (int) state.additionalRoomInteriorIDs.size()) return;
+	int interiorID = state.additionalRoomInteriorIDs[roomIndex];
+	if(interiorID == -1) return;
+
+	const InteriorAdditionalRoom& room = state.def->additionalRooms[roomIndex];
+	for(const InteriorOptionCategory& category : room.categories){
+		deactivate_all_options_in_category(interiorID, category);
+	}
+
+	for(int c = 0; c < (int) room.categories.size(); c++){
+		const InteriorOptionCategory& category = room.categories[c];
+		if(category.method == InteriorOptionMethod::ENTITY_SET){
+			activate_option_with_tint(interiorID, category.options[state.additionalRoomSelectedOptionIndex[roomIndex][c]], state.additionalRoomSelectedTint[roomIndex][c]);
+		}
+		else if(category.method == InteriorOptionMethod::CUMULATIVE_ENTITY_SET){
+			activate_cumulative_stages(interiorID, category, state.additionalRoomSelectedOptionIndex[roomIndex][c]);
+		}
+	}
+
+	INTERIOR::REFRESH_INTERIOR(interiorID);
+}
+
 static bool is_interior_toggleable_prop_active(std::vector<int> extras){
 	InteriorCustomizationState& state = g_interiorCustomizationState;
 	if(state.def == nullptr || state.interiorID == -1) return false;
@@ -783,18 +1011,42 @@ static void apply_saved_interior_customization(const SavedInteriorCustomization&
 	if(state.def == nullptr) return;
 
 	for(const SavedInteriorCategorySelection& saved : data.categories){
-		for(int i = 0; i < (int) state.def->categories.size(); i++){
-			if(state.def->categories[i].name != saved.categoryName) continue;
+		if(saved.roomName.empty()){
+			for(int i = 0; i < (int) state.def->categories.size(); i++){
+				if(state.def->categories[i].name != saved.categoryName) continue;
 
-			const std::vector<InteriorCustomizationOption>& options = state.def->categories[i].options;
-			for(int o = 0; o < (int) options.size(); o++){
-				if(options[o].name == saved.selectedOptionName){
-					state.selectedOptionIndex[i] = o;
-					state.selectedTint[i] = saved.tint;
-					break;
+				const std::vector<InteriorCustomizationOption>& options = state.def->categories[i].options;
+				for(int o = 0; o < (int) options.size(); o++){
+					if(options[o].name == saved.selectedOptionName){
+						state.selectedOptionIndex[i] = o;
+						state.selectedTint[i] = saved.tint;
+						break;
+					}
 				}
+				apply_interior_option_category(state, i);
+				break;
 			}
-			apply_interior_option_category(state, i);
+			continue;
+		}
+
+		for(int r = 0; r < (int) state.def->additionalRooms.size(); r++){
+			if(state.def->additionalRooms[r].name != saved.roomName) continue;
+
+			const std::vector<InteriorOptionCategory>& roomCategories = state.def->additionalRooms[r].categories;
+			for(int c = 0; c < (int) roomCategories.size(); c++){
+				if(roomCategories[c].name != saved.categoryName) continue;
+
+				const std::vector<InteriorCustomizationOption>& options = roomCategories[c].options;
+				for(int o = 0; o < (int) options.size(); o++){
+					if(options[o].name == saved.selectedOptionName){
+						state.additionalRoomSelectedOptionIndex[r][c] = o;
+						state.additionalRoomSelectedTint[r][c] = saved.tint;
+						break;
+					}
+				}
+				apply_room_option_category(state, r, c);
+				break;
+			}
 			break;
 		}
 	}
@@ -870,6 +1122,17 @@ static void onconfirm_export_interior_customization(const MenuItem<int> choice){
 		sel.tint = state.selectedTint[i];
 		data->categories.push_back(sel);
 	}
+	for(int r = 0; r < (int) state.def->additionalRooms.size(); r++){
+		const InteriorAdditionalRoom& room = state.def->additionalRooms[r];
+		for(int c = 0; c < (int) room.categories.size(); c++){
+			SavedInteriorCategorySelection sel;
+			sel.categoryName = room.categories[c].name;
+			sel.selectedOptionName = room.categories[c].options[state.additionalRoomSelectedOptionIndex[r][c]].name;
+			sel.tint = state.additionalRoomSelectedTint[r][c];
+			sel.roomName = room.name;
+			data->categories.push_back(sel);
+		}
+	}
 	for(int i = 0; i < (int) state.def->toggleableProps.size(); i++){
 		SavedInteriorPropSelection sel;
 		sel.propName = state.def->toggleableProps[i].name;
@@ -911,7 +1174,7 @@ void process_interior_customization_menu(){
 
 			std::vector<std::string> optionCaptions;
 			for(const InteriorCustomizationOption& opt : category.options){
-				optionCaptions.push_back(opt.name);
+				optionCaptions.push_back(tr_interior(opt.name));
 			}
 
 			int categoryIndex = i;
@@ -919,7 +1182,7 @@ void process_interior_customization_menu(){
 				g_interiorCustomizationState.selectedOptionIndex[categoryIndex] = newIndex;
 				apply_interior_option_category(g_interiorCustomizationState, categoryIndex);
 			});
-			optionItem->caption = category.name;
+			optionItem->caption = tr_interior(category.name);
 			optionItem->value = state.selectedOptionIndex[i];
 			optionItem->wrap = false;
 			menuItems.push_back(optionItem);
@@ -935,7 +1198,7 @@ void process_interior_customization_menu(){
 					g_interiorCustomizationState.selectedTint[categoryIndex] = newIndex + 1;   // captions are 1-based, matching GTAO's own tint numbering
 					apply_interior_option_tint(g_interiorCustomizationState, categoryIndex);
 				});
-				tintItem->caption = "  " + (category.tintCaption.empty() ? tr("InteriorCustomizationMenu.Tint", "Tint") : category.tintCaption);
+				tintItem->caption = "  " + (category.tintCaption.empty() ? tr("InteriorCustomizationMenu.Tint", "Tint") : tr_interior(category.tintCaption));
 				tintItem->value = state.selectedTint[i] - 1;
 				tintItem->wrap = false;
 				menuItems.push_back(tintItem);
@@ -947,7 +1210,7 @@ void process_interior_customization_menu(){
 			toggleItem->getter_call = is_interior_toggleable_prop_active;
 			toggleItem->setter_call = set_interior_toggleable_prop_active;
 			toggleItem->extra_arguments.push_back(i);
-			toggleItem->caption = state.def->toggleableProps[i].name;
+			toggleItem->caption = tr_interior(state.def->toggleableProps[i].name);
 			toggleItem->value = 0;
 			menuItems.push_back(toggleItem);
 		}
@@ -959,14 +1222,53 @@ void process_interior_customization_menu(){
 		enterItem->onConfirmFunction = onconfirm_enter_interior;
 		menuItems.push_back(enterItem);
 
-		// Plain teleport shortcuts into any additional rooms (Mansion's Garage/Low) - no walkable connection or animated elevator between them and the main shell, see the "additionalRooms" comment on InteriorCustomizationDef.
+		// Plain teleport shortcuts into any additional rooms (Mansion's Garage/Low) - no walkable connection or animated elevator between them and the main shell, see the "additionalRooms" comment on InteriorCustomizationDef. A room's own categories (Low/Vault's "Vault Type"/"Vault Door") follow directly after its Enter item, indented to read as belonging to that room.
 		for(int i = 0; i < (int) state.def->additionalRooms.size(); i++){
+			const InteriorAdditionalRoom& room = state.def->additionalRooms[i];
+
 			MenuItem<int>* enterRoomItem = new MenuItem<int>();
-			enterRoomItem->caption = tr("InteriorCustomizationMenu.EnterRoom", "Enter") + " " + state.def->additionalRooms[i].name;
+			enterRoomItem->caption = tr("InteriorCustomizationMenu.EnterRoom", "Enter") + " " + tr_interior(room.name);
 			enterRoomItem->value = i;
 			enterRoomItem->isLeaf = true;
 			enterRoomItem->onConfirmFunction = onconfirm_enter_additional_room;
 			menuItems.push_back(enterRoomItem);
+
+			for(int c = 0; c < (int) room.categories.size(); c++){
+				const InteriorOptionCategory& category = room.categories[c];
+
+				std::vector<std::string> roomOptionCaptions;
+				for(const InteriorCustomizationOption& opt : category.options){
+					roomOptionCaptions.push_back(tr_interior(opt.name));
+				}
+
+				int roomIndex = i;
+				int categoryIndex = c;
+				SelectFromListMenuItem* roomOptionItem = new SelectFromListMenuItem(roomOptionCaptions, [roomIndex, categoryIndex](int newIndex, SelectFromListMenuItem* source){
+					g_interiorCustomizationState.additionalRoomSelectedOptionIndex[roomIndex][categoryIndex] = newIndex;
+					apply_room_option_category(g_interiorCustomizationState, roomIndex, categoryIndex);
+				});
+				roomOptionItem->caption = "  " + tr_interior(category.name);
+				roomOptionItem->value = state.additionalRoomSelectedOptionIndex[i][c];
+				roomOptionItem->wrap = false;
+				menuItems.push_back(roomOptionItem);
+
+				const InteriorCustomizationOption& selectedRoomOption = category.options[state.additionalRoomSelectedOptionIndex[i][c]];
+				if(selectedRoomOption.maxTints > 0){
+					std::vector<std::string> roomTintCaptions;
+					for(int t = 1; t <= selectedRoomOption.maxTints; t++){
+						roomTintCaptions.push_back(std::to_string(t));
+					}
+
+					SelectFromListMenuItem* roomTintItem = new SelectFromListMenuItem(roomTintCaptions, [roomIndex, categoryIndex](int newIndex, SelectFromListMenuItem* source){
+						g_interiorCustomizationState.additionalRoomSelectedTint[roomIndex][categoryIndex] = newIndex + 1;
+						apply_room_option_tint(g_interiorCustomizationState, roomIndex, categoryIndex);
+					});
+					roomTintItem->caption = "    " + (category.tintCaption.empty() ? tr("InteriorCustomizationMenu.Tint", "Tint") : tr_interior(category.tintCaption));
+					roomTintItem->value = state.additionalRoomSelectedTint[i][c] - 1;
+					roomTintItem->wrap = false;
+					menuItems.push_back(roomTintItem);
+				}
+			}
 		}
 
 		MenuItem<int>* exportItem = new MenuItem<int>();
@@ -992,6 +1294,12 @@ void begin_interior_customization(const InteriorCustomizationDef& def){
 	state.def = &def;
 	state.selectedOptionIndex.assign(def.categories.size(), 0);
 	state.selectedTint.assign(def.categories.size(), 1);
+	state.additionalRoomSelectedOptionIndex.assign(def.additionalRooms.size(), {});
+	state.additionalRoomSelectedTint.assign(def.additionalRooms.size(), {});
+	for(size_t i = 0; i < def.additionalRooms.size(); i++){
+		state.additionalRoomSelectedOptionIndex[i].assign(def.additionalRooms[i].categories.size(), 0);
+		state.additionalRoomSelectedTint[i].assign(def.additionalRooms[i].categories.size(), 1);
+	}
 
 	// This whole family of interiors is MP DLC content - Menyoo's Create*() functions switch into the MP asset context before requesting the shell IPL, and boost instance-streaming priority for the whole load. Without ON_ENTER_MP, some shared prop texture dictionaries never resolve in an SP context - some of Facility's props still don't (see dev notes), but skipping this makes it strictly worse, not better.
 	DLC::ON_ENTER_MP();
@@ -1055,6 +1363,7 @@ void begin_interior_customization(const InteriorCustomizationDef& def){
 			INTERIOR::REFRESH_INTERIOR(roomInteriorID);
 		}
 		state.additionalRoomInteriorIDs[i] = roomInteriorID;
+		apply_full_room_customization(state, (int) i);
 	}
 
 	MISC::SET_INSTANCE_PRIORITY_MODE(false);
@@ -1111,6 +1420,8 @@ static const struct{ const char* caption; const InteriorCustomizationDef* def; }
 	{ BIKER_BUSINESS_COUNTERFEIT_CASH_CAPTION, &BIKER_BUSINESS_COUNTERFEIT_CASH_CUSTOMIZATION },
 	{ BIKER_BUSINESS_DOCUMENT_FORGERY_CAPTION, &BIKER_BUSINESS_DOCUMENT_FORGERY_CUSTOMIZATION },
 	{ MANSION_CAPTION, &MANSION_CUSTOMIZATION },
+	{ MANSION_CH2_04_CAPTION, &MANSION_CH2_04_CUSTOMIZATION },
+	{ MANSION_CH1_09_CAPTION, &MANSION_CH1_09_CUSTOMIZATION },
 	{ NIGHTCLUB_CAPTION, &NIGHTCLUB_CUSTOMIZATION },
 	{ ART_WORKSHOP_CAPTION, &ART_WORKSHOP_CUSTOMIZATION },
 };

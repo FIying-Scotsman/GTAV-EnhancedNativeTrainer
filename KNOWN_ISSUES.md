@@ -15,6 +15,15 @@ really be fixed, listed here so they don't get reported as bugs.
   isn't confirmed yet - it may be that this specific interior's restriction isn't fully gated
   by the natives this feature hooks. Not yet reproduced/confirmed on Enhanced. Low impact in
   practice, since most players leave the option on once they've turned it on for a given visit.
+- **Mansion doesn't offer an "Art" decor choice - activating any `SET_ART_*` entity set on this
+  interior crashes the game.** Tried twice: first as its own standalone category built on
+  `SET_ART_PROXY*`, later as `SET_ART_LOFT`/`SET_ART_COASTAL`/`SET_ART_REGENCY` paired into each
+  Decor style instead. Both reproduced the same crash on live testing - just walking around the
+  main house, no further interaction needed. A third-party reference claimed the non-PROXY
+  versions were safe to activate directly; that turned out to be wrong, or there's some other
+  precondition neither attempt captured. Root cause not found yet, so Decor only offers style/
+  elevator/shelving-planter/trophy-planter for now - see the comment above `MANSION_CATEGORIES`
+  in `interior_customization.cpp` for the full history.
 
 ## Known Limitations
 

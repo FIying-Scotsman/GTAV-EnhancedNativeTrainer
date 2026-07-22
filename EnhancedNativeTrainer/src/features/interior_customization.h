@@ -46,6 +46,11 @@ struct InteriorAdditionalRoom{
 	std::string name;   // menu caption for the "Enter <name>" teleport shortcut, e.g. "Garage"
 	float x, y, z;
 	std::vector<std::string> alwaysOnEntitySets;
+	// This room's own single-select groups, e.g. Mansion's Low/Vault "Vault Type"/"Vault Door" -
+	// same InteriorOptionCategory shape as InteriorCustomizationDef::categories, just scoped to
+	// this room's own interior ID instead of the main shell's. Added at the end so existing
+	// additionalRoom initializers elsewhere don't need updating.
+	std::vector<InteriorOptionCategory> categories;
 };
 
 struct InteriorCustomizationDef{
@@ -72,6 +77,8 @@ struct InteriorCustomizationState{
 	std::vector<int> additionalRoomInteriorIDs;   // parallel to def->additionalRooms
 	std::vector<int> selectedOptionIndex;   // parallel to def->categories
 	std::vector<int> selectedTint;          // parallel to def->categories
+	std::vector<std::vector<int>> additionalRoomSelectedOptionIndex;   // outer parallel to def->additionalRooms, inner parallel to that room's categories
+	std::vector<std::vector<int>> additionalRoomSelectedTint;          // same shape as additionalRoomSelectedOptionIndex
 };
 
 // A serializable snapshot of a state's selections, keyed by name (not index) so a saved file still applies correctly if a category's option list is reordered later.
@@ -79,6 +86,7 @@ struct SavedInteriorCategorySelection{
 	std::string categoryName;
 	std::string selectedOptionName;
 	int tint = 1;
+	std::string roomName;   // empty = a main-shell category; otherwise the InteriorAdditionalRoom::name this belongs to
 };
 
 struct SavedInteriorPropSelection{
@@ -113,6 +121,8 @@ extern const InteriorCustomizationDef BIKER_BUSINESS_COCAINE_WAREHOUSE_CUSTOMIZA
 extern const InteriorCustomizationDef BIKER_BUSINESS_COUNTERFEIT_CASH_CUSTOMIZATION;
 extern const InteriorCustomizationDef BIKER_BUSINESS_DOCUMENT_FORGERY_CUSTOMIZATION;
 extern const InteriorCustomizationDef MANSION_CUSTOMIZATION;
+extern const InteriorCustomizationDef MANSION_CH2_04_CUSTOMIZATION;
+extern const InteriorCustomizationDef MANSION_CH1_09_CUSTOMIZATION;
 extern const InteriorCustomizationDef NIGHTCLUB_CUSTOMIZATION;
 extern const InteriorCustomizationDef ART_WORKSHOP_CUSTOMIZATION;
 extern const InteriorCustomizationDef KORTZ_SEWERS_ACCESS_CUSTOMIZATION;
@@ -142,6 +152,8 @@ extern const char* const BIKER_BUSINESS_COCAINE_WAREHOUSE_CAPTION;
 extern const char* const BIKER_BUSINESS_COUNTERFEIT_CASH_CAPTION;
 extern const char* const BIKER_BUSINESS_DOCUMENT_FORGERY_CAPTION;
 extern const char* const MANSION_CAPTION;
+extern const char* const MANSION_CH2_04_CAPTION;
+extern const char* const MANSION_CH1_09_CAPTION;
 extern const char* const NIGHTCLUB_CAPTION;
 extern const char* const ART_WORKSHOP_CAPTION;
 extern const char* const KORTZ_SEWERS_ACCESS_CAPTION;
