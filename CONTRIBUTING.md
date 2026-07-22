@@ -815,6 +815,208 @@ toggle (`featureAutoTeleportIntoCustomizedInteriors`) all work off the def autom
 interior spans multiple rooms, add `additionalRooms` per "Multi-room interiors" above; otherwise
 leave it as the default empty vector.
 
+## Dual-game (Legacy/Enhanced) compatibility
+
+ENT supports both GTA V Legacy and GTA V Enhanced from one codebase, but they're different
+compiled binaries - different compiler, different code generation, and in places different
+internal structures entirely. A byte pattern, offset, or address found on one game is
+**never** guaranteed to exist, resolve to the same thing, or even compile down to
+recognizably similar bytes on the other. This section covers the infrastructure that exists
+to deal with that, and, just as importantly, the order of preference for how to make a
+feature work on both games, since reaching for the heaviest tool first is a common mistake.
+
+### Detecting which game is running: `IsEnhanced()`
+
+```cpp
+#include "../utils.h"
+if (IsEnhanced()) { ... }
+```
+
+This is the only correct way to branch on which game is running. **Do not use
+`getGameVersion()` for this** - it's a ScriptHookV SDK function whose version table only
+covers Legacy patches (see the comment on it in `inc/main.h`); on Enhanced it returns
+something unpredictable, not a clean "unknown" sentinel you can rely on. `getGameVersion()`
+is still fine for its actual purpose (comparing Legacy patch versions to each other), just
+never as a stand-in for "is this Enhanced."
+
+### Order of preference: how to make a feature work on both games
+
+Reach for these in order - each one down this list is more work and more fragile than the
+one above it:
+
+1. **A documented native.** Check [alloc8or's nativedb](https://alloc8or.re/gta5/nativedb/)
+   (or search `inc/natives.h`, which is generated from it) before writing any pattern at
+   all. Natives work identically on both games by definition - no RE, no per-game branching,
+   nothing to ever re-derive when a game update ships. A pattern-based fix that turns out to
+   have a native equivalent is always worth replacing (see `world.cpp`'s `EnableTracks` for
+   a real example: two raw byte patches were replaced by
+   `GRAPHICS::USE_SNOW_FOOT_VFX_WHEN_UNSHELTERED`/`USE_SNOW_WHEEL_VFX_WHEN_UNSHELTERED` once
+   it turned out those natives did the same thing).
+2. **A pattern that happens to work on both games unmodified.** Sometimes the exact same
+   byte sequence exists on both binaries - always worth trying the literal Legacy pattern
+   against an Enhanced dump before assuming you need a second one.
+3. **A per-game pattern, gated on `IsEnhanced()`.** The common case once (1) and (2) are
+   ruled out - see `getEntityAddress` below for a worked example.
+4. **A hook** (see "Hooking" below) - for when you need to intercept/redirect a call rather
+   than just read state, or when you can locate a target dynamically at runtime but can't
+   find it via static pattern-matching at all.
+5. **Don't ship a guess.** If you can't find a working Enhanced pattern and none of the
+   above apply, gate the feature to Legacy only (`if (!IsEnhanced()) { ... }`, or a pattern
+   lookup that fails closed and logs why) rather than shipping an address that merely
+   *compiles* - a wrong address read/written at runtime is a crash, not a silent no-op.
+
+### Finding things in memory: `ScanPattern` (`src/memory/Scanner.h`, `PointerCalculator.h`)
+
+`ScanPattern` is a single IDA-style byte-signature scanner that replaced the old
+`FindPatternJACCO`/`CompareMemoryJACCO` pair:
+
+```cpp
+PointerCalculator ScanPattern(const char* idaSignature);
+// e.g. ScanPattern("48 8D 3D ? ? ? ? 48 8B 04 F7") - '?' or '??' both mean "any byte"
+
+// Same, but scans a caller-supplied buffer (e.g. a page of compiled script bytecode)
+// instead of the game module - see the scripting layer below for when you'd want this.
+PointerCalculator ScanPattern(const char* idaSignature, const void* buffer, size_t bufferSize);
+```
+
+It returns a `PointerCalculator` - a small fluent wrapper for the pointer arithmetic that
+shows up around every pattern match, chainable and converts to `bool` (false = pattern not
+found, **always check before using the result**):
+
+| Method | Does |
+|---|---|
+| `.Add(n)` / `.Sub(n)` | Walk forward/backward by a fixed byte offset |
+| `.Rip()` | Resolves an x64 RIP-relative operand at the current address: `target = (current + 4) + *(int32_t*)current` - the `mov reg, [rip+disp32]`/`lea reg, [rip+disp32]` idiom. If there's a trailing immediate after the disp32 (e.g. `cmp byte ptr [rip+disp32], imm8`), chain an extra `.Add(n)` after `.Rip()` to skip it. |
+| `.As<T>()` | Resolves to a pointer type, reference type (dereferences), `uintptr_t`, or `intptr_t` |
+
+Worked example (`fuel.cpp`'s `getEntityAddress` - Enhanced's entity pools are
+pointer-obfuscated, so this resolves the game's own internal handle-to-address function
+instead of reimplementing that obfuscation):
+
+```cpp
+typedef uintptr_t(*getEntityAddress_t)(std::int32_t Entity);
+getEntityAddress_t getEntityAddress = [] () -> getEntityAddress_t {
+	if (IsEnhanced())
+	{
+		auto ptr = ScanPattern("0F 1F 84 00 00 00 00 00 89 F8 0F 28 FE 41");
+		if (!ptr)
+			return nullptr;
+		return ptr.Add(0x21).Add(1).Rip().As<getEntityAddress_t>();
+	}
+	return ScanPattern("83 F9 FF 74 31 4C 8B 0D ? ? ? ? 44 8B C1 49 8B 41 08").As<getEntityAddress_t>();
+}();
+```
+
+The `IsEnhanced()` branch pattern above - one signature per game, resolved once into a
+`static`/file-scope function pointer, always null-checked before calling through it - is the
+standard shape for a per-game pattern. Follow it rather than inventing a different structure.
+
+### Reading/writing a running script's state: the scripting layer (`src/scripting/`)
+
+A separate problem from scanning the game's own `.exe`: some features need to interact with
+a currently-loaded **script** (a compiled `.ysc`, e.g. `shop_controller`) - its bytecode, its
+global variables, or a running thread's local variables. This layer, modelled on YimMenuV2's
+approach (GPL-2.0, compatible with this project's license) but trimmed to what ENT actually
+needs, handles that on both games:
+
+| Type | For |
+|---|---|
+| `ENT::Scripts::FindScriptProgram(hash)` | Finds a loaded script's compiled bytecode/metadata by name hash (`rage::joaat("shop_controller")`). Returns a `rage::scrProgram*`. |
+| `ENT::Scripts::FindScriptThread(hash)` / `GetThreadStack(thread)` | Finds a *running* script's thread and resolves its call-stack base, for reading locals. |
+| `ENT::Scripts::WaitForScriptsInit()` | Blocks (with a timeout) until the game's own script-global-table init has run - call this before anything else in this layer, once, e.g. at trainer startup. |
+| `rage::scrProgram` (`scrProgram.h`) | The compiled bytecode + metadata for one loaded script - `CodePageCount()`, `GetCodePageAddress(page)`, `GetCodePageSize(page)`, `IsValid()`. |
+| `ENT::ScriptGlobal(index)` | Read/write a script `Global_XXXX` by its absolute numeric index. `.At(offset)` / `.At(offset, structSize)` for array/struct-shaped globals. `.As<T>()` same as `PointerCalculator`. Always check `.CanAccess()` first. |
+| `ENT::ScriptLocal(thread-or-hash, index)` | Same idea for a running thread's local variables (its call stack) instead of the shared global table. |
+| `ENT::ScriptPointer(name, idaSignature, offset, rip)` | Finds a byte pattern *inside a script's own bytecode* (not the exe) via `.Scan(program)`, and resolves the script-VM "code position" (0..codeSize, not a raw pointer) it points to. This is a different `.Rip()` from `PointerCalculator`'s - it reads the 3-byte relative operand the script VM itself uses, not x64 machine-code RIP addressing. |
+| `ENT::ScriptPatch(script, ScriptPointer, patchBytes)` | A toggleable patch applied directly to a script's own loaded bytecode - `.Enable()`/`.Disable()`. Resolves its target lazily the first time the script is actually loaded, and caches it. |
+
+Worked example (`rage_thread.cpp`'s despawn-global feature - the pattern here is scanned
+against `shop_controller`'s own bytecode, so it was never actually blocked by Enhanced's
+different compiler the way exe-side patterns are; it just needed reliable game detection to
+pick the right one of two known patterns):
+
+```cpp
+bool findShopController() {
+    if (!ENT::Scripts::WaitForScriptsInit()) { ... }
+    while (!(shopController = ENT::Scripts::FindScriptProgram(rage::joaat("shop_controller")))) {
+        // retry with a timeout - shop_controller can be a few frames behind the global table
+    }
+    return true;
+}
+
+void enableCarsGlobal() {
+    const char* idaPattern = idaPattern617_1;
+    int offset = offset617_1;
+    if (IsEnhanced() || (getGameVersion() >= 46)) {
+        idaPattern = idaPattern1604_0;
+        offset = offset1064_0;
+    }
+    for (int i = 0; i < shopController->CodePageCount(); i++) {
+        auto address = ScanPattern(idaPattern, shopController->GetCodePageAddress(i), shopController->GetCodePageSize(i));
+        if (address) {
+            int despawnGlobal = address.Add(offset).As<const int&>() & 0xFFFFFF;
+            ENT::ScriptGlobal(despawnGlobal).As<int&>() = 1;
+            return;
+        }
+    }
+}
+```
+
+If you're adding a *new* script-bytecode-based feature, prefer `ScriptPointer`/`ScriptPatch`
+over hand-rolling the loop above - they're the generalised version of exactly this pattern.
+
+### Hooking: MinHook / `HookManager` (`src/memory/HookManager.h`)
+
+For when you need to **intercept or redirect a call**, not just read state - vendored from
+[MinHook](https://github.com/TsudaKageyu/minhook) (BSD-style license, see
+`src/vendor/minhook/LICENSE.txt`) behind a thin wrapper:
+
+```cpp
+#include "../memory/HookManager.h"
+
+// target/detour/original are all plain function pointers (cast to void* as needed).
+// On success, *original is a callable trampoline for the real function - call through
+// it from inside your detour if you're not fully replacing the original behavior.
+bool ENT::CreateHook(void* target, void* detour, void** original);
+bool ENT::RemoveHook(void* target);   // safe to call on a target that was never hooked
+```
+
+Reach for this only after ruling out a native and a plain `ScanPattern`-based read/patch -
+it's the heaviest tool in this list, with a correspondingly larger blast radius (it rewrites
+live code, not just data), and needs a target address the same way `ScanPattern` does (a
+hook still needs *something* to locate first - it doesn't sidestep the pattern-finding
+problem, it just adds interception on top of it once you have a target).
+
+### Practical workflow: porting a Legacy-only pattern to Enhanced
+
+Given an existing Legacy pattern that fails to find anything on Enhanced (the common
+starting point - most patterns don't survive the compiler difference unmodified):
+
+1. **Check for a native first** (see "Order of preference" above) - always cheaper than any
+   RE, and the fix that can never go stale.
+2. **Try the literal Legacy pattern against Enhanced as-is.** Costs nothing, occasionally
+   works.
+3. **Relax the pattern.** Wildcard out anything that's plausibly compiler-dependent
+   (immediate values, specific register choices) while keeping the parts that encode the
+   actual *logic* - a comparison against a real constant, a specific sequence of native
+   calls, a distinctive literal (a magic number, a fixed-format string) survives compiler
+   differences far better than raw instruction bytes do, since those are dictated by the
+   *data*, not by how the compiler chose to generate code around it.
+4. **If a relaxed pattern still comes back empty or ambiguous** (many hits, none clearly
+   right), a structural fingerprint - a distinctive *shape* rather than exact bytes, e.g. a
+   cluster of vtable calls at specific offsets within a small window - can work, but expect
+   false positives and verify every candidate by hand (disassemble it, check it actually
+   does what you expect) rather than trusting the first hit.
+5. **If static analysis genuinely can't find it**, that's the point to reach for a hook
+   (dynamically observe what calls a known-reachable anchor, e.g. a Win32 API or another
+   already-located function, at runtime) rather than continuing to guess - but this needs
+   the feature to actually be exercisable at runtime to observe (a hook can't help you find
+   something that never gets called).
+6. **Know when to stop.** Not everything is worth the effort - a cosmetic feature with no
+   viable anchor after a genuine attempt is better left Legacy-only, clearly commented as
+   such, than chased indefinitely. Leave a comment explaining what was tried and why it
+   didn't pan out, so the next person doesn't repeat the same dead ends.
+
 ## Adding translatable strings
 
 Full details, including non-ASCII/translator-facing instructions, live in **`translation.md`** -
