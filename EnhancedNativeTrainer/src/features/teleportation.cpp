@@ -17,6 +17,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\ent-enums.h"
 #include "interior_props.h"
 #include "interior_customization.h"
+#include "weapon_interior.h"
 #include "script.h"
 #include <iostream>   // std::cout
 #include <string>     // std::string, std::stof
@@ -262,8 +263,8 @@ const std::vector<tele_location> LOCATIONS_INTERIORS = {
 	{ "Max Renda Refit", -583.1606f, -282.3967f, 35.394f, { "refit_unload" }, {}, {}, false }, // "bh1_16_doors_open" 
 	{ "Morgue", 275.446f, -1361.11f, 24.5378f, { "Coroner_Int_on" }, { "Coroner_Int_off" }, {}, false },
 	{ "North Yankton Bank", 5309.519f, -5212.375f, 83.522f, IPLS_NORTH_YANKTON, {}, {}, false },
-	{ "Omega's Trailer Interior", 2330.38000000f, 2572.53100000f, 45.67811000f},
 	{ "O'Neil Farm", 2454.78f, 4971.92f, 46.8103f, { "farm", "farm_props", "farmint" }, { "farm_burnt", "farm_burnt_props", "farmint_cap" }, {}, false },
+	{ "Omega's Trailer Interior", 2330.38000000f, 2572.53100000f, 45.67811000f},
 	{ "Pacific Standard Bank Vault", 255.851f, 217.030f, 101.683f },
 	{ "Paleto Bay Sheriff", -446.135f, 6012.91f, 31.7164f },
 	{ "Raven Slaughterhouse", 967.357f, -2184.71f, 30.0613f },
@@ -330,9 +331,9 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "4 Integrity Way Apt 10", -32.17249000f, -579.01830000f, 82.90740000f, { "hei_hw1_blimp_interior_10_dlc_apart_high_new_milo_" }, {}, {}, false },
 	{ "4 Integrity Way Apt 28", -14.7964f, -581.709f, 79.4307f, {}, {}, {}, false },
 	{ "6 Car Garage", 199.9716f, -999.6678f, -99.000f, { "hw1_blimp_interior_v_garagem_milo_" }, {}, {}, false },
-	{ "7302 San Andreas Avenue Apt 6", -460.61330000f, -691.55620000f, 69.87947000f, { "hw1_blimp_interior_v_apartment_high_milo__6" }, {}, {}, false },
 	{ "10 Car Garage Bay", 228.135f, -995.350f, -99.000f, { "hw1_blimp_interior_v_garagel_milo_" }, {}, {}, false },
-	{ "Old Spice Warm (Arcadius Business Centre)", -139.53950000f, -629.07570000f, 167.82040000f, { "ex_dt1_02_office_01a" }, {}, {}, false },
+	{ "7302 San Andreas Avenue Apt 6", -460.61330000f, -691.55620000f, 69.87947000f, { "hw1_blimp_interior_v_apartment_high_milo__6" }, {}, {}, false },
+	//{ "Casino Loading Bay", 2553.96300000f, -281.38050000f, -65.72305000f, { "ch_int_placement_ch_interior_5_dlc_casino_loading_milo_" }, {}, {}, false },
 	{ "Benny's Garage", -209.759f, -1319.617f, 30.08367f }, 
 	{ "Bikers 'Lost' Safehouse", 981.211f, -101.864f, 75.8451f, { "bkr_bi_hw1_13_int" }, {}, {}, false },
 	{ "Brickade Acid Lab", 485.0f, -2625.0f, -49.0f, { "xm3_int_placement_xm3_interior_0_dlc_int_01_xm3_milo_" }, {}, {}, false },
@@ -340,7 +341,6 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Casino Carpark", 1380.0000, 200.0000, -50.0000f, { "vw_casino_carpark" }, {}, {}, false },
 	{ "Casino Garage", 1295.0000, 230.0000, -50.0000f, { "vw_casino_garage" }, {}, {}, false },
 	{ "Casino Hotel", 2504.38600000f, -257.21960000f, -40.12296000f, { "ch_int_placement_ch_interior_4_dlc_casino_hotel_milo_" }, {}, {}, false },
-	//{ "Casino Loading Bay", 2553.96300000f, -281.38050000f, -65.72305000f, { "ch_int_placement_ch_interior_5_dlc_casino_loading_milo_" }, {}, {}, false },
 	{ "Casino Loading Bay", 858.00000000f, -2275.00000000f, -49.00000000f, { "m23_2_int_placement_m23_2_interior_0_dlc_int_casinobase_milo_ " }, {}, {}, false },
 	{ "Casino Main Hall", 1090.0000f, 210.0000f, -50.0000f, { "vw_casino_main" }, {}, {}, false },
 	{ "Casino Penthouse", 976.6364f, 70.29476f, 115.1641f, { "vw_casino_penthouse" }, {}, { IPLS_CASINO_PENTHOUSE }, false },
@@ -361,15 +361,9 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Eclipse Towers Apt 12", -791.29410000f, 338.07100000f, 200.41350000f, { "hw1_blimp_interior_v_apartment_high_milo__12" }, {}, {}, false },
 	{ "Eclipse Towers Apt 13", -764.81310000f, 319.18510000f, 216.05030000f, { "hw1_blimp_interior_v_apartment_high_milo__13" }, {}, {}, false },
 	{ "Eclipse Towers Apt 40", -773.023f, 341.627f, 211.397f },
-	{ "Old Spice Warm (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01a" }, {}, {}, false },
-	{ "Old Spice Classical (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01b" }, {}, { IPL_PROPS_CEO_OFFICE }, false },
-	{ "Old Spice Vintage (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01c" }, {}, {}, false },
 	{ "Executive Contrast (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02a" }, {}, {}, false },
-	{ "Executive Rich (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02b" }, {}, {}, false },
 	{ "Executive Cool (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02c" }, {}, {}, false },
-	{ "Power Broker Ice (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03a" }, {}, {}, false },
-	{ "Power Broker Conservative (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03b" }, {}, {}, false },
-	{ "Power Broker Polished (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03c" }, {}, {}, false },
+	{ "Executive Rich (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_02b" }, {}, {}, false },
 	{ "Executive Warehouse (Large)", 1010.0f, -3100.0f, -40.0f, { "ex_exec_warehouse_placement_interior_2_int_warehouse_l_dlc_milo_" }, {}, {}, false },
 	{ "Freakshop Brickade Garage", 570.0f, -415.0f, -69.0f, { "xm3_int_placement_xm3_interior_2_dlc_int_03_xm3_milo_" }, {}, {}, false },
 	{ "Hacker Basement", 745.79560000f, -993.11920000f, -44.37674000f, { "m24_2_int_hacker_basement" }, {}, {}, false },
@@ -384,14 +378,21 @@ const std::vector<tele_location> LOCATIONS_ONLINE = {
 	{ "Mission Row Underground Winning Garage", 400.09610000f, -956.67870000f, -100.00000000f},
 	{ "Mug Shot Room", 415.275f, -999.037f, -99.4041f, { "hw1_int_placement_interior_v_mugshot_milo_ " }, {}, {}, false },
 	{ "Music Locker", 1560.3f, 250.239f, -48.0f, { "h4_int_placement_h4_interior_1_dlc_int_02_h4_milo_" }, {}, { IPLS_MUSIC_LOCKER }, false },
-	{ "Penthouse: Modern", -786.168f, 334.319f, 211.197f, { "apa_v_mp_h_01_a", "apa_v_mp_h_01_b", "apa_v_mp_h_01_c" }, {}, {}, false },
-	{ "Penthouse: Moody", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_02_a", "apa_v_mp_h_02_b", "apa_v_mp_h_02_c" }, {}, {}, false },
-	{ "Penthouse: Vibrant", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_03_a", "apa_v_mp_h_03_b", "apa_v_mp_h_03_c" }, {}, {}, false },
-	{ "Penthouse: Sharp", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_04_a", "apa_v_mp_h_04_b", "apa_v_mp_h_04_c" }, {}, {}, false },
-	{ "Penthouse: Monochrome", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_05_a", "apa_v_mp_h_05_b", "apa_v_mp_h_05_c" }, {}, {}, false },
-	{ "Penthouse: Seductive", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_06_a", "apa_v_mp_h_06_b", "apa_v_mp_h_06_c" }, {}, {}, false },
-	{ "Penthouse: Regal", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_07_a", "apa_v_mp_h_07_b", "apa_v_mp_h_07_c" }, {}, {}, false },
+	{ "Old Spice Classical (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01b" }, {}, { IPL_PROPS_CEO_OFFICE }, false },
+	{ "Old Spice Vintage (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01c" }, {}, {}, false },
+	{ "Old Spice Warm (Arcadius Business Centre)", -139.53950000f, -629.07570000f, 167.82040000f, { "ex_dt1_02_office_01a" }, {}, {}, false },
+	{ "Old Spice Warm (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_01a" }, {}, {}, false },
 	{ "Penthouse: Aqua", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_08_a", "apa_v_mp_h_08_b", "apa_v_mp_h_08_c" }, {}, {}, false },
+	{ "Penthouse: Modern", -786.168f, 334.319f, 211.197f, { "apa_v_mp_h_01_a", "apa_v_mp_h_01_b", "apa_v_mp_h_01_c" }, {}, {}, false },
+	{ "Penthouse: Monochrome", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_05_a", "apa_v_mp_h_05_b", "apa_v_mp_h_05_c" }, {}, {}, false },
+	{ "Penthouse: Moody", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_02_a", "apa_v_mp_h_02_b", "apa_v_mp_h_02_c" }, {}, {}, false },
+	{ "Penthouse: Regal", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_07_a", "apa_v_mp_h_07_b", "apa_v_mp_h_07_c" }, {}, {}, false },
+	{ "Penthouse: Seductive", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_06_a", "apa_v_mp_h_06_b", "apa_v_mp_h_06_c" }, {}, {}, false },
+	{ "Penthouse: Sharp", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_04_a", "apa_v_mp_h_04_b", "apa_v_mp_h_04_c" }, {}, {}, false },
+	{ "Penthouse: Vibrant", -787.7805f, 334.9232f, 215.8384f, { "apa_v_mp_h_03_a", "apa_v_mp_h_03_b", "apa_v_mp_h_03_c" }, {}, {}, false },
+	{ "Power Broker Conservative (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03b" }, {}, {}, false },
+	{ "Power Broker Ice (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03a" }, {}, {}, false },
+	{ "Power Broker Polished (Maze Bank Building)", -73.79922f, -818.958f, 242.3858f, { "ex_dt1_11_office_03c" }, {}, {}, false },
 	{ "Red's Autoparts", 1088.00000000f, -2275.00000000f, -50.00000000f, { "m23_2_int_placement_m23_2_interior_2_dlc_int_salvage_milo_" }, {}, {}, false },
 	{ "Richards Majestic Apt 2", -915.811f, -379.432f, 113.675f, {}, {}, {}, false },
 	{ "Richards Majestic Apt 10", -925.54970000f, -374.22030000f, 102.23290000f, { "hw1_blimp_interior_v_apartment_high_milo__10" }, {}, {}, false },
@@ -448,11 +449,11 @@ const std::vector<tele_location> LOCATIONS_COLLECTIBLES = {
 	{ "Epsilon Tract 8", 486.137f, 5615.66f, 788.992f },
 	{ "Epsilon Tract 9", -78.3637f, -817.731f, 326.175f },
 	{ "Epsilon Tract 10", -1724.77f, -186.846f, 58.1595f },
-	{ "Epsilon Vehicle Vacca", -78.6291f, 496.675f, 144.457f },
+	{ "Epsilon Vehicle Double T", -1325.32f, 262.019f, 62.5202f },
+	{ "Epsilon Vehicle Super Diamond", -726.204f, -404.636f, 35.011f },
 	{ "Epsilon Vehicle Surano", -65.4271f, 886.202f, 235.803f },
 	{ "Epsilon Vehicle Tornado", 529.025f, -167.896f, 55.1245f },
-	{ "Epsilon Vehicle Super Diamond", -726.204f, -404.636f, 35.011f },
-	{ "Epsilon Vehicle Double T", -1325.32f, 262.019f, 62.5202f },
+	{ "Epsilon Vehicle Vacca", -78.6291f, 496.675f, 144.457f },
 	{ "For Sale Sign 1", -1573.76f, 448.904f, 107.815f },
 	{ "For Sale Sign 2", -1352.1f, 607.525f, 133.952f },
 	{ "For Sale Sign 3", -1471.87f, -7.59477f, 54.2377f },
@@ -1410,6 +1411,12 @@ bool process_teleport_menu(int categoryIndex){
 		togItem->caption = tr("TeleportMenu.AutoTeleportIntoCustomizedInteriors", "Auto-Teleport Into Customized Interiors");
 		togItem->value = 8;
 		togItem->toggleValue = &featureAutoTeleportIntoCustomizedInteriors;
+		menuItems.push_back(togItem);
+
+		togItem = new ToggleMenuItem<int>();
+		togItem->caption = tr("TeleportMenu.UseWeaponsInRestrictedInteriors", "Use Weapons In Restricted Interiors");
+		togItem->value = 8;
+		togItem->toggleValue = &featureWeaponInterior;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();

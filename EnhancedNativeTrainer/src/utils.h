@@ -19,6 +19,12 @@ std::string GetCurrentModulePath();
 
 HMODULE GetENTModuleHandle();
 
+// True when running under GTA5_Enhanced.exe rather than the Legacy GTA5.exe.
+// The x64 code/patterns ScriptHookV doesn't cover as natives (see FindPattern/
+// FindPatternJACCO call sites) are compiled differently between the two games,
+// so callers must check this before trusting a Legacy-derived byte pattern.
+bool IsEnhanced();
+
 bool does_file_exist(const char* name);
 
 bool StringEndsWith(const std::string& a, const std::string& b);
@@ -28,13 +34,5 @@ bool StringStartsWith(const std::string& a, const std::string& b);
 float degToRad(float degs);
 
 float radToDeg(float rads);
-
-uintptr_t FindPattern(const char *pattern, const char *mask, const char* startAddress, size_t size);
-
-uintptr_t FindPattern(const char *pattern, const char *mask);
-
-bool CompareMemory(const uint8_t* pData, const uint8_t* bMask, const char* sMask);
-
-int RegisterFile(const std::string& fullPath, const std::string& fileName);
 
 bool bittest(int data, unsigned char index);

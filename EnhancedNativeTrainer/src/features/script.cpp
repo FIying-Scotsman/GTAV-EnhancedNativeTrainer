@@ -32,8 +32,11 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "vehicles.h"
 #include "weapons.h"
 #include "interior_customization.h"
+#include "weapon_interior.h"
+#include "../scripting/ScriptNativeHook.h"
 #include "../version.h"
 #include "../utils.h"
+#include "../memory/Scanner.h"
 #include "../ui_support/file_dialog.h"
 #include "../ui_support/menu_functions.h"
 #include "../common/toggle_feature.h"
@@ -269,8 +272,13 @@ ChangeTrackedValue<int> current_player_superjump{0, true};
 
 void UnlockAllObjects()
 {
-	static auto checkModelBeforeCreation = FindPattern("\x48\x85\xC0\x0F\x84\x00\x00\x00\x00\x8B\x48\x50", "xxxxx????xxx");
-	memset(reinterpret_cast<void*>(checkModelBeforeCreation), 0x90, 24);
+	static auto checkModelBeforeCreation = ScanPattern("48 85 C0 0F 84 ? ? ? ? 8B 48 50");
+	if (!checkModelBeforeCreation)
+	{
+		write_text_to_log_file("UnlockAllObjects pattern not found; skipping");
+		return;
+	}
+	memset(checkModelBeforeCreation.As<void*>(), 0x90, 24);
 }
 
 /* End of prop unblocker code*/
@@ -889,6 +897,8 @@ void update_features(){
 	update_skin_features();
 
 	update_teleport_features();
+
+	update_weapon_interior_feature();
 
 	check_player_model();
 
@@ -2710,6 +2720,8 @@ void ScriptMain(){
 	
 		clear_log_file();
 
+		write_text_to_log_file(IsEnhanced() ? "Running under GTA V Enhanced" : "Running under GTA V Legacy");
+
 		write_text_to_log_file("Trying to init storage");
 		init_storage();
 		write_text_to_log_file("Init storage complete");
@@ -2744,23 +2756,9 @@ void ScriptMain(){
 
 		//UnlockAllObjects();
 
-		//Find the radio skip & file register patterns
+		//Find the radio skip patterns
 		SInit();
 
-		const std::string name = "ENT_vehicle_previews.ytd"; 
-		std::string fullPath = GetCurrentModulePath() + "Enhanced Native Trainer\\" + name;
-		int textureID = 0;
-
-		if (does_file_exist(fullPath.c_str()))
-		{
-			if (textureID = RegisterFile(fullPath, name))
-				write_text_to_log_file("Registered texture file: " + fullPath + " with texture ID " + std::to_string(textureID));
-			else
-				write_text_to_log_file("Failed to Register texture file: " + fullPath);
-		}
-		else
-			write_text_to_log_file("Failed to Register texture file: " + fullPath + " as it does not exist!");
-		
 		write_text_to_log_file("Finding shop_controller script");
 
 		if (findShopController())
@@ -2788,6 +2786,14 @@ void ScriptTidyUp(){
 		#endif
 
 		write_text_to_log_file("ScriptTidyUp called");
+
+		// Every native-table slot the script-native-hook feature (weapon_interior,
+		// fix_jittering_weapons) patched, and the InitNativeTables inline hook it may have
+		// installed, point at code inside this module - do this before anything below that
+		// could yield back to the game (WAIT(0)) and let a script call one of them, or they'd
+		// be jumping into memory that's about to be unmapped.
+		ENT::ScriptNativeHook::UnhookAll();
+		write_text_to_log_file("Removed script native hooks");
 
 		save_settings();
 		write_text_to_log_file("Saved settings");
@@ -2910,6 +2916,7 @@ std::vector<FeatureEnabledLocalDefinition> get_feature_enablements(){
 	add_areaeffect_feature_enablements(&results);
 
 	add_interior_customization_feature_enablements(&results);
+	add_weapon_interior_feature_enablements(&results);
 
 	return results;
 }

@@ -194,7 +194,8 @@ void trigger_function_for_hotkey_onkeyup(int hotkey)
 		fill_weapon_ammo_hotkey();
 		break;
 	case HKEY_MENU_NEXT_RADIO_TRACK: // next radio track
-		if (getGameVersion() > 41) SKIP_RADIO_FORWARD_CUSTOM();
+		// See onconfirm_radiosettings_menu in misc.cpp for why Enhanced uses the native.
+		if (!IsEnhanced() && getGameVersion() > 41) SKIP_RADIO_FORWARD_CUSTOM();
 		else AUDIO::SKIP_RADIO_FORWARD();
 		hotkey_held_veh_radio_skip = false;
 		break;

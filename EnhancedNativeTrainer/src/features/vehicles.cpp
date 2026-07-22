@@ -21,6 +21,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\config_io.h"
 #include "..\io\controller.h"
 #include "..\debug\debuglog.h"
+#include "../vehicle_hashes_list.h"
 #include "area_effect.h"
 #include <fstream>
 #include "vehicle_weapons.h"
@@ -32,6 +33,9 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include <vector>
 #include <cstdlib>
 #include <unordered_map>
+#include <set>
+#include <filesystem>
+#include <cctype>
 #include "../utils.h"
 
 using namespace std;
@@ -459,23 +463,12 @@ struct struct_door_options{
 	bool *pState;
 };
 
-struct HashNode
-{
-	int hash;
-	UINT16 data;
-	UINT16 padding;
-	HashNode* next;
-};
-
 std::array<std::vector<unsigned int>, 0x20> vehicleModels;
 
 int doorOptionsMenuIndex = 0;
 int vehSeatIndexMenuIndex = 0;
 
 int savedVehicleListSortMethod = 0;
-
-typedef __int64(*GetModelInfo_t)(unsigned int modelHash, int* index);
-GetModelInfo_t GetModelInfo = (GetModelInfo_t)FindPatternJACCO("\x0F\xB7\x05\x00\x00\x00\x00\x45\x33\xC9\x4C\x8B\xDA\x66\x85\xC0\x0F\x84\x00\x00\x00\x00\x44\x0F\xB7\xC0\x33\xD2\x8B\xC1\x41\xF7\xF0\x48\x8B\x05\x00\x00\x00\x00\x4C\x8B\x14\xD0\xEB\x09\x41\x3B\x0A\x74\x54", "xxx????xxxxxxxxxxx????xxxxxxxxxxxxxx????xxxxxxxxxxx");
 
 std::vector<Hash> g_vehHashes;
 std::vector<Hash> g_vehHashes_SUPER;
@@ -552,54 +545,35 @@ Vector3 RotationToDirection2(Vector3* rot)
 	return dir;
 }
 
+// Used to be a raw walk of the game's internal model-archetype hash table (found via a
+// Legacy-only byte pattern, with the class byte read straight out of CVehicleModelInfo).
+// Replaced with pure natives, which works identically on both games and needs no
+// pattern at all: EXTRAMETADATA::GET_NUM_DLC_VEHICLES/GET_DLC_VEHICLE_MODEL cover DLC
+// vehicles - which is also how addon vehicle packs register themselves, so addon
+// support isn't lost - and kBaseGameVehicleHashes (vehicle_hashes_list.h) covers the
+// fixed base-game roster that was never registered as "DLC" to begin with.
+// VEHICLE::GET_VEHICLE_CLASS_FROM_NAME replaces the raw CVehicleModelInfo::m_vehicle_class
+// read.
 void GenerateVehicleModelList()
 {
-	unsigned short modelHashEntries;
-	int modelNum1;
-	UINT64 modelHashTable, modelNum2, modelNum3,modelNum4;
+	auto& hashes = vehicleModels;
+	for (auto& vec : hashes)
+		vec.clear();
 
-	uintptr_t address = FindPatternJACCO("\x66\x81\xF9\x00\x00\x74\x10\x4D\x85\xC0", "xxx??xxxxx");
-	if (address)
+	std::set<Hash> candidates(std::begin(kBaseGameVehicleHashes), std::end(kBaseGameVehicleHashes));
+
+	int dlcVehicleCount = EXTRAMETADATA::GET_NUM_DLC_VEHICLES();
+	for (int i = 0; i < dlcVehicleCount; i++)
 	{
-		address = address - 0x21;
-		UINT64 baseFuncAddr = address + *reinterpret_cast<int*>(address) + 0x4;
-		int classOffset = *reinterpret_cast<int*>(address + 0x31);
-		modelHashEntries = *reinterpret_cast<UINT16*>(baseFuncAddr + *reinterpret_cast<int*>(baseFuncAddr + 3) + 7);
-		modelNum1 = *reinterpret_cast<int*>(*reinterpret_cast<int*>(baseFuncAddr + 0x52) + baseFuncAddr + 0x56); //cmp
-		modelNum2 = *reinterpret_cast<PUINT64>(*reinterpret_cast<int*>(baseFuncAddr + 0x63) + baseFuncAddr + 0x67); //mov
-		modelNum3 = *reinterpret_cast<PUINT64>(*reinterpret_cast<int*>(baseFuncAddr + 0x7A) + baseFuncAddr + 0x7E); //mul
-		modelNum4 = *reinterpret_cast<PUINT64>(*reinterpret_cast<int*>(baseFuncAddr + 0x81) + baseFuncAddr + 0x85); //add
+		candidates.insert(EXTRAMETADATA::GET_DLC_VEHICLE_MODEL(i));
+	}
 
-		modelHashTable = *reinterpret_cast<PUINT64>(*reinterpret_cast<int*>(baseFuncAddr + 0x24) + baseFuncAddr + 0x28);
-		HashNode** HashMap = reinterpret_cast<HashNode**>(modelHashTable);
-
-		auto& hashes = vehicleModels;
-
-		for (auto& vec : hashes)
-			vec.clear();
-
-		//Begin going through the pool and getting the vehicles
-		for (int i = 0; i < modelHashEntries; i++)
+	for (Hash hash : candidates)
+	{
+		int vehicleClass = VEHICLE::GET_VEHICLE_CLASS_FROM_NAME(hash);
+		if (vehicleClass >= 0 && vehicleClass < static_cast<int>(hashes.size()))
 		{
-			for (HashNode* cur = HashMap[i]; cur; cur = cur->next)
-			{
-				UINT16 data = cur->data;
-				if ((int)data < modelNum1 && bittest(*reinterpret_cast<int*>(modelNum2 + (4 * data >> 5)), data & 0x1F))
-				{
-					UINT64 addr1 = modelNum4 + modelNum3 * data;
-					if (addr1)
-					{
-						UINT64 addr2 = *reinterpret_cast<PUINT64>(addr1);
-						if (addr2)
-						{
-							if ((*reinterpret_cast<PBYTE>(addr2 + 157) & 0x1F) == 5)
-							{
-								hashes[*reinterpret_cast<PBYTE>(addr2 + classOffset) & 0x1F].push_back((unsigned int)cur->hash);
-							}
-						}
-					}
-				}
-			}
+			hashes[vehicleClass].push_back(static_cast<unsigned int>(hash));
 		}
 	}
 }
@@ -687,18 +661,14 @@ void PopulateVehicleModelsArray()
 	//write_text_to_log_file(ss.str());
 }
 
-char* GetVehicleModelName(int modelHash)
+const char* GetVehicleModelName(int modelHash)
 {
-	int index = 0xFFFF;
-	uint64_t modelInfo = GetModelInfo(modelHash, &index);
-	return (char*)(modelInfo + 0x298);
+	return VEHICLE::GET_DISPLAY_NAME_FROM_VEHICLE_MODEL(modelHash);
 }
 
-char* GetVehicleMakeName(int modelHash)
+const char* GetVehicleMakeName(int modelHash)
 {
-	int index = 0xFFFF;
-	uint64_t modelInfo = GetModelInfo(modelHash, &index);
-	return (char*)(modelInfo + 0x2A4);
+	return VEHICLE::GET_MAKE_NAME_FROM_VEHICLE_MODEL(modelHash);
 }
 
 const char* get_class_label(int vehicle_class)
@@ -5113,22 +5083,49 @@ void spawn_veh_manually() {
 	}
 }
 
+// Some vehicles share their base variant's exact GXT display name - e.g. both GAUNTLET4 and
+// DRIFTGAUNTLET4 show as "Bravado Gauntlet Hellfire" with nothing to tell them apart in the
+// menu. Rockstar uses a handful of internal-name prefixes, applied across many otherwise-
+// unrelated base vehicles, for exactly this kind of variant - "DRIFT<base>" (Los Santos Car
+// Meet's tuner variants - confirmed via the DRIFTGAUNTLET4/GAUNTLET4 collision above) is the
+// one seen colliding so far; "POL<base>" (unmarked/liveried police variants - e.g.
+// POLBUFFALO, POLDORADO) is the same well-established convention but hasn't specifically been
+// seen colliding with its own base caption yet. Both are harmless to check for regardless -
+// the suffix only gets added when the caption doesn't already mention it.
+static const std::vector<std::pair<std::string, std::string>> VARIANT_NAME_PREFIXES = {
+	{ "DRIFT", "Drift" },
+	{ "POL", "Police" },
+};
+
+static std::string disambiguate_variant_caption(const char* rawModelName, const std::string& caption)
+{
+	if (!rawModelName)
+		return caption;
+
+	for (const auto& [prefix, label] : VARIANT_NAME_PREFIXES)
+	{
+		if (_strnicmp(rawModelName, prefix.c_str(), prefix.size()) == 0 && caption.find(label) == std::string::npos)
+			return caption + " (" + label + ")";
+	}
+	return caption;
+}
+
 bool onconfirm_spawn_menu_cars(MenuItem<int> choice){
 	std::string caption = get_class_label(choice.value);
 	std::vector<MenuItem<int>*> menuItems;
 	std::vector<Hash> selectedCat = get_vehicles_from_category(choice.value);
 	int itemIndex = 0;
-	
+
 	for (Hash hash : selectedCat)
 	{
 		itemIndex++;
 		MenuItem<int>* item = new MenuItem<int>();
-		
+
 		if (get_vehicle_make_and_model(hash).compare("NULL") == 0 || get_vehicle_make_and_model(hash).compare("") == 0)
 			//item->caption = "Item " + std::to_string(itemIndex);
 			item->caption = GetVehicleModelName(hash);
 		else
-			item->caption = get_vehicle_make_and_model(hash);
+			item->caption = disambiguate_variant_caption(GetVehicleModelName(hash), get_vehicle_make_and_model(hash));
 		item->value = hash;
 		menuItems.push_back(item);
 	}
@@ -5157,7 +5154,11 @@ bool onconfirm_spawn_menu_cars(MenuItem<int> choice){
 bool do_spawn_vehicle_hash(int modelName, std::string modelTitle) {
 	DWORD model = modelName;
 
-	write_text_to_log_file("Attempting to spawn " + modelTitle + " with hash: " + std::to_string(modelName));
+	// The internal model name (e.g. "driftgauntlet4") is also what vehicle_image_preview_finder
+	// matches a Documents/previews/ PNG's filename against - logging it here alongside the
+	// display name tells a user reading this line exactly what to name a preview image for it.
+	const char* rawModelName = GetVehicleModelName(modelName);
+	write_text_to_log_file("Attempting to spawn " + modelTitle + " (" + (rawModelName ? rawModelName : "?") + ") with hash: " + std::to_string(modelName));
 
 	Vehicle veh = do_spawn_vehicle(model, modelTitle, true);
 	return false;
@@ -6499,9 +6500,108 @@ void onchange_fuel_colours_b_index(int value, SelectFromListMenuItem* source){
 	FuelColours_B_IndexN = value;
 }
 
+// A vehicle name with any trailing digits removed, e.g. "sentinel4" -> "sentinel" - used to
+// find a same-family sibling (sentinel3, sentinel2, ...) when a vehicle has no preview of its
+// own. This mainly covers vehicles the native vehicle-list rewrite now surfaces that weren't
+// reachable before (often scripted/duplicate variants added in later game updates).
+static std::string StripTrailingDigits(const std::string& name)
+{
+	size_t end = name.size();
+	while (end > 0 && std::isdigit(static_cast<unsigned char>(name[end - 1])))
+		--end;
+	return name.substr(0, end);
+}
+
+static std::string ToLowerCopy(const std::string& s)
+{
+	std::string out = s;
+	std::transform(out.begin(), out.end(), out.begin(), [](unsigned char c) { return (char)std::tolower(c); });
+	return out;
+}
+
+// Lowercased filenames (without ".png") of every preview image shipped under
+// Documents/previews/, built once on first use.
+static const std::vector<std::string>& GetLocalPreviewNames()
+{
+	static std::vector<std::string> names = [] {
+		std::vector<std::string> result;
+		std::string dir = GetCurrentModulePath() + "Enhanced Native Trainer\\previews\\";
+		std::error_code ec;
+		for (const auto& entry : std::filesystem::directory_iterator(dir, ec))
+		{
+			if (ec || !entry.is_regular_file())
+				continue;
+			std::filesystem::path p = entry.path();
+			if (ToLowerCopy(p.extension().string()) != ".png")
+				continue;
+			result.push_back(ToLowerCopy(p.stem().string()));
+		}
+		return result;
+	}();
+	return names;
+}
+
+// Loads (and caches) a local preview texture by name via the ScriptHookV SDK's
+// createTexture()/drawTexture() pair - these load straight from a PNG file path and draw
+// independently of the game's own streamed-texture-dictionary system, so they work the same
+// on both games regardless of internal engine differences. Returns -1 if the file doesn't exist
+// or fails to load.
+static int GetOrCreateLocalPreviewTexture(const std::string& previewName)
+{
+	static std::unordered_map<std::string, int> cache;
+	auto it = cache.find(previewName);
+	if (it != cache.end())
+		return it->second;
+
+	std::string path = GetCurrentModulePath() + "Enhanced Native Trainer\\previews\\" + previewName + ".png";
+	int id = does_file_exist(path.c_str()) ? createTexture(path.c_str()) : -1;
+	cache[previewName] = id;
+	return id;
+}
+
+// Finds a curated (streamed-dict) entry for a same-family sibling name, e.g. if "sentinel4" has
+// no entry of its own, this can find "sentinel3"'s. Different generations of the same vehicle
+// were sometimes added across different DLC updates and so can use different dicts - reusing
+// the sibling entry wholesale (dict and image name together) handles that, rather than assuming
+// the current vehicle's dict applies to a borrowed image name.
+static const VehicleImage* FindCuratedSibling(const std::string& baseName)
+{
+	for (const VehicleImage& img : ALL_VEH_IMAGES)
+	{
+		if (!img.imgName)
+			continue;
+		if (StripTrailingDigits(ToLowerCopy(img.imgName)) == baseName)
+			return &img;
+	}
+	return nullptr;
+}
+
 MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 	if(!is_vehicle_preview_enabled()){
 		return NULL;
+	}
+
+	// A local PNG (Documents/previews/) always wins if one exists for this exact model,
+	// ahead of the curated ALL_VEH_IMAGES table - this is what lets a contributor add or
+	// replace a preview by just dropping a file, on either game, without touching curated
+	// entries or ENT_vehicle_previews.ytd at all. Existing curated entries (both the ones
+	// backed by the game's own streamed dicts and the ones backed by that ytd) still work
+	// as a fallback for everything that hasn't been given a local PNG yet.
+	const char* rawName = GetVehicleModelName((int)choice.value);
+	std::string modelName, baseName;
+	if (rawName)
+	{
+		modelName = ToLowerCopy(rawName);
+		baseName = StripTrailingDigits(modelName);
+
+		int localID = GetOrCreateLocalPreviewTexture(modelName);
+		if (localID >= 0)
+		{
+			MenuItemImage* image = new MenuItemImage();
+			image->dict = const_cast<char*>(LOCAL_TEXTURE_DICT);
+			image->localID = localID;
+			return image;
+		}
 	}
 
 	for each (VehicleImage vimg in ALL_VEH_IMAGES){
@@ -6514,6 +6614,41 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 			else{
 				image->name = vimg.imgName;
 			}
+			return image;
+		}
+	}
+
+	// No exact local PNG or curated entry - fall back to a same-family sibling, local PNG
+	// first, then a sibling from the curated table.
+	if (rawName)
+	{
+		int localID = -1;
+		if (baseName != modelName)
+		{
+			for (const std::string& candidate : GetLocalPreviewNames())
+			{
+				if (StripTrailingDigits(candidate) == baseName)
+				{
+					localID = GetOrCreateLocalPreviewTexture(candidate);
+					if (localID >= 0)
+						break;
+				}
+			}
+		}
+
+		if (localID >= 0)
+		{
+			MenuItemImage* image = new MenuItemImage();
+			image->dict = const_cast<char*>(LOCAL_TEXTURE_DICT);
+			image->localID = localID;
+			return image;
+		}
+
+		if (const VehicleImage* sibling = FindCuratedSibling(baseName))
+		{
+			MenuItemImage* image = new MenuItemImage();
+			image->dict = sibling->dict;
+			image->name = sibling->imgName;
 			return image;
 		}
 	}

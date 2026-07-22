@@ -237,8 +237,32 @@ enum eGameVersion: int{
 	VER_1_0_3095_0_NOSTEAM,
 	VER_1_0_3095_0_EGS,
 
+	// From here on Rockstar stopped shipping separate per-storefront builds, so newer
+	// patches (and ScriptHookV's own version list, e.g. MenyooSP's fork) only carry one
+	// enum value per patch rather than a STEAM/NOSTEAM/EGS triple.
+	VER_1_0_3179_0,
+	VER_1_0_3258_0,
+	VER_1_0_3274_0,
+	VER_1_0_3323_0,
+	VER_1_0_3337_0,
+	VER_1_0_3351_0,
+	VER_1_0_3407_0,
+	VER_1_0_3411_0,
+	VER_1_0_3442_0,
+	VER_1_0_3504_0,
+	VER_1_0_3521_0,
+	VER_1_0_3570_0,
+	VER_1_0_3586_0,
+	VER_1_0_3717_0,
+	VER_1_0_3751_0,
+	VER_1_0_3788_0,
+
 	VER_SIZE,
 	VER_UNK = 255
 };
 
+// getGameVersion() has no entry for GTA V Enhanced - ScriptHookV's version table only
+// covers Legacy patches, so on Enhanced this returns an unpredictable/unrelated value
+// (possibly VER_UNK, possibly not). Use IsEnhanced() (src/utils.h) to detect Enhanced,
+// don't infer it from getGameVersion().
 IMPORT eGameVersion getGameVersion();

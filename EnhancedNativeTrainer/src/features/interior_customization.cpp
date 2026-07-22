@@ -434,7 +434,7 @@ const InteriorCustomizationDef BIKER_BUSINESS_DOCUMENT_FORGERY_CUSTOMIZATION = {
 const std::vector<const char*> MANSION_SHELL_IPL = {
 	"m25_2_int_placement", "hei_ch1_06e_mansion_railings_m",
 	"m25_2_ch1_06e_mansion_interior_a", "m25_2_ch1_06e_mansion_interior_b", "m25_2_ch1_06e_mansion_interior_c",
-	"hei_ch1_06e_mansion_original", "hei_ch1_06e_props_original", "hei_ch1_roads_original",
+	"hei_ch1_roads_original",
 	"hei_ch1_06e_mansion_shared", "hei_ch1_06f_mansion_shared", "hei_ch1_06e_mansion_private",
 	"hei_ch1_roads_mansion", "hei_ch1_06e_mansion_player_bounds", "hei_ch1_06e_mansion_furniture",
 	"hei_ch1_06e_mansion_firepit", "hei_ch1_06e_mansion_firepit_lodlights", "hei_ch1_06e_mansion_firepit_distantlights",
@@ -442,6 +442,15 @@ const std::vector<const char*> MANSION_SHELL_IPL = {
 	"hei_ch1_06e_mansion_shared_lodlights", "hei_ch1_06e_mansion_shared_distantlights",
 	"m25_2_mansion_gym", "m25_2_dog_house", "hei_ch1_06f_mansion_original",
 	"hei_ch1_06e_mansion_ground", "hei_ch1_06e_original_terrain"
+};
+// The vanilla/unowned exterior - active by default, so never requested above, only removed
+// once the owned exterior's entity sets are up. Retired featureHouseOnHill (teleportation.cpp,
+// before this port) removed exactly these two once its interior was active; this port had been
+// requesting them alongside the shell (redundant, since they're already active by default) and
+// never removing them, leaving the vanilla exterior these represent sitting there unremoved -
+// an invisible hole where the owned mansion's exterior should be on the map.
+const std::vector<const char*> MANSION_REMOVE_IPL = {
+	"hei_ch1_06e_mansion_original", "hei_ch1_06e_props_original",
 };
 const InteriorCustomizationDef MANSION_CUSTOMIZATION = {
 	"Mansion", -1666.368f, 478.9271f, 128.2216f,
@@ -483,7 +492,8 @@ const InteriorCustomizationDef MANSION_CUSTOMIZATION = {
 		{ "Garage", -1679.877f, 493.596f, 117.3644f, { "m25_2_ch1_06e_mansion_interior_b" } },
 		// Low/Vault
 		{ "Low/Vault", -1649.63f, 480.9779f, 117.3645f, { "m25_2_ch1_06e_mansion_interior_c", "SET_BASE_VAULT_08", "SET_ELEV_STD", "SET_VAULT_DOOR_OPEN" } },
-	}
+	},
+	MANSION_REMOVE_IPL
 };
 
 // Entity-set names and shell coords/IPL come from Rockstar's decompiled am_mp_nightclub.c (func_7360 for the name table, func_7362 for the interior type string). The real game gates these behind business-progression state (security upgrades bought, DJ hired, popularity tier) rather than exposing them as a free style picker, so the grouping below is this port's own interpretation of the same entity-set ingredients, not a verified-correct mapping - expect this to need real in-game correction, the same way Facility's texture issues did. See the "Nightclub customization" plan for the full breakdown, including what's deliberately deferred (DJ Lights, the basement business floor).
@@ -1051,6 +1061,18 @@ void begin_interior_customization(const InteriorCustomizationDef& def){
 	state.interiorID = interiorID;
 
 	apply_full_interior_customization(state);
+
+	// Some properties (Mansion) ship a vanilla/unowned "_original" exterior IPL that's active
+	// by default and needs to come down once the owned exterior's entity sets are up, or it's
+	// left occluding/conflicting with them - the retired featureHouseOnHill implementation
+	// this was ported from did this same removal, at this same point (after activating entity
+	// sets and refreshing the interior), and never requested these IPLs itself since they're
+	// already active by default.
+	for(const char* ipl : def.removeIpls){
+		if(STREAMING::IS_IPL_ACTIVE(ipl)){
+			STREAMING::REMOVE_IPL(ipl);
+		}
+	}
 
 	if(featureAutoTeleportIntoCustomizedInteriors){
 		// Manual "Enter Interior" naturally has real time pass while the player navigates the menu and presses it, but jumping straight to a teleport here can catch the shell before it's actually finished rendering, leaving the player standing in an invisible interior - give it a moment to settle first. Generous on purpose: this is a one-time cost behind an opt-in toggle, not a per-click cost, so there's no reason to shave it thin.

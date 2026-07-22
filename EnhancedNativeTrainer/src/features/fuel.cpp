@@ -17,6 +17,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\io\config_io.h"
 #include "..\io\controller.h"
 #include "..\debug\debuglog.h"
+#include "../memory/Scanner.h"
+#include "../utils.h"
 #include "area_effect.h"
 #include <fstream>
 #include "vehicle_weapons.h"
@@ -90,9 +92,28 @@ int FuelBackground_Opacity_IndexN = 3;
 
 // THE ORIGINAL CODE IS BY IKT
 typedef uintptr_t(*getEntityAddress_t)(std::int32_t Entity);
-getEntityAddress_t getEntityAddress = (getEntityAddress_t)FindPatternJACCO("\x83\xF9\xFF\x74\x31\x4C\x8B\x0D\x00\x00\x00\x00\x44\x8B\xC1\x49\x8B\x41\x08", "xxxxxxxx????xxxxxxx");
+getEntityAddress_t getEntityAddress = [] () -> getEntityAddress_t {
+	if (IsEnhanced())
+	{
+		// Enhanced's entity pools are pointer-obfuscated (xor/rol against a couple of
+		// per-pool constants) - this resolves the game's own general handle->address
+		// resolver (used for every entity type, not just vehicles) instead of
+		// reimplementing that decryption here.
+		auto ptr = ScanPattern("0F 1F 84 00 00 00 00 00 89 F8 0F 28 FE 41");
+		if (!ptr)
+			return nullptr;
+		return ptr.Add(0x21).Add(1).Rip().As<getEntityAddress_t>();
+	}
+	return ScanPattern("83 F9 FF 74 31 4C 8B 0D ? ? ? ? 44 8B C1 49 8B 41 08").As<getEntityAddress_t>();
+}();
 
 BYTE* GetAddress(Vehicle handle) {
+	// getEntityAddress is resolved from a Legacy-only byte pattern (see above); on Enhanced,
+	// or an unmatched future Legacy build, it stays null, so guard the call through it.
+	if (!getEntityAddress)
+	{
+		return nullptr;
+	}
 	return reinterpret_cast<BYTE*>(getEntityAddress(handle));
 }
 
@@ -109,6 +130,10 @@ BYTE* GetAddress(Vehicle handle) {
 void set_vehicle_fuel_level(Vehicle vehicle, int fuelOffset, float fuelValue)
 {
 	auto vehAddr = GetAddress(vehicle);
+	if (!vehAddr)
+	{
+		return;
+	}
 	*(float*)(vehAddr + fuelOffset) = fuelValue;
 }
 
@@ -119,44 +144,43 @@ uint64_t GetHandlingPtr(Vehicle vehicle, int fuelTankOffset) {
 
 float get_petrol_tank_volume(Vehicle vehicle) {
 	auto vehAddr = GetHandlingPtr(vehicle, fuelTankOffset);
+	if (!vehAddr)
+	{
+		return 0.0f;
+	}
 	float tankvolume = *(float*)(vehAddr + 0x0100);
 	return tankvolume;
 }
 
+// These were both Legacy-only byte patterns (extracting the offset as an immediate
+// embedded in a nearby instruction). Now hardcoded instead: CVehicle::m_handling_data
+// (what get_fuel_tank_offset returns) and the field get_fuel_level_offset returns sit
+// at the same absolute byte offsets in both games - confirmed by cross-checking
+// against reverse-engineered CVehicle/CHandlingData layouts for Legacy and Enhanced,
+// which agree field-for-field through this whole region even though Enhanced
+// regroups some of it into a nested CVehicleDamage sub-object.
 int get_fuel_level_offset()
 {
-	auto addr = FindPatternJACCO("\x74\x26\x0F\x57\xC9", "xxxxx");
-	auto fuelLevelOffset = addr == 0 ? 0 : *(int*)(addr + 8);
-
-	if (fuelLevelOffset == 0) {
-		write_text_to_log_file("Fuel offset not found");
-		return 0;
-	}
-	return fuelLevelOffset;
+	return 0x844;
 }
 
 int get_fuel_tank_offset()
 {
-	auto addr = FindPatternJACCO("\x3C\x03\x0F\x85\x00\x00\x00\x00\x48\x8B\x41\x20\x48\x8B\x88", "xxxx????xxxxxxx");
-	auto fuelTankOffset = addr == 0 ? 0 : *(int*)(addr + 0x16);
-
-	if (fuelTankOffset == 0) {
-		write_text_to_log_file("Tank offset not found");
-		return 0;
-	}
-	return fuelTankOffset;
+	return 0x960;
 }
 //
 
 //////////////////////////////////////////////// FUEL OPTION /////////////////////////////////////////////////////////////////
 void fuel()
 {
-	if (featureFuelGauge && (getGameVersion() < VER_1_0_2060_0_STEAM || getGameVersion() < VER_1_0_2060_0_NOSTEAM || getGameVersion() < VER_1_0_2060_0_EGS)) {
+	// getGameVersion() has no meaningful value on Enhanced (see main.h) - this
+	// "old Legacy build, no gauge support" check only applies on Legacy.
+	if (featureFuelGauge && !IsEnhanced() && (getGameVersion() < VER_1_0_2060_0_STEAM || getGameVersion() < VER_1_0_2060_0_NOSTEAM || getGameVersion() < VER_1_0_2060_0_EGS)) {
 		set_status_text(tr("FuelMenu.Version20600OrHigherIsRequired", "Version 2060.0 or higher is required"));
 		featureFuelGauge = false;
 	}
 	if (featureFuel && !CUTSCENE::IS_CUTSCENE_PLAYING()) {
-		if (featureFuelGauge && gauge_ini == false && (getGameVersion() >= VER_1_0_2060_0_STEAM || getGameVersion() >= VER_1_0_2060_0_NOSTEAM || getGameVersion() >= VER_1_0_2060_0_EGS)) {
+		if (featureFuelGauge && gauge_ini == false && (IsEnhanced() || getGameVersion() >= VER_1_0_2060_0_STEAM || getGameVersion() >= VER_1_0_2060_0_NOSTEAM || getGameVersion() >= VER_1_0_2060_0_EGS)) {
 			fuelLevelOffset = get_fuel_level_offset();
 			fuelTankOffset = get_fuel_tank_offset();
 			gauge_ini = true;

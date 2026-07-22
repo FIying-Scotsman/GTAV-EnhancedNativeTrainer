@@ -57,6 +57,12 @@ struct InteriorCustomizationDef{
 	std::vector<std::string> alwaysOnEntitySets;          // no menu entry, always active - some interiors need a helper entity set on for the rest to render/tint correctly (Hangar's "set_lighting_tint_props"; Menyoo calls this vDefaultOptions)
 	const char* interiorType = nullptr;                   // non-null: resolve with GET_INTERIOR_AT_COORDS_WITH_TYPE instead of plain GET_INTERIOR_AT_COORDS - Hangar needs this, Facility/Bunker don't
 	std::vector<InteriorAdditionalRoom> additionalRooms;  // extra rooms resolved/pinned alongside the main shell - see InteriorAdditionalRoom
+	// Added at the end, after every other field, so existing positional initializers elsewhere
+	// in this file don't need updating - only Mansion sets this so far. IPLs to REMOVE_IPL once
+	// the shell's resolved and its customization applied - the vanilla/unowned "_original"
+	// exterior some properties ship with, which needs to come down for the owned exterior
+	// underneath to actually show instead of leaving a hole where it used to be.
+	std::vector<const char*> removeIpls;
 };
 
 // Live selection state while the customization menu is open/applied. Only one interior's customization is ever in progress at a time, mirroring how the game itself only lets you be inside one interior at once.

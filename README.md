@@ -25,6 +25,8 @@ Feel free to raise [issues](https://github.com/FIying-Scotsman/GTAV-EnhancedNati
 
 - **[Translations](translation.md)** — how the `translation.ini` file works, how to translate the trainer's menus into another language, and notes on non-ASCII/character-encoding support.
 - **[Controller Binds](controller-binds.md)** — how to rebind controller actions in `ent-config.xml`, and whether older configs with plain numeric button IDs still work.
+- **[Vehicle Preview Images](vehicle-previews.md)** — add or replace a vehicle's spawner preview image yourself, no code changes needed.
+- **[Known Issues & Limitations](KNOWN_ISSUES.md)** — worth a check before filing a new issue, in case it's already a known bug or expected behaviour.
 
 ### For contributors
 

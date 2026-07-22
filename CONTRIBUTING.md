@@ -9,6 +9,40 @@ It assumes you can already build the project (open `EnhancedNativeTrainer.sln` i
 or build `EnhancedNativeTrainer.vcxproj` with MSBuild) and know your way around C++. It does not
 assume you know anything about this codebase's own conventions - that's what this document is for.
 
+## Contents
+
+- [Project layout, in brief](#project-layout-in-brief)
+- [Anatomy of a menu option](#anatomy-of-a-menu-option)
+- [The `Option<T>` table pattern](#the-optiont-table-pattern)
+- [Adding a `SelectFromListMenuItem` - static vs. dynamic captions](#adding-a-selectfromlistmenuitem---static-vs-dynamic-captions)
+- [Adding a toggle option](#adding-a-toggle-option)
+- [Adding a leaf action item](#adding-a-leaf-action-item)
+- [Dispatch: what happens when an item is chosen](#dispatch-what-happens-when-an-item-is-chosen)
+- [Registering a feature: the full checklist](#registering-a-feature-the-full-checklist)
+- [Starter template: a new feature file from scratch](#starter-template-a-new-feature-file-from-scratch)
+- [Interior customization: the `InteriorCustomizationDef` system](#interior-customization-the-interiorcustomizationdef-system)
+  - [The data model](#the-data-model)
+  - [Scrollers vs. toggles - which one to use for a standalone item](#scrollers-vs-toggles---which-one-to-use-for-a-standalone-item)
+  - [`InteriorOptionMethod` - the three category shapes](#interioroptionmethod---the-three-category-shapes)
+  - [`groupValues` - one option, several props](#groupvalues---one-option-several-props)
+  - [Multi-room interiors - read this before you ship](#multi-room-interiors---read-this-before-you-ship)
+  - [Sourcing real entity-set names and coordinates - never guess](#sourcing-real-entity-set-names-and-coordinates---never-guess)
+  - [Worked example: adding a new interior end to end](#worked-example-adding-a-new-interior-end-to-end)
+- [Dual-game (Legacy/Enhanced) compatibility](#dual-game-legacyenhanced-compatibility)
+  - [Detecting which game is running: `IsEnhanced()`](#detecting-which-game-is-running-isenhanced)
+  - [Order of preference: how to make a feature work on both games](#order-of-preference-how-to-make-a-feature-work-on-both-games)
+  - [Finding things in memory: `ScanPattern` (`src/memory/Scanner.h`, `PointerCalculator.h`)](#finding-things-in-memory-scanpattern-srcmemoryscannerh-pointercalculatorh)
+  - [Reading/writing a running script's state: the scripting layer (`src/scripting/`)](#readingwriting-a-running-scripts-state-the-scripting-layer-srcscripting)
+  - [Reading a running script's own state: `ScriptLocal`](#reading-a-running-scripts-own-state-scriptlocal)
+  - [Hooking: replacing a native's handler, all scripts or just one](#hooking-replacing-a-natives-handler-all-scripts-or-just-one)
+  - [Practical workflow: porting a Legacy-only pattern to Enhanced](#practical-workflow-porting-a-legacy-only-pattern-to-enhanced)
+- [Adding translatable strings](#adding-translatable-strings)
+- [Building strings safely: avoid `std::stringstream` for simple concatenation](#building-strings-safely-avoid-stdstringstream-for-simple-concatenation)
+- [Common pitfalls](#common-pitfalls)
+- [Build configuration notes](#build-configuration-notes)
+- [Updating `inc/natives.h`](#updating-incnativesh)
+- [Verifying your change](#verifying-your-change)
+
 ## Project layout, in brief
 
 - `EnhancedNativeTrainer/src/features/` - one `.cpp`/`.h` pair per menu section (`vehicles`,
@@ -814,6 +848,473 @@ Nothing else needs touching - the menu, tint sub-rows, save/export/import, and t
 toggle (`featureAutoTeleportIntoCustomizedInteriors`) all work off the def automatically. If your
 interior spans multiple rooms, add `additionalRooms` per "Multi-room interiors" above; otherwise
 leave it as the default empty vector.
+
+## Dual-game (Legacy/Enhanced) compatibility
+
+ENT supports both GTA V Legacy and GTA V Enhanced from one codebase, but they're different
+compiled binaries - different compiler, different code generation, and in places different
+internal structures entirely. A byte pattern, offset, or address found on one game is
+**never** guaranteed to exist, resolve to the same thing, or even compile down to
+recognizably similar bytes on the other. This section covers the infrastructure that exists
+to deal with that, and, just as importantly, the order of preference for how to make a
+feature work on both games, since reaching for the heaviest tool first is a common mistake.
+
+### Detecting which game is running: `IsEnhanced()`
+
+```cpp
+#include "../utils.h"
+if (IsEnhanced()) { ... }
+```
+
+This is the only correct way to branch on which game is running. **Do not use
+`getGameVersion()` for this** - it's a ScriptHookV SDK function whose version table only
+covers Legacy patches (see the comment on it in `inc/main.h`); on Enhanced it returns
+something unpredictable, not a clean "unknown" sentinel you can rely on. `getGameVersion()`
+is still fine for its actual purpose (comparing Legacy patch versions to each other), just
+never as a stand-in for "is this Enhanced."
+
+### Order of preference: how to make a feature work on both games
+
+Reach for these in order - each one down this list is more work and more fragile than the
+one above it:
+
+1. **A documented native.** Check [alloc8or's nativedb](https://alloc8or.re/gta5/nativedb/)
+   (or search `inc/natives.h`, which is generated from it) before writing any pattern at
+   all. Natives work identically on both games by definition - no RE, no per-game branching,
+   nothing to ever re-derive when a game update ships. A pattern-based fix that turns out to
+   have a native equivalent is always worth replacing (see `world.cpp`'s `EnableTracks` for
+   a real example: two raw byte patches were replaced by
+   `GRAPHICS::USE_SNOW_FOOT_VFX_WHEN_UNSHELTERED`/`USE_SNOW_WHEEL_VFX_WHEN_UNSHELTERED` once
+   it turned out those natives did the same thing).
+2. **A pattern that happens to work on both games unmodified.** Sometimes the exact same
+   byte sequence exists on both binaries - always worth trying the literal Legacy pattern
+   against an Enhanced dump before assuming you need a second one.
+3. **A per-game pattern, gated on `IsEnhanced()`.** The common case once (1) and (2) are
+   ruled out - see `getEntityAddress` below for a worked example.
+4. **A hook** - for when you need to intercept/redirect a call rather than just read state.
+   There's no general hooking mechanism built yet (see "Hooking" below for what it would
+   take); this is the option to reach for once (1)-(3) are ruled out and the feature
+   genuinely needs interception, not just data.
+5. **Don't ship a guess.** If you can't find a working Enhanced pattern and none of the
+   above apply, gate the feature to Legacy only (`if (!IsEnhanced()) { ... }`, or a pattern
+   lookup that fails closed and logs why) rather than shipping an address that merely
+   *compiles* - a wrong address read/written at runtime is a crash, not a silent no-op.
+
+### Finding things in memory: `ScanPattern` (`src/memory/Scanner.h`, `PointerCalculator.h`)
+
+`ScanPattern` is a single IDA-style byte-signature scanner that replaced the old
+`FindPatternJACCO`/`CompareMemoryJACCO` pair:
+
+```cpp
+PointerCalculator ScanPattern(const char* idaSignature);
+// e.g. ScanPattern("48 8D 3D ? ? ? ? 48 8B 04 F7") - '?' or '??' both mean "any byte"
+
+// Same, but scans a caller-supplied buffer (e.g. a page of compiled script bytecode)
+// instead of the game module - see the scripting layer below for when you'd want this.
+PointerCalculator ScanPattern(const char* idaSignature, const void* buffer, size_t bufferSize);
+```
+
+It returns a `PointerCalculator` - a small fluent wrapper for the pointer arithmetic that
+shows up around every pattern match, chainable and converts to `bool` (false = pattern not
+found, **always check before using the result**):
+
+| Method | Does |
+|---|---|
+| `.Add(n)` / `.Sub(n)` | Walk forward/backward by a fixed byte offset |
+| `.Rip()` | Resolves an x64 RIP-relative operand at the current address: `target = (current + 4) + *(int32_t*)current` - the `mov reg, [rip+disp32]`/`lea reg, [rip+disp32]` idiom. If there's a trailing immediate after the disp32 (e.g. `cmp byte ptr [rip+disp32], imm8`), chain an extra `.Add(n)` after `.Rip()` to skip it. |
+| `.As<T>()` | Resolves to a pointer type, reference type (dereferences), `uintptr_t`, or `intptr_t` |
+
+Worked example (`fuel.cpp`'s `getEntityAddress` - Enhanced's entity pools are
+pointer-obfuscated, so this resolves the game's own internal handle-to-address function
+instead of reimplementing that obfuscation):
+
+```cpp
+typedef uintptr_t(*getEntityAddress_t)(std::int32_t Entity);
+getEntityAddress_t getEntityAddress = [] () -> getEntityAddress_t {
+	if (IsEnhanced())
+	{
+		auto ptr = ScanPattern("0F 1F 84 00 00 00 00 00 89 F8 0F 28 FE 41");
+		if (!ptr)
+			return nullptr;
+		return ptr.Add(0x21).Add(1).Rip().As<getEntityAddress_t>();
+	}
+	return ScanPattern("83 F9 FF 74 31 4C 8B 0D ? ? ? ? 44 8B C1 49 8B 41 08").As<getEntityAddress_t>();
+}();
+```
+
+The `IsEnhanced()` branch pattern above - one signature per game, resolved once into a
+`static`/file-scope function pointer, always null-checked before calling through it - is the
+standard shape for a per-game pattern. Follow it rather than inventing a different structure.
+
+### Reading/writing a running script's state: the scripting layer (`src/scripting/`)
+
+A separate problem from scanning the game's own `.exe`: some features need to interact with
+a currently-loaded **script** (a compiled `.ysc`, e.g. `shop_controller`) - its bytecode, its
+global variables, or a running thread's local variables. This layer, modelled on YimMenuV2's
+approach (GPL-2.0, compatible with this project's license) but trimmed to what ENT actually
+needs, handles that on both games:
+
+| Type | For |
+|---|---|
+| `ENT::Scripts::FindScriptProgram(hash)` | Finds a loaded script's compiled bytecode/metadata by name hash (`rage::joaat("shop_controller")`). Returns a `rage::scrProgram*`. |
+| `ENT::Scripts::FindScriptThread(hash)` / `GetThreadStack(thread)` | Finds a *running* script's thread and resolves its call-stack base, for reading locals. |
+| `ENT::Scripts::WaitForScriptsInit()` | Blocks (with a timeout) until the game's own script-global-table init has run - call this before anything else in this layer, once, e.g. at trainer startup. |
+| `rage::scrProgram` (`scrProgram.h`) | The compiled bytecode + metadata for one loaded script - `CodePageCount()`, `GetCodePageAddress(page)`, `GetCodePageSize(page)`, `IsValid()`. |
+| `ENT::ScriptGlobal(index)` | Read/write a script `Global_XXXX` by its absolute numeric index. `.At(offset)` / `.At(offset, structSize)` for array/struct-shaped globals. `.As<T>()` same as `PointerCalculator`. Always check `.CanAccess()` first. |
+| `ENT::ScriptLocal(thread-or-hash, index)` | Same idea for a running thread's local variables (its call stack) instead of the shared global table. |
+| `ENT::ScriptPointer(name, idaSignature, offset, rip)` | Finds a byte pattern *inside a script's own bytecode* (not the exe) via `.Scan(program)`, and resolves the script-VM "code position" (0..codeSize, not a raw pointer) it points to. This is a different `.Rip()` from `PointerCalculator`'s - it reads the 3-byte relative operand the script VM itself uses, not x64 machine-code RIP addressing. |
+| `ENT::ScriptPatch(script, ScriptPointer, patchBytes)` | A toggleable patch applied directly to a script's own loaded bytecode - `.Enable()`/`.Disable()`. Resolves its target lazily the first time the script is actually loaded, and caches it. |
+
+Worked example (`rage_thread.cpp`'s despawn-global feature - the pattern here is scanned
+against `shop_controller`'s own bytecode, so it was never actually blocked by Enhanced's
+different compiler the way exe-side patterns are; it just needed reliable game detection to
+pick the right one of two known patterns):
+
+```cpp
+rage::scrProgram* shopController;   // file-scope: found once by findShopController, read by enableCarsGlobal
+
+bool findShopController() {
+    if (!ENT::Scripts::WaitForScriptsInit()) {
+        write_text_to_log_file("[ERROR] Timed out waiting for script globals to initialise.");
+        return false;
+    }
+
+    // shop_controller can still be a few frames from finishing its own load even
+    // once the global table is up, so retry for a bit rather than failing on the
+    // first miss.
+    DWORD startTime = GetTickCount();
+    DWORD timeout = 10000; // in millis
+    while (!(shopController = ENT::Scripts::FindScriptProgram(rage::joaat("shop_controller")))) {
+        scriptWait(100);
+        if (GetTickCount() - startTime > timeout) {
+            write_text_to_log_file("[ERROR] Timed out waiting for shop_controller to load.");
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void enableCarsGlobal() {
+    int despawnGlobal;
+
+    const char* idaPattern617_1 = "2C 01 ? ? 20 56 04 00 6E 2E ? 01 5F ? ? ? ? 04 00 6E 2E ? 01";
+    const unsigned int offset617_1 = 13;
+
+    const char* idaPattern1604_0 = "2D ? ? 00 00 2C 01 ? ? 56 04 00 71 2E ? 01 62 ? ? ? ? 04 00 71 2E ? 01";
+    const unsigned int offset1064_0 = 17;
+
+    const char* idaPattern = idaPattern617_1;
+    int offset = offset617_1;
+
+    // getGameVersion() is unreliable on Enhanced (see inc/main.h), so don't let its
+    // unpredictable return value pick the pattern there - Enhanced's shop_controller
+    // build has been confirmed to use the same bytecode shape as the newer Legacy
+    // pattern (idaPattern1604_0), so route it there explicitly.
+    if (IsEnhanced() || (getGameVersion() >= 46) || (getGameVersion() == -1)) {
+        idaPattern = idaPattern1604_0;
+        offset = offset1064_0;
+    }
+
+    for (int i = 0; i < shopController->CodePageCount(); i++)
+    {
+        int size = shopController->GetCodePageSize(i);
+        if (size)
+        {
+            auto address = ScanPattern(idaPattern, shopController->GetCodePageAddress(i), size);
+            if (address)
+            {
+                despawnGlobal = address.Add(offset).As<const int&>() & 0xFFFFFF;
+                ENT::ScriptGlobal(despawnGlobal).As<int&>() = 1;
+                return;
+            }
+        }
+    }
+}
+```
+
+`shopController` is a plain `rage::scrProgram*` at file scope in `rage_thread.cpp` - `findShopController` resolves it once (called from trainer startup, alongside `WaitForScriptsInit`), and `enableCarsGlobal` reads it later without re-resolving. `FindScriptProgram` returns `nullptr` while the script isn't loaded yet, which is what the retry loop is polling on.
+
+If you're adding a *new* script-bytecode-based feature, prefer `ScriptPointer`/`ScriptPatch`
+over hand-rolling the loop above - they're the generalised version of exactly this pattern.
+Illustrative shape (not a real ENT feature - `enableCarsGlobal` above is what ENT actually
+ships for despawn-global, predating `ScriptPatch`): NOPing out a call within a script's own
+bytecode, toggleable, with the original bytes restored on disable:
+
+```cpp
+ENT::ScriptPatch g_disableDespawnCheck(
+    rage::joaat("shop_controller"),
+    ENT::ScriptPointer("despawn check call", "2D ? ? 00 00 2C 01 ? ? 56 04 00 71 2E ? 01", 17),
+    {0x00, 0x00, 0x00}   // NOP-equivalent bytecode, replacing whatever's actually at that position
+);
+
+void SetDespawnCheckDisabled(bool disabled)
+{
+    if (disabled)
+        g_disableDespawnCheck.Enable();
+    else
+        g_disableDespawnCheck.Disable();
+}
+```
+
+`Enable()` resolves (and caches) the pattern the first time the target script is actually
+loaded, so it's safe to call before `shop_controller` exists yet - it'll no-op until it does,
+same as every other pattern lookup in this codebase. `Disable()` restores the original bytes,
+so toggling this on and off at runtime is safe to do repeatedly.
+
+### Reading a running script's own state: `ScriptLocal`
+
+`ScriptGlobal` covers the shared `Global_XXXX` table, but some state only exists as a
+**local variable on one running script's own call stack** - never written to a global,
+never exposed through a native. Mission/shop-style scripts commonly keep an internal state
+machine (a "what stage am I in" int, a "is setup finished" bool) entirely in their own
+locals - that's the kind of thing `ScriptLocal` is for, and it's not currently used by any
+shipped ENT feature, so treat what follows as the pattern to reach for rather than something
+to copy from existing code.
+
+```cpp
+ENT::ScriptLocal(rage::joaat_t script, std::size_t index)   // looks the thread up for you
+ENT::ScriptLocal(rage::scrThread* thread, std::size_t index)
+ENT::ScriptLocal(void* stackPtr, std::size_t index)          // already have Scripts::GetThreadStack
+
+ScriptLocal.At(offset)                  // index + offset
+ScriptLocal.At(offset, structSize)      // struct-shaped locals array, same idea as ScriptGlobal
+ScriptLocal.As<T>()                     // same as PointerCalculator/ScriptGlobal
+ScriptLocal.CanAccess()                 // false if the thread wasn't found - always check first
+```
+
+Unlike `ScriptGlobal`'s index (a fixed absolute number, stable for as long as that global
+exists), a local's index is only meaningful for **that specific script's compiled bytecode**,
+so you find it the same way you'd find anything else script-side: locate the local by what
+sets/reads it in a decompile of the target script (or a known-working reference
+implementation - see "Sourcing real entity-set names and coordinates" earlier in this doc for
+the same sourcing discipline applied to interior data), not by guessing a plausible-looking
+number.
+
+For reference, here's what a real struct-shaped local actually looks like when you're reading
+a decompile: [`decompiled_scripts/shop_controller.c` line 34137](https://github.com/calamity-inc/GTA-V-Decompiled-Scripts/blob/senpai/decompiled_scripts/shop_controller.c#L34137)
+in [calamity-inc/GTA-V-Decompiled-Scripts](https://github.com/calamity-inc/GTA-V-Decompiled-Scripts) has:
+
+```c
+Local_178.f_1 = iVar0;
+Local_178.f_2 = FILES::GET_SHOP_PED_APPAREL_VARIANT_PROP_COUNT(iVar0);
+if (Local_178.f_2 > 0)
+```
+
+`Local_178` is the struct's own base local index, `.f_1`/`.f_2` are its fields in order - that
+maps directly to `ScriptLocal(thread, 178).At(0, structSize)` and `.At(1, structSize)`
+respectively (the decompiler's field numbers are 1-based; `ScriptLocal::At`'s `offset` is
+0-based, so subtract one). This is exactly the shape to look for when you're hunting through a
+decompile for a struct-shaped state field: a `Local_N.f_M` (or `Global_N.f_M` for
+`ScriptGlobal`) being read or written near whatever behavior you're trying to hook into.
+
+Illustrative shape (not a real ENT feature - showing the mechanism, not something to copy
+verbatim): reading a shop-style script's own "is the modification session ready" flag, kept
+only in that script's locals, to gate drawing UI that depends on it:
+
+```cpp
+// index found by locating what sets this flag in the target script's own bytecode/decompile
+constexpr std::size_t SHOP_READY_FLAG_INDEX = /* ... */;
+
+bool IsShopReady()
+{
+    ENT::ScriptLocal local(rage::joaat("carmod_shop"), SHOP_READY_FLAG_INDEX);
+    return local.CanAccess() && local.As<bool&>();
+}
+```
+
+The other shape worth showing is `.At(offset, structSize)`, for when the state you want is
+one field of a **struct-shaped locals array** rather than a single flat variable - common in
+mission/shop scripts that track state as one "maintainer" struct (current stage, an entity ID,
+a target position, ...) instead of several independent locals. `offset` is the 0-based field
+index within the struct, `structSize` is the struct's width in pointer-sized slots - the same
+`(baseIndex, offset, structSize)` shape `ScriptGlobal::At` uses for array/struct globals:
+
+```cpp
+// Field offsets/struct size found the same way - from the target script's own bytecode/decompile,
+// not guessed. MAINTAINER_INDEX is the struct array's own base local index.
+constexpr std::size_t MAINTAINER_INDEX = /* ... */;
+constexpr std::size_t MAINTAINER_STRUCT_SIZE = /* ... */;
+constexpr std::ptrdiff_t FIELD_STAGE = 0;          // first field in the struct
+constexpr std::ptrdiff_t FIELD_TARGET_VEHICLE = 3; // a later field, same struct
+
+void ResetShopSession(rage::scrThread* thread)
+{
+    ENT::ScriptLocal maintainer(thread, MAINTAINER_INDEX);
+    if (!maintainer.CanAccess())
+        return;
+
+    maintainer.At(FIELD_STAGE, MAINTAINER_STRUCT_SIZE).As<int&>() = 0;
+    maintainer.At(FIELD_TARGET_VEHICLE, MAINTAINER_STRUCT_SIZE).As<Vehicle&>() = 0;
+}
+```
+
+`ScriptLocal` only resolves a thread that's *currently running* (`Scripts::FindScriptThread`,
+not `FindScriptProgram`) - a script can be loaded (has a `scrProgram`, has global-table
+entries) without a thread actively executing it, so `CanAccess()` returning false doesn't
+necessarily mean anything is broken, just that this particular script isn't running right
+now.
+
+The `ScriptLocal(rage::joaat_t, index)` constructor calls `Scripts::FindScriptThread` for you,
+which covers most cases - reach for `FindScriptThread` directly when you need the thread
+itself for something beyond reading a local, e.g. checking whether a script is actively
+running at all before doing anything else:
+
+```cpp
+void ResetShopSessionIfRunning()
+{
+    rage::scrThread* thread = ENT::Scripts::FindScriptThread(rage::joaat("carmod_shop"));
+    if (!thread)
+        return;   // loaded or not, it's not currently executing - nothing to reset
+
+    ResetShopSession(thread);   // the ScriptLocal-based function from the example above
+}
+```
+
+`Scripts::GetThreadStack(thread)` is the other piece `ScriptLocal` calls internally - reach
+for it directly only if you need the raw stack pointer for something `ScriptLocal` doesn't
+cover (it returns `void*`, already resolved for whichever game is running).
+
+### Hooking: replacing a native's handler, all scripts or just one
+
+What "hooking" means here is **replacing a specific native's handler**, so a script's calls
+to that native run your code instead (optionally still calling through to the real thing).
+The core of it is a per-script *pointer table* swap, not code patching: every loaded
+`rage::scrProgram` has its own native-handler table (`m_NativeCount`/`m_NativeOffset` in
+`scrProgram.h`) that gets populated with real handler function pointers at load time. Three
+pieces make this work, all in `src/scripting/`:
+
+| Type | For |
+|---|---|
+| `ENT::NativeInvoker::ResolveHandlers(hashes)` | Resolves the *real* handler pointer for a set of native hashes, without needing to find or decode the game's own master native registration table. The trick: the game's own `InitNativeTables(scrProgram*)` function is what populates a script's table in the first place - it walks `m_NativeOffset[0..m_NativeCount)` treating each slot's current value as an input hash and overwriting it in place with the resolved handler. Building a throwaway `scrProgram` with the hashes you want pre-filled into that same field and calling this one game function on it does every resolution for free. Named after and credited to YimMenu, whose invoker system uses this same trick. |
+| `ENT::ScriptNativeHook::HookAllScripts(hash, detour)` | Uses `ResolveHandlers` to get the real pointer, then walks every currently loaded script (`Scripts::ForEachScriptProgram`) swapping any table slot matching that pointer for `detour`. Safe and cheap to call repeatedly (e.g. every tick from a feature's update function) - already-patched scripts are skipped, so this is how newly-loaded scripts pick up the hook without needing a "script loaded" callback. |
+| `ENT::ScriptNativeHook::HookScript(scriptHash, hash, detour)` | Same idea, scoped to one specific script instead of every loaded one - use this when only one script's calls need intercepting. Applies immediately if that script's already loaded, *and* installs an inline hook (`src/memory/HookManager.h`, MinHook - see below) on `InitNativeTables` itself so the hook also applies the instant a not-yet-loaded target script initialises, rather than waiting on a poll. `HookAllScripts` doesn't need this - its own polling already reaches every script eventually - so the `InitNativeTables` hook is only installed lazily, the first time `HookScript` is actually called. |
+| `ENT::ScriptNativeHook::GetOriginal(hash)` | The real handler, resolved and cached the first time either hook function above is called for that hash - call this from inside a detour to pass a call through unmodified. |
+
+`HookScript` is the one piece of this that *does* need real inline/trampoline hooking - the
+`InitNativeTables` function itself, not a per-script data table - which is what
+`src/memory/HookManager.h` (vendored [MinHook](https://github.com/TsudaKageyu/minhook),
+BSD-style license) is for:
+
+```cpp
+bool ENT::CreateHook(void* target, void* detour, void** original);   // *original = trampoline on success
+bool ENT::RemoveHook(void* target);
+```
+
+If you use `CreateHook` on something `NativeInvoker` also calls through directly (as it does
+for `InitNativeTables`), redirect `NativeInvoker`'s own calls to the trampoline afterwards
+(`NativeInvoker::OverrideInitNativeTables`) - otherwise its calls keep going through the now-
+hooked address and unintentionally re-enter your detour. See `ScriptNativeHook.cpp`'s
+`EnsureInitNativeTablesHooked` for the worked example.
+
+Real, shipped example: `src/features/weapon_interior.cpp` (menu option: "Use Weapons In
+Restricted Interiors", in Teleport Settings) - some interiors run a script that force-unequips
+the player and blocks combat input while inside. It hooks `SET_CURRENT_PED_WEAPON`,
+`DISABLE_CONTROL_ACTION`, and `HUD_FORCE_WEAPON_WHEEL` across every loaded script (whichever
+one happens to be enforcing the restriction in a given interior) and drops the specific calls
+that would disarm the player, block combat input, or hide the weapon wheel - passing
+everything else through untouched:
+
+```cpp
+void Detour_SET_CURRENT_PED_WEAPON(rage::scrNativeCallContext* ctx)
+{
+    Ped ped = ctx->GetArg<Ped>(0);
+    Hash weaponHash = ctx->GetArg<Hash>(1);
+
+    // Drop the call rather than let the interior-restriction script disarm the player -
+    // everyone/everything else's weapon changes go through as normal.
+    if (!featureWeaponInterior || ped != PLAYER::PLAYER_PED_ID() || weaponHash != RAGE_JOAAT("WEAPON_UNARMED"))
+    {
+        if (auto original = ENT::ScriptNativeHook::GetOriginal(kSetCurrentPedWeapon))
+            original(ctx);
+    }
+}
+
+// Called every tick (throttled internally) from update_weapon_interior_feature(), itself
+// called from the main loop in script.cpp - HookAllScripts is what picks up scripts that
+// load after the feature's already active.
+ENT::ScriptNativeHook::HookAllScripts(kSetCurrentPedWeapon, Detour_SET_CURRENT_PED_WEAPON);
+```
+
+Ported from and credited to YimMenu's own `interior_weapon` feature. Read the full file for the other two detours and the
+update-loop throttling; it's the first real, working example of this whole technique, so it's
+worth reading end to end before writing a new one.
+
+**`HookScript` vs `HookAllScripts`:** if you only care about *specific scripts'* behavior,
+`HookAllScripts` is the wrong tool - it'd affect every script's calls to that native, not just
+the ones you're targeting. `weapon_interior` genuinely needs `HookAllScripts`, because it
+doesn't know in advance which interior-restriction script will be the one enforcing it. A
+generic native called by many unrelated scripts, where you only want to change the behavior
+for a known, fixed list of them, is exactly when `HookScript` is the right call instead.
+
+Real, shipped example: `src/features/fix_jittering_weapons.cpp` (menu option: "Fix Jittering
+Weapons In Mod Shops", in Miscellaneous Options). Several vehicle-mod-shop scripts (Los
+Santos Customs and its various property-specific equivalents) make the player's weapon
+visibly jitter by repeatedly forcing a ped AI/animation update - `FORCE_PED_AI_AND_ANIMATION_UPDATE`
+is otherwise a perfectly ordinary native plenty of unrelated scripts also call, so this hooks
+it per-script, once for each known affected script, rather than everywhere:
+
+```cpp
+void Detour_FORCE_PED_AI_AND_ANIMATION_UPDATE(rage::scrNativeCallContext* ctx)
+{
+    // Drop the call entirely while the fix is on - re-forcing the update is what causes
+    // the weapon to jitter in the first place, and nothing else reads this native's
+    // (void) return value.
+    if (!featureFixJitteringWeapons)
+    {
+        if (auto original = ENT::ScriptNativeHook::GetOriginal(kForcePedAiAndAnimationUpdate))
+            original(ctx);
+    }
+}
+
+// One HookScript call per affected script - each independently scoped, applying immediately
+// if that script's already loaded and via the InitNativeTables hook if it loads later.
+for (rage::joaat_t scriptHash : kAffectedScripts)
+    ENT::ScriptNativeHook::HookScript(scriptHash, kForcePedAiAndAnimationUpdate, Detour_FORCE_PED_AI_AND_ANIMATION_UPDATE);
+```
+
+Calling `HookAllScripts(kForcePedAiAndAnimationUpdate, ...)` instead here would be a real bug,
+not just a style choice - `FORCE_PED_AI_AND_ANIMATION_UPDATE` is called by plenty of scripts
+for legitimate, unrelated reasons, and broadcasting the drop to all of them would silently
+break whatever they needed it for, not just fix the jitter in these specific shops.
+
+Ported from and credited to YimMenu's own fix. Worth reading alongside its header comment: several of the affected
+properties (Hangar, Facility, Nightclub, ...) are ones `interior_customization.cpp` already
+lets you visit in singleplayer, but whether walking up to the mod bench inside one of those
+actually triggers the property's own `*_carmod` script hasn't been confirmed by live testing.
+The fix is harmless either way (`HookScript` just never finds anything to apply itself to for
+a script that never loads), but don't take "it's in the list" as proof it does anything in
+every single property listed.
+
+### Practical workflow: porting a Legacy-only pattern to Enhanced
+
+Given an existing Legacy pattern that fails to find anything on Enhanced (the common
+starting point - most patterns don't survive the compiler difference unmodified):
+
+1. **Check for a native first** (see "Order of preference" above) - always cheaper than any
+   RE, and the fix that can never go stale.
+2. **Try the literal Legacy pattern against Enhanced as-is.** Costs nothing, occasionally
+   works.
+3. **Relax the pattern.** Wildcard out anything that's plausibly compiler-dependent
+   (immediate values, specific register choices) while keeping the parts that encode the
+   actual *logic* - a comparison against a real constant, a specific sequence of native
+   calls, a distinctive literal (a magic number, a fixed-format string) survives compiler
+   differences far better than raw instruction bytes do, since those are dictated by the
+   *data*, not by how the compiler chose to generate code around it.
+4. **If a relaxed pattern still comes back empty or ambiguous** (many hits, none clearly
+   right), a structural fingerprint - a distinctive *shape* rather than exact bytes, e.g. a
+   cluster of vtable calls at specific offsets within a small window - can work, but expect
+   false positives and verify every candidate by hand (disassemble it, check it actually
+   does what you expect) rather than trusting the first hit.
+5. **If static analysis genuinely can't find it**, that's the point to reach for a hook
+   (dynamically observe what calls a known-reachable anchor, e.g. a Win32 API or another
+   already-located function, at runtime) rather than continuing to guess - but this needs
+   the feature to actually be exercisable at runtime to observe (a hook can't help you find
+   something that never gets called).
+6. **Know when to stop.** Not everything is worth the effort - a cosmetic feature with no
+   viable anchor after a genuine attempt is better left Legacy-only, clearly commented as
+   such, than chased indefinitely. Leave a comment explaining what was tried and why it
+   didn't pan out, so the next person doesn't repeat the same dead ends.
 
 ## Adding translatable strings
 

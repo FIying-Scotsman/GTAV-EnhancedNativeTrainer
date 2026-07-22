@@ -81,18 +81,11 @@ void add_world_generic_settings(std::vector<StringPairSettingDBRow>* results);
 
 void handle_generic_settings_world(std::vector<StringPairSettingDBRow>* settings);
 
-//Snow related 
-//void writeJmp(BYTE* pFrom, BYTE* pTo);
-
-bool CompareMemory(const uint8_t* pData, const uint8_t* bMask, const char* sMask);
-
 extern bool featureFirstPersonDeathCamera;
 
-//intptr_t FindPattern(const char* bMask, const char* sMask);
+void EnableTracks(bool tracksVehicle, bool tracksPeds, bool deepTracksVehicle);
 
-void EnableTracks(bool tracksVehicle, bool tracksPeds, bool deepTracksVehicle, bool deepTracksPed);
-
-void EnableSnow(bool* snowEnabled, bool silent = false);
+void EnableSnow(bool snowEnabled, bool silent = false);
 
 extern bool featureBusLight;
 

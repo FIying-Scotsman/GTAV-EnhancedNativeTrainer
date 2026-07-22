@@ -9,12 +9,14 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 */
 
 #include "misc.h"
+#include "fix_jittering_weapons.h"
 #include "script.h"
 #include "hotkeys.h"
 #include "world.h"
 #include "vehicles.h"
 #include <Psapi.h>
 #include "../utils.h"
+#include "../memory/Scanner.h"
 #include <iterator>
 #include "..\ui_support\menu_functions.h"
 
@@ -817,7 +819,11 @@ bool onconfirm_radiosettings_menu(MenuItem<int> choice) {
 	switch (activeLineIndexRadioSettings) {
 	case 2:
 		// next radio track
-		if (getGameVersion() > 41) SKIP_RADIO_FORWARD_CUSTOM();
+		// AUDIO::SKIP_RADIO_FORWARD is the documented native, but it stopped working
+		// on later Legacy builds (hence SKIP_RADIO_FORWARD_CUSTOM's pattern-based
+		// workaround below). Enhanced is a fresh build with no equivalent pattern
+		// found yet, so try the native there rather than silently doing nothing.
+		if (!IsEnhanced() && getGameVersion() > 41) SKIP_RADIO_FORWARD_CUSTOM();
 		else AUDIO::SKIP_RADIO_FORWARD();
 		skip_track_pressed = true;
 		break;
@@ -986,7 +992,7 @@ void onconfirm_misc_airbrake(MenuItem<int> choice){
 }
 
 void process_misc_menu(){
-	const int lineCount = 16;
+	const int lineCount = 17;
 
 	const std::string caption = "Miscellaneous Options";
 
@@ -1005,6 +1011,9 @@ void process_misc_menu(){
 		{"No 'Mission Passed' Message", &featureNoComleteMessage, NULL, true},
 		{"First Person Stunt Jump Camera", &featureFirstPersonStuntJumpCamera, NULL},
 		{"No Stunt Jumps", &featureNoStuntJumps, NULL},
+
+		// --- Fixes ---
+		{"Fix Jittering Weapons In Mod Shops", &featureFixJitteringWeapons, NULL},
 
 		// --- Display ---
 		{"FPS Counter", &featureShowFPS, NULL},
@@ -1026,23 +1035,22 @@ void process_misc_menu(){
 #define RET 0xC3 // return
 
 bool setupPatches() {
-	auto result = FindPatternJACCO("\x38\x51\x64\x74\x19", "xxxxx");
+	auto result = ScanPattern("38 51 64 74 19");
 	if (!result) {
 		return false;
 	}
 
-	auto address = result + 26;
-	address = address + *(int32_t*)address + 4u;
-	auto vigNetCallPtr = result + 8;
-	auto timescalePtr = result + 34;
-	
+	auto address = result.Add(26).Rip().As<void*>();
+	auto vigNetCallPtr = result.Add(8).As<void*>();
+	auto timescalePtr = result.Add(34).As<void*>();
+
 	unsigned char vigNetPatch[] = { RET, 0x90, 0x90, 0x90, 0x90 }; // remove vignetting
 	unsigned char vigNetCall[] = { 0x90, 0x90, 0x90, 0x90, 0x90 }; // vignetting call patch (NOP)
 	unsigned char timeScaleOverride[] = { XOR_32_64, 0xD2 }; // timescale override patch
 
-	memcpy((void*)address, vigNetPatch, sizeof(vigNetPatch) / sizeof(vigNetPatch[0]));
-	memcpy((void*)vigNetCallPtr, vigNetCall, sizeof(vigNetCall) / sizeof(vigNetCall[0]));
-	memcpy((void*)timescalePtr, timeScaleOverride, sizeof(timeScaleOverride) / sizeof(timeScaleOverride[0]));
+	memcpy(address, vigNetPatch, sizeof(vigNetPatch) / sizeof(vigNetPatch[0]));
+	memcpy(vigNetCallPtr, vigNetCall, sizeof(vigNetCall) / sizeof(vigNetCall[0]));
+	memcpy(timescalePtr, timeScaleOverride, sizeof(timeScaleOverride) / sizeof(timeScaleOverride[0]));
 	return true;
 }
 
@@ -1169,6 +1177,8 @@ void reset_misc_globals(){
 }
 
 void update_misc_features(BOOL playerExists, Ped playerPed){
+	update_fix_jittering_weapons_feature();
+
 	// Radio Off
 	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) radio_pressed = false;
 	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && PAD::IS_CONTROL_PRESSED(2, 85)) {
@@ -2013,7 +2023,8 @@ void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 	results->push_back(FeatureEnabledLocalDefinition{"featureDisablePhone", &featureDisablePhone});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDisablePhoneMenu", &featureDisablePhoneMenu});
 	results->push_back(FeatureEnabledLocalDefinition{"featureFlyingMusic", &featureFlyingMusic}); 
-	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceScanner", &featurePoliceScanner}); 
+	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceScanner", &featurePoliceScanner});
+	results->push_back(FeatureEnabledLocalDefinition{"featureFixJitteringWeapons", &featureFixJitteringWeapons});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoComleteMessage", &featureNoComleteMessage}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceRadio", &featurePoliceRadio}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureMiscLockRadio", &featureMiscLockRadio});
@@ -2134,6 +2145,10 @@ bool is_jellman_scenery_enabled(){
 
 void SkipRadioFwd1(uint32_t a1)
 {
+	if (!g_radioStationCount || !g_radioStationList || !CRadioStation__Advance)
+	{
+		return;
+	}
 	for (int i = 0; i < *g_radioStationCount; i++)
 	{
 		uintptr_t radioStation = g_radioStationList[i];
@@ -2169,6 +2184,11 @@ void SkipRadioFwd2(uint32_t a1)
 	uintptr_t* v2; // rbx
 	size_t v3; // rdi
 
+	if (!g_unkRadioStationData)
+	{
+		return;
+	}
+
 	v1 = a1;
 	v2 = g_unkRadioStationData;
 	v3 = 3;
@@ -2186,46 +2206,39 @@ void SKIP_RADIO_FORWARD_CUSTOM()
 		SkipRadioFwd2(300000);
 	}
 
-//Will need to condense this as there's already a scanner for Tuneable snow as well
-bool CompareMemoryJACCO(const uint8_t* pData, const uint8_t* bMask, const char* sMask)
-{
-	for (; *sMask; ++sMask, ++pData, ++bMask)
-		if (*sMask == 'x' && *pData != *bMask)
-			return false;
-
-	return *sMask == NULL;
-}
-
-intptr_t FindPatternJACCO(const char* bMask, const char* sMask)
-{
-	// Game Base & Size
-	static intptr_t pGameBase = (intptr_t)GetModuleHandle(nullptr);
-	static uint32_t pGameSize = 0;
-	if (!pGameSize)
-	{
-		MODULEINFO info;
-		GetModuleInformation(GetCurrentProcess(), (HMODULE)pGameBase, &info, sizeof(MODULEINFO));
-		pGameSize = info.SizeOfImage;
-	}
-
-	// Scan
-	for (uint32_t i = 0; i < pGameSize; i++)
-		if (CompareMemoryJACCO((uint8_t*)(pGameBase + i), (uint8_t*)bMask, sMask))
-			return pGameBase + i;
-
-	return 0;
-}
-
 void SInit()
 {
-	uintptr_t address = FindPatternJACCO("\x3B\x0D\x00\x00\x00\x00\x73\x0E\x48\x8B\x05\x00\x00\x00\x00\x8B\xC9", "xx????xxxxx????xx");
+	// These are Legacy-only byte patterns (no Enhanced equivalents have been found yet),
+	// so on Enhanced - or any future Legacy build where the bytes shift - every ScanPattern
+	// call here can come back null. Bail out per-pattern instead of blindly dereferencing a
+	// near-null address; callers (SkipRadioFwd1/2) already check these globals for null.
+	auto address = ScanPattern("3B 0D ? ? ? ? 73 0E 48 8B 05 ? ? ? ? 8B C9");
+	if (!address)
+	{
+		write_text_to_log_file("[SInit] radio station list/count pattern not found; radio-skip feature disabled");
+		return;
+	}
+	g_radioStationList = address.Add(11).Rip().As<uintptr_t*&>();
+	g_radioStationCount = address.Add(2).Rip().As<int*>();
 
-	g_radioStationList = *(uintptr_t**)(address + *(int*)(address + 11) + 15);
-	g_radioStationCount = (int*)(address + *(int*)(address + 2) + 6);
+	address = ScanPattern("80 B9 ? ? ? ? ? 8B F2 48 8B D9 0F 85");
+	if (!address)
+	{
+		write_text_to_log_file("[SInit] CRadioStation::Advance pattern not found; radio-skip feature disabled");
+		g_radioStationList = nullptr;
+		g_radioStationCount = nullptr;
+		return;
+	}
+	CRadioStation__Advance = address.Sub(15).As<decltype(CRadioStation__Advance)>();
 
-	address = FindPatternJACCO("\x80\xB9\x00\x00\x00\x00\x00\x8B\xF2\x48\x8B\xD9\x0F\x85", "xx?????xxxxxxx");
-	CRadioStation__Advance = (decltype(CRadioStation__Advance))(address - 15);
-
-	address = FindPatternJACCO("\x48\x8D\x1D\x00\x00\x00\x00\xBF\x00\x00\x00\x00\x48\x83\x3B\x00", "xxx????x????xxxx");
-	g_unkRadioStationData = (uintptr_t*)(address + *(int*)(address + 3) + 7);
+	address = ScanPattern("48 8D 1D ? ? ? ? BF ? ? ? ? 48 83 3B 00");
+	if (!address)
+	{
+		write_text_to_log_file("[SInit] radio station data pattern not found; radio-skip feature disabled");
+		g_radioStationList = nullptr;
+		g_radioStationCount = nullptr;
+		CRadioStation__Advance = nullptr;
+		return;
+	}
+	g_unkRadioStationData = address.Add(3).Rip().As<uintptr_t*>();
 }
