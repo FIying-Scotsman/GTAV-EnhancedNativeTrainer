@@ -17,6 +17,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "..\ent-enums.h"
 #include "interior_props.h"
 #include "interior_customization.h"
+#include "weapon_interior.h"
 #include "script.h"
 #include <iostream>   // std::cout
 #include <string>     // std::string, std::stof
@@ -1410,6 +1411,12 @@ bool process_teleport_menu(int categoryIndex){
 		togItem->caption = tr("TeleportMenu.AutoTeleportIntoCustomizedInteriors", "Auto-Teleport Into Customized Interiors");
 		togItem->value = 8;
 		togItem->toggleValue = &featureAutoTeleportIntoCustomizedInteriors;
+		menuItems.push_back(togItem);
+
+		togItem = new ToggleMenuItem<int>();
+		togItem->caption = tr("TeleportMenu.UseWeaponsInRestrictedInteriors", "Use Weapons In Restricted Interiors");
+		togItem->value = 8;
+		togItem->toggleValue = &featureWeaponInterior;
 		menuItems.push_back(togItem);
 
 		togItem = new ToggleMenuItem<int>();

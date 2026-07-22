@@ -9,6 +9,40 @@ It assumes you can already build the project (open `EnhancedNativeTrainer.sln` i
 or build `EnhancedNativeTrainer.vcxproj` with MSBuild) and know your way around C++. It does not
 assume you know anything about this codebase's own conventions - that's what this document is for.
 
+## Contents
+
+- [Project layout, in brief](#project-layout-in-brief)
+- [Anatomy of a menu option](#anatomy-of-a-menu-option)
+- [The `Option<T>` table pattern](#the-optiont-table-pattern)
+- [Adding a `SelectFromListMenuItem` - static vs. dynamic captions](#adding-a-selectfromlistmenuitem---static-vs-dynamic-captions)
+- [Adding a toggle option](#adding-a-toggle-option)
+- [Adding a leaf action item](#adding-a-leaf-action-item)
+- [Dispatch: what happens when an item is chosen](#dispatch-what-happens-when-an-item-is-chosen)
+- [Registering a feature: the full checklist](#registering-a-feature-the-full-checklist)
+- [Starter template: a new feature file from scratch](#starter-template-a-new-feature-file-from-scratch)
+- [Interior customization: the `InteriorCustomizationDef` system](#interior-customization-the-interiorcustomizationdef-system)
+  - [The data model](#the-data-model)
+  - [Scrollers vs. toggles - which one to use for a standalone item](#scrollers-vs-toggles---which-one-to-use-for-a-standalone-item)
+  - [`InteriorOptionMethod` - the three category shapes](#interioroptionmethod---the-three-category-shapes)
+  - [`groupValues` - one option, several props](#groupvalues---one-option-several-props)
+  - [Multi-room interiors - read this before you ship](#multi-room-interiors---read-this-before-you-ship)
+  - [Sourcing real entity-set names and coordinates - never guess](#sourcing-real-entity-set-names-and-coordinates---never-guess)
+  - [Worked example: adding a new interior end to end](#worked-example-adding-a-new-interior-end-to-end)
+- [Dual-game (Legacy/Enhanced) compatibility](#dual-game-legacyenhanced-compatibility)
+  - [Detecting which game is running: `IsEnhanced()`](#detecting-which-game-is-running-isenhanced)
+  - [Order of preference: how to make a feature work on both games](#order-of-preference-how-to-make-a-feature-work-on-both-games)
+  - [Finding things in memory: `ScanPattern` (`src/memory/Scanner.h`, `PointerCalculator.h`)](#finding-things-in-memory-scanpattern-srcmemoryscannerh-pointercalculatorh)
+  - [Reading/writing a running script's state: the scripting layer (`src/scripting/`)](#readingwriting-a-running-scripts-state-the-scripting-layer-srcscripting)
+  - [Reading a running script's own state: `ScriptLocal`](#reading-a-running-scripts-own-state-scriptlocal)
+  - [Hooking: replacing a native's handler, all scripts or just one](#hooking-replacing-a-natives-handler-all-scripts-or-just-one)
+  - [Practical workflow: porting a Legacy-only pattern to Enhanced](#practical-workflow-porting-a-legacy-only-pattern-to-enhanced)
+- [Adding translatable strings](#adding-translatable-strings)
+- [Building strings safely: avoid `std::stringstream` for simple concatenation](#building-strings-safely-avoid-stdstringstream-for-simple-concatenation)
+- [Common pitfalls](#common-pitfalls)
+- [Build configuration notes](#build-configuration-notes)
+- [Updating `inc/natives.h`](#updating-incnativesh)
+- [Verifying your change](#verifying-your-change)
+
 ## Project layout, in brief
 
 - `EnhancedNativeTrainer/src/features/` - one `.cpp`/`.h` pair per menu section (`vehicles`,
@@ -857,9 +891,10 @@ one above it:
    against an Enhanced dump before assuming you need a second one.
 3. **A per-game pattern, gated on `IsEnhanced()`.** The common case once (1) and (2) are
    ruled out - see `getEntityAddress` below for a worked example.
-4. **A hook** (see "Hooking" below) - for when you need to intercept/redirect a call rather
-   than just read state, or when you can locate a target dynamically at runtime but can't
-   find it via static pattern-matching at all.
+4. **A hook** - for when you need to intercept/redirect a call rather than just read state.
+   There's no general hooking mechanism built yet (see "Hooking" below for what it would
+   take); this is the option to reach for once (1)-(3) are ruled out and the feature
+   genuinely needs interception, not just data.
 5. **Don't ship a guess.** If you can't find a working Enhanced pattern and none of the
    above apply, gate the feature to Legacy only (`if (!IsEnhanced()) { ... }`, or a pattern
    lookup that fails closed and logs why) rather than shipping an address that merely
@@ -964,28 +999,254 @@ void enableCarsGlobal() {
 
 If you're adding a *new* script-bytecode-based feature, prefer `ScriptPointer`/`ScriptPatch`
 over hand-rolling the loop above - they're the generalised version of exactly this pattern.
-
-### Hooking: MinHook / `HookManager` (`src/memory/HookManager.h`)
-
-For when you need to **intercept or redirect a call**, not just read state - vendored from
-[MinHook](https://github.com/TsudaKageyu/minhook) (BSD-style license, see
-`src/vendor/minhook/LICENSE.txt`) behind a thin wrapper:
+Illustrative shape (not a real ENT feature - `enableCarsGlobal` above is what ENT actually
+ships for despawn-global, predating `ScriptPatch`): NOPing out a call within a script's own
+bytecode, toggleable, with the original bytes restored on disable:
 
 ```cpp
-#include "../memory/HookManager.h"
+ENT::ScriptPatch g_disableDespawnCheck(
+    rage::joaat("shop_controller"),
+    ENT::ScriptPointer("despawn check call", "2D ? ? 00 00 2C 01 ? ? 56 04 00 71 2E ? 01", 17),
+    {0x00, 0x00, 0x00}   // NOP-equivalent bytecode, replacing whatever's actually at that position
+);
 
-// target/detour/original are all plain function pointers (cast to void* as needed).
-// On success, *original is a callable trampoline for the real function - call through
-// it from inside your detour if you're not fully replacing the original behavior.
-bool ENT::CreateHook(void* target, void* detour, void** original);
-bool ENT::RemoveHook(void* target);   // safe to call on a target that was never hooked
+void SetDespawnCheckDisabled(bool disabled)
+{
+    if (disabled)
+        g_disableDespawnCheck.Enable();
+    else
+        g_disableDespawnCheck.Disable();
+}
 ```
 
-Reach for this only after ruling out a native and a plain `ScanPattern`-based read/patch -
-it's the heaviest tool in this list, with a correspondingly larger blast radius (it rewrites
-live code, not just data), and needs a target address the same way `ScanPattern` does (a
-hook still needs *something* to locate first - it doesn't sidestep the pattern-finding
-problem, it just adds interception on top of it once you have a target).
+`Enable()` resolves (and caches) the pattern the first time the target script is actually
+loaded, so it's safe to call before `shop_controller` exists yet - it'll no-op until it does,
+same as every other pattern lookup in this codebase. `Disable()` restores the original bytes,
+so toggling this on and off at runtime is safe to do repeatedly.
+
+### Reading a running script's own state: `ScriptLocal`
+
+`ScriptGlobal` covers the shared `Global_XXXX` table, but some state only exists as a
+**local variable on one running script's own call stack** - never written to a global,
+never exposed through a native. Mission/shop-style scripts commonly keep an internal state
+machine (a "what stage am I in" int, a "is setup finished" bool) entirely in their own
+locals - that's the kind of thing `ScriptLocal` is for, and it's not currently used by any
+shipped ENT feature, so treat what follows as the pattern to reach for rather than something
+to copy from existing code.
+
+```cpp
+ENT::ScriptLocal(rage::joaat_t script, std::size_t index)   // looks the thread up for you
+ENT::ScriptLocal(rage::scrThread* thread, std::size_t index)
+ENT::ScriptLocal(void* stackPtr, std::size_t index)          // already have Scripts::GetThreadStack
+
+ScriptLocal.At(offset)                  // index + offset
+ScriptLocal.At(offset, structSize)      // struct-shaped locals array, same idea as ScriptGlobal
+ScriptLocal.As<T>()                     // same as PointerCalculator/ScriptGlobal
+ScriptLocal.CanAccess()                 // false if the thread wasn't found - always check first
+```
+
+Unlike `ScriptGlobal`'s index (a fixed absolute number, stable for as long as that global
+exists), a local's index is only meaningful for **that specific script's compiled bytecode**,
+so you find it the same way you'd find anything else script-side: locate the local by what
+sets/reads it in a decompile of the target script (or a known-working reference
+implementation - see "Sourcing real entity-set names and coordinates" earlier in this doc for
+the same sourcing discipline applied to interior data), not by guessing a plausible-looking
+number.
+
+For reference, here's what a real struct-shaped local actually looks like when you're reading
+a decompile: [`decompiled_scripts/shop_controller.c` line 34137](https://github.com/calamity-inc/GTA-V-Decompiled-Scripts/blob/senpai/decompiled_scripts/shop_controller.c#L34137)
+in [calamity-inc/GTA-V-Decompiled-Scripts](https://github.com/calamity-inc/GTA-V-Decompiled-Scripts) has:
+
+```c
+Local_178.f_1 = iVar0;
+Local_178.f_2 = FILES::GET_SHOP_PED_APPAREL_VARIANT_PROP_COUNT(iVar0);
+if (Local_178.f_2 > 0)
+```
+
+`Local_178` is the struct's own base local index, `.f_1`/`.f_2` are its fields in order - that
+maps directly to `ScriptLocal(thread, 178).At(0, structSize)` and `.At(1, structSize)`
+respectively (the decompiler's field numbers are 1-based; `ScriptLocal::At`'s `offset` is
+0-based, so subtract one). This is exactly the shape to look for when you're hunting through a
+decompile for a struct-shaped state field: a `Local_N.f_M` (or `Global_N.f_M` for
+`ScriptGlobal`) being read or written near whatever behavior you're trying to hook into.
+
+Illustrative shape (not a real ENT feature - showing the mechanism, not something to copy
+verbatim): reading a shop-style script's own "is the modification session ready" flag, kept
+only in that script's locals, to gate drawing UI that depends on it:
+
+```cpp
+// index found by locating what sets this flag in the target script's own bytecode/decompile
+constexpr std::size_t SHOP_READY_FLAG_INDEX = /* ... */;
+
+bool IsShopReady()
+{
+    ENT::ScriptLocal local(rage::joaat("carmod_shop"), SHOP_READY_FLAG_INDEX);
+    return local.CanAccess() && local.As<bool&>();
+}
+```
+
+The other shape worth showing is `.At(offset, structSize)`, for when the state you want is
+one field of a **struct-shaped locals array** rather than a single flat variable - common in
+mission/shop scripts that track state as one "maintainer" struct (current stage, an entity ID,
+a target position, ...) instead of several independent locals. `offset` is the 0-based field
+index within the struct, `structSize` is the struct's width in pointer-sized slots - the same
+`(baseIndex, offset, structSize)` shape `ScriptGlobal::At` uses for array/struct globals:
+
+```cpp
+// Field offsets/struct size found the same way - from the target script's own bytecode/decompile,
+// not guessed. MAINTAINER_INDEX is the struct array's own base local index.
+constexpr std::size_t MAINTAINER_INDEX = /* ... */;
+constexpr std::size_t MAINTAINER_STRUCT_SIZE = /* ... */;
+constexpr std::ptrdiff_t FIELD_STAGE = 0;          // first field in the struct
+constexpr std::ptrdiff_t FIELD_TARGET_VEHICLE = 3; // a later field, same struct
+
+void ResetShopSession(rage::scrThread* thread)
+{
+    ENT::ScriptLocal maintainer(thread, MAINTAINER_INDEX);
+    if (!maintainer.CanAccess())
+        return;
+
+    maintainer.At(FIELD_STAGE, MAINTAINER_STRUCT_SIZE).As<int&>() = 0;
+    maintainer.At(FIELD_TARGET_VEHICLE, MAINTAINER_STRUCT_SIZE).As<Vehicle&>() = 0;
+}
+```
+
+`ScriptLocal` only resolves a thread that's *currently running* (`Scripts::FindScriptThread`,
+not `FindScriptProgram`) - a script can be loaded (has a `scrProgram`, has global-table
+entries) without a thread actively executing it, so `CanAccess()` returning false doesn't
+necessarily mean anything is broken, just that this particular script isn't running right
+now.
+
+The `ScriptLocal(rage::joaat_t, index)` constructor calls `Scripts::FindScriptThread` for you,
+which covers most cases - reach for `FindScriptThread` directly when you need the thread
+itself for something beyond reading a local, e.g. checking whether a script is actively
+running at all before doing anything else:
+
+```cpp
+void ResetShopSessionIfRunning()
+{
+    rage::scrThread* thread = ENT::Scripts::FindScriptThread(rage::joaat("carmod_shop"));
+    if (!thread)
+        return;   // loaded or not, it's not currently executing - nothing to reset
+
+    ResetShopSession(thread);   // the ScriptLocal-based function from the example above
+}
+```
+
+`Scripts::GetThreadStack(thread)` is the other piece `ScriptLocal` calls internally - reach
+for it directly only if you need the raw stack pointer for something `ScriptLocal` doesn't
+cover (it returns `void*`, already resolved for whichever game is running).
+
+### Hooking: replacing a native's handler, all scripts or just one
+
+What "hooking" means here is **replacing a specific native's handler**, so a script's calls
+to that native run your code instead (optionally still calling through to the real thing).
+The core of it is a per-script *pointer table* swap, not code patching: every loaded
+`rage::scrProgram` has its own native-handler table (`m_NativeCount`/`m_NativeOffset` in
+`scrProgram.h`) that gets populated with real handler function pointers at load time. Three
+pieces make this work, all in `src/scripting/`:
+
+| Type | For |
+|---|---|
+| `ENT::NativeInvoker::ResolveHandlers(hashes)` | Resolves the *real* handler pointer for a set of native hashes, without needing to find or decode the game's own master native registration table. The trick: the game's own `InitNativeTables(scrProgram*)` function is what populates a script's table in the first place - it walks `m_NativeOffset[0..m_NativeCount)` treating each slot's current value as an input hash and overwriting it in place with the resolved handler. Building a throwaway `scrProgram` with the hashes you want pre-filled into that same field and calling this one game function on it does every resolution for free. Named after and credited to YimMenu, whose invoker system uses this same trick. |
+| `ENT::ScriptNativeHook::HookAllScripts(hash, detour)` | Uses `ResolveHandlers` to get the real pointer, then walks every currently loaded script (`Scripts::ForEachScriptProgram`) swapping any table slot matching that pointer for `detour`. Safe and cheap to call repeatedly (e.g. every tick from a feature's update function) - already-patched scripts are skipped, so this is how newly-loaded scripts pick up the hook without needing a "script loaded" callback. |
+| `ENT::ScriptNativeHook::HookScript(scriptHash, hash, detour)` | Same idea, scoped to one specific script instead of every loaded one - use this when only one script's calls need intercepting. Applies immediately if that script's already loaded, *and* installs an inline hook (`src/memory/HookManager.h`, MinHook - see below) on `InitNativeTables` itself so the hook also applies the instant a not-yet-loaded target script initialises, rather than waiting on a poll. `HookAllScripts` doesn't need this - its own polling already reaches every script eventually - so the `InitNativeTables` hook is only installed lazily, the first time `HookScript` is actually called. |
+| `ENT::ScriptNativeHook::GetOriginal(hash)` | The real handler, resolved and cached the first time either hook function above is called for that hash - call this from inside a detour to pass a call through unmodified. |
+
+`HookScript` is the one piece of this that *does* need real inline/trampoline hooking - the
+`InitNativeTables` function itself, not a per-script data table - which is what
+`src/memory/HookManager.h` (vendored [MinHook](https://github.com/TsudaKageyu/minhook),
+BSD-style license) is for:
+
+```cpp
+bool ENT::CreateHook(void* target, void* detour, void** original);   // *original = trampoline on success
+bool ENT::RemoveHook(void* target);
+```
+
+If you use `CreateHook` on something `NativeInvoker` also calls through directly (as it does
+for `InitNativeTables`), redirect `NativeInvoker`'s own calls to the trampoline afterwards
+(`NativeInvoker::OverrideInitNativeTables`) - otherwise its calls keep going through the now-
+hooked address and unintentionally re-enter your detour. See `ScriptNativeHook.cpp`'s
+`EnsureInitNativeTablesHooked` for the worked example.
+
+Real, shipped example: `src/features/weapon_interior.cpp` (menu option: "Use Weapons In
+Restricted Interiors", in Teleport Settings) - some interiors run a script that force-unequips
+the player and blocks combat input while inside. It hooks `SET_CURRENT_PED_WEAPON`,
+`DISABLE_CONTROL_ACTION`, and `HUD_FORCE_WEAPON_WHEEL` across every loaded script (whichever
+one happens to be enforcing the restriction in a given interior) and drops the specific calls
+that would disarm the player, block combat input, or hide the weapon wheel - passing
+everything else through untouched:
+
+```cpp
+void Detour_SET_CURRENT_PED_WEAPON(rage::scrNativeCallContext* ctx)
+{
+    Ped ped = ctx->GetArg<Ped>(0);
+    Hash weaponHash = ctx->GetArg<Hash>(1);
+
+    // Drop the call rather than let the interior-restriction script disarm the player -
+    // everyone/everything else's weapon changes go through as normal.
+    if (!featureWeaponInterior || ped != PLAYER::PLAYER_PED_ID() || weaponHash != RAGE_JOAAT("WEAPON_UNARMED"))
+    {
+        if (auto original = ENT::ScriptNativeHook::GetOriginal(kSetCurrentPedWeapon))
+            original(ctx);
+    }
+}
+
+// Called every tick (throttled internally) from update_weapon_interior_feature(), itself
+// called from the main loop in script.cpp - HookAllScripts is what picks up scripts that
+// load after the feature's already active.
+ENT::ScriptNativeHook::HookAllScripts(kSetCurrentPedWeapon, Detour_SET_CURRENT_PED_WEAPON);
+```
+
+Ported from and credited to YimMenu's own `interior_weapon` feature. Read the full file for the other two detours and the
+update-loop throttling; it's the first real, working example of this whole technique, so it's
+worth reading end to end before writing a new one.
+
+**`HookScript` vs `HookAllScripts`:** if you only care about *specific scripts'* behavior,
+`HookAllScripts` is the wrong tool - it'd affect every script's calls to that native, not just
+the ones you're targeting. `weapon_interior` genuinely needs `HookAllScripts`, because it
+doesn't know in advance which interior-restriction script will be the one enforcing it. A
+generic native called by many unrelated scripts, where you only want to change the behavior
+for a known, fixed list of them, is exactly when `HookScript` is the right call instead.
+
+Real, shipped example: `src/features/fix_jittering_weapons.cpp` (menu option: "Fix Jittering
+Weapons In Mod Shops", in Miscellaneous Options). Several vehicle-mod-shop scripts (Los
+Santos Customs and its various property-specific equivalents) make the player's weapon
+visibly jitter by repeatedly forcing a ped AI/animation update - `FORCE_PED_AI_AND_ANIMATION_UPDATE`
+is otherwise a perfectly ordinary native plenty of unrelated scripts also call, so this hooks
+it per-script, once for each known affected script, rather than everywhere:
+
+```cpp
+void Detour_FORCE_PED_AI_AND_ANIMATION_UPDATE(rage::scrNativeCallContext* ctx)
+{
+    // Drop the call entirely while the fix is on - re-forcing the update is what causes
+    // the weapon to jitter in the first place, and nothing else reads this native's
+    // (void) return value.
+    if (!featureFixJitteringWeapons)
+    {
+        if (auto original = ENT::ScriptNativeHook::GetOriginal(kForcePedAiAndAnimationUpdate))
+            original(ctx);
+    }
+}
+
+// One HookScript call per affected script - each independently scoped, applying immediately
+// if that script's already loaded and via the InitNativeTables hook if it loads later.
+for (rage::joaat_t scriptHash : kAffectedScripts)
+    ENT::ScriptNativeHook::HookScript(scriptHash, kForcePedAiAndAnimationUpdate, Detour_FORCE_PED_AI_AND_ANIMATION_UPDATE);
+```
+
+Calling `HookAllScripts(kForcePedAiAndAnimationUpdate, ...)` instead here would be a real bug,
+not just a style choice - `FORCE_PED_AI_AND_ANIMATION_UPDATE` is called by plenty of scripts
+for legitimate, unrelated reasons, and broadcasting the drop to all of them would silently
+break whatever they needed it for, not just fix the jitter in these specific shops.
+
+Ported from and credited to YimMenu's own fix. Worth reading alongside its header comment: several of the affected
+properties (Hangar, Facility, Nightclub, ...) are ones `interior_customization.cpp` already
+lets you visit in singleplayer, but whether walking up to the mod bench inside one of those
+actually triggers the property's own `*_carmod` script hasn't been confirmed by live testing.
+The fix is harmless either way (`HookScript` just never finds anything to apply itself to for
+a script that never loads), but don't take "it's in the list" as proof it does anything in
+every single property listed.
 
 ### Practical workflow: porting a Legacy-only pattern to Enhanced
 

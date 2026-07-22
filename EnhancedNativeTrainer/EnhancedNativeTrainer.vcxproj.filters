@@ -70,6 +70,12 @@
     <ClCompile Include="src\features\interior_customization.cpp">
       <Filter>src\features</Filter>
     </ClCompile>
+    <ClCompile Include="src\features\weapon_interior.cpp">
+      <Filter>src\features</Filter>
+    </ClCompile>
+    <ClCompile Include="src\features\fix_jittering_weapons.cpp">
+      <Filter>src\features</Filter>
+    </ClCompile>
     <ClCompile Include="src\features\time.cpp">
       <Filter>src\features</Filter>
     </ClCompile>
@@ -154,6 +160,18 @@
     <ClCompile Include="src\memory\HookManager.cpp">
       <Filter>src\memory</Filter>
     </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\buffer.c">
+      <Filter>src\vendor\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\hook.c">
+      <Filter>src\vendor\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\trampoline.c">
+      <Filter>src\vendor\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\hde\hde64.c">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClCompile>
     <ClCompile Include="src\scripting\Scripts.cpp">
       <Filter>src\scripting</Filter>
     </ClCompile>
@@ -166,17 +184,11 @@
     <ClCompile Include="src\scripting\ScriptPatch.cpp">
       <Filter>src\scripting</Filter>
     </ClCompile>
-    <ClCompile Include="src\vendor\minhook\src\buffer.c">
-      <Filter>src\vendor\minhook</Filter>
+    <ClCompile Include="src\scripting\NativeInvoker.cpp">
+      <Filter>src\scripting</Filter>
     </ClCompile>
-    <ClCompile Include="src\vendor\minhook\src\hook.c">
-      <Filter>src\vendor\minhook</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vendor\minhook\src\trampoline.c">
-      <Filter>src\vendor\minhook</Filter>
-    </ClCompile>
-    <ClCompile Include="src\vendor\minhook\src\hde\hde64.c">
-      <Filter>src\vendor\minhook\hde</Filter>
+    <ClCompile Include="src\scripting\ScriptNativeHook.cpp">
+      <Filter>src\scripting</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -339,6 +351,12 @@
     <ClInclude Include="src\features\interior_customization.h">
       <Filter>inc\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\features\weapon_interior.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
+    <ClInclude Include="src\features\fix_jittering_weapons.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
     <ClInclude Include="src\features\enginedegrade.h" />
     <ClInclude Include="src\io\controller.h">
       <Filter>inc\io</Filter>
@@ -361,6 +379,24 @@
     <ClInclude Include="src\memory\HookManager.h">
       <Filter>inc\memory</Filter>
     </ClInclude>
+    <ClInclude Include="src\vendor\minhook\include\MinHook.h">
+      <Filter>src\vendor\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\buffer.h">
+      <Filter>src\vendor\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\trampoline.h">
+      <Filter>src\vendor\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\hde\hde64.h">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\hde\pstdint.h">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\hde\table64.h">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClInclude>
     <ClInclude Include="src\scripting\scrProgram.h">
       <Filter>inc\scripting</Filter>
     </ClInclude>
@@ -382,23 +418,14 @@
     <ClInclude Include="src\scripting\ScriptPatch.h">
       <Filter>inc\scripting</Filter>
     </ClInclude>
-    <ClInclude Include="src\vendor\minhook\include\MinHook.h">
-      <Filter>src\vendor\minhook</Filter>
+    <ClInclude Include="src\scripting\scrNativeCallContext.h">
+      <Filter>inc\scripting</Filter>
     </ClInclude>
-    <ClInclude Include="src\vendor\minhook\src\buffer.h">
-      <Filter>src\vendor\minhook</Filter>
+    <ClInclude Include="src\scripting\NativeInvoker.h">
+      <Filter>inc\scripting</Filter>
     </ClInclude>
-    <ClInclude Include="src\vendor\minhook\src\trampoline.h">
-      <Filter>src\vendor\minhook</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vendor\minhook\src\hde\hde64.h">
-      <Filter>src\vendor\minhook\hde</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vendor\minhook\src\hde\pstdint.h">
-      <Filter>src\vendor\minhook\hde</Filter>
-    </ClInclude>
-    <ClInclude Include="src\vendor\minhook\src\hde\table64.h">
-      <Filter>src\vendor\minhook\hde</Filter>
+    <ClInclude Include="src\scripting\ScriptNativeHook.h">
+      <Filter>inc\scripting</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

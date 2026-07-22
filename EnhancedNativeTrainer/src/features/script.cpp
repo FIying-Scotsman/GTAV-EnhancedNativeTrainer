@@ -32,6 +32,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "vehicles.h"
 #include "weapons.h"
 #include "interior_customization.h"
+#include "weapon_interior.h"
 #include "../version.h"
 #include "../utils.h"
 #include "../memory/Scanner.h"
@@ -895,6 +896,8 @@ void update_features(){
 	update_skin_features();
 
 	update_teleport_features();
+
+	update_weapon_interior_feature();
 
 	check_player_model();
 
@@ -2904,6 +2907,7 @@ std::vector<FeatureEnabledLocalDefinition> get_feature_enablements(){
 	add_areaeffect_feature_enablements(&results);
 
 	add_interior_customization_feature_enablements(&results);
+	add_weapon_interior_feature_enablements(&results);
 
 	return results;
 }

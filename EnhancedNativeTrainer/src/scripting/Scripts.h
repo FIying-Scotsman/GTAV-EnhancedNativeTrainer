@@ -13,6 +13,8 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #pragma once
 
+#include <functional>
+
 #include "../joaat.hpp"
 
 namespace rage
@@ -28,6 +30,13 @@ namespace ENT::Scripts
 	// the script isn't loaded yet, or if the discovery pattern for the running
 	// game hasn't been found - always check before use.
 	rage::scrProgram* FindScriptProgram(rage::joaat_t hash);
+
+	// Calls `callback` once for every currently loaded script's scrProgram* (skipping
+	// empty slots). Works on both games, reusing the same underlying script table/array
+	// FindScriptProgram does - no-ops if that table hasn't been found. Safe to call every
+	// frame; each call re-walks the live table/array, so it always reflects whatever's
+	// loaded right now (including scripts that loaded since the last call).
+	void ForEachScriptProgram(const std::function<void(rage::scrProgram*)>& callback);
 
 	// Finds a *running* script thread by name hash - gives access to its call
 	// stack/locals (see ScriptLocal.h), which FindScriptProgram cannot. The

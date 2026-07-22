@@ -148,6 +148,34 @@ namespace ENT::Scripts
 		}
 	}
 
+	void ForEachScriptProgram(const std::function<void(rage::scrProgram*)>& callback)
+	{
+		if (IsEnhanced())
+		{
+			auto programs = GetEnhancedScriptPrograms();
+			if (!programs)
+				return;
+
+			for (int i = 0; i < kEnhancedScriptProgramsCount; i++)
+			{
+				if (programs[i])
+					callback(programs[i]);
+			}
+		}
+		else
+		{
+			auto table = GetLegacyScriptTable();
+			if (!table || !table->TablePtr)
+				return;
+
+			for (int i = 0; i < table->count; i++)
+			{
+				if (table->TablePtr[i].IsLoaded())
+					callback(table->TablePtr[i].Header);
+			}
+		}
+	}
+
 	rage::scrThread* FindScriptThread(rage::joaat_t hash)
 	{
 		if (IsEnhanced())

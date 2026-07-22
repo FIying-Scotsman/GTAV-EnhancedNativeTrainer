@@ -9,6 +9,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 */
 
 #include "misc.h"
+#include "fix_jittering_weapons.h"
 #include "script.h"
 #include "hotkeys.h"
 #include "world.h"
@@ -991,7 +992,7 @@ void onconfirm_misc_airbrake(MenuItem<int> choice){
 }
 
 void process_misc_menu(){
-	const int lineCount = 16;
+	const int lineCount = 17;
 
 	const std::string caption = "Miscellaneous Options";
 
@@ -1010,6 +1011,9 @@ void process_misc_menu(){
 		{"No 'Mission Passed' Message", &featureNoComleteMessage, NULL, true},
 		{"First Person Stunt Jump Camera", &featureFirstPersonStuntJumpCamera, NULL},
 		{"No Stunt Jumps", &featureNoStuntJumps, NULL},
+
+		// --- Fixes ---
+		{"Fix Jittering Weapons In Mod Shops", &featureFixJitteringWeapons, NULL},
 
 		// --- Display ---
 		{"FPS Counter", &featureShowFPS, NULL},
@@ -1173,6 +1177,8 @@ void reset_misc_globals(){
 }
 
 void update_misc_features(BOOL playerExists, Ped playerPed){
+	update_fix_jittering_weapons_feature();
+
 	// Radio Off
 	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && !PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0)) radio_pressed = false;
 	if (NPC_RAGDOLL_VALUES[RadioOffIndex] > 0 && PED::IS_PED_IN_ANY_VEHICLE(playerPed, 0) && PAD::IS_CONTROL_PRESSED(2, 85)) {
@@ -2017,7 +2023,8 @@ void add_misc_feature_enablements(std::vector<FeatureEnabledLocalDefinition>* re
 	results->push_back(FeatureEnabledLocalDefinition{"featureDisablePhone", &featureDisablePhone});
 	results->push_back(FeatureEnabledLocalDefinition{"featureDisablePhoneMenu", &featureDisablePhoneMenu});
 	results->push_back(FeatureEnabledLocalDefinition{"featureFlyingMusic", &featureFlyingMusic}); 
-	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceScanner", &featurePoliceScanner}); 
+	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceScanner", &featurePoliceScanner});
+	results->push_back(FeatureEnabledLocalDefinition{"featureFixJitteringWeapons", &featureFixJitteringWeapons});
 	results->push_back(FeatureEnabledLocalDefinition{"featureNoComleteMessage", &featureNoComleteMessage}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featurePoliceRadio", &featurePoliceRadio}); 
 	results->push_back(FeatureEnabledLocalDefinition{"featureMiscLockRadio", &featureMiscLockRadio});
