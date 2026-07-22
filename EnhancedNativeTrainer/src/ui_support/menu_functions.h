@@ -88,6 +88,17 @@ class MenuItem{
 	bool isLeaf = true;
 	void(*onConfirmFunction)(const MenuItem<T> choice) = NULL;
 	int sortval = 0;
+	// Set false for an item that exists but doesn't work on the currently running game
+	// (e.g. a feature whose memory pattern is only known for Legacy, running under
+	// Enhanced). Disabled items are still shown, still reachable via normal Up/Down
+	// navigation, and just greyed out - so the option stays discoverable and its saved
+	// DB value stays intact for when the user is back on a game where it does work,
+	// rather than looking hidden or (worse) silently doing nothing when toggled.
+	// Select/Left/Right don't actually apply anything on a disabled item; Select
+	// instead shows disabledReason (if set) via set_status_text, since that's the only
+	// way the user finds out why - there's no skip-over navigation making it obvious.
+	bool enabled = true;
+	std::string disabledReason;
 	// Secondary sort comparison, used for alphabetical sort modes (see sort_menu_items_pinned) where sortval alone can't
 	// express a text ordering. Left empty by callers that don't need it.
 	std::string sortkey;
@@ -724,6 +735,11 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 	bool outline = false;
 	bool dropShadow = false;
 
+	// Disabled (unsupported-on-this-game) items always render in a flat grey,
+	// regardless of active/inactive state - see MenuItem::enabled.
+	int* activeCol = item->enabled ? ENTColor::colsMenu[4].rgba : ENTColor::colsMenu[9].rgba;
+	int* inactiveCol = item->enabled ? ENTColor::colsMenu[2].rgba : ENTColor::colsMenu[9].rgba;
+
 	// correcting values for active line
 	if(active){
 		if(rescaleText){
@@ -764,10 +780,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 	HUD::SET_TEXT_FONT(fontItem);
 	HUD::SET_TEXT_SCALE(0.0, text_scale);
 	if(active){
-		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+		HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 	}
 	else{
-		HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+		HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 	}
 	HUD::SET_TEXT_CENTRE(0);
 
@@ -801,10 +817,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		HUD::SET_TEXT_FONT(fontItem);
 		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 		}
 		else{
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 		}
 		HUD::SET_TEXT_CENTRE(0);
 
@@ -841,10 +857,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		HUD::SET_TEXT_FONT(fontItem);
 		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 		}
 		else{
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 		}
 		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
@@ -875,10 +891,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		HUD::SET_TEXT_FONT(fontItem);
 		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if (active){
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 		}
 		else{
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 		}
 		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
@@ -902,10 +918,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		HUD::SET_TEXT_FONT(fontItem);
 		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if (active){
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 		}
 		else{
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 		}
 		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
@@ -934,7 +950,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 			selectFromListItem->locked = false;
 		}
 
-		if(selectFromListItem->locked){
+		if(!item->enabled){
+			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[9].rgba[0], ENTColor::colsMenu[9].rgba[1], ENTColor::colsMenu[9].rgba[2], ENTColor::colsMenu[9].rgba[3]);
+		}
+		else if(selectFromListItem->locked){
 			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[6].rgba[0], ENTColor::colsMenu[6].rgba[1], ENTColor::colsMenu[6].rgba[2], ENTColor::colsMenu[6].rgba[3]);
 		}
 		else{
@@ -1020,10 +1039,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		HUD::SET_TEXT_FONT(fontItem);
 		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 		}
 		else{
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 		}
 		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
@@ -1047,10 +1066,10 @@ void draw_menu_item_line(MenuItem<T> *item, float lineWidth, float lineHeight, f
 		HUD::SET_TEXT_FONT(fontItem);
 		HUD::SET_TEXT_SCALE(0.0, text_scale);
 		if(active){
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[4].rgba[0], ENTColor::colsMenu[4].rgba[1], ENTColor::colsMenu[4].rgba[2], ENTColor::colsMenu[4].rgba[3]);
+			HUD::SET_TEXT_COLOUR(activeCol[0], activeCol[1], activeCol[2], activeCol[3]);
 		}
 		else{
-			HUD::SET_TEXT_COLOUR(ENTColor::colsMenu[2].rgba[0], ENTColor::colsMenu[2].rgba[1], ENTColor::colsMenu[2].rgba[2], ENTColor::colsMenu[2].rgba[3]);
+			HUD::SET_TEXT_COLOUR(inactiveCol[0], inactiveCol[1], inactiveCol[2], inactiveCol[3]);
 		}
 		HUD::SET_TEXT_RIGHT_JUSTIFY(1);
 
@@ -1297,16 +1316,23 @@ bool draw_generic_menu(MenuParameters<T> params){
 
 			waitTime = 200;
 
-			bool confHandled = choice->onConfirm();
-
-			//fire the main handler
-			if(!confHandled && params.onConfirmation != NULL){
-				result = params.onConfirmation(*choice);
+			if(!choice->enabled){
+				if(!choice->disabledReason.empty()){
+					set_status_text(choice->disabledReason);
+				}
 			}
+			else{
+				bool confHandled = choice->onConfirm();
 
-			if(result){
-				//result = false; //to avoid cascading upwards
-				break;
+				//fire the main handler
+				if(!confHandled && params.onConfirmation != NULL){
+					result = params.onConfirmation(*choice);
+				}
+
+				if(result){
+					//result = false; //to avoid cascading upwards
+					break;
+				}
 			}
 		}
 		else{
@@ -1327,10 +1353,10 @@ bool draw_generic_menu(MenuParameters<T> params){
 						}
 					}
 					else
-					if(TrainerControlScrollingIndex == 1 && currentSelectionIndex < lineStartPosition + itemsOnThisLine - 1 && currentSelectionIndex < totalItems - 1) 
+					if(TrainerControlScrollingIndex == 1 && currentSelectionIndex < lineStartPosition + itemsOnThisLine - 1 && currentSelectionIndex < totalItems - 1)
 					{
 						currentSelectionIndex++; // Not at bottom, move down normally
-					} 
+					}
 					else {
 						int currentPage = lineStartPosition / itemsPerLine; // Calculate current page
 						int maxPages = (totalItems + itemsPerLine - 1) / itemsPerLine; // Total pages
@@ -1383,7 +1409,7 @@ bool draw_generic_menu(MenuParameters<T> params){
 				else if(bLeft){
 					menu_beep();
 
-					if(choice->isAbsorbingLeftAndRightEvents()){
+					if(choice->enabled && choice->isAbsorbingLeftAndRightEvents()){
 						choice->handleLeftPress();
 					}
 					else if(lineCount > 1){
@@ -1401,7 +1427,7 @@ bool draw_generic_menu(MenuParameters<T> params){
 				else if(bRight){
 					menu_beep();
 
-					if(choice->isAbsorbingLeftAndRightEvents()){
+					if(choice->enabled && choice->isAbsorbingLeftAndRightEvents()){
 						choice->handleRightPress();
 					}
 					else if(lineCount > 1){

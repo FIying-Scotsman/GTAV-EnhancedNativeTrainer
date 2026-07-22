@@ -10,14 +10,12 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 
 #include "utils.h"
 #include <windows.h>
-#include <psapi.h>
 #include <stdio.h>
 #include <sys/stat.h>
 #include <vector>
 #include <sstream>
 
 #include "debug\debuglog.h"
-#include "features/misc.h"
 
 extern "C" IMAGE_DOS_HEADER __ImageBase; // MSVC specific, with other compilers use HMODULE from DllMain
 
@@ -55,6 +53,21 @@ HMODULE GetENTModuleHandle()
 	return hMod;
 }
 
+bool IsEnhanced()
+{
+	// Same detection ScriptHookV-based Enhanced/Legacy dual trainers (e.g. MenyooSP) use:
+	// there's no reliable way to tell the two apart via getGameVersion(), since the SDK's
+	// eGameVersion enum has no Enhanced entry, so we check the host exe's filename instead.
+	static bool isEnhanced = [] {
+		char path[MAX_PATH];
+		GetModuleFileNameA(GetModuleHandleA(nullptr), path, MAX_PATH);
+		const char* filename = strrchr(path, '\\');
+		filename = filename ? filename + 1 : path;
+		return _stricmp(filename, "GTA5_Enhanced.exe") == 0;
+	}();
+	return isEnhanced;
+}
+
 bool does_file_exist(const char* name)
 {
 	struct stat buffer;
@@ -85,62 +98,6 @@ float radToDeg(float rads)
 	return rads * ((float)180.0 / (float)3.141592653589793);
 }
 
-uintptr_t FindPattern(const char *pattern, const char *mask, const char* startAddress, size_t size)
-{
-	const char* address_end = startAddress + size;
-	const auto mask_length = static_cast<size_t>(strlen(mask) - 1);
-
-	for (size_t i = 0; startAddress < address_end; startAddress++)
-	{
-		if (*startAddress == pattern[i] || mask[i] == '?')
-		{
-			if (mask[i + 1] == '\0')
-			{
-				return reinterpret_cast<uintptr_t>(startAddress) - mask_length;
-			}
-
-			i++;
-		}
-		else
-		{
-			i = 0;
-		}
-	}
-
-	return 0;
-}
-
-uintptr_t FindPattern(const char *pattern, const char *mask)
-{
-	MODULEINFO module = {};
-	GetModuleInformation(GetCurrentProcess(), GetModuleHandle(nullptr), &module, sizeof(MODULEINFO));
-
-	return FindPattern(pattern, mask, reinterpret_cast<const char *>(module.lpBaseOfDll), module.SizeOfImage);
-}
-
-bool CompareMemory(const uint8_t* pData, const uint8_t* bMask, const char* sMask)
-{
-	for (; *sMask; ++sMask, ++pData, ++bMask)
-		if (*sMask == 'x' && *pData != *bMask)
-			return false;
-
-	return *sMask == NULL;
-}
-
-int RegisterFile(const std::string& fullPath, const std::string& fileName)
-{
-	int textureID = -1;
-	std::string path = fullPath.c_str();
-	static uint32_t* (*pRegisterFile)(int*, const char*, bool, const char*, bool) = reinterpret_cast<decltype(pRegisterFile)>(FindPatternJACCO("\x48\x89\x5C\x24\x00\x48\x89\x6C\x24\x00\x48\x89\x7C\x24\x00\x41\x54\x41\x56\x41\x57\x48\x83\xEC\x50\x48\x8B\xEA\x4C\x8B\xFA\x48\x8B\xD9\x4D\x85\xC9", "xxxx?xxxx?xxxx?xxxxxxxxxxxxxxxxxxxxxx"));
-
-	if (pRegisterFile(&textureID, fullPath.c_str(), true, fileName.c_str(), false))
-	{
-		return textureID;
-	}
-
-	write_text_to_log_file("Failed to register " + path);
-	return 0;
-}
 
 bool bittest(int data, unsigned char index)
 {

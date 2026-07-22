@@ -47,7 +47,7 @@ jobs:
           New-Item -ItemType Directory -Path "$staging/Enhanced Native Trainer" -Force | Out-Null
           Copy-Item "EnhancedNativeTrainer/bin/Release/EnhancedNativeTrainer.asi" -Destination $staging
           Copy-Item "EnhancedNativeTrainer/Documents/ent-config.xml" -Destination "$staging/Enhanced Native Trainer"
-          Copy-Item "EnhancedNativeTrainer/Documents/ENT_vehicle_previews.ytd" -Destination "$staging/Enhanced Native Trainer"
+          Copy-Item "EnhancedNativeTrainer/Documents/previews" -Destination "$staging/Enhanced Native Trainer/previews" -Recurse
           Compress-Archive `
             -Path "$staging/*" `
             -DestinationPath EnhancedNativeTrainer-${{ steps.version.outputs.version }}.zip

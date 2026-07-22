@@ -148,6 +148,36 @@
     <ClCompile Include="src\rage_thread\rage_thread.cpp">
       <Filter>src\scripts</Filter>
     </ClCompile>
+    <ClCompile Include="src\memory\Scanner.cpp">
+      <Filter>src\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\memory\HookManager.cpp">
+      <Filter>src\memory</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scripting\Scripts.cpp">
+      <Filter>src\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scripting\ScriptGlobal.cpp">
+      <Filter>src\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scripting\ScriptPointer.cpp">
+      <Filter>src\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\scripting\ScriptPatch.cpp">
+      <Filter>src\scripting</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\buffer.c">
+      <Filter>src\vendor\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\hook.c">
+      <Filter>src\vendor\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\trampoline.c">
+      <Filter>src\vendor\minhook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\vendor\minhook\src\hde\hde64.c">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\features\aimbot_esp.h">
@@ -249,6 +279,9 @@
     <ClInclude Include="src\common\controller_bind.h">
       <Filter>inc\features</Filter>
     </ClInclude>
+    <ClInclude Include="src\common\game_support.h">
+      <Filter>inc\features</Filter>
+    </ClInclude>
     <ClInclude Include="src\ui_support\entcolor.h">
       <Filter>inc\ui_support</Filter>
     </ClInclude>
@@ -268,6 +301,9 @@
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="src\vehicle_hashes.h">
+      <Filter>inc</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vehicle_hashes_list.h">
       <Filter>inc</Filter>
     </ClInclude>
     <ClInclude Include="src\weapon_enums.h">
@@ -316,708 +352,60 @@
     <ClInclude Include="src\rage_thread\rage_thread.h">
       <Filter>inc\scripts</Filter>
     </ClInclude>
+    <ClInclude Include="src\memory\PointerCalculator.h">
+      <Filter>inc\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\memory\Scanner.h">
+      <Filter>inc\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\memory\HookManager.h">
+      <Filter>inc\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\scrProgram.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\scrThread.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\Scripts.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\ScriptGlobal.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\ScriptLocal.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\ScriptPointer.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\scripting\ScriptPatch.h">
+      <Filter>inc\scripting</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\include\MinHook.h">
+      <Filter>src\vendor\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\buffer.h">
+      <Filter>src\vendor\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\trampoline.h">
+      <Filter>src\vendor\minhook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\hde\hde64.h">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\hde\pstdint.h">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClInclude>
+    <ClInclude Include="src\vendor\minhook\src\hde\table64.h">
+      <Filter>src\vendor\minhook\hde</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Documents\veh-previews\airtug.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\ambulance.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\armytanker.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\armytrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\armytrailer2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\asea_snow.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\b747.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\bagger.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\baletrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\baller_small.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\baller3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\baller4.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\baller5.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\baller6.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\barracks2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\benson.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\biff.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\bison3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\bison2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\bjxl.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\blimp.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\blimp2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\blista.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\boattrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\boxville.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\boxville2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\boxville3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\btype2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\buccaneer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\burrito.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\burrito2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\burrito3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\burrito4.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\burrito5.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\buzzard2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cablecar.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\caddy.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\caddy2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\camper.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cargo.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cargobob2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cargobob3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cog552.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cognoscenti2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\daemon.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dilet_livery.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dinghy.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dinghy2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dockhandler.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\docktrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\docktug.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dozer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dubsta.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dubsta_black.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\dukes.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\duneloader.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\emperor.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\emperor_rusty.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\emperor_snow.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cutter.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\faction.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\fbi.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\fbi2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\firetruk.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\fixter.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\flatbed.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\forklift.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\fq2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\freight.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\freightcar.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\freightcont1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\freightcont2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\freightgrain.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\freighttrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\frogger2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\futo.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\gburrito.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\graintrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\granger.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\guardian.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\habanero.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\hauler.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\hearse.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\lazer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\lectro.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\lguard.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\lifeguard.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\lurcher.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\mixer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\mixer2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\monkey_blista.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\moonbeam.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\mower.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\mule2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\manana.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\mesa_snow.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\metrotrain.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\oracle2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\packer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\patriot.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\peyote.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\phantom.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\phoenix.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\police.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\police2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\police3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\police4.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\policeb.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\policeold1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\policeold2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\policet.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\polmav.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\pony.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\pony2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\pounder.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\prairie.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\pranger.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\predator.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\proptrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\raketrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\rancherxl_snow.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\riot.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\ripley.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\roosevelt.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\rubble.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\ruiner.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\rumpo2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sabre.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sadler_snow.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\schafter2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\schafter3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\schafter4.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\schafter5.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\schafter6.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\scrap.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\seashark2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sentinel.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\serrano.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sheriff.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sheriff2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\skylift.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\slamvan_lostmc.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\spacedocker.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\speedo.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\speedo2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\stockade.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\stockade3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sub.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\sultan.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\surfer2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\taco.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tanker.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tanker2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tankercar.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\taxi.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tvtrailer.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tiptruck.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tiptruck2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tornado.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tornado_cab.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tornado_cab_rusty.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tornado_rusty.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tourbus.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\towtruck.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\towtruck2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tr2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tr3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tr4.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tractor.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tractor2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\tractor3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trailerlogs.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trailers.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trailers2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trailers3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trailersmall.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trash.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trash2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\trflat.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\utillitruck.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\utillitruck2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\utillitruck3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\virgo3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\voodoo.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\cliffhanger.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\hauler2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\insurgent3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\phantom3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\technical3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\BRUISER1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\BRUISER2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\BRUISER3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\DEATHBIKE1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\DEATHBIKE2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\DEATHBIKE3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\DOMINATOR1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\DOMINATOR2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\DOMINATOR3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\IMPALER1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\IMPALER2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\IMPALER3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\ISSI1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\ISSI2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\ISSI3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\MONSTER1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\MONSTER2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\MONSTER3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\SLAMVAN1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\SLAMVAN2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="..\..\..\..\Desktop\1.46 vehicle previews\Converted\SLAMVAN3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\BRUISER1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\BRUISER2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\BRUISER3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\DEATHBIKE1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\DEATHBIKE2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\DEATHBIKE3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\DOMINATOR1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\DOMINATOR2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\DOMINATOR3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\IMPALER1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\IMPALER2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\IMPALER3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\ISSI1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\ISSI2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\ISSI3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\MONSTER1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\MONSTER2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\MONSTER3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\SLAMVAN1.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\SLAMVAN2.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
-    <Image Include="Documents\veh-previews\SLAMVAN3.png">
-      <Filter>Documents\veh-previews</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Documents">
       <UniqueIdentifier>{5d72d3dd-0aff-467a-ace5-2cb457fbb47c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Documents\veh-previews">
-      <UniqueIdentifier>{be038c2b-ee06-4dcf-b166-86c0eb1295b5}</UniqueIdentifier>
     </Filter>
     <Filter Include="src">
       <UniqueIdentifier>{70bb08e3-3383-401d-8524-29b612521626}</UniqueIdentifier>
@@ -1069,6 +457,27 @@
     </Filter>
     <Filter Include="src\scripts">
       <UniqueIdentifier>{c91b2fe0-4d6f-4fb2-8087-6352b2043985}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\memory">
+      <UniqueIdentifier>{a3c1f8e2-6b4d-4f9a-9c2e-1d7b5e8f3a6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="inc\memory">
+      <UniqueIdentifier>{b4d2e9f3-7c5e-4a8b-8d3f-2e8c6f9a4b7d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\scripting">
+      <UniqueIdentifier>{c5e3fa04-8d6f-4bac-9e4f-3f9d7fab5c8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="inc\scripting">
+      <UniqueIdentifier>{d6f4fb15-9e70-4cbd-af50-40aef8bc6d9f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\vendor">
+      <UniqueIdentifier>{e7a5fc26-af81-4dce-b061-51bf09cd7ea0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\vendor\minhook">
+      <UniqueIdentifier>{f8b60d37-b092-4edf-c172-62c00ade8fb1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\vendor\minhook\hde">
+      <UniqueIdentifier>{09c71e48-c1a3-4ff0-d283-73d11bf90fc2}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
