@@ -24,6 +24,13 @@ really be fixed, listed here so they don't get reported as bugs.
   precondition neither attempt captured. Root cause not found yet, so Decor only offers style/
   elevator/shelving-planter/trophy-planter for now - see the comment above `MANSION_CATEGORIES`
   in `interior_customization.cpp` for the full history.
+- **Radio skip may not actually work on Enhanced, unconfirmed by live testing.** `AUDIO::SKIP_RADIO_FORWARD`
+  is the documented native for this, but it stopped working on later Legacy builds, which is why
+  Legacy has always gone through a pattern-based `SKIP_RADIO_FORWARD_CUSTOM` workaround instead
+  (`src/features/misc.cpp`/`hotkeys.cpp`) rather than calling the native directly. Enhanced has no
+  equivalent pattern to fall back on, so it calls the documented native directly - if that native
+  is equally broken on Enhanced (unknown; it hasn't been confirmed either way), radio skip would
+  silently do nothing there with no current workaround.
 
 ## Known Limitations
 
@@ -34,6 +41,17 @@ really be fixed, listed here so they don't get reported as bugs.
   streamed texture dicts or a PNG in `Documents/previews/` (see `vehicle-previews.md` for how
   to add one yourself) - a vehicle with neither, and no same-family sibling to borrow a picture
   from, just won't have one. Not a bug, and fixable per-vehicle by dropping in a PNG.
+- **`RegisterFile`, the internal function the old `.ytd` preview loader depended on, has been
+  removed from the codebase entirely, not just left unused.** It was a Legacy-only internal
+  engine function - resolved via a raw byte-pattern scan, not a documented native - that
+  registered a texture file into the game's asset system and returned a texture ID;
+  `vehicles.cpp` used it to load `ENT_vehicle_previews.ytd`. It had no Enhanced equivalent
+  (traced back through several more Legacy-only internal functions with no viable anchor there),
+  so rather than port it, preview loading was replaced entirely with ScriptHookV's own
+  `createTexture()`/`drawTexture()` SDK functions, which load individual PNGs straight from disk
+  and work the same way on both games. If you'd previously forked or extended this project around
+  the `.ytd`/`RegisterFile` pipeline, there's no drop-in replacement - you'll need to move to the
+  PNG-based system described in `vehicle-previews.md`.
 - **Duplicate-looking vehicle entries with the same display name (e.g. multiple "Baller"
   entries) are real, distinct models**, not duplicates in the vehicle list - Rockstar has added
   several mechanically-different variants of the same vehicle across different updates that
@@ -50,3 +68,9 @@ really be fixed, listed here so they don't get reported as bugs.
   underlying script the fix depends on hasn't been confirmed by live testing for every property.
   Harmless either way if it doesn't apply - the feature just does nothing for a script that
   never loads.
+- **A few effects remain Legacy-only because no reliable Enhanced memory pattern has been found
+  for them yet**: the vehicle track-type patch (deep vs. shallow snow tracks per vehicle,
+  `world.cpp`) and the vignette/timescale patches (`misc.cpp`'s `setupPatches`). Both are raw
+  pattern scans with no menu toggle behind them, so on Enhanced the pattern just isn't found and
+  the patch silently doesn't apply - there's no greyed-out option or other indication, since there
+  was never a menu item tied to these to begin with. Not broken on Legacy, just not yet ported.
