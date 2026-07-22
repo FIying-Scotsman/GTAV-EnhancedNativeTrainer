@@ -6550,6 +6550,29 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 		return NULL;
 	}
 
+	// A local PNG (Documents/previews/) always wins if one exists for this exact model,
+	// ahead of the curated ALL_VEH_IMAGES table - this is what lets a contributor add or
+	// replace a preview by just dropping a file, on either game, without touching curated
+	// entries or ENT_vehicle_previews.ytd at all. Existing curated entries (both the ones
+	// backed by the game's own streamed dicts and the ones backed by that ytd) still work
+	// as a fallback for everything that hasn't been given a local PNG yet.
+	const char* rawName = GetVehicleModelName((int)choice.value);
+	std::string modelName, baseName;
+	if (rawName)
+	{
+		modelName = ToLowerCopy(rawName);
+		baseName = StripTrailingDigits(modelName);
+
+		int localID = GetOrCreateLocalPreviewTexture(modelName);
+		if (localID >= 0)
+		{
+			MenuItemImage* image = new MenuItemImage();
+			image->dict = const_cast<char*>(LOCAL_TEXTURE_DICT);
+			image->localID = localID;
+			return image;
+		}
+	}
+
 	for each (VehicleImage vimg in ALL_VEH_IMAGES){
 		if(vimg.modelName == choice.value){
 			MenuItemImage* image = new MenuItemImage();
@@ -6564,16 +6587,12 @@ MenuItemImage* vehicle_image_preview_finder(MenuItem<int> choice){
 		}
 	}
 
-	// No curated entry - fall back to a local preview PNG (exact match first, then a
-	// same-family sibling), and failing that, a same-family sibling from the curated table.
-	const char* rawName = GetVehicleModelName((int)choice.value);
+	// No exact local PNG or curated entry - fall back to a same-family sibling, local PNG
+	// first, then a sibling from the curated table.
 	if (rawName)
 	{
-		std::string modelName = ToLowerCopy(rawName);
-		std::string baseName = StripTrailingDigits(modelName);
-
-		int localID = GetOrCreateLocalPreviewTexture(modelName);
-		if (localID < 0 && baseName != modelName)
+		int localID = -1;
+		if (baseName != modelName)
 		{
 			for (const std::string& candidate : GetLocalPreviewNames())
 			{

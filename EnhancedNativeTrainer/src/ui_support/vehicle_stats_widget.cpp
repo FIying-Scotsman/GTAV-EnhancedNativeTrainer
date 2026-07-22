@@ -26,6 +26,18 @@ static const std::map<std::string, std::string> VEHICLE_BRAND_YTD_OVERRIDES = {
 	{ "MAXWELL", "MPCarHUD4" },
 };
 
+// Brands whose logo texture *name* inside its dict doesn't match a plain lowercased brand
+// name - Rockstar's own asset is what's actually misspelled/different, not our lookup
+// (verified against OpenIV: MPCarHUD.ytd's Gallivanter logo is named "galivanter", one L).
+// EMPEROR/"emporer" is a harmless backup, not confirmed broken in-game (the Emperor logo was
+// seen loading fine on an older compile without this entry) - kept in case it's needed for a
+// case this hasn't caught, since a non-matching brand key here just falls through to the
+// plain lowercase guess as before.
+static const std::map<std::string, std::string> VEHICLE_BRAND_LOGO_TEXTURE_OVERRIDES = {
+	{ "GALLIVANTER", "galivanter" },
+	{ "EMPEROR", "emporer" },
+};
+
 // Fraction of the scaleform's own canvas that the visible panel occupies, back-solved from a calibration screenshot (a known box was drawn with a red DRAW_RECT tint behind the scaleform, and the panel's pixel position was measured against it).
 static const float CONTENT_FRAC_X0 = 0.377f;
 static const float CONTENT_FRAC_X1 = 0.653f;
@@ -100,7 +112,8 @@ void draw_vehicle_stats_widget(int modelHash, VehicleStatBars stats, float x, fl
 			GRAPHICS::SCALEFORM_MOVIE_METHOD_ADD_PARAM_LITERAL_STRING(vehicleName.c_str());
 			GRAPHICS::SCALEFORM_MOVIE_METHOD_ADD_PARAM_LITERAL_STRING(vehicleClassName.c_str());
 			// The texture dict name (ytd) matches GetVehicleMakeName's casing fine, but the individual logo texture *within* that dict is lowercase (verified in OpenIV) while brandName comes back upper-case from the game's own text lookup - lowercase it here or the texture lookup silently fails to find it.
-			std::string logoTextureName = to_lower(brandName);
+			auto textureOverride = VEHICLE_BRAND_LOGO_TEXTURE_OVERRIDES.find(brandName);
+			std::string logoTextureName = (textureOverride != VEHICLE_BRAND_LOGO_TEXTURE_OVERRIDES.end()) ? textureOverride->second : to_lower(brandName);
 			GRAPHICS::SCALEFORM_MOVIE_METHOD_ADD_PARAM_LITERAL_STRING(logoReady ? ytd.c_str() : "");
 			GRAPHICS::SCALEFORM_MOVIE_METHOD_ADD_PARAM_LITERAL_STRING(logoReady ? logoTextureName.c_str() : "");
 			GRAPHICS::SCALEFORM_MOVIE_METHOD_ADD_PARAM_LITERAL_STRING(tr("VehicleMenu.StatTopSpeed", "Top Speed").c_str());
