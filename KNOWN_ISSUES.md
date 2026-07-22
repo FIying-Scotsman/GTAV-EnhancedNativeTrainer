@@ -18,21 +18,22 @@ really be fixed, listed here so they don't get reported as bugs.
 
 ## Known Limitations
 
-- **Vehicle preview images need `ENT_vehicle_previews.ytd`.** This file ships in the release
-  zip's `Enhanced Native Trainer/` folder alongside `ent-config.xml` (see `RELEASE_PROCESS.md`).
-  If it's missing or deleted, any vehicle preview that depends on it shows as a black square or
-  falls back to Rockstar's own generic "image not found" manufacturer-logo placeholder -
-  including cases where two variants of the same vehicle (e.g. Baller vs. Baller2) appear to
-  have inconsistent previews, since one variant might use a curated entry from the game's own
-  texture dictionaries (which still works without the file) while another uses this one (which
-  doesn't). This isn't a bug - restoring the file fixes it. The `Documents/previews/` folder of
-  loose PNGs is a separate, additional fallback for vehicles with no curated entry at all - it
-  doesn't replace the `.ytd`.
+- **Some vehicles still have no preview image at all.** `ENT_vehicle_previews.ytd` (a
+  custom texture dict this project used to ship) has been retired - most of what it referenced
+  either never actually existed in it or was never verified to, and had been silently falling
+  back to Rockstar's own placeholder graphic. Previews now come from either the game's own
+  streamed texture dicts or a PNG in `Documents/previews/` (see `vehicle-previews.md` for how
+  to add one yourself) - a vehicle with neither, and no same-family sibling to borrow a picture
+  from, just won't have one. Not a bug, and fixable per-vehicle by dropping in a PNG.
 - **Duplicate-looking vehicle entries with the same display name (e.g. multiple "Baller"
   entries) are real, distinct models**, not duplicates in the vehicle list - Rockstar has added
   several mechanically-different variants of the same vehicle across different updates that
-  happen to share a display name. This is vanilla game behaviour, not something ENT can or
-  should de-duplicate.
+  happen to share a display name. The spawner appends a plain-language hint (e.g. "(Drift)",
+  "(Police)") when the internal model name uses one of Rockstar's own variant-naming
+  conventions, but plain numbered trims with no such marker (e.g. Baller vs. Baller2, Mesa vs.
+  Mesa2) still show identically and have to be told apart some other way (check the log file's
+  spawn line for the internal model name). This is vanilla game behaviour, not something ENT
+  can fully de-duplicate.
 - **"Fix Jittering Weapons In Mod Shops" and "Use Weapons In Restricted Interiors" target a
   fixed list of known scripts/natives.** Some of the properties these cover (Hangar, Facility,
   Nightclub, and others - see `CONTRIBUTING.md`'s Hooking section for the full list) are ones

@@ -35,4 +35,12 @@ namespace ENT::ScriptNativeHook
 	// HookScript is called for it. Call this from inside a detour to pass a call through
 	// unmodified. Returns nullptr if no hook has been installed for this hash yet.
 	rage::scrNativeHandler GetOriginal(rage::scrNativeHash hash);
+
+	// Restores every native-table slot this module has ever swapped (on every currently
+	// loaded script) back to its real handler, and removes the InitNativeTables inline hook
+	// if one was installed. Call this before the module unloads - every detour function this
+	// hooks points at code inside this .asi, so leaving any of it patched into the game's own
+	// native tables (or InitNativeTables itself still jumping to our detour) after the module
+	// is gone is a dangling-pointer crash waiting to happen the next time any script calls it.
+	void UnhookAll();
 }

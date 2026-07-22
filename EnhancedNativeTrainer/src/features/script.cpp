@@ -33,6 +33,7 @@ https://github.com/gtav-ent/GTAV-EnhancedNativeTrainer
 #include "weapons.h"
 #include "interior_customization.h"
 #include "weapon_interior.h"
+#include "../scripting/ScriptNativeHook.h"
 #include "../version.h"
 #include "../utils.h"
 #include "../memory/Scanner.h"
@@ -2785,6 +2786,14 @@ void ScriptTidyUp(){
 		#endif
 
 		write_text_to_log_file("ScriptTidyUp called");
+
+		// Every native-table slot the script-native-hook feature (weapon_interior,
+		// fix_jittering_weapons) patched, and the InitNativeTables inline hook it may have
+		// installed, point at code inside this module - do this before anything below that
+		// could yield back to the game (WAIT(0)) and let a script call one of them, or they'd
+		// be jumping into memory that's about to be unmapped.
+		ENT::ScriptNativeHook::UnhookAll();
+		write_text_to_log_file("Removed script native hooks");
 
 		save_settings();
 		write_text_to_log_file("Saved settings");

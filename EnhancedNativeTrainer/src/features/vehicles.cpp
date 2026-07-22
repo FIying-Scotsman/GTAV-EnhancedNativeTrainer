@@ -5083,22 +5083,49 @@ void spawn_veh_manually() {
 	}
 }
 
+// Some vehicles share their base variant's exact GXT display name - e.g. both GAUNTLET4 and
+// DRIFTGAUNTLET4 show as "Bravado Gauntlet Hellfire" with nothing to tell them apart in the
+// menu. Rockstar uses a handful of internal-name prefixes, applied across many otherwise-
+// unrelated base vehicles, for exactly this kind of variant - "DRIFT<base>" (Los Santos Car
+// Meet's tuner variants - confirmed via the DRIFTGAUNTLET4/GAUNTLET4 collision above) is the
+// one seen colliding so far; "POL<base>" (unmarked/liveried police variants - e.g.
+// POLBUFFALO, POLDORADO) is the same well-established convention but hasn't specifically been
+// seen colliding with its own base caption yet. Both are harmless to check for regardless -
+// the suffix only gets added when the caption doesn't already mention it.
+static const std::vector<std::pair<std::string, std::string>> VARIANT_NAME_PREFIXES = {
+	{ "DRIFT", "Drift" },
+	{ "POL", "Police" },
+};
+
+static std::string disambiguate_variant_caption(const char* rawModelName, const std::string& caption)
+{
+	if (!rawModelName)
+		return caption;
+
+	for (const auto& [prefix, label] : VARIANT_NAME_PREFIXES)
+	{
+		if (_strnicmp(rawModelName, prefix.c_str(), prefix.size()) == 0 && caption.find(label) == std::string::npos)
+			return caption + " (" + label + ")";
+	}
+	return caption;
+}
+
 bool onconfirm_spawn_menu_cars(MenuItem<int> choice){
 	std::string caption = get_class_label(choice.value);
 	std::vector<MenuItem<int>*> menuItems;
 	std::vector<Hash> selectedCat = get_vehicles_from_category(choice.value);
 	int itemIndex = 0;
-	
+
 	for (Hash hash : selectedCat)
 	{
 		itemIndex++;
 		MenuItem<int>* item = new MenuItem<int>();
-		
+
 		if (get_vehicle_make_and_model(hash).compare("NULL") == 0 || get_vehicle_make_and_model(hash).compare("") == 0)
 			//item->caption = "Item " + std::to_string(itemIndex);
 			item->caption = GetVehicleModelName(hash);
 		else
-			item->caption = get_vehicle_make_and_model(hash);
+			item->caption = disambiguate_variant_caption(GetVehicleModelName(hash), get_vehicle_make_and_model(hash));
 		item->value = hash;
 		menuItems.push_back(item);
 	}
@@ -5127,7 +5154,11 @@ bool onconfirm_spawn_menu_cars(MenuItem<int> choice){
 bool do_spawn_vehicle_hash(int modelName, std::string modelTitle) {
 	DWORD model = modelName;
 
-	write_text_to_log_file("Attempting to spawn " + modelTitle + " with hash: " + std::to_string(modelName));
+	// The internal model name (e.g. "driftgauntlet4") is also what vehicle_image_preview_finder
+	// matches a Documents/previews/ PNG's filename against - logging it here alongside the
+	// display name tells a user reading this line exactly what to name a preview image for it.
+	const char* rawModelName = GetVehicleModelName(modelName);
+	write_text_to_log_file("Attempting to spawn " + modelTitle + " (" + (rawModelName ? rawModelName : "?") + ") with hash: " + std::to_string(modelName));
 
 	Vehicle veh = do_spawn_vehicle(model, modelTitle, true);
 	return false;

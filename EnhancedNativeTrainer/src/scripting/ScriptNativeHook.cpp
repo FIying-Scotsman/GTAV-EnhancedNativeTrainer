@@ -13,6 +13,18 @@ namespace
 {
 	std::unordered_map<rage::scrNativeHash, rage::scrNativeHandler> g_originals;
 
+	// The most recently installed detour for each hash - g_originals alone isn't enough to
+	// undo a hook, since ApplyHook needs to know what to swap *away from* as well as back to.
+	// Every ENT feature only ever registers one detour per hash, so "most recent" and "only"
+	// are the same thing in practice.
+	std::unordered_map<rage::scrNativeHash, rage::scrNativeHandler> g_installedDetours;
+
+	// InitNativeTables' real address, cached at hook-install time - NativeInvoker's own
+	// GetInitNativeTablesAddress() can't be reused for this after the fact, since
+	// OverrideInitNativeTables (below) repoints it at the trampoline for calling purposes,
+	// and RemoveHook needs the original target address, not the trampoline.
+	void* g_hookedInitNativeTablesTarget = nullptr;
+
 	// Swaps every table slot in `program` currently holding `original` for `detour`.
 	// Shared by HookAllScripts (called for every loaded program) and HookScript (called for
 	// just the one matching program, whether found immediately or via the detour below).
@@ -85,6 +97,7 @@ namespace
 			// Redirect NativeInvoker's own calls through the trampoline too, so resolving a
 			// new hash later doesn't route back through our detour.
 			ENT::NativeInvoker::OverrideInitNativeTables(trampoline);
+			g_hookedInitNativeTablesTarget = target;
 			return true;
 		}();
 		return installed;
@@ -114,6 +127,7 @@ namespace ENT::ScriptNativeHook
 		if (!original || original == detour || !detour)
 			return;
 
+		g_installedDetours[hash] = detour;
 		ENT::Scripts::ForEachScriptProgram([&](rage::scrProgram* program) {
 			ApplyHook(program, original, detour);
 		});
@@ -124,6 +138,8 @@ namespace ENT::ScriptNativeHook
 		rage::scrNativeHandler original = GetOriginal(hash);
 		if (!original || original == detour || !detour)
 			return;
+
+		g_installedDetours[hash] = detour;
 
 		// Apply immediately if the script's already loaded...
 		ApplyHook(ENT::Scripts::FindScriptProgram(scriptHash), original, detour);
@@ -141,5 +157,32 @@ namespace ENT::ScriptNativeHook
 			}
 		}
 		g_pendingScriptHooks.push_back({scriptHash, hash, detour});
+	}
+
+	void UnhookAll()
+	{
+		// Swap every slot we ever patched back to the real handler, on every currently
+		// loaded script - ApplyHook already does exactly this operation, just run in
+		// reverse (matching on the detour instead of the original).
+		for (const auto& [hash, original] : g_originals)
+		{
+			auto detourIt = g_installedDetours.find(hash);
+			if (detourIt == g_installedDetours.end())
+				continue;
+
+			ENT::Scripts::ForEachScriptProgram([&](rage::scrProgram* program) {
+				ApplyHook(program, detourIt->second, original);
+			});
+		}
+
+		if (g_hookedInitNativeTablesTarget)
+		{
+			ENT::RemoveHook(g_hookedInitNativeTablesTarget);
+			g_hookedInitNativeTablesTarget = nullptr;
+		}
+
+		g_pendingScriptHooks.clear();
+		g_installedDetours.clear();
+		g_originals.clear();
 	}
 }
