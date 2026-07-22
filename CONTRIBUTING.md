@@ -971,31 +971,69 @@ different compiler the way exe-side patterns are; it just needed reliable game d
 pick the right one of two known patterns):
 
 ```cpp
+rage::scrProgram* shopController;   // file-scope: found once by findShopController, read by enableCarsGlobal
+
 bool findShopController() {
-    if (!ENT::Scripts::WaitForScriptsInit()) { ... }
-    while (!(shopController = ENT::Scripts::FindScriptProgram(rage::joaat("shop_controller")))) {
-        // retry with a timeout - shop_controller can be a few frames behind the global table
+    if (!ENT::Scripts::WaitForScriptsInit()) {
+        write_text_to_log_file("[ERROR] Timed out waiting for script globals to initialise.");
+        return false;
     }
+
+    // shop_controller can still be a few frames from finishing its own load even
+    // once the global table is up, so retry for a bit rather than failing on the
+    // first miss.
+    DWORD startTime = GetTickCount();
+    DWORD timeout = 10000; // in millis
+    while (!(shopController = ENT::Scripts::FindScriptProgram(rage::joaat("shop_controller")))) {
+        scriptWait(100);
+        if (GetTickCount() - startTime > timeout) {
+            write_text_to_log_file("[ERROR] Timed out waiting for shop_controller to load.");
+            return false;
+        }
+    }
+
     return true;
 }
 
 void enableCarsGlobal() {
+    int despawnGlobal;
+
+    const char* idaPattern617_1 = "2C 01 ? ? 20 56 04 00 6E 2E ? 01 5F ? ? ? ? 04 00 6E 2E ? 01";
+    const unsigned int offset617_1 = 13;
+
+    const char* idaPattern1604_0 = "2D ? ? 00 00 2C 01 ? ? 56 04 00 71 2E ? 01 62 ? ? ? ? 04 00 71 2E ? 01";
+    const unsigned int offset1064_0 = 17;
+
     const char* idaPattern = idaPattern617_1;
     int offset = offset617_1;
-    if (IsEnhanced() || (getGameVersion() >= 46)) {
+
+    // getGameVersion() is unreliable on Enhanced (see inc/main.h), so don't let its
+    // unpredictable return value pick the pattern there - Enhanced's shop_controller
+    // build has been confirmed to use the same bytecode shape as the newer Legacy
+    // pattern (idaPattern1604_0), so route it there explicitly.
+    if (IsEnhanced() || (getGameVersion() >= 46) || (getGameVersion() == -1)) {
         idaPattern = idaPattern1604_0;
         offset = offset1064_0;
     }
-    for (int i = 0; i < shopController->CodePageCount(); i++) {
-        auto address = ScanPattern(idaPattern, shopController->GetCodePageAddress(i), shopController->GetCodePageSize(i));
-        if (address) {
-            int despawnGlobal = address.Add(offset).As<const int&>() & 0xFFFFFF;
-            ENT::ScriptGlobal(despawnGlobal).As<int&>() = 1;
-            return;
+
+    for (int i = 0; i < shopController->CodePageCount(); i++)
+    {
+        int size = shopController->GetCodePageSize(i);
+        if (size)
+        {
+            auto address = ScanPattern(idaPattern, shopController->GetCodePageAddress(i), size);
+            if (address)
+            {
+                despawnGlobal = address.Add(offset).As<const int&>() & 0xFFFFFF;
+                ENT::ScriptGlobal(despawnGlobal).As<int&>() = 1;
+                return;
+            }
         }
     }
 }
 ```
+
+`shopController` is a plain `rage::scrProgram*` at file scope in `rage_thread.cpp` - `findShopController` resolves it once (called from trainer startup, alongside `WaitForScriptsInit`), and `enableCarsGlobal` reads it later without re-resolving. `FindScriptProgram` returns `nullptr` while the script isn't loaded yet, which is what the retry loop is polling on.
 
 If you're adding a *new* script-bytecode-based feature, prefer `ScriptPointer`/`ScriptPatch`
 over hand-rolling the loop above - they're the generalised version of exactly this pattern.
