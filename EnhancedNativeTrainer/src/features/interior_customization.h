@@ -180,3 +180,6 @@ void update_interior_customization_pending_dialogs();
 
 // Polled every frame from update_features() (script.cpp) - keeps the Nightclub's screen prop playing video matching the current DJ Booth selection, and releases it once the player moves on to a different interior.
 void update_nightclub_tv_projector();
+
+// Polled every frame from update_features() (script.cpp) - once "Load Online Map" (featureMPMap) has actually entered MP context, requests all three Mansion properties' shell IPLs and removes their vanilla/unowned "_original" exteriors, regardless of whether the player has ever visited any of them. Runs once per MP-context entry, re-arming whenever "Load Online Map" is turned back off (DLC::ON_ENTER_SP() resets the streamed asset state, bringing the vanilla exteriors back).
+void update_mansion_default_exteriors();

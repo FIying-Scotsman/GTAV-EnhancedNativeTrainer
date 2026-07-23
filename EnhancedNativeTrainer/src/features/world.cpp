@@ -1940,9 +1940,9 @@ void update_world_features()
 		}
 		if (featureMPMap.updated == false && MISC::GET_MISSION_FLAG() == 1) featureMPMap.updated = true; // (MISC::GET_MISSION_FLAG() == 1 || DLC::GET_IS_LOADING_SCREEN_ACTIVE())
 	}
-	if (!featureMPMap.enabled && featureMPMap.updated == false) {
+	if (!featureMPMap.enabled && featureMPMap.updated == true) {
 		DLC::ON_ENTER_SP();
-		featureMPMap.updated = true;
+		featureMPMap.updated = false;
 		MPMapCounter = 0;
 	}
 

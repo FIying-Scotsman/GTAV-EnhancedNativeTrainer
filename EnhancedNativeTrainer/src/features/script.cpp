@@ -910,6 +910,8 @@ void update_features(){
 
 	update_nightclub_tv_projector();
 
+	update_mansion_default_exteriors();
+
 	update_area_effects(playerPed);
 	
 	update_speedaltitude(playerPed);

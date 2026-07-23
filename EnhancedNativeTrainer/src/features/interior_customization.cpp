@@ -1436,6 +1436,62 @@ bool begin_interior_customization_for_caption(const std::string& caption){
 	return false;
 }
 
+// The three Mansion properties' vanilla/unowned "_original" exteriors are only ever removed by
+// begin_interior_customization(), which only runs for whichever specific mansion the player
+// actually enters via its own customization menu - so any mansion nobody has visited yet keeps
+// showing its vanilla exterior with nothing requested to replace it, an invisible hole in the
+// map from a distance too. The retired featureHouseOnHill auto-loader used to fix this for all
+// three unconditionally as long as its own toggle was on, not tied to visiting a specific
+// property - reintroduced here the same way, tied to "Load Online Map" (featureMPMap) instead,
+// reusing each mansion's own shellIpls/removeIpls rather than a second hardcoded IPL list. Runs
+// once per session, gated on featureMPMap.updated having already flipped back to false - the
+// same signal world.cpp's own update_world_features() uses to know DLC::ON_ENTER_MP() has
+// actually fired - rather than guessing a second independent tick delay. Requests each mansion's
+// shell first and gives it a moment to actually stream in (same bounded-wait idiom
+// begin_interior_customization uses for interior resolution) before removing that mansion's
+// vanilla exterior, so there's no gap where neither is present.
+static const InteriorCustomizationDef* const MANSION_AUTOLOAD_DEFS[] = {
+	&MANSION_CUSTOMIZATION, &MANSION_CH2_04_CUSTOMIZATION, &MANSION_CH1_09_CUSTOMIZATION
+};
+static bool mansionDefaultExteriorsLoaded = false;
+
+void update_mansion_default_exteriors(){
+	if(!featureMPMap.enabled){
+		// Re-arm for the next time MP context is entered - DLC::ON_ENTER_SP() (fired when "Load
+		// Online Map" is turned off) resets the streamed asset state back to its SP defaults,
+		// which brings the vanilla mansion exteriors back too. A one-shot-forever flag would
+		// leave them unfixed on every re-enable after the first.
+		mansionDefaultExteriorsLoaded = false;
+		return;
+	}
+	if(mansionDefaultExteriorsLoaded) return;
+	if(featureMPMap.updated) return;
+
+	for(const InteriorCustomizationDef* def : MANSION_AUTOLOAD_DEFS){
+		for(const char* ipl : def->shellIpls){
+			if(!STREAMING::IS_IPL_ACTIVE(ipl)){
+				STREAMING::REQUEST_IPL(ipl);
+			}
+		}
+
+		if(!def->shellIpls.empty()){
+			DWORD shellLoadTimeout = GetTickCount() + 5000;
+			while(GetTickCount() < shellLoadTimeout && !STREAMING::IS_IPL_ACTIVE(def->shellIpls[0])){
+				make_periodic_feature_call();
+				WAIT(0);
+			}
+		}
+
+		for(const char* ipl : def->removeIpls){
+			if(STREAMING::IS_IPL_ACTIVE(ipl)){
+				STREAMING::REMOVE_IPL(ipl);
+			}
+		}
+	}
+
+	mansionDefaultExteriorsLoaded = true;
+}
+
 // Booth 1-4 in our DJ Booth menu map directly to the four founding resident DJs' playlist codes pulled from am_mp_nightclub.c (Solomun/Dixon/Tale Of Us/The Blessed Madonna) - the same pairing behind the poster art baked into each booth model. The tier suffix is fixed at the top tier (LSER) to match the DJ_0N_Lights_04 groupValues added above, and the track suffix is fixed at the first one (_OMEGA) rather than simulating the real game's per-song rotation.
 static const char* const NIGHTCLUB_TV_DJ_CODES[] = { "SOL", "DIX", "TOU", "TBM" };
 static const char* const NIGHTCLUB_TV_RENDERTARGET_NAME = "Club_Projector";
