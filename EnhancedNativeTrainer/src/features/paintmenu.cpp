@@ -214,10 +214,13 @@ const std::vector<PaintColor> PAINTS_CHROME{
 	{120, "Chrome"}
 };
 
-// Not const: sorted alphabetically in place on first use by ensure_paint_tables_sorted(). Every consumer
-// (menu-build, onhighlight/onconfirm colour lookups, apply_paint, random colour picks) reads this same
-// array by index, so sorting it once here keeps every one of those index-based lookups consistent -
-// sorting a local copy at menu-build time only would desync them.
+// Deliberately left in the same order as each table above, which is itself already Rockstar's
+// own paint-ID order (ascending IDs run in colour families - greys, reds, greens, blues, ...).
+// This used to be sorted alphabetically in place on first use, which looked tidy per-letter but
+// actually scattered a colour family apart (e.g. Worn's "Blue"/"Dark Blue" sorted away from
+// "Light Blue", since the modifier is part of the name string) - reported by a user as the paint
+// menu being "ordered strange". R*'s own order groups by colour, which alphabetical order can't
+// do without inventing a colour-family heuristic of our own, so it's left alone here instead.
 std::vector<PaintColor> PAINTS_BY_TYPE[7]{
 	PAINTS_CLASSIC,
 	PAINTS_CLASSIC,
@@ -227,19 +230,6 @@ std::vector<PaintColor> PAINTS_BY_TYPE[7]{
 	PAINTS_WORN,
 	PAINTS_CHROME
 };
-
-void ensure_paint_tables_sorted(){
-	static bool sorted = false;
-	if(sorted){
-		return;
-	}
-	for(auto &table : PAINTS_BY_TYPE){
-		std::sort(table.begin(), table.end(), [](const PaintColor &a, const PaintColor &b){
-			return a.name < b.name;
-		});
-	}
-	sorted = true;
-}
 
 bool onconfirm_paintdirt(MenuItem<float> choice){
 	return true;
@@ -808,8 +798,6 @@ bool process_paint_menu(){
 }
 
 bool onconfirm_paint_menu_type(MenuItem<int> choice){
-	ensure_paint_tables_sorted();
-
 	std::string category = choice.caption;
 	Ped playerPed = PLAYER::PLAYER_PED_ID();
 	Vehicle veh = PED::GET_VEHICLE_PED_IS_USING(playerPed);
