@@ -556,7 +556,11 @@ private:
 
 	void save_skin_props(Ped ped, sqlite3_int64 rowID);
 
-	void handle_version(int oldVersion);
+	// Returns false if any migration step inside failed (e.g. a locked/permission-denied DB
+	// file) - open() uses this to decide whether it's safe to stamp the manifest's VERSION as
+	// current, so a failed step gets retried on the next launch instead of being silently
+	// treated as done forever.
+	bool handle_version(int oldVersion);
 
 	void begin_transaction();
 	

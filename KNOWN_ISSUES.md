@@ -34,6 +34,16 @@ really be fixed, listed here so they don't get reported as bugs.
 
 ## Known Limitations
 
+- **Downgrading to an older ENT build after running a newer one can break saving**, with an
+  error like `table ENT_SAVED_VEHICLES has 44 columns but 43 values were supplied`. Newer builds
+  can add columns to the local `ent.db` database (e.g. the `savedAt` column behind "Sort By: Date
+  Saved"); an older build has no idea that column exists and always supplies a fixed number of
+  values when saving, which fails once the table has more columns than that. Simplest fix: update
+  to the latest build instead of downgrading. If downgrading is unavoidable and you still need
+  that older build's `ent.db` to work, `tools/downgrade_savedat_column.py` removes the added
+  column and rolls the stored schema version back down to match (backs up the database first) -
+  see `tools/README.md` for a full step-by-step guide, including installing Python if you don't
+  already have it.
 - **Some vehicles still have no preview image at all.** `ENT_vehicle_previews.ytd` (a
   custom texture dict this project used to ship) has been retired - most of what it referenced
   either never actually existed in it or was never verified to, and had been silently falling

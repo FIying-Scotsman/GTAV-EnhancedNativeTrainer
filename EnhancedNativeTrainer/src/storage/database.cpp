@@ -70,8 +70,16 @@ static int genericSettingPairsFetchCallback(void *data, int count, char **rows, 
 	return 0;
 }
 
-void ENTDatabase::handle_version(int oldVersion)
+bool ENTDatabase::handle_version(int oldVersion)
 {
+	// Every migration step below only ever logged a failed CREATE/ALTER and carried on - open()
+	// still stamped the manifest's VERSION as current regardless, so a step that failed (e.g. a
+	// locked/permission-denied DB file) left its table permanently missing whatever it was meant
+	// to add, with no way to ever retry since the version already reads as up to date. success
+	// tracks whether every step actually succeeded, so open() can leave the stamped version alone
+	// (and retry next launch) if anything here didn't.
+	bool success = true;
+
 	if (oldVersion == -1)
 	{
 		write_text_to_log_file("Feature enablement table not found, so creating it");
@@ -81,6 +89,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Enablement table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -97,6 +106,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Generic setting pairs table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -157,6 +167,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Main vehicle table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -177,6 +188,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Vehicle extras table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -199,6 +211,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Vehicle mods table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -221,6 +234,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Main skin table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -243,6 +257,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Skin components table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -265,6 +280,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Skin props table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -275,12 +291,13 @@ void ENTDatabase::handle_version(int oldVersion)
 	if (oldVersion >= 3 && oldVersion < 5)
 	{
 		char* ADD_TYRES_COL = "ALTER TABLE ENT_SAVED_VEHICLES ADD customTyres INTEGER DEFAULT 0";
-		
+
 		int custTyresAddition = sqlite3_exec(db, ADD_TYRES_COL, NULL, 0, &zErrMsg);
 		if (custTyresAddition != SQLITE_OK)
 		{
 			write_text_to_log_file("Couldn't add custom tyres column");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 	}
 
@@ -310,6 +327,7 @@ void ENTDatabase::handle_version(int oldVersion)
 			{
 				write_text_to_log_file("Couldn't add v6 vehicle column");
 				sqlite3_free(zErrMsg);
+				success = false;
 			}
 		}
 	}
@@ -323,6 +341,7 @@ void ENTDatabase::handle_version(int oldVersion)
 			{
 				write_text_to_log_file("Couldn't alter props table");
 				sqlite3_free(zErrMsg);
+				success = false;
 			}
 		}
 		{
@@ -331,6 +350,7 @@ void ENTDatabase::handle_version(int oldVersion)
 			{
 				write_text_to_log_file("Couldn't alter props table");
 				sqlite3_free(zErrMsg);
+				success = false;
 			}
 		}
 	}
@@ -347,6 +367,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Prop set table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -377,6 +398,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Prop instance table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -399,6 +421,7 @@ void ENTDatabase::handle_version(int oldVersion)
 			{
 				write_text_to_log_file("Couldn't add v9 vehicle column");
 				sqlite3_free(zErrMsg);
+				success = false;
 			}
 		}
 	}
@@ -412,6 +435,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Couldn't add engine sound column");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 	}
 
@@ -424,6 +448,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Couldn't add xenon colour column");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 	}
 
@@ -451,6 +476,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Main skin table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -473,6 +499,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Skin components table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -495,6 +522,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Skin props table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -526,6 +554,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Main colour table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -550,12 +579,13 @@ void ENTDatabase::handle_version(int oldVersion)
 			comp6 INTEGER NOT NULL, \
 			w_tint INTEGER NOT NULL \
 			)";
-		
+
 		int rcSkin1 = sqlite3_exec(db, CREATE_VEH_COLOUR_TABLE_QUERY, NULL, 0, &zErrMsg);
 		if (rcSkin1 != SQLITE_OK)
 		{
 			write_text_to_log_file("Main weapon table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -620,6 +650,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Main vehicle table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -640,6 +671,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Vehicle extras table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -662,6 +694,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Vehicle mods table creation problem");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 		else
 		{
@@ -690,6 +723,7 @@ void ENTDatabase::handle_version(int oldVersion)
 			{
 				write_text_to_log_file("Couldn't add bodyguard skins columns");
 				sqlite3_free(zErrMsg);
+				success = false;
 			}
 		}
 	}
@@ -703,6 +737,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Couldn't add engine power multiplier column");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 
 		char* ADD_TRACKEDPOWERMULTIPLIER_COL = "ALTER TABLE ENT_TRACKED_VEHICLES ADD powerMultiplier INTEGER DEFAULT -1";
@@ -712,6 +747,7 @@ void ENTDatabase::handle_version(int oldVersion)
 		{
 			write_text_to_log_file("Couldn't add engine power multiplier column");
 			sqlite3_free(zErrMsg);
+			success = false;
 		}
 	}
 
@@ -736,9 +772,12 @@ void ENTDatabase::handle_version(int oldVersion)
 			{
 				write_text_to_log_file("Couldn't add v18 savedAt column");
 				sqlite3_free(zErrMsg);
+				success = false;
 			}
 		}
 	}
+
+	return success;
 }
 
 bool ENTDatabase::open()
@@ -814,6 +853,10 @@ bool ENTDatabase::open()
 	}
 
 	int dbversion = -1;
+	// Only set true once handle_version() itself confirms every migration step it ran actually
+	// succeeded - stays false (the safe default) if the version lookup query fails outright, or
+	// if a migration inside handle_version() failed, so a bad run doesn't get treated as done.
+	bool migrationsOk = false;
 	char* FIND_VERSION_TABLE_QUERY = "select CAST(MANIFEST_VALUE as integer) from ENT_DB_MANIFEST where MANIFEST_KEY='VERSION'";
 	rc = sqlite3_exec(db, FIND_VERSION_TABLE_QUERY, singleIntResultCallback, &dbversion, &zErrMsg);
 	if (rc != SQLITE_OK)
@@ -826,25 +869,35 @@ bool ENTDatabase::open()
 		ss.str(""); ss.clear();
 		ss << "Version found: " << dbversion;
 		write_text_to_log_file(ss.str());
-		handle_version(dbversion);
+		migrationsOk = handle_version(dbversion);
 	}
 
 	if (dbversion != DATABASE_VERSION)
 	{
-		ss.str(""); ss.clear();
-		ss << "INSERT OR REPLACE INTO ENT_DB_MANIFEST (MANIFEST_KEY, MANIFEST_VALUE) VALUES('VERSION', '" << DATABASE_VERSION << "')";
-		auto ssStr = ss.str();
-		rc = sqlite3_exec(db, ssStr.c_str(), emptyCallback, NULL, &zErrMsg);
-		if (rc != SQLITE_OK)
+		if (!migrationsOk)
 		{
-			write_text_to_log_file("Couldn't update version");
-			write_text_to_log_file(ss.str());
-			write_text_to_log_file(zErrMsg);
-			sqlite3_free(zErrMsg);
+			// Deliberately leave the stored VERSION alone here - see handle_version()'s own
+			// comment. Whatever failed will be retried the next time the trainer loads instead
+			// of being permanently skipped.
+			write_text_to_log_file("Not updating stored DB version - a migration step failed, will retry next launch");
 		}
 		else
 		{
-			write_text_to_log_file("Updated version");
+			ss.str(""); ss.clear();
+			ss << "INSERT OR REPLACE INTO ENT_DB_MANIFEST (MANIFEST_KEY, MANIFEST_VALUE) VALUES('VERSION', '" << DATABASE_VERSION << "')";
+			auto ssStr = ss.str();
+			rc = sqlite3_exec(db, ssStr.c_str(), emptyCallback, NULL, &zErrMsg);
+			if (rc != SQLITE_OK)
+			{
+				write_text_to_log_file("Couldn't update version");
+				write_text_to_log_file(ss.str());
+				write_text_to_log_file(zErrMsg);
+				sqlite3_free(zErrMsg);
+			}
+			else
+			{
+				write_text_to_log_file("Updated version");
+			}
 		}
 	}
 
